@@ -1,0 +1,44 @@
+# Runs the methodology tests and the whole suite on a disposable PostgreSQL server, and fails if any classification
+# differs from the recorded run in reports/examples. Third-party actions are pinned by commit.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  suite:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.14.1
+      - name: pnpm 12.8.1, from package.json's packageManager
+        run: corepack enable && pnpm --version
+      - name: Install from the committed lockfiles
+        run: pnpm run setup
+      - name: Classification rules (no database)
+        run: pnpm run test
+      - name: Start the disposable server
+        run: pnpm run pg:up
+      - name: Methodology tests (controls and fixtures through the real runner)
+        run: pnpm run test:methodology
+      - name: Whole suite, compared with the recorded run
+        run: node harness/run.mjs --expect=reports/examples/2026-10-16T22-16-20Z-bf4e65/run.json
+      - name: Keep the evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ppcs-results
+          path: results/
+          if-no-files-found: ignore
+      - name: Remove the server
+        if: always()
+        run: pnpm run pg:down
