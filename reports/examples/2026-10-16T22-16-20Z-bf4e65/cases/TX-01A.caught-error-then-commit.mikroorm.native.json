@@ -1,0 +1,223 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-01A.caught-error-then-commit",
+    "version": "1.0",
+    "family": "TX-01A",
+    "family_title": "Commit of an aborted transaction",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A unique violation is caught inside the transaction, which then ends normally",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`, and make sure the write was sent to PostgreSQL.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "Insert the value 'taken' into uniq through the framework's ordinary write API. It fails with unique_violation (23505). Catch the error and continue.",
+      "Checkpoint `before-end`: report the same backend PID. The transaction is aborted, so it cannot run queries; the runner confirms the aborted state server-side.",
+      "End the transaction normally, so that the framework sends COMMIT."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01A.1",
+        "statement": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "mikroorm",
+      "version": "0.1.0",
+      "source_sha256": "2cb24d85f85c323645e59ec452b0b7aec6bdb51c73fe18cac50766e0844a0629"
+    },
+    "framework": {
+      "name": "@mikro-orm/core",
+      "version": "7.2.5"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@mikro-orm/postgresql": "7.2.5",
+      "@mikro-orm/sql": "7.2.5",
+      "kysely": "0.29.6",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "MikroORM's defaults: em.transactional(callback) in a RequestContext, allowGlobalContext false.",
+    "configuration": {}
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application.",
+    "injection_point": "After the first write, before the transaction ends.",
+    "preconditions": "The row 'taken' already exists in uniq (fixture).",
+    "expected_server": "The failed statement aborts the transaction. PostgreSQL answers the later COMMIT with the command tag ROLLBACK, without an error, and commits nothing.",
+    "expected_client": "The driver receives the command tag ROLLBACK as the reply to COMMIT.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The outcome reaches the client: PostgreSQL's reply to COMMIT carries the command tag ROLLBACK.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "em.transactional(callback) resolved",
+    "contract": "In MikroORM 7.2.5, em.transactional(callback) runs the callback, flushes, and commits (AbstractSqlConnection.transactional in @mikro-orm/sql: begin, callback, commit, return); if the callback or the flush throws, it rolls back and rethrows that error. A resolved call is MikroORM's report that the transaction committed.",
+    "error": null,
+    "steps": {
+      "violation": {
+        "class": "UniqueConstraintViolationException",
+        "code": "23505",
+        "message": "duplicate key value violates unique constraint \"uniq_code_key\"",
+        "sqlState": null
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 25317,
+          "xid": "3471"
+        },
+        "session": {
+          "pid": 25317,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3471",
+          "xid_matches": true,
+          "application_name": ""
+        }
+      },
+      "before-end": {
+        "reported": {
+          "pid": 25317,
+          "xid": null
+        },
+        "session": {
+          "pid": 25317,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "application_name": ""
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3471",
+        "pid": 25317,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "FAIL",
+    "reason": "TX-01A.1 violated: the API reported: committed",
+    "preconditions": [
+      {
+        "description": "the duplicate insert failed with unique_violation (23505), as reported by the adapter",
+        "met": true,
+        "detail": "caught: 23505"
+      },
+      {
+        "description": "the server-side transaction was aborted before it ended (pg_stat_activity at before-end)",
+        "met": true,
+        "detail": "state: idle in transaction (aborted)"
+      },
+      {
+        "description": "PostgreSQL did not commit the transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01A.1",
+        "statement": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit.",
+        "holds": false,
+        "detail": "the API reported: committed"
+      }
+    ],
+    "contract_basis": {
+      "invariants": [
+        "TX-01A.1: When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit."
+      ],
+      "framework": "In MikroORM 7.2.5, em.transactional(callback) runs the callback, flushes, and commits (AbstractSqlConnection.transactional in @mikro-orm/sql: begin, callback, commit, return); if the callback or the flush throws, it rolls back and rethrows that error. A resolved call is MikroORM's report that the transaction committed."
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=mikroorm --mode=native --case=TX-01A.caught-error-then-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 25317): begin",
+        "c1(pid 25317): -> command tag BEGIN for: begin",
+        "c1(pid 25317): insert into \"item\" (\"name\", \"qty\") values ('tx-417993', 0) returning \"id\"",
+        "c1(pid 25317): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 25317): insert into \"uniq\" (\"code\") values ('taken') returning \"id\"",
+        "c1(pid 25317): -> ERROR 23505 duplicate key value violates unique constraint \"uniq_code_key\"",
+        "c1(pid 25317): commit",
+        "c1(pid 25317): -> command tag ROLLBACK for: commit"
+      ],
+      "commit_replies": [
+        "ROLLBACK"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:16:23.718Z",
+    "finished_at": "2026-10-16T22:16:23.894Z",
+    "duration_ms": 176
+  }
+}

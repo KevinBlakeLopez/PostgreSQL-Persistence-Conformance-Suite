@@ -1,0 +1,259 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-03.conn-lost-in-transaction",
+    "version": "1.0",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The backend of a failing transaction is terminated before its ROLLBACK; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend and waits until it has gone. Then wait settle_ms.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK on the closed connection, which fails.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "b80f2688b4b0b1d818e7ab03f4ade02c9ae0bec0ee242dd6cf4ee406d3b96830"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "control",
+    "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed.",
+    "configuration": {
+      "commit_reply": "checked",
+      "commit_error": "reported as a failure",
+      "failed_savepoint_rollback": "transaction ended with ROLLBACK",
+      "failed_rollback": "connection discarded"
+    }
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside unit 1, after its write, before the framework's ROLLBACK.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and unit 1's transaction is rolled back.",
+    "expected_client": "An error from the framework's rollback; the pool holds a closed connection.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework knows that its connection failed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw; ROLLBACK failed, and the connection was discarded",
+    "contract": "The correct control discards a connection whose ROLLBACK failed, so its transaction can only end in a rollback, and reports a unit whose body threw as rolled back.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "application error: unit 1 fails"
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "elapsed_ms": 10,
+        "reported": "committed",
+        "basis": "COMMIT succeeded",
+        "contract": "The correct control discards a connection whose ROLLBACK failed, so its transaction can only end in a rollback, and reports a unit whose body threw as rolled back."
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 25954,
+          "xid": "3614"
+        },
+        "session": {
+          "pid": 25954,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3614",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        },
+        "action": {
+          "action": "terminate_backend",
+          "pid": 25954,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 25954,
+          "xid": null
+        },
+        "session": {
+          "pid": 25954,
+          "present": false
+        }
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 25959,
+          "xid": "3615"
+        },
+        "session": {
+          "pid": 25959,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3615",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "3614",
+        "pid": 25954,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted"
+      },
+      "unit2": {
+        "xid": "3615",
+        "pid": 25959,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "committed"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": true
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": "3615"
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "PASS",
+    "reason": "TX-03.1 held: failed transaction 3614: pg_xact_status aborted; doomed visible: false; next unit's transaction: 3615; TX-03.2 held: next unit: completed, reported committed after 10 ms; its transaction: 3615 committed; next visible: true",
+    "preconditions": [
+      {
+        "description": "the runner terminated the backend at unit1-after-write, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": true,
+        "detail": "failed transaction 3614: pg_xact_status aborted; doomed visible: false; next unit's transaction: 3615"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": true,
+        "detail": "next unit: completed, reported committed after 10 ms; its transaction: 3615 committed; next visible: true"
+      }
+    ],
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=correct --case=TX-03.conn-lost-in-transaction",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 25954): BEGIN",
+        "c1(pid 25954): -> command tag BEGIN for: BEGIN",
+        "c1(pid 25954): insert into item (name) values ($1)",
+        "c1(pid 25954): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 25954): ROLLBACK",
+        "c1(pid 25954): -> ERROR Client has encountered a connection error and is not queryable",
+        "c2(pid 25959): BEGIN",
+        "c2(pid 25959): -> command tag BEGIN for: BEGIN",
+        "c2(pid 25959): insert into item (name) values ($1)",
+        "c2(pid 25959): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c2(pid 25959): COMMIT",
+        "c2(pid 25959): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:03.789Z",
+    "finished_at": "2026-10-16T22:17:04.004Z",
+    "duration_ms": 215
+  }
+}

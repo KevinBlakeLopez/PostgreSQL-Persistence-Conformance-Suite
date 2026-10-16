@@ -1,0 +1,204 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-01B.commit-reply-discarded",
+    "version": "1.0",
+    "family": "TX-01B",
+    "family_title": "Commit outcome unknown to the client",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "COMMIT completes on the server, and the client discards the reply (client-side simulation)",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Arm the client-side fault: the driver sends the next COMMIT, which PostgreSQL executes; the driver then closes its own connection and reports a connection error instead of the reply.",
+      "End the transaction normally, so that the framework sends COMMIT."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the client has received no reply to COMMIT, because the connection or the reply was lost, the API does not report a successful commit."
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When the client has received no reply to COMMIT, the API does not report a confirmed rollback."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "b80f2688b4b0b1d818e7ab03f4ade02c9ae0bec0ee242dd6cf4ee406d3b96830"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "control",
+    "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed.",
+    "configuration": {
+      "commit_reply": "checked",
+      "commit_error": "reported as a failure",
+      "failed_savepoint_rollback": "transaction ended with ROLLBACK",
+      "failed_rollback": "connection discarded"
+    }
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "D",
+    "mechanism": "A client-side simulation inside the adapter's driver layer (node-postgres, pg.Client.prototype.query): COMMIT is sent and completes on the server; the client then closes its own connection, and the caller receives a connection error instead of the reply. It is not a network failure.",
+    "injection_point": "In the client, between the server's reply to COMMIT and its delivery to the framework.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "The transaction commits.",
+    "expected_client": "A connection error in place of the reply to COMMIT.",
+    "depends_on_internals": true
+  },
+  "knowledge": "None at the API level: the reply to COMMIT was discarded before the framework saw it. Only a later read can establish that the transaction committed.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "COMMIT raised an error",
+    "contract": "The correct control reports committed only when PostgreSQL answers COMMIT with the command tag COMMIT, reports any other tag as a rollback, and reports a COMMIT that raised as a failure. After a failed savepoint rollback, it ends the transaction with ROLLBACK instead of COMMIT.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "connection lost after sending: COMMIT"
+    },
+    "steps": {
+      "fault": {
+        "mode": "reply-lost",
+        "fired": 1
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 25837,
+          "xid": "3567"
+        },
+        "session": {
+          "pid": 25837,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3567",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3567",
+        "pid": 25837,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "3567"
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 held: the API reported: failed",
+    "preconditions": [
+      {
+        "description": "the client-side fault (reply-lost) fired",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (committed)",
+        "met": true,
+        "detail": "pg_xact_status: committed; marker visible: true"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the client has received no reply to COMMIT, because the connection or the reply was lost, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When the client has received no reply to COMMIT, the API does not report a confirmed rollback.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      }
+    ],
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=correct --case=TX-01B.commit-reply-discarded",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 25837): BEGIN",
+        "c1(pid 25837): -> command tag BEGIN for: BEGIN",
+        "c1(pid 25837): insert into item (name) values ($1)",
+        "c1(pid 25837): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 25837): COMMIT -- INJECTED (client-side simulation): sent, then the client closes its connection and discards the reply"
+      ],
+      "commit_replies": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:02.627Z",
+    "finished_at": "2026-10-16T22:17:02.713Z",
+    "duration_ms": 86
+  }
+}

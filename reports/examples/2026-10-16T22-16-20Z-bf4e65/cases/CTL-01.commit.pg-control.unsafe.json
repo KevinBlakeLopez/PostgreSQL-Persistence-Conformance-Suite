@@ -1,0 +1,176 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "CTL-01.commit",
+    "version": "1.0",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and commits",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` through the framework's ordinary write API.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "End the transaction normally, so that the framework commits it."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "b80f2688b4b0b1d818e7ab03f4ade02c9ae0bec0ee242dd6cf4ee406d3b96830"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "control",
+    "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, and returns a connection whose ROLLBACK failed to its pool as it is.",
+    "configuration": {
+      "commit_reply": "ignored",
+      "commit_error": "reported as a rollback",
+      "failed_savepoint_rollback": "ignored",
+      "failed_rollback": "connection returned to the pool"
+    }
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "COMMIT did not raise (command tag COMMIT)",
+    "contract": "The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks.",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 25759,
+          "xid": "3539"
+        },
+        "session": {
+          "pid": 25759,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3539",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3539",
+        "pid": 25759,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "3539"
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "PASS",
+    "reason": "CTL-01.1 held: pg_xact_status: committed; marker visible: true",
+    "preconditions": [
+      {
+        "description": "the API reported \"committed\"",
+        "met": true,
+        "detail": "reported: committed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker.",
+        "holds": true,
+        "detail": "pg_xact_status: committed; marker visible: true"
+      }
+    ],
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=unsafe --case=CTL-01.commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 25759): BEGIN",
+        "c1(pid 25759): -> command tag BEGIN for: BEGIN",
+        "c1(pid 25759): insert into item (name) values ($1)",
+        "c1(pid 25759): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 25759): COMMIT",
+        "c1(pid 25759): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:01.796Z",
+    "finished_at": "2026-10-16T22:17:01.882Z",
+    "duration_ms": 86
+  }
+}

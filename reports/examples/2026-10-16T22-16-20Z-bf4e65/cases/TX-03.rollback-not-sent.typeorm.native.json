@@ -1,0 +1,269 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-03.rollback-not-sent",
+    "version": "1.0",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The top-level ROLLBACK of a failed transaction fails on the client; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK, which fails, so the connection keeps its open transaction.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "typeorm",
+      "version": "0.1.0",
+      "source_sha256": "b8dbf1b8003f1d4fc1b1e85ccc5ac1d100f4e63a6aaad99e42ef7f846df9ddca"
+    },
+    "framework": {
+      "name": "typeorm",
+      "version": "1.1.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "TypeORM's defaults, with the managed transaction API ds.transaction(callback).",
+    "configuration": {}
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "mechanism": "A client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+    "injection_point": "The framework's ROLLBACK of unit 1.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "Unit 1's transaction stays open on its connection (\"idle in transaction\"), holding the doomed write.",
+    "expected_client": "An error from the framework's rollback; what the framework then does with the connection is under test.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework knows that its ROLLBACK failed, so it knows that the connection's transaction state is unknown.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "ds.transaction(callback) rejected with the error the callback threw",
+    "contract": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "application error: unit 1 fails"
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "elapsed_ms": 6,
+        "reported": "committed",
+        "basis": "ds.transaction(callback) resolved",
+        "contract": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed."
+      },
+      "fault": {
+        "mode": "client-reject",
+        "fired": 1
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 26114,
+          "xid": "3678"
+        },
+        "session": {
+          "pid": 26114,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3678",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 26114,
+          "xid": null
+        },
+        "session": {
+          "pid": 26114,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3678",
+          "xid_matches": null,
+          "application_name": "ppcs-adapter"
+        }
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 26114,
+          "xid": "3678"
+        },
+        "session": {
+          "pid": 26114,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3678",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "3678",
+        "pid": 26114,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "committed"
+      },
+      "unit2": {
+        "xid": "3678",
+        "pid": 26114,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "committed"
+      }
+    },
+    "markers": {
+      "doomed": true,
+      "next": true
+    },
+    "marker_xmin": {
+      "doomed": "3678",
+      "next": "3678"
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "FAIL",
+    "reason": "TX-03.1 violated: failed transaction 3678: pg_xact_status committed; doomed visible: true; next unit's transaction: 3678 (the failed transaction itself)",
+    "preconditions": [
+      {
+        "description": "the client-side fault (client-reject) fired",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": false,
+        "detail": "failed transaction 3678: pg_xact_status committed; doomed visible: true; next unit's transaction: 3678 (the failed transaction itself)"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": true,
+        "detail": "next unit: completed, reported committed after 6 ms; its transaction: 3678 committed; next visible: true"
+      }
+    ],
+    "contract_basis": {
+      "invariants": [
+        "TX-03.1: Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      ],
+      "framework": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed."
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=typeorm --mode=native --case=TX-03.rollback-not-sent",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 26114): SELECT version()",
+        "c1(pid 26114): SELECT * FROM current_schema()",
+        "c1(pid 26114): START TRANSACTION",
+        "c1(pid 26114): -> command tag START for: START TRANSACTION",
+        "c1(pid 26114): INSERT INTO \"item\"(\"name\", \"qty\") VALUES ($1, DEFAULT) RETURNING \"id\", \"qty\"",
+        "c1(pid 26114): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 26114): ROLLBACK -- INJECTED client-side failure, statement NOT sent",
+        "c1(pid 26114): START TRANSACTION",
+        "c1(pid 26114): -> command tag START for: START TRANSACTION",
+        "c1(pid 26114): INSERT INTO \"item\"(\"name\", \"qty\") VALUES ($1, DEFAULT) RETURNING \"id\", \"qty\"",
+        "c1(pid 26114): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 26114): COMMIT",
+        "c1(pid 26114): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": [
+        {
+          "level": "error",
+          "msg": "injected client-side failure for: ROLLBACK | ROLLBACK"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:05.928Z",
+    "finished_at": "2026-10-16T22:17:06.081Z",
+    "duration_ms": 153
+  }
+}

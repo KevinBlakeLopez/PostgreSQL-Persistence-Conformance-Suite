@@ -1,0 +1,255 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-02.conn-lost-before-savepoint-rollback",
+    "version": "1.0",
+    "family": "TX-02",
+    "family_title": "Failed savepoint rollback",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The connection is terminated inside a nested scope that then fails",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `outer`, and make sure the write was sent.",
+      "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API, and write the marker `inner` in it.",
+      "Checkpoint `inner-after-write`: the runner terminates the transaction's backend and waits until it has gone. Wait settle_ms, then raise an application error in the nested scope; its ROLLBACK TO SAVEPOINT fails on the closed connection.",
+      "The outer scope catches the nested scope's error, and ends normally.",
+      "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction."
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes."
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "b80f2688b4b0b1d818e7ab03f4ade02c9ae0bec0ee242dd6cf4ee406d3b96830"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "control",
+    "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, and returns a connection whose ROLLBACK failed to its pool as it is.",
+    "configuration": {
+      "commit_reply": "ignored",
+      "commit_error": "reported as a rollback",
+      "failed_savepoint_rollback": "ignored",
+      "failed_rollback": "connection returned to the pool"
+    }
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside the nested scope, after its write, before the framework's savepoint rollback.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and the whole transaction is rolled back.",
+    "expected_client": "Connection errors for the savepoint rollback and for anything after it.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework sees its connection fail during the savepoint rollback.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "COMMIT raised an error, which the unsafe control reports as a rollback",
+    "contract": "The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "Client has encountered a connection error and is not queryable"
+    },
+    "steps": {
+      "nested": {
+        "caught": true,
+        "error": {
+          "class": "Error",
+          "code": null,
+          "message": "application error: the nested scope fails"
+        }
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "outer-after-write": {
+        "reported": {
+          "pid": 25916,
+          "xid": "3600"
+        },
+        "session": {
+          "pid": 25916,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3600",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      },
+      "inner-after-write": {
+        "reported": {
+          "pid": 25916,
+          "xid": null
+        },
+        "session": {
+          "pid": 25916,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3600",
+          "xid_matches": null,
+          "application_name": "ppcs-adapter"
+        },
+        "action": {
+          "action": "terminate_backend",
+          "pid": 25916,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-outer": {
+        "reported": {
+          "pid": 25916,
+          "xid": null
+        },
+        "session": {
+          "pid": 25916,
+          "present": false
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3600",
+        "pid": 25916,
+        "captured_at": "outer-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "PASS",
+    "reason": "TX-02.1 held: the API reported: rolled_back; pg_xact_status: aborted; outer visible: false; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: closed",
+    "preconditions": [
+      {
+        "description": "the runner terminated the backend at inner-after-write, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised Error"
+      },
+      {
+        "description": "the runner observed the transaction's session after the outer API returned",
+        "met": true,
+        "detail": "session: closed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: rolled_back; pg_xact_status: aborted; outer visible: false; inner (failed scope) visible: false"
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction.",
+        "holds": true,
+        "detail": "the session after the outer API returned: closed"
+      }
+    ],
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=unsafe --case=TX-02.conn-lost-before-savepoint-rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 25916): BEGIN",
+        "c1(pid 25916): -> command tag BEGIN for: BEGIN",
+        "c1(pid 25916): insert into item (name) values ($1)",
+        "c1(pid 25916): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 25916): SAVEPOINT ppcs_nested",
+        "c1(pid 25916): -> command tag SAVEPOINT for: SAVEPOINT ppcs_nested",
+        "c1(pid 25916): insert into item (name) values ($1)",
+        "c1(pid 25916): ROLLBACK TO SAVEPOINT ppcs_nested",
+        "c1(pid 25916): -> ERROR Client has encountered a connection error and is not queryable",
+        "c1(pid 25916): COMMIT",
+        "c1(pid 25916): -> ERROR Client has encountered a connection error and is not queryable"
+      ],
+      "commit_replies": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:03.367Z",
+    "finished_at": "2026-10-16T22:17:03.579Z",
+    "duration_ms": 212
+  }
+}

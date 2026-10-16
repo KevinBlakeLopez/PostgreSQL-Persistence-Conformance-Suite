@@ -1,0 +1,257 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-16T22-16-20Z-bf4e65",
+  "specification": {
+    "id": "TX-02.savepoint-rollback-rejected",
+    "version": "1.0",
+    "family": "TX-02",
+    "family_title": "Failed savepoint rollback",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A nested scope fails, and PostgreSQL rejects its ROLLBACK TO SAVEPOINT",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `outer`, and make sure the write was sent.",
+      "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API, and write the marker `inner` in it.",
+      "Arm the client-side fault (the next ROLLBACK TO SAVEPOINT is rewritten to name a savepoint that does not exist, so PostgreSQL rejects it), then raise an application error in the nested scope.",
+      "The outer scope catches the nested scope's error, and ends normally.",
+      "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction."
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes."
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "328dab252187544a350d5c37af355aeba8a397b97a0e7aaeb7ef151f67c6ee15"
+  },
+  "subject": {
+    "adapter": {
+      "name": "typeorm",
+      "version": "0.1.0",
+      "source_sha256": "b8dbf1b8003f1d4fc1b1e85ccc5ac1d100f4e63a6aaad99e42ef7f846df9ddca"
+    },
+    "framework": {
+      "name": "typeorm",
+      "version": "1.1.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "TypeORM's defaults, with the managed transaction API ds.transaction(callback).",
+    "configuration": {}
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "mechanism": "A client-side injection in the adapter's driver layer: ROLLBACK TO SAVEPOINT is rewritten before it is sent, so that PostgreSQL rejects it with an error (3B001) that aborts the transaction. The error is PostgreSQL's; the trigger is artificial.",
+    "injection_point": "The framework's rollback of the nested scope.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "The transaction is aborted. A later COMMIT is answered with ROLLBACK.",
+    "expected_client": "A PostgreSQL error from the nested scope's rollback.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework receives PostgreSQL's error for the savepoint rollback, and later, if it sends COMMIT, the command tag ROLLBACK.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "ds.transaction(callback) rejected with an error the callback did not throw",
+    "contract": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed.",
+    "error": {
+      "class": "QueryFailedError",
+      "code": "25P02",
+      "message": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    "steps": {
+      "nested": {
+        "caught": true,
+        "error": {
+          "class": "Error",
+          "code": null,
+          "message": "application error: the nested scope fails"
+        }
+      },
+      "fault": {
+        "mode": "rewrite",
+        "fired": 1
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "outer-after-write": {
+        "reported": {
+          "pid": 26091,
+          "xid": "3668"
+        },
+        "session": {
+          "pid": 26091,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3668",
+          "xid_matches": true,
+          "application_name": "ppcs-adapter"
+        }
+      },
+      "after-outer": {
+        "reported": {
+          "pid": 26091,
+          "xid": null
+        },
+        "session": {
+          "pid": 26091,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3668",
+          "xid_matches": null,
+          "application_name": "ppcs-adapter"
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3668",
+        "pid": 26091,
+        "captured_at": "outer-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "sessions_at_end": []
+  },
+  "evaluation": {
+    "classification": "FAIL",
+    "reason": "TX-02.2 violated: the session after the outer API returned: \"idle in transaction\"",
+    "preconditions": [
+      {
+        "description": "the client-side fault (rewrite) fired",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised Error"
+      },
+      {
+        "description": "the runner observed the transaction's session after the outer API returned",
+        "met": true,
+        "detail": "session: idle in transaction"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: failed; pg_xact_status: aborted; outer visible: false; inner (failed scope) visible: false"
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction.",
+        "holds": false,
+        "detail": "the session after the outer API returned: \"idle in transaction\""
+      }
+    ],
+    "contract_basis": {
+      "invariants": [
+        "TX-02.2: When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      ],
+      "framework": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed."
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=typeorm --mode=native --case=TX-02.savepoint-rollback-rejected",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 26091): SELECT version()",
+        "c1(pid 26091): SELECT * FROM current_schema()",
+        "c1(pid 26091): START TRANSACTION",
+        "c1(pid 26091): -> command tag START for: START TRANSACTION",
+        "c1(pid 26091): INSERT INTO \"item\"(\"name\", \"qty\") VALUES ($1, DEFAULT) RETURNING \"id\", \"qty\"",
+        "c1(pid 26091): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 26091): SAVEPOINT typeorm_1",
+        "c1(pid 26091): -> command tag SAVEPOINT for: SAVEPOINT typeorm_1",
+        "c1(pid 26091): INSERT INTO \"item\"(\"name\", \"qty\") VALUES ($1, DEFAULT) RETURNING \"id\", \"qty\"",
+        "c1(pid 26091): ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint -- INJECTED rewrite of: ROLLBACK TO SAVEPOINT typeorm_1",
+        "c1(pid 26091): -> ERROR 3B001 savepoint \"ppcs_no_such_savepoint\" does not exist",
+        "c1(pid 26091): RELEASE SAVEPOINT typeorm_1",
+        "c1(pid 26091): -> ERROR 25P02 current transaction is aborted, commands ignored until end of transaction block",
+        "c1(pid 26091): ROLLBACK TO SAVEPOINT typeorm_1",
+        "c1(pid 26091): -> command tag ROLLBACK for: ROLLBACK TO SAVEPOINT typeorm_1"
+      ],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true,
+      "logs": [
+        {
+          "level": "error",
+          "msg": "savepoint \"ppcs_no_such_savepoint\" does not exist | ROLLBACK TO SAVEPOINT typeorm_1"
+        },
+        {
+          "level": "error",
+          "msg": "current transaction is aborted, commands ignored until end of transaction block | RELEASE SAVEPOINT typeorm_1"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-16T22:17:05.535Z",
+    "finished_at": "2026-10-16T22:17:05.673Z",
+    "duration_ms": 138
+  }
+}
