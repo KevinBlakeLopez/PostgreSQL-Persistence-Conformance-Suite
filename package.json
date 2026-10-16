@@ -1,0 +1,26 @@
+{
+  "name": "postgres-persistence-conformance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PostgreSQL Persistence Conformance Suite: reproducible, cross-framework tests of transaction correctness under real PostgreSQL failure conditions.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.8.1",
+  "scripts": {
+    "setup": "sh scripts/setup.sh",
+    "pg:up": "sh scripts/pg-up.sh",
+    "pg:down": "sh scripts/pg-down.sh",
+    "ppcs": "node harness/run.mjs",
+    "test": "node --test \"harness/test/unit/*.test.mjs\"",
+    "test:methodology": "node --test --test-concurrency=1 \"harness/test/methodology/*.test.mjs\""
+  },
+  "dependencies": {
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0"
+  }
+}

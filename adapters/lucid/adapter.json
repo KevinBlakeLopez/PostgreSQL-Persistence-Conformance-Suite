@@ -1,0 +1,45 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "lucid",
+  "framework": "@adonisjs/lucid",
+  "description": "Lucid used standalone (no AdonisJS application), through its Database, BaseModel and managed-transaction APIs.",
+  "command": [
+    "node",
+    "main.mjs"
+  ],
+  "shared": [
+    "../node-kit"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "Lucid's defaults, with the managed transaction API db.transaction(callback)."
+    },
+    {
+      "id": "pre-commit-probe",
+      "kind": "hardened",
+      "description": "An application-level mitigation (reused experiment LT1c): the transaction callback ends with `select 1`, so an aborted transaction throws instead of returning.",
+      "cases": [
+        "TX-01A.caught-error-then-commit"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-03.rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback"
+  ],
+  "unsupported": {
+    "TX-04.independent-inner": "Lucid has no propagation modes: a nested trx.transaction() is always a savepoint, and an independent transaction is an unrelated db.transaction() on another connection, which this case does not test."
+  }
+}

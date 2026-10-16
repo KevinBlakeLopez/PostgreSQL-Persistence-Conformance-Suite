@@ -1,0 +1,608 @@
+{
+  "catalog": "ppcs-specifications/1",
+  "fixture": {
+    "description": "Applied by the runner to a fresh database before each case. Adapters map these tables with their framework's own model or entity definitions.",
+    "sql": "create table item (id serial primary key, name text not null, qty int not null default 0); create table uniq (id serial primary key, code text not null unique); insert into uniq (code) values ('taken');"
+  },
+  "families": {
+    "CTL-01": {
+      "title": "Observation controls",
+      "version": "1.0",
+      "question": "Can the runner see, through its own connections, a transaction the framework committed, and the absence of one the framework rolled back? If not, the adapter's other results are not credible.",
+      "invariants": {
+        "CTL-01.1": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker.",
+        "CTL-01.2": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker."
+      }
+    },
+    "TX-01A": {
+      "title": "Commit of an aborted transaction",
+      "version": "1.0",
+      "question": "A statement fails inside a transaction and the application catches the error. PostgreSQL has aborted the transaction, and answers the later COMMIT with ROLLBACK. Does the framework report a successful commit?",
+      "invariants": {
+        "TX-01A.1": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit."
+      }
+    },
+    "TX-01B": {
+      "title": "Commit outcome unknown to the client",
+      "version": "1.0",
+      "question": "The connection, or PostgreSQL's reply, is lost around COMMIT, so the client never receives a reply to COMMIT. Does the framework still assert an outcome?",
+      "notes": "A framework may hold other evidence of the outcome, for example that its driver never sent COMMIT. PPCS 0.1 does not evaluate such evidence: without a reply to COMMIT, a definite report of either outcome violates the family.",
+      "invariants": {
+        "TX-01B.1": "When the client has received no reply to COMMIT, because the connection or the reply was lost, the API does not report a successful commit.",
+        "TX-01B.2": "When the client has received no reply to COMMIT, the API does not report a confirmed rollback."
+      }
+    },
+    "TX-02": {
+      "title": "Failed savepoint rollback",
+      "version": "1.0",
+      "question": "A nested scope fails, and its ROLLBACK TO SAVEPOINT fails too. Does the outer transaction silently continue under an incorrect nesting state: committing the failed scope's writes, reporting success for a transaction PostgreSQL did not commit, or leaving its transaction open after its API returned?",
+      "invariants": {
+        "TX-02.1": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes.",
+        "TX-02.2": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      }
+    },
+    "TX-03": {
+      "title": "Connection recovery and unsafe pool reuse",
+      "version": "1.0",
+      "question": "A transaction fails on a pooled connection, and its ROLLBACK fails too. Does the pool give that connection to unrelated work while it still holds the failed transaction? Does the pool recover its capacity?",
+      "invariants": {
+        "TX-03.1": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "TX-03.2": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    },
+    "TX-04": {
+      "title": "Nested transaction propagation",
+      "version": "1.0",
+      "question": "When application code nests transactional work through an API that promises a propagation behaviour, does the work land in the transaction boundary the API promises?",
+      "notes": "Frameworks do not share propagation modes. Each case names the behaviour it tests. An adapter whose framework does not expose that behaviour through its supported API reports the case UNSUPPORTED, which is not a failure.",
+      "invariants": {
+        "TX-04.1": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
+        "TX-04.2": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too.",
+        "TX-04.3": "An inner transaction started through an API that promises an independent transaction commits only its own writes: the outer scope's writes, whether already sent or still pending in the framework, are committed only by the outer transaction."
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "CTL-01.commit",
+      "family": "CTL-01",
+      "version": "1.0",
+      "kind": "control",
+      "title": "A transaction writes a marker and commits",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API.",
+        "Write the marker `tx` through the framework's ordinary write API.",
+        "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+        "End the transaction normally, so that the framework commits it."
+      ],
+      "checkpoints": {
+        "before-end": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "committed",
+        "fate": "committed"
+      },
+      "invariants": [
+        "CTL-01.1"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed."
+    },
+    {
+      "id": "CTL-01.rollback",
+      "family": "CTL-01",
+      "version": "1.0",
+      "kind": "control",
+      "title": "A transaction writes a marker and fails with an application error",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API.",
+        "Write the marker `tx`.",
+        "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+        "Raise an application error inside the transaction, so that the framework rolls it back."
+      ],
+      "checkpoints": {
+        "before-end": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "rolled_back",
+        "fate": "aborted"
+      },
+      "invariants": [
+        "CTL-01.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "knowledge": "The framework rolls the transaction back, and PostgreSQL confirms the ROLLBACK, so the client knows that nothing committed."
+    },
+    {
+      "id": "TX-01A.caught-error-then-commit",
+      "family": "TX-01A",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "A unique violation is caught inside the transaction, which then ends normally",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API.",
+        "Write the marker `tx`, and make sure the write was sent to PostgreSQL.",
+        "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+        "Insert the value 'taken' into uniq through the framework's ordinary write API. It fails with unique_violation (23505). Catch the error and continue.",
+        "Checkpoint `before-end`: report the same backend PID. The transaction is aborted, so it cannot run queries; the runner confirms the aborted state server-side.",
+        "End the transaction normally, so that the framework sends COMMIT."
+      ],
+      "checkpoints": {
+        "after-write": {
+          "captures": "tx"
+        },
+        "before-end": {
+          "expects_state": "idle in transaction (aborted)"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "fault": {
+        "category": "A",
+        "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application.",
+        "injection_point": "After the first write, before the transaction ends.",
+        "preconditions": "The row 'taken' already exists in uniq (fixture).",
+        "expected_server": "The failed statement aborts the transaction. PostgreSQL answers the later COMMIT with the command tag ROLLBACK, without an error, and commits nothing.",
+        "expected_client": "The driver receives the command tag ROLLBACK as the reply to COMMIT.",
+        "depends_on_internals": false
+      },
+      "knowledge": "The outcome reaches the client: PostgreSQL's reply to COMMIT carries the command tag ROLLBACK.",
+      "expected": {
+        "fate": "aborted"
+      },
+      "invariants": [
+        "TX-01A.1"
+      ],
+      "settings": {
+        "pool_max": 1
+      }
+    },
+    {
+      "id": "TX-01B.conn-lost-before-commit",
+      "family": "TX-01B",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "The connection is terminated after the last write, before COMMIT",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API.",
+        "Write the marker `tx`.",
+        "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+        "Wait settle_ms, so that the driver can observe the closed connection.",
+        "End the transaction normally, so that the framework attempts to commit."
+      ],
+      "checkpoints": {
+        "before-end": {
+          "captures": "tx",
+          "action": "terminate_backend"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "fault": {
+        "category": "B",
+        "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+        "injection_point": "After the last write, before the framework sends COMMIT.",
+        "preconditions": "The PID the adapter reports belongs to the case's database.",
+        "expected_server": "The backend exits, and its transaction is rolled back.",
+        "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+        "depends_on_internals": false
+      },
+      "knowledge": "No reply to COMMIT can arrive: the session ended before the framework tried to commit. The driver could know that it never sent COMMIT, but the framework's API has no way to report that.",
+      "expected": {
+        "fate": "aborted"
+      },
+      "invariants": [
+        "TX-01B.1",
+        "TX-01B.2"
+      ],
+      "settings": {
+        "pool_max": 1,
+        "settle_ms": 100
+      }
+    },
+    {
+      "id": "TX-01B.commit-reply-discarded",
+      "family": "TX-01B",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "COMMIT completes on the server, and the client discards the reply (client-side simulation)",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API.",
+        "Write the marker `tx`.",
+        "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+        "Arm the client-side fault: the driver sends the next COMMIT, which PostgreSQL executes; the driver then closes its own connection and reports a connection error instead of the reply.",
+        "End the transaction normally, so that the framework sends COMMIT."
+      ],
+      "checkpoints": {
+        "before-end": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "fault": {
+        "category": "D",
+        "mechanism": "A client-side simulation inside the adapter's driver layer (node-postgres, pg.Client.prototype.query): COMMIT is sent and completes on the server; the client then closes its own connection, and the caller receives a connection error instead of the reply. It is not a network failure.",
+        "injection_point": "In the client, between the server's reply to COMMIT and its delivery to the framework.",
+        "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+        "expected_server": "The transaction commits.",
+        "expected_client": "A connection error in place of the reply to COMMIT.",
+        "depends_on_internals": true
+      },
+      "knowledge": "None at the API level: the reply to COMMIT was discarded before the framework saw it. Only a later read can establish that the transaction committed.",
+      "expected": {
+        "fate": "committed"
+      },
+      "invariants": [
+        "TX-01B.1",
+        "TX-01B.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      }
+    },
+    {
+      "id": "TX-02.savepoint-rollback-not-sent",
+      "family": "TX-02",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "invariants": [
+        "TX-02.1",
+        "TX-02.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "title": "A nested scope fails, and its ROLLBACK TO SAVEPOINT fails on the client",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `outer`, and make sure the write was sent.",
+        "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+        "Start a nested scope with the framework's nested-transaction (savepoint) API, and write the marker `inner` in it.",
+        "Arm the client-side fault (the next ROLLBACK TO SAVEPOINT fails in the driver and is not sent), then raise an application error in the nested scope.",
+        "The outer scope catches the nested scope's error, and ends normally.",
+        "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction."
+      ],
+      "checkpoints": {
+        "outer-after-write": {
+          "captures": "tx"
+        },
+        "after-outer": {}
+      },
+      "fault": {
+        "category": "C",
+        "mechanism": "A client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): ROLLBACK TO SAVEPOINT fails without being sent, as a failed send would.",
+        "injection_point": "The framework's rollback of the nested scope.",
+        "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+        "expected_server": "The savepoint is never rolled back: the nested scope's write stays in the outer transaction.",
+        "expected_client": "An error from the nested scope's rollback; what the framework then does is under test.",
+        "depends_on_internals": true
+      },
+      "knowledge": "The framework knows that its savepoint rollback failed, so it knows that the nested scope's writes may still be in the transaction."
+    },
+    {
+      "id": "TX-02.savepoint-rollback-rejected",
+      "family": "TX-02",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "invariants": [
+        "TX-02.1",
+        "TX-02.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "title": "A nested scope fails, and PostgreSQL rejects its ROLLBACK TO SAVEPOINT",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `outer`, and make sure the write was sent.",
+        "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+        "Start a nested scope with the framework's nested-transaction (savepoint) API, and write the marker `inner` in it.",
+        "Arm the client-side fault (the next ROLLBACK TO SAVEPOINT is rewritten to name a savepoint that does not exist, so PostgreSQL rejects it), then raise an application error in the nested scope.",
+        "The outer scope catches the nested scope's error, and ends normally.",
+        "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction."
+      ],
+      "checkpoints": {
+        "outer-after-write": {
+          "captures": "tx"
+        },
+        "after-outer": {}
+      },
+      "fault": {
+        "category": "C",
+        "mechanism": "A client-side injection in the adapter's driver layer: ROLLBACK TO SAVEPOINT is rewritten before it is sent, so that PostgreSQL rejects it with an error (3B001) that aborts the transaction. The error is PostgreSQL's; the trigger is artificial.",
+        "injection_point": "The framework's rollback of the nested scope.",
+        "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+        "expected_server": "The transaction is aborted. A later COMMIT is answered with ROLLBACK.",
+        "expected_client": "A PostgreSQL error from the nested scope's rollback.",
+        "depends_on_internals": true
+      },
+      "knowledge": "The framework receives PostgreSQL's error for the savepoint rollback, and later, if it sends COMMIT, the command tag ROLLBACK."
+    },
+    {
+      "id": "TX-02.conn-lost-before-savepoint-rollback",
+      "family": "TX-02",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "invariants": [
+        "TX-02.1",
+        "TX-02.2"
+      ],
+      "settings": {
+        "pool_max": 1,
+        "settle_ms": 100
+      },
+      "title": "The connection is terminated inside a nested scope that then fails",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `outer`, and make sure the write was sent.",
+        "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+        "Start a nested scope with the framework's nested-transaction (savepoint) API, and write the marker `inner` in it.",
+        "Checkpoint `inner-after-write`: the runner terminates the transaction's backend and waits until it has gone. Wait settle_ms, then raise an application error in the nested scope; its ROLLBACK TO SAVEPOINT fails on the closed connection.",
+        "The outer scope catches the nested scope's error, and ends normally.",
+        "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction."
+      ],
+      "checkpoints": {
+        "outer-after-write": {
+          "captures": "tx"
+        },
+        "inner-after-write": {
+          "action": "terminate_backend"
+        },
+        "after-outer": {}
+      },
+      "fault": {
+        "category": "B",
+        "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+        "injection_point": "Inside the nested scope, after its write, before the framework's savepoint rollback.",
+        "preconditions": "The PID the adapter reports belongs to the case's database.",
+        "expected_server": "The backend exits, and the whole transaction is rolled back.",
+        "expected_client": "Connection errors for the savepoint rollback and for anything after it.",
+        "depends_on_internals": false
+      },
+      "knowledge": "The framework sees its connection fail during the savepoint rollback."
+    },
+    {
+      "id": "TX-03.rollback-not-sent",
+      "family": "TX-03",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "doomed",
+        "next"
+      ],
+      "invariants": [
+        "TX-03.1",
+        "TX-03.2"
+      ],
+      "title": "The top-level ROLLBACK of a failed transaction fails on the client; then the next unit of work runs on the same pool",
+      "steps": [
+        "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `doomed`.",
+        "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+        "Raise an application error inside the transaction. The framework attempts ROLLBACK, which fails, so the connection keeps its open transaction.",
+        "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+        "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending."
+      ],
+      "checkpoints": {
+        "unit1-after-write": {
+          "captures": "unit1"
+        },
+        "after-unit1": {},
+        "unit2-after-write": {
+          "captures": "unit2",
+          "optional": true
+        }
+      },
+      "fault": {
+        "category": "C",
+        "mechanism": "A client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+        "injection_point": "The framework's ROLLBACK of unit 1.",
+        "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+        "expected_server": "Unit 1's transaction stays open on its connection (\"idle in transaction\"), holding the doomed write.",
+        "expected_client": "An error from the framework's rollback; what the framework then does with the connection is under test.",
+        "depends_on_internals": true
+      },
+      "knowledge": "The framework knows that its ROLLBACK failed, so it knows that the connection's transaction state is unknown.",
+      "settings": {
+        "pool_max": 1,
+        "bound_ms": 5000
+      }
+    },
+    {
+      "id": "TX-03.conn-lost-in-transaction",
+      "family": "TX-03",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "doomed",
+        "next"
+      ],
+      "invariants": [
+        "TX-03.1",
+        "TX-03.2"
+      ],
+      "title": "The backend of a failing transaction is terminated before its ROLLBACK; then the next unit of work runs on the same pool",
+      "steps": [
+        "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `doomed`.",
+        "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend and waits until it has gone. Then wait settle_ms.",
+        "Raise an application error inside the transaction. The framework attempts ROLLBACK on the closed connection, which fails.",
+        "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+        "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending."
+      ],
+      "checkpoints": {
+        "unit1-after-write": {
+          "captures": "unit1",
+          "action": "terminate_backend"
+        },
+        "after-unit1": {},
+        "unit2-after-write": {
+          "captures": "unit2",
+          "optional": true
+        }
+      },
+      "fault": {
+        "category": "B",
+        "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+        "injection_point": "Inside unit 1, after its write, before the framework's ROLLBACK.",
+        "preconditions": "The PID the adapter reports belongs to the case's database.",
+        "expected_server": "The backend exits, and unit 1's transaction is rolled back.",
+        "expected_client": "An error from the framework's rollback; the pool holds a closed connection.",
+        "depends_on_internals": false
+      },
+      "knowledge": "The framework knows that its connection failed.",
+      "settings": {
+        "pool_max": 1,
+        "bound_ms": 5000,
+        "settle_ms": 100
+      }
+    },
+    {
+      "id": "TX-04.nested-failure-contained",
+      "family": "TX-04",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "A nested scope fails; the caller handles the failure and commits",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API.",
+        "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+        "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+        "Checkpoint `inner-after-write`: report pg_current_xact_id() (the top-level transaction's ID) and pg_backend_pid().",
+        "Raise an application error in the nested scope.",
+        "The outer scope catches the error and ends normally."
+      ],
+      "checkpoints": {
+        "inner-after-write": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "committed"
+      },
+      "invariants": [
+        "TX-04.1"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "knowledge": "The caller knows that the nested scope failed: its error reached the caller. PostgreSQL answers the final COMMIT with COMMIT."
+    },
+    {
+      "id": "TX-04.nested-released-outer-rollback",
+      "family": "TX-04",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "A nested scope completes; then the outer transaction rolls back",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API.",
+        "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+        "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+        "Checkpoint `inner-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+        "End the nested scope normally, so that its savepoint is released.",
+        "Raise an application error in the outer scope, so that the framework rolls the outer transaction back."
+      ],
+      "checkpoints": {
+        "inner-after-write": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "rolled_back"
+      },
+      "invariants": [
+        "TX-04.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      },
+      "knowledge": "The caller knows that the nested scope completed, and that the outer transaction rolled back."
+    },
+    {
+      "id": "TX-04.independent-inner",
+      "family": "TX-04",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "An inner transaction that promises independence commits; then the outer transaction rolls back",
+      "steps": [
+        "Start the outer transaction with the framework's ordinary transaction API, on a pool of two connections.",
+        "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+        "Start an inner transaction through the framework's API that promises an independent transaction (for example a REQUIRES_NEW propagation). Write the marker `inner` in it.",
+        "Checkpoint `inner-after-write`: report the inner transaction's pg_current_xact_id() and pg_backend_pid().",
+        "End the inner transaction normally, so that it commits.",
+        "Raise an application error in the outer scope, so that the framework rolls the outer transaction back."
+      ],
+      "checkpoints": {
+        "inner-after-write": {
+          "captures": "inner"
+        }
+      },
+      "markers": [
+        "outer",
+        "inner"
+      ],
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "rolled_back"
+      },
+      "invariants": [
+        "TX-04.3"
+      ],
+      "settings": {
+        "pool_max": 2
+      },
+      "knowledge": "The caller knows that the inner transaction committed and the outer one rolled back. From the API alone, it cannot see which transaction carried a write the framework still had pending."
+    }
+  ]
+}

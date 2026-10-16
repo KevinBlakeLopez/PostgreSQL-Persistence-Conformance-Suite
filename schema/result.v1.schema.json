@@ -1,0 +1,703 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ppcs:schema:result:1",
+  "title": "PPCS case result, version 1",
+  "description": "The evidence for one case, run on one adapter in one execution mode. A value that could not be established is the string UNKNOWN. Passwords and connection strings are never recorded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_id",
+    "specification",
+    "subject",
+    "execution",
+    "configuration",
+    "server",
+    "fault",
+    "knowledge",
+    "api_outcome",
+    "database_outcome",
+    "evaluation",
+    "reproduction",
+    "diagnostics",
+    "timing"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ppcs-result/1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "specification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "family",
+        "family_title",
+        "family_version",
+        "kind",
+        "title",
+        "steps",
+        "invariants",
+        "catalog",
+        "catalog_sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "family_title": {
+          "type": "string"
+        },
+        "family_version": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "control",
+            "scenario"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invariants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statement"
+          }
+        },
+        "catalog": {
+          "type": "string",
+          "description": "Path of the specification catalog, relative to the repository root."
+        },
+        "catalog_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "framework",
+        "driver",
+        "components",
+        "runtime"
+      ],
+      "properties": {
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "source_sha256"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "source_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "framework": {
+          "$ref": "#/$defs/named_version"
+        },
+        "driver": {
+          "$ref": "#/$defs/named_version"
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Versions of other packages that take part, such as a query builder or pool."
+        },
+        "runtime": {
+          "$ref": "#/$defs/named_version"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "kind",
+        "description",
+        "configuration"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "native",
+            "recommended",
+            "configured",
+            "hardened",
+            "control",
+            "fixture"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "configuration": {
+          "type": "object",
+          "description": "What this mode changes, as the adapter reports it."
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "The case's test settings, such as pool_max."
+    },
+    "server": {
+      "type": "object",
+      "required": [
+        "version",
+        "server_version",
+        "server_version_num",
+        "settings",
+        "image"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "server_version": {
+          "type": "string"
+        },
+        "server_version_num": {
+          "type": "integer"
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "image": {
+          "type": "string"
+        }
+      }
+    },
+    "fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "none",
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "description": "A PostgreSQL-generated error; B connection or network termination; C client-side injected error; D driver or ORM internal-state manipulation (docs/methodology.md)."
+        },
+        "mechanism": {
+          "type": "string"
+        },
+        "injection_point": {
+          "type": "string"
+        },
+        "preconditions": {
+          "type": "string"
+        },
+        "expected_server": {
+          "type": "string"
+        },
+        "expected_client": {
+          "type": "string"
+        },
+        "depends_on_internals": {
+          "type": "boolean"
+        }
+      }
+    },
+    "knowledge": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "What the application could legitimately know about the outcome at the time."
+    },
+    "api_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reported",
+        "basis",
+        "contract",
+        "error",
+        "steps"
+      ],
+      "properties": {
+        "reported": {
+          "enum": [
+            "committed",
+            "rolled_back",
+            "failed",
+            "UNKNOWN"
+          ],
+          "description": "What the framework's API reported, mapped by the adapter: committed (it reported success), rolled_back (it reported a rollback), failed (it raised an error that asserts neither)."
+        },
+        "basis": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "What was observed: the call, and how it returned."
+        },
+        "contract": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The framework's contract for that call, which gives the observation its meaning. Quoted as the contract basis of a FAIL."
+        },
+        "error": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/error"
+            }
+          ]
+        },
+        "steps": {
+          "type": "object",
+          "description": "What the API did at intermediate steps, as the adapter observed it."
+        }
+      }
+    },
+    "database_outcome": {
+      "type": "object",
+      "required": [
+        "checkpoints",
+        "transactions",
+        "markers",
+        "sessions_at_end"
+      ],
+      "properties": {
+        "checkpoints": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "reported"
+            ],
+            "properties": {
+              "reported": {
+                "type": "object",
+                "properties": {
+                  "pid": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "xid": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "session": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "pg_stat_activity for the reported PID: a supplementary observation."
+              }
+            }
+          }
+        },
+        "transactions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "xid",
+              "pid",
+              "captured_at",
+              "fate"
+            ],
+            "properties": {
+              "xid": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "pg_current_xact_id(), read inside the transaction."
+              },
+              "pid": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "captured_at": {
+                "type": "string"
+              },
+              "session_xid_matches": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "fate": {
+                "enum": [
+                  "committed",
+                  "aborted",
+                  "in progress",
+                  null
+                ],
+                "description": "pg_xact_status(), read through a separate connection after the adapter exited."
+              },
+              "fate_error": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "markers": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "description": "Marker visibility through a separate READ COMMITTED connection."
+        },
+        "marker_xmin": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": "For each visible marker, the ID (xmin, 32 bits) of the transaction that inserted its row."
+        },
+        "markersError": {
+          "type": "string"
+        },
+        "sessions_at_end": {
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "reason",
+        "preconditions",
+        "invariants",
+        "contract_basis"
+      ],
+      "properties": {
+        "classification": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNSUPPORTED",
+            "INCONCLUSIVE",
+            "NOT_RUN"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "description",
+              "met",
+              "detail"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "met": {
+                "type": "boolean"
+              },
+              "detail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "invariants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "statement",
+              "holds",
+              "detail"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "holds": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "detail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "contract_basis": {
+          "description": "Present for every FAIL: the violated PPCS invariants, and the framework contract that gives the API outcome its meaning.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "invariants",
+                "framework"
+              ],
+              "properties": {
+                "invariants": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                "framework": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "FAIL"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "contract_basis": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "requires"
+      ],
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "requires": {
+          "type": "string"
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "stderr",
+        "stdout",
+        "protocol_errors",
+        "exit",
+        "timed_out"
+      ],
+      "properties": {
+        "adapter": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Adapter-side diagnostics, such as a statement trace. Never used for classification."
+        },
+        "stderr": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stdout": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "protocol_errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exit": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "timed_out": {
+          "type": "boolean"
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "started_at",
+        "finished_at",
+        "duration_ms"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string"
+        },
+        "finished_at": {
+          "type": "string"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "named_version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "statement"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "class",
+        "message"
+      ],
+      "properties": {
+        "class": {
+          "type": "string"
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

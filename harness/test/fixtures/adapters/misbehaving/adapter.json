@@ -1,0 +1,21 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "misbehaving",
+  "framework": "fixture",
+  "description": "Methodology test fixture. Implements CTL-01.commit correctly in mode ok, and broken in each other mode.",
+  "command": ["node", "main.mjs"],
+  "modes": [
+    { "id": "ok", "kind": "fixture", "description": "Correct." },
+    { "id": "hang", "kind": "fixture", "description": "Never finishes.", "cases": ["CTL-01.commit"] },
+    { "id": "crash", "kind": "fixture", "description": "Exits without a result.", "cases": ["CTL-01.commit"] },
+    { "id": "skip-checkpoint", "kind": "fixture", "description": "Never reports its checkpoint.", "cases": ["CTL-01.commit"] },
+    { "id": "bogus-xid", "kind": "fixture", "description": "Reports a transaction ID that does not exist.", "cases": ["CTL-01.commit"] },
+    { "id": "no-marker", "kind": "fixture", "description": "Commits without writing its marker.", "cases": ["CTL-01.commit"] },
+    { "id": "drop-table", "kind": "fixture", "description": "Drops the marker table after committing.", "cases": ["CTL-01.commit"] },
+    { "id": "garbage", "kind": "fixture", "description": "Emits non-protocol lines and an unknown message type.", "cases": ["CTL-01.commit"] },
+    { "id": "lying", "kind": "fixture", "description": "Rolls back but reports a commit.", "cases": ["CTL-01.commit"] },
+    { "id": "undeclared-checkpoint", "kind": "fixture", "description": "Reports a checkpoint the case does not declare.", "cases": ["CTL-01.commit"] }
+  ],
+  "implements": ["CTL-01.commit"],
+  "unsupported": { "CTL-01.rollback": "Fixture: declared unsupported, to check that UNSUPPORTED is never reported as FAIL." }
+}

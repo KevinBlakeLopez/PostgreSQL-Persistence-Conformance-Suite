@@ -1,0 +1,46 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "mikroorm",
+  "framework": "@mikro-orm/core",
+  "description": "MikroORM with its PostgreSQL driver, through EntityManager.transactional() inside a request context, with defineEntity entities.",
+  "command": [
+    "node",
+    "main.mjs"
+  ],
+  "shared": [
+    "../node-kit"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "MikroORM's defaults: em.transactional(callback) in a RequestContext, allowGlobalContext false."
+    },
+    {
+      "id": "clear-forks",
+      "kind": "configured",
+      "description": "The documented { clear: true } option on nested and inner em.transactional() calls, so that each starts from a clear fork of the EntityManager (reused experiments T1b and T2b).",
+      "cases": [
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-04.independent-inner"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-03.rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-04.independent-inner"
+  ],
+  "unsupported": {}
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ppcs:schema:run:1",
+  "title": "PPCS run manifest, version 1",
+  "description": "run.json: one run of the suite. Each entry in results points to that case's evidence file (schema/result.v1.schema.json).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "ppcs_version", "runner_runtime", "status", "started_at", "finished_at", "duration_ms", "filters", "server", "catalog", "adapters", "results", "counts"],
+  "properties": {
+    "schema": { "const": "ppcs-run/1" },
+    "run_id": { "type": "string" },
+    "ppcs_version": { "type": "string" },
+    "runner_runtime": { "type": "string" },
+    "status": { "enum": ["running", "completed"], "description": "A manifest that still says running belongs to a run that did not finish." },
+    "started_at": { "type": "string" },
+    "finished_at": { "type": ["string", "null"] },
+    "duration_ms": { "type": ["integer", "null"] },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapters", "cases", "modes"],
+      "properties": { "adapters": { "type": "array", "items": { "type": "string" } }, "cases": { "type": "array", "items": { "type": "string" } }, "modes": { "type": "array", "items": { "type": "string" } } }
+    },
+    "server": {
+      "type": "object",
+      "required": ["version", "server_version", "server_version_num", "settings", "image"],
+      "properties": {
+        "version": { "type": "string" },
+        "server_version": { "type": "string" },
+        "server_version_num": { "type": "integer" },
+        "settings": { "type": "object", "additionalProperties": { "type": "string" } },
+        "image": { "type": "string" }
+      }
+    },
+    "catalog": { "type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } },
+    "adapters": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": false, "required": ["name", "manifest", "source_sha256"], "properties": { "name": { "type": "string" }, "manifest": { "type": "string" }, "source_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case", "adapter", "mode", "classification", "file"],
+        "properties": {
+          "case": { "type": "string" },
+          "adapter": { "type": "string" },
+          "mode": { "type": "string" },
+          "classification": { "enum": ["PASS", "FAIL", "UNSUPPORTED", "INCONCLUSIVE", "NOT_RUN"] },
+          "file": { "type": "string" }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["PASS", "FAIL", "UNSUPPORTED", "INCONCLUSIVE", "NOT_RUN"],
+      "properties": { "PASS": { "type": "integer" }, "FAIL": { "type": "integer" }, "UNSUPPORTED": { "type": "integer" }, "INCONCLUSIVE": { "type": "integer" }, "NOT_RUN": { "type": "integer" } }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "pg-control",
+  "framework": "pg-control",
+  "description": "Positive and negative controls: transactions written directly against node-postgres. `correct` checks PostgreSQL's reply to COMMIT and reports a COMMIT error as a failure; `unsafe` deliberately gets both wrong. Used to show that the runner passes a known-good implementation and detects a known-bad one.",
+  "command": [
+    "node",
+    "main.mjs"
+  ],
+  "shared": [
+    "../node-kit"
+  ],
+  "modes": [
+    {
+      "id": "correct",
+      "kind": "control",
+      "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed."
+    },
+    {
+      "id": "unsafe",
+      "kind": "control",
+      "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, and returns a connection whose ROLLBACK failed to its pool as it is."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-03.rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback"
+  ],
+  "unsupported": {
+    "TX-04.independent-inner": "The control implements no propagation modes, so it has no API that promises an independent inner transaction."
+  }
+}
