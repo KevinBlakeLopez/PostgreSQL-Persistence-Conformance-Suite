@@ -108,6 +108,8 @@ For each executed case, the runner applies these checks in order (`harness/lib/c
 
   TX-05 records it today.
 
+**Migration runners.** A migration case runs one process per role. The role's `application_name` is `ppcs-A`, `ppcs-B` or `ppcs-C`, and that name is how the harness tells the processes apart, lists a role's sessions, and terminates one of them. The harness's own connections are excluded only when both the backend PID is one of those connections and the name is `ppcs-observer`: a name alone is not enough, and a PID alone is not enough. `pool_max` counts sessions of one role. Two roles connected at the same time are the case, not a surplus.
+
 **Qualified PASS results.** Two qualifiers change what a PASS means, and the summary prints them in the cell:
 
 - **"not exercised":** an invariant the adapter cannot exercise, such as TX-01B.2 without a rollback-claim channel. It is never counted as held.

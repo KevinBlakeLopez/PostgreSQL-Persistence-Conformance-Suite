@@ -46,7 +46,7 @@ A full run takes about three minutes. The runner refuses any server that is not 
 
 ## What is implemented
 
-**Specifications** (`specifications/transactions.v1.json`, described in `docs/specifications.md`): 7 families, 16 cases.
+**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. The recorded run below is the 0.3.0 transaction run and does not include them.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -57,6 +57,8 @@ A full run takes about three minutes. The runner refuses any server that is not 
 | TX-03 | After a failed rollback, is the connection reused unsafely, and does the pool recover? | 3 |
 | TX-04 | Does nested work land in the boundary the propagation API promises? | 3 |
 | TX-05 | When a framework is asked for an isolation level, does the transaction run at that level? | 2 |
+| MG-02 | With several runner processes, is each migration committed once, and does that survive the loss of one session? | 4 |
+| MG-03 | After a revert, does history describe the database? | 3 |
 
 **Adapters:**
 

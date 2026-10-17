@@ -7,6 +7,7 @@ import pg from 'pg'
 import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { migrationCases } from './migration.mjs'
 import { Item, Uniq, openDatabase } from './lucid.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
@@ -206,6 +207,8 @@ const cases = {
     ),
     form: TX05_EXPLICIT_FORM,
   }),
+
+  ...migrationCases,
 }
 
 await main({
@@ -227,7 +230,8 @@ await main({
   },
   open: (message) => {
     const logLines = []
-    const db = openDatabase(message.connection, { poolMax: message.case.settings?.pool_max ?? 1, logLines })
+    const migration = message.case.family?.startsWith('MG-')
+    const db = openDatabase(message.connection, { poolMax: message.case.settings?.pool_max ?? 1, logLines, defaultPool: migration, migrations: migration ? { naturalSort: true } : undefined })
     return {
       context: { db },
       close: () => db.manager.closeAll(),

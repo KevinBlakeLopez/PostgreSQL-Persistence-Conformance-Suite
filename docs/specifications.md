@@ -182,9 +182,45 @@ The negative control's `unsafe` mode sends a plain `BEGIN`, ignoring the request
 
 **What the application could know:** a successful start says nothing about the level PostgreSQL applied. Only `current_setting('transaction_isolation')`, read inside the transaction, does. A rejected request reaches the application as an error.
 
+## MG-02: Concurrent runner coordination
+
+Several processes apply one migration to one database. Each process is a runner, named A, B or C, and sets `application_name` to `ppcs-A`, `ppcs-B` or `ppcs-C`. The migration inserts one marker row per execution. The count of that marker is the number of times the migration committed. History is the framework's own record that the migration was applied; the adapter names the table, and the runner reads it.
+
+The runner holds an advisory lock on its own session. The migration waits on that lock after inserting its marker, so a runner that is executing the migration is visible to another connection. The harness's own session is excluded from the case's sessions only when its backend PID is one of the runner's connections and its name is `ppcs-observer`. `settings.pool_max` is the ceiling for each role.
+
+- **MG-02.1** After every runner has finished, the migration's marker count is 1 and history holds one entry for it.
+- **MG-02.2** A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).
+- **MG-02.4** If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE.
+- **MG-02.5** No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.
+
+| Case | What it does |
+| --- | --- |
+| `MG-02.held` (none) | A is inside the migration, held at the gate. B starts. Then C, after both have finished. |
+| `MG-02.first-deployment` (none) | A and B are released together against a database with no history storage. |
+| `MG-02.session-loss` (B) | While A is inside the migration, one of A's sessions, chosen by `application_name`, is terminated. Then B, then C. |
+| `MG-02.idle-session-timeout` (none) | A's connections set `idle_session_timeout = 1s`. A session busy inside the migration's transaction is not idle, so the setting does not end it. |
+
+On Lucid 22.4.2, `MG-02.held`, `MG-02.first-deployment` and `MG-02.session-loss` pass. `MG-02.idle-session-timeout` is inconclusive on MG-02.4: the session inside the migration is not idle, so the timeout does not end it, and the marker count stays 1.
+
+## MG-03: Rollback and history consistency
+
+One runner applies a migration, reverts it, and the runner reads the marker count and the history count after the revert returns, before any later apply.
+
+- **MG-03.1** If a revert reports a migration as reverted, its history entry is absent and its marker is absent.
+- **MG-03.2** If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent.
+- **MG-03.3** If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains.
+
+| Case | What it does |
+| --- | --- |
+| `MG-03.valid-reversal` (none) | The reversal deletes the marker. The runner then applies the migration again. |
+| `MG-03.no-reversal` (none) | The migration provides no reversal. |
+| `MG-03.failing-reversal` (none) | The reversal deletes the marker and then raises. The migration is transactional. |
+
+On Lucid 22.4.2, `MG-03.valid-reversal` and `MG-03.failing-reversal` pass. `MG-03.no-reversal` fails: the revert reports the migration reverted, the history entry is gone, and the marker remains.
+
 ## Planned, not yet included
 
 - **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
 - **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`, in the families other than TX-05, which covers them.
 - **After-commit callbacks.**
-- **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS does not yet.
+- **The other migration families.** MG-01, MG-04, MG-05 and MG-06 are specified in the migration research and are not in this catalog yet.

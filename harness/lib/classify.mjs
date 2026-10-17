@@ -22,6 +22,9 @@ import { low32 } from './observer.mjs'
 
 export const CLASSIFICATIONS = ['PASS', 'FAIL', 'UNSUPPORTED', 'INCONCLUSIVE', 'NOT_RUN']
 export const REPORTED = ['committed', 'rolled_back', 'failed', 'pending']
+/** What a migration runner reports. `applied` is a claim that this runner executed the migration; `nothing_to_do` is a claim that it found the migration already applied. */
+export const MIGRATION_REPORTED = ['applied', 'nothing_to_do', 'failed', 'refused', 'reverted', 'pending']
+const isMigration = (ev) => ev.case.family?.startsWith('MG-')
 /** The checkpoint every adapter sends when the framework's API has returned: the state at report time. */
 export const REPORT_POINT = 'after-end'
 /** Why a result is INCONCLUSIVE (docs/methodology.md, "Classification"). */
@@ -323,6 +326,65 @@ const FAMILIES = {
       }),
     }
   },
+
+  // MG-02: several processes apply one migration. Roles are application names ppcs-A, ppcs-B and ppcs-C. The array
+  // `inside_migration` is the roles whose sessions were inside the migration at the same time while the gate was held.
+  // A second row of the marker is the execution count, so it is not a stray row.
+  'MG-02': (ev, statements) => {
+    const marker = ev.case.markers[0]
+    const count = ev.observed?.marker_counts?.[marker]
+    const history = ev.observed?.history_counts?.[marker]
+    const counted = Number.isInteger(count) && Number.isInteger(history)
+    const reports = (ev.case.settings?.runners ?? []).map((role) => ({ role, ...(ev.runners?.[role] ?? {}) }))
+    const appliedClaims = reports.filter((r) => r.reported === 'applied' && r.exit_code === 0)
+    const inside = ev.observed?.inside_migration
+    const sessionEnded = ev.observed?.session_ended === true
+    const preconditions = []
+    if (ev.case.invariants.includes('MG-02.1')) preconditions.push(check('the marker count and the history count were read after every runner finished', counted, `marker ${count ?? 'not read'}; history ${history ?? 'not read'}`, 'evidence-missing'))
+    if (ev.case.invariants.includes('MG-02.5')) {
+      preconditions.push(check('the runner recorded which roles were inside the migration at the same time', Array.isArray(inside), Array.isArray(inside) ? (inside.join(', ') || 'none') : 'not observed', 'evidence-missing'))
+      if (Array.isArray(inside)) preconditions.push(check('a runner reached the migration and waited at the gate, so mutual exclusion could be observed', inside.length >= 1, inside.join(', ') || 'none', 'evidence-missing'))
+    }
+    const runnerText = reports.map((r) => `${r.role}: ${r.reported ?? 'nothing'} (exit ${r.exit_code ?? 'none'})`).join('; ')
+    return {
+      preconditions,
+      invariants: evaluateDeclared(ev, statements, {
+        'MG-02.1': (s) => invariant('MG-02.1', s, count === 1 && history === 1, `marker count ${count}; history entries ${history}`),
+        'MG-02.2': (s) => {
+          const othersOk = reports.filter((r) => !(r.reported === 'applied' && r.exit_code === 0)).every((r) => r.exit_code !== 0 || r.reported === 'nothing_to_do')
+          const claimsOk = Number.isInteger(count) && appliedClaims.length <= count
+          return invariant('MG-02.2', s, othersOk && claimsOk, runnerText)
+        },
+        'MG-02.4': (s) => (sessionEnded
+          ? invariant('MG-02.4', s, count === 1, `a session of runner A ended; marker count ${count}`)
+          : { id: 'MG-02.4', statement: s, holds: null, detail: 'no session of runner A ended, so the fault did not happen' }),
+        'MG-02.5': (s) => invariant('MG-02.5', s, inside.length < 2, `roles inside the migration at once: ${inside.join(', ') || 'none'}`),
+      }),
+    }
+  },
+
+  // MG-03: one runner applies, reverts, and the observer reads the database at the revert, before any later reapply.
+  'MG-03': (ev, statements) => {
+    const marker = ev.case.markers[0]
+    const after = ev.observed?.after_revert
+    const revert = ev.runners?.A
+    const markerCount = after?.marker_counts?.[marker]
+    const historyCount = after?.history_counts?.[marker]
+    const read = Number.isInteger(markerCount) && Number.isInteger(historyCount)
+    const reportedReverted = revert?.reported === 'reverted'
+    return {
+      preconditions: [
+        check('the migration was applied before the revert', ev.observed?.apply_reported === 'applied', `apply reported ${ev.observed?.apply_reported ?? 'nothing'}`, 'evidence-missing'),
+        check('runner A reported the revert', !!revert && MIGRATION_REPORTED.includes(revert.reported) && revert.reported !== 'pending', `reported ${revert?.reported ?? 'nothing'}`, 'evidence-missing'),
+        check('the marker count and the history count were read after the revert returned, before any later apply', read, `marker ${markerCount ?? 'not read'}; history ${historyCount ?? 'not read'}`, 'evidence-missing'),
+      ],
+      invariants: evaluateDeclared(ev, statements, {
+        'MG-03.1': (s) => invariant('MG-03.1', s, !reportedReverted || (markerCount === 0 && historyCount === 0), `revert reported ${revert?.reported}; marker count ${markerCount}; history entries ${historyCount}`),
+        'MG-03.2': (s) => invariant('MG-03.2', s, !(reportedReverted && markerCount > 0), `revert reported ${revert?.reported}; marker count ${markerCount}`),
+        'MG-03.3': (s) => invariant('MG-03.3', s, revert?.reported === 'failed' && historyCount > 0 && (ev.case.settings?.transactional !== true || markerCount > 0), `revert reported ${revert?.reported}; marker count ${markerCount}; history entries ${historyCount}`),
+      }),
+    }
+  },
 }
 
 /** The subtransaction IDs seen in backend `pid`'s locks at any checkpoint, other than the top-level ID. */
@@ -361,12 +423,20 @@ export function evidenceProblems(ev) {
   for (const e of h.protocolErrors ?? []) problems.push(`protocol: ${e}`)
   if (ev.steps?.fault?.hook_error) problems.push(`the adapter could not report the fault's checkpoint: ${ev.steps.fault.hook_error}`)
   for (const name of h.missingCheckpoints ?? []) problems.push(`checkpoint "${name}" was not reached`)
-  if (ev.adapterStatus === 'completed') {
+  if (ev.adapterStatus === 'completed' && isMigration(ev)) {
+    for (const role of ev.case.settings?.runners ?? []) {
+      const runner = ev.runners?.[role]
+      if (!runner || !MIGRATION_REPORTED.includes(runner.reported)) problems.push(`runner ${role} did not report a migration outcome (got ${JSON.stringify(runner?.reported)})`)
+      else if (runner.reported === 'pending') problems.push(`runner ${role} had not returned when the adapter stopped waiting for it`)
+      else if ((runner.reported === 'failed' || runner.reported === 'refused') && !runner.api_error) problems.push(`runner ${role} reported "${runner.reported}" without the error the API raised`)
+      else if (!Number.isInteger(runner.exit_code)) problems.push(`runner ${role} reported no exit status`)
+    }
+  } else if (ev.adapterStatus === 'completed') {
     if (!REPORTED.includes(ev.reported)) problems.push(`the adapter did not report the API outcome (got ${JSON.stringify(ev.reported)})`)
     if (ev.reported === 'pending') problems.push('the API call had not returned when the adapter stopped waiting for it')
     if ((ev.reported === 'failed' || ev.reported === 'rolled_back') && !ev.apiError) problems.push(`the adapter reported "${ev.reported}" without the error the API raised`)
   }
-  const transactions = ev.observed?.transactions ?? {}
+  const transactions = isMigration(ev) ? {} : (ev.observed?.transactions ?? {})
   for (const [label, tx] of Object.entries(transactions)) {
     if (!tx.xid) { problems.push(`the ID of transaction "${label}" was not captured inside it`); continue }
     if (tx.fate !== 'committed' && tx.fate !== 'aborted') problems.push(`pg_xact_status() for transaction "${label}" is ${tx.fate === null ? 'unknown' : `"${tx.fate}"`}${tx.fate_error ? ` (${tx.fate_error})` : ''}`)
@@ -402,7 +472,14 @@ export function evidenceProblems(ev) {
   if (Array.isArray(ev.observed?.sessions_at_end) && ev.observed.sessions_at_end.length) problems.push(`${ev.observed.sessions_at_end.length} session(s) were still connected to the case's database after the adapter exited`)
   const poolMax = ev.case.settings?.pool_max
   for (const [name, c] of Object.entries(ev.observed?.checkpoints ?? {})) {
-    if (Number.isInteger(poolMax) && c.adapter_sessions > poolMax) problems.push(`at \`${name}\` the case's database had ${c.adapter_sessions} adapter sessions, more than pool_max (${poolMax})`)
+    // A migration case runs one process per role. The ceiling is per role: two runners are supposed to be connected
+    // at once. When the checkpoint lists sessions, each application_name is counted on its own. A bare total is the
+    // transaction-case check, and it still applies when the list is absent.
+    if (isMigration(ev) && Array.isArray(c.sessions)) {
+      const byName = new Map()
+      for (const s of c.sessions) byName.set(s.application_name, (byName.get(s.application_name) ?? 0) + 1)
+      for (const [app, n] of byName) if (Number.isInteger(poolMax) && n > poolMax) problems.push(`at \`${name}\` ${app} had ${n} sessions, more than pool_max (${poolMax}) for one runner`)
+    } else if (Number.isInteger(poolMax) && c.adapter_sessions > poolMax) problems.push(`at \`${name}\` the case's database had ${c.adapter_sessions} adapter sessions, more than pool_max (${poolMax})`)
     // The same PID must be the same backend wherever a checkpoint reports it.
     for (const [label, t] of Object.entries(transactions)) {
       if (c.reported?.pid === t.pid && c.session?.present && t.backend_start && c.session.backend_start !== t.backend_start) problems.push(`at \`${name}\`, PID ${t.pid} belongs to a different backend than transaction "${label}"'s`)

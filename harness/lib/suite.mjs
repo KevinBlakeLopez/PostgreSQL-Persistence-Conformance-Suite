@@ -13,6 +13,7 @@ import { CONTROL_FAMILY, ROOT, harnessSha256, isControlAdapter, loadAdapters, lo
 import { Instance, loadSettings } from './instance.mjs'
 import { Observer } from './observer.mjs'
 import { runCase, RESULT_SCHEMA } from './run-case.mjs'
+import { runMigrationCase } from './run-migration.mjs'
 import { CLASSIFICATIONS, RECORDS_INCONCLUSIVE_REASON, notRun } from './classify.mjs'
 import { RUN_SCHEMA, caseFileName, prepareRunDir, renderSummary, writeJson } from './report.mjs'
 
@@ -63,8 +64,9 @@ const agreementKey = (e) => JSON.stringify([e.classification, e.mechanism_exerci
 
 /** Runs one item `repetitions` times, each on a fresh database. */
 async function runRepeated(args, repetitions) {
+  const { run = runCase, ...rest } = args
   const records = []
-  for (let n = 1; n <= repetitions; n += 1) records.push(await runCase({ ...args, repetition: n }))
+  for (let n = 1; n <= repetitions; n += 1) records.push(await run({ ...rest, repetition: n }))
   return combineRepetitions(records)
 }
 
@@ -195,7 +197,8 @@ export async function runSuite({ adapterFilter = [], caseFilter = [], modeFilter
     if (item.plan !== 'run') r = notExecuted(item, context, planned(item))
     else {
       try {
-        r = await runRepeated({ instance, observer, catalog, adapter: item.adapter, mode: item.mode, kase: item.kase, runId, harness, timeoutMs }, repetitions)
+        const run = item.kase.family.startsWith('MG-') ? runMigrationCase : runCase
+        r = await runRepeated({ instance, observer, catalog, adapter: item.adapter, mode: item.mode, kase: item.kase, runId, harness, timeoutMs, run }, repetitions)
       } catch (e) {
         // A failure of the runner itself (for example, the server went away) is recorded, never silently dropped.
         r = notExecuted(item, context, { classification: 'INCONCLUSIVE', reason: `the runner failed while running this case: ${String(e?.message ?? e).split('\n')[0]}`, preconditions: [], invariants: [] })

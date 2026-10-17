@@ -33,6 +33,44 @@ export class Observer {
     return rows[0]?.status ?? null
   }
 
+  /** How many rows of `item` have this marker value. A migration's execution count. */
+  async markerCount(database, name) {
+    const rows = await this.instance.query(database, 'select count(*)::int as n from item where name = $1', [name])
+    return rows[0].n
+  }
+
+  /**
+   * How many rows the framework's history table holds. A missing table is zero: the database has no history yet.
+   * `table` is the adapter's declared history table, and it must be a plain identifier.
+   */
+  async historyCount(database, table) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(table ?? '')) throw new Error(`history table is not an identifier: ${JSON.stringify(table)}`)
+    const rel = await this.instance.query(database, 'select to_regclass($1) as rel', [table])
+    if (!rel[0].rel) return 0
+    const rows = await this.instance.query(database, `select count(*)::int as n from ${table}`)
+    return rows[0].n
+  }
+
+  /**
+   * Sessions waiting on advisory lock `key`, other than the runner's own connections. The gate is that lock: a
+   * migration that has reached its hold point waits on it, and the runner's own session holds it.
+   */
+  async gateWaiters(database, key) {
+    const runner = this.instance.runnerSessions?.() ?? { pids: [], applicationName: 'ppcs-observer' }
+    return this.instance.query(database, `select a.pid, a.application_name, a.state, l.granted
+      from pg_locks l join pg_stat_activity a using (pid)
+      where l.locktype = 'advisory' and l.classid = 0 and l.objid = $1 and a.datname = current_database()
+        and not (a.pid = any($2::int[]) and a.application_name = $3)
+      order by a.pid`, [key, runner.pids, runner.applicationName])
+  }
+
+  /** Client sessions of one role. The role's application_name is `ppcs-` plus the role. */
+  async roleSessions(database, role) {
+    return this.instance.query(database, `select pid, state from pg_stat_activity
+      where datname = current_database() and backend_type = 'client backend' and application_name = $1
+      order by pid`, [`ppcs-${role}`])
+  }
+
   /** Which of the case's markers an independent connection sees: { label: true | false }. */
   async markers(database, markers) {
     const rows = await this.instance.query(database, 'select name from item where name = any($1)', [Object.values(markers)])

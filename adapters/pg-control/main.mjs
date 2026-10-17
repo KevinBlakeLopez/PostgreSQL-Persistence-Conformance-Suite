@@ -20,6 +20,7 @@ import pg from 'pg'
 import { ProtocolError, boundedUnit, main } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { migrationCases } from './migration.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const pgTrace = instrument(pg)
@@ -288,6 +289,8 @@ const cases = {
 
   'TX-05.managed-serializable': requestedLevel,
   'TX-05.explicit-serializable': requestedLevel,
+
+  ...migrationCases,
 }
 
 const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
@@ -307,6 +310,7 @@ await main({
     let client = null
     let pool = null
     const context = {
+      connection: message.connection,
       // A terminated connection is reported through the failing query, not as a crash.
       client: async () => { if (!client) { client = new pg.Client(message.connection); client.on('error', () => {}); await client.connect() } return client },
       pool: (mode) => (pool ??= new OneConnectionPool(message.connection, mode)),

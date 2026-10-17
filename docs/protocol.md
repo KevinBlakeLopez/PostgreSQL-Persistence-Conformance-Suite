@@ -16,7 +16,7 @@ There is no transaction API, no RPC, and no shared library: PPCS's JavaScript ad
 
 | Direction | `type` | When | Fields |
 | --- | --- | --- | --- |
-| runner → adapter | `case` | First, once | `case` (`id`, `family`, `version`, `title`, `settings`), `mode`, `repetition` (1, 2, 3, …), `connection` (`host`, `port`, `user`, `password`, `database`, `application_name`), `markers` (label → value) |
+| runner → adapter | `case` | First, once | `case` (`id`, `family`, `version`, `title`, `settings`), `mode`, `repetition` (1, 2, 3, …), `connection` (`host`, `port`, `user`, `password`, `database`, `application_name`), `markers` (label → value). A migration case also sends `migration`: `role`, `operation` (`apply` or `revert`), `gate`, `migrationId`, `reversal`, `hold` |
 | adapter → runner | `hello` | After reading `case`, once | `adapter`, `framework`, `driver` (each `name` and `version`), `components` (name → version), `runtime` (`name`, `version`), `mode`, `configuration` (what the mode changes) |
 | adapter → runner | `checkpoint` | At each checkpoint the case declares, and at `after-end` | `name`, `pid` (the backend running the current transaction), `xid` (its `pg_current_xact_id()`, as text) when the case captures it; `transaction_isolation` (its `current_setting('transaction_isolation')`, read in the same statement as `xid`) when the checkpoint declares `captures_isolation` |
 | runner → adapter | `resume` | After observing a checkpoint | `name`, `actions` (what the runner did, for example `{ "action": "terminate_backend", "pid": 123, "terminated": true, "gone": true }`) |
