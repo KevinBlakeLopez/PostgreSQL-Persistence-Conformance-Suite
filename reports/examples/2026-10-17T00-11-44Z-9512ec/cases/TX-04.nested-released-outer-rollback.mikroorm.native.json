@@ -1,0 +1,330 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-17T00-11-44Z-9512ec",
+  "harness": {
+    "ppcs_version": "0.1.0",
+    "sha256": "3a7969a12ea707083fb51f30d369ebe74287547164b73a31dbf5900701168bd4"
+  },
+  "specification": {
+    "id": "TX-04.nested-released-outer-rollback",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope completes; then the outer transaction rolls back",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "End the nested scope normally, so that its savepoint is released.",
+      "Raise an application error in the outer scope, so that the framework rolls the outer transaction back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.2",
+        "statement": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "0beea4a78c7f7110d01e358c53365421776c69b507f14612a263fc7d3ff050cb"
+  },
+  "subject": {
+    "adapter": {
+      "name": "mikroorm",
+      "version": "0.1.0",
+      "source_sha256": "55b286bb28781887606db2139ca6d86a38160e24ea7cc10bbd6cada00198fed6"
+    },
+    "framework": {
+      "name": "@mikro-orm/core",
+      "version": "7.2.5"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@mikro-orm/postgresql": "7.2.5",
+      "@mikro-orm/sql": "7.2.5",
+      "kysely": "0.29.6",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "MikroORM's defaults: em.transactional(callback) in a RequestContext, allowGlobalContext false. One non-default option is part of a case's form, not of the mode: the TX-02 cases call the nested em.transactional() with { clear: true }, as the reused experiments did, and each result records that form and its reason.",
+    "configuration": {},
+    "form": "The outer write is left pending in the unit of work, as ordinary MikroORM code leaves it; the nested scope flushes its own write."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope completed, and that the outer transaction rolled back.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "em.transactional(callback) with a nested em.transactional(callback), default propagation NESTED rejected with the error the callback threw",
+    "contract": "MikroORM 7.2.5 documents NESTED as \"Create a nested savepoint within the current transaction, or a new transaction if none exists\" (enums.d.ts, TransactionPropagation), and a nested em.transactional() as creating a savepoint by default (EntityManager.transactional).",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "application error: the outer scope fails"
+    },
+    "steps": {
+      "nested": {
+        "caught": false,
+        "completed": true
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 26866,
+          "xid": "3868"
+        },
+        "session": {
+          "pid": 26866,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3868",
+          "xid_matches": true,
+          "backend_start": "2026-10-17 00:13:54.156187+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": ""
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "3868",
+            "3869"
+          ]
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 26866,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "3868",
+              "xid_matches": null,
+              "backend_start": "2026-10-17 00:13:54.156187+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": ""
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 26866,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_start": "2026-10-17 00:13:54.156187+00",
+              "query": "rollback",
+              "application_name": ""
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3868",
+        "pid": 26866,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-17 00:13:54.156187+00"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-04.2 held: the API reported: rolled_back; xid 3868 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [3868, 3869]"
+      },
+      {
+        "description": "the nested scope completed normally",
+        "met": true,
+        "detail": "nested scope: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.2",
+        "statement": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too.",
+        "holds": true,
+        "detail": "the API reported: rolled_back; xid 3868 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for mikroorm (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=mikroorm --mode=native --case=TX-04.nested-released-outer-rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 26866): begin",
+        "c1(pid 26866): -> command tag BEGIN for: begin",
+        "c1(pid 26866): savepoint \"trx1\"",
+        "c1(pid 26866): -> command tag SAVEPOINT for: savepoint \"trx1\"",
+        "c1(pid 26866): insert into \"item\" (\"name\", \"qty\") values ('outer-279b7a', 0), ('inner-279b7a', 0) returning \"id\"",
+        "c1(pid 26866): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 26866): release \"trx1\"",
+        "c1(pid 26866): -> command tag RELEASE for: release \"trx1\"",
+        "c1(pid 26866): rollback",
+        "c1(pid 26866): -> command tag ROLLBACK for: rollback"
+      ],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-17T00:13:53.945Z",
+    "finished_at": "2026-10-17T00:13:54.674Z",
+    "duration_ms": 729
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 3868 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 250
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 3873 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 235
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 3878 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 244
+      }
+    ]
+  }
+}

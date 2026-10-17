@@ -1,0 +1,135 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-17T00-11-44Z-9512ec",
+  "harness": {
+    "ppcs_version": "0.1.0",
+    "sha256": "3a7969a12ea707083fb51f30d369ebe74287547164b73a31dbf5900701168bd4"
+  },
+  "specification": {
+    "id": "TX-04.independent-inner",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "An inner transaction that promises independence commits; then the outer transaction rolls back",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API, on a pool of two connections.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start an inner transaction through the framework's API that promises an independent transaction (for example a REQUIRES_NEW propagation). Write the marker `inner` in it.",
+      "Checkpoint `inner-after-write`: report the inner transaction's pg_current_xact_id() and pg_backend_pid().",
+      "End the inner transaction normally, so that it commits.",
+      "Raise an application error in the outer scope, so that the framework rolls the outer transaction back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.3",
+        "statement": "An inner transaction started through an API that promises an independent transaction commits only its own writes: the outer scope's writes, whether already sent or still pending in the framework, are committed only by the outer transaction."
+      }
+    ],
+    "catalog": "specifications/transactions.v1.json",
+    "catalog_sha256": "0beea4a78c7f7110d01e358c53365421776c69b507f14612a263fc7d3ff050cb"
+  },
+  "subject": {
+    "adapter": {
+      "name": "typeorm",
+      "version": "UNKNOWN",
+      "source_sha256": "e897bc9de14cabee8bf155639382d1ee4ccdc219fb8d9204d5408a8bcc647d20"
+    },
+    "framework": {
+      "name": "typeorm",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "TypeORM's defaults, with the managed transaction API ds.transaction(callback).",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the inner transaction committed and the outer one rolled back. From the API alone, it cannot see which transaction carried a write the framework still had pending.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "TypeORM has no propagation modes and no deferred writes in the repository API this adapter uses: a nested manager.transaction() is always a savepoint, and every insert is sent when it is made. An independent transaction is an unrelated ds.transaction() on another connection, which shares no pending writes with the outer one, so the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise.",
+    "unsupported_class": "not-applicable-by-design",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=typeorm --mode=native --case=TX-04.independent-inner",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-17T00:14:20.779Z",
+    "finished_at": "2026-10-17T00:14:20.779Z",
+    "duration_ms": 0
+  }
+}
