@@ -1,7 +1,7 @@
 // Consistency of the catalog, its documentation and the adapter manifests. No database.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CatalogError, DEFAULT_CATALOG, ROOT, loadAdapters, loadCatalog } from '../../lib/catalog.mjs'
@@ -43,6 +43,11 @@ test('adapter manifests reference only catalog cases, and modes only implemented
   }
 })
 
+test('the control adapter states an expectation for every case it implements, in every mode', () => {
+  const pg = loadAdapters().find((a) => a.name === 'pg-control')
+  for (const id of pg.implements) for (const m of pg.modes) assert.ok(['PASS', 'FAIL'].includes(pg.expectations[id]?.[m.id]), `pg-control: ${id} in ${m.id}`)
+})
+
 /** Writes a copy of the catalog with `change` applied, and loads it. */
 function loadChanged(change) {
   const dir = scratch()
@@ -65,4 +70,24 @@ test('the catalog refuses marker writes it cannot confirm, and a declared after-
   assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.transaction = 'other' }), /which no checkpoint captures/)
   assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').checkpoints['after-end'] = {} }), /implicit in every case/)
   assert.doesNotThrow(() => loadChanged(() => {}))
+})
+
+/** Loads a single adapter manifest from a scratch directory. */
+function loadManifest(manifest) {
+  const dir = scratch()
+  try {
+    mkdirSync(join(dir, manifest.name))
+    writeFileSync(join(dir, manifest.name, 'adapter.json'), JSON.stringify(manifest))
+    return loadAdapters(dir)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+const MANIFEST = { manifest: 'ppcs-adapter/1', name: 'probe', command: ['node', 'main.mjs'], modes: [{ id: 'native', kind: 'native', description: 'd' }], implements: ['CTL-01.commit'] }
+
+test('manifests: malformed expectations are refused', () => {
+  assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'TX-01A.caught-error-then-commit': { native: 'PASS' } } }), /does not implement/)
+  assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { other: 'PASS' } } }), /unknown mode "other"/)
+  assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'MAYBE' } } }), /must be PASS or FAIL/)
+  assert.doesNotThrow(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'PASS' } } }))
 })

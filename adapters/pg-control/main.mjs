@@ -5,6 +5,8 @@
 //   COMMIT raises (outcome unknown)  reports a failure, asserting nothing  reports a rollback
 //   ROLLBACK TO SAVEPOINT fails      ends with ROLLBACK, not COMMIT        commits anyway
 //   top-level ROLLBACK fails         discards the connection               returns it to the pool as it is
+//   a write before a nested scope    sends it at once                      defers it, then sends it inside the nested
+//                                                                          scope's savepoint, as a unit of work might
 //
 // A rollback the control reports without the body having thrown (from the reply to COMMIT, or after a failed savepoint
 // rollback) is raised to the caller as a TransactionRolledBackError, as an API would raise it.
@@ -28,7 +30,7 @@ async function identify(client) {
 
 const CONTRACT = {
   correct: 'The correct control reports committed only when PostgreSQL answers COMMIT with the command tag COMMIT, reports any other tag as a rollback, and reports a COMMIT that raised as a failure. After a failed savepoint rollback, it ends the transaction with ROLLBACK instead of COMMIT.',
-  unsafe: 'The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks.',
+  unsafe: 'The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks, and defers a write made before a nested scope into that scope\'s savepoint.',
 }
 
 const rolledBackError = (message) => ({ class: 'TransactionRolledBackError', code: null, message })
@@ -179,13 +181,18 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
   return { ...unit1, steps: { unit2, ...(fault ? { fault: faultReport(fault) } : {}) } }
 }
 
-// TX-04.1 and TX-04.2 on the control's own savepoints. Both modes behave alike: no fault is injected.
+// TX-04.1 and TX-04.2 on the control's own savepoints. No fault is injected. `correct` sends the outer write at once;
+// `unsafe` defers it and sends it inside the nested scope's savepoint, so a failing nested scope rolls it back too (the
+// lost write TX-04.1 targets).
 const nestedOnly = (variant) => async (ctx, { markers, checkpoint, mode }) => {
   const nested = { caught: false, completed: false }
+  const deferred = []
   const outcome = await transaction(await ctx.client(), mode, async (c) => {
-    await c.query('insert into item (name) values ($1)', [markers.outer])
+    if (mode === 'unsafe') deferred.push(markers.outer)
+    else await c.query('insert into item (name) values ($1)', [markers.outer])
     try {
       await nestedScope(c, {}, async (n) => {
+        for (const name of deferred.splice(0)) await n.query('insert into item (name) values ($1)', [name])
         await n.query('insert into item (name) values ($1)', [markers.inner])
         await checkpoint('inner-after-write', await identify(n))
         if (variant === 'nested-fails') throw new Error('application error: the nested scope fails')
@@ -261,8 +268,8 @@ await main({
     components: { 'pg-pool': packageVersion(packageDir(HERE, 'pg'), 'pg-pool') },
   }),
   modes: {
-    correct: { configuration: { commit_reply: 'checked', commit_error: 'reported as a failure', failed_savepoint_rollback: 'transaction ended with ROLLBACK', failed_rollback: 'connection discarded' } },
-    unsafe: { configuration: { commit_reply: 'ignored', commit_error: 'reported as a rollback', failed_savepoint_rollback: 'ignored', failed_rollback: 'connection returned to the pool' } },
+    correct: { configuration: { commit_reply: 'checked', commit_error: 'reported as a failure', failed_savepoint_rollback: 'transaction ended with ROLLBACK', failed_rollback: 'connection discarded', write_before_nested_scope: 'sent at once' } },
+    unsafe: { configuration: { commit_reply: 'ignored', commit_error: 'reported as a rollback', failed_savepoint_rollback: 'ignored', failed_rollback: 'connection returned to the pool', write_before_nested_scope: 'deferred into the nested scope\'s savepoint' } },
   },
   open: (message) => {
     let client = null

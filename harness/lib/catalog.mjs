@@ -80,6 +80,14 @@ export function loadAdapters(base = join(ROOT, 'adapters')) {
     if (!Array.isArray(m.modes) || !m.modes.length) throw new CatalogError(`${where}: needs at least one mode`)
     for (const mode of m.modes) if (!mode.id || !MODE_KINDS.includes(mode.kind)) throw new CatalogError(`${where}: mode "${mode.id}" needs a kind among ${MODE_KINDS.join(', ')}`)
     if (m.rollback_claim_channels && !Array.isArray(m.rollback_claim_channels)) throw new CatalogError(`${where}: rollback_claim_channels must be an array`)
+    // A control adapter states the classification it expects in each mode, per case; suite.mjs checks them in every run.
+    for (const [id, byMode] of Object.entries(m.expectations ?? {})) {
+      if (!m.implements?.includes(id)) throw new CatalogError(`${where}: an expectation for ${id}, which the adapter does not implement`)
+      for (const [modeId, cls] of Object.entries(byMode)) {
+        if (!m.modes.some((x) => x.id === modeId)) throw new CatalogError(`${where}: an expectation for unknown mode "${modeId}" in ${id}`)
+        if (!['PASS', 'FAIL'].includes(cls)) throw new CatalogError(`${where}: the expectation for ${id} in mode "${modeId}" must be PASS or FAIL`)
+      }
+    }
     const dir = join(base, name)
     const shared = (m.shared ?? []).map((p) => resolve(dir, p))
     adapters.push({ ...m, rollback_claim_channels: m.rollback_claim_channels ?? [], dir, manifestPath: where, sourceSha256: treeSha256([dir, ...shared]) })

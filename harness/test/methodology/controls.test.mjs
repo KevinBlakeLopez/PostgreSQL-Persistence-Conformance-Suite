@@ -15,44 +15,33 @@ after(() => { if (process.env.PPCS_KEEP_TEST_RESULTS) console.log(`methodology r
 const byKey = (results) => Object.fromEntries(results.map((r) => [`${r.specification.id} ${r.subject.adapter.name}/${r.execution.mode}`, r]))
 const violated = (r, id) => r.evaluation.invariants.some((i) => i.id === id && i.holds === false)
 
-test('controls: the known-good implementation passes, the known-bad one is detected', async () => {
+test('controls: every pg-control expectation holds; the known-good implementation passes, the known-bad one is detected', async () => {
   const { results, runDir } = await runSuite({ adapterFilter: ['pg-control'], outDir })
   assert.deepEqual(checkRunDir(runDir), [], 'every file matches its schema, and none contains the password')
   const r = byKey(results)
-  const cls = (key) => r[key].evaluation.classification
-  assert.equal(cls('CTL-01.commit pg-control/correct'), 'PASS', 'a genuinely committed marker is detected')
-  assert.equal(cls('CTL-01.rollback pg-control/correct'), 'PASS', 'a genuinely rolled-back marker is absent')
+  const pg = loadAdapters().find((a) => a.name === 'pg-control')
+  for (const [id, byMode] of Object.entries(pg.expectations)) {
+    for (const [mode, expected] of Object.entries(byMode)) {
+      const x = r[`${id} pg-control/${mode}`]
+      assert.equal(x.evaluation.classification, expected, `${id} ${mode}: ${x.evaluation.reason}`)
+    }
+  }
   // TX-01A: the unsafe control reports a commit of a transaction PostgreSQL aborted; COMMIT reached the server.
-  assert.equal(cls('TX-01A.caught-error-then-commit pg-control/correct'), 'PASS', 'positive control')
   const negative = r['TX-01A.caught-error-then-commit pg-control/unsafe']
-  assert.equal(negative.evaluation.classification, 'FAIL', 'negative control')
   assert.equal(negative.database_outcome.transactions.tx.fate, 'aborted')
   assert.equal(negative.database_outcome.markers.tx, false)
   assert.equal(negative.evaluation.mechanism_exercised, true)
   assert.equal(r['TX-01A.caught-error-then-commit pg-control/correct'].evaluation.mechanism_exercised, true)
   // TX-01B: conn-lost is a known outcome, so the unsafe control's "rolled back" is true; after a discarded reply it is not.
-  for (const id of ['TX-01B.conn-lost-before-commit', 'TX-01B.commit-reply-discarded']) assert.equal(cls(`${id} pg-control/correct`), 'PASS', `${id} positive control`)
-  const known = r['TX-01B.conn-lost-before-commit pg-control/unsafe']
-  assert.equal(known.evaluation.classification, 'PASS')
-  assert.deepEqual(known.evaluation.invariants.map((i) => i.id), ['TX-01B.1'])
+  assert.deepEqual(r['TX-01B.conn-lost-before-commit pg-control/unsafe'].evaluation.invariants.map((i) => i.id), ['TX-01B.1'])
   const discarded = r['TX-01B.commit-reply-discarded pg-control/unsafe']
-  assert.equal(discarded.evaluation.classification, 'FAIL')
   assert.equal(discarded.database_outcome.transactions.tx.fate, 'committed')
   assert.ok(violated(discarded, 'TX-01B.2'))
   assert.deepEqual(r['TX-01B.commit-reply-discarded pg-control/correct'].evaluation.not_exercised, [], 'the control declares its rollback-claim channel')
-  // TX-02: after a failed savepoint rollback, the correct control refuses to commit; the unsafe one commits anyway. The
-  // fault's effect is observed on the server as the fault fires.
-  for (const id of ['TX-02.savepoint-rollback-not-sent', 'TX-02.savepoint-rollback-rejected', 'TX-02.conn-lost-before-savepoint-rollback']) {
-    assert.equal(cls(`${id} pg-control/correct`), 'PASS', `${id} positive control`)
-  }
-  for (const id of ['TX-02.savepoint-rollback-not-sent', 'TX-02.savepoint-rollback-rejected']) assert.equal(cls(`${id} pg-control/unsafe`), 'FAIL', `${id} negative control`)
+  // TX-02: the fault's effect is observed on the server, at the checkpoint after the nested scope.
   assert.equal(r['TX-02.savepoint-rollback-not-sent pg-control/correct'].database_outcome.checkpoints['after-fault'].locks.xids.length, 2)
   assert.ok(r['TX-02.savepoint-rollback-rejected pg-control/correct'].api_outcome.steps.fault.reply_codes.includes('3B001'))
   // TX-03: unsafe connection reuse, observed server-side: the next unit runs inside the failed transaction, and commits it.
-  for (const id of ['TX-03.rollback-not-sent', 'TX-03.conn-lost-in-transaction']) {
-    assert.equal(cls(`${id} pg-control/correct`), 'PASS', `${id} positive control`)
-    assert.equal(cls(`${id} pg-control/unsafe`), 'FAIL', `${id} negative control`)
-  }
   const reuse = r['TX-03.rollback-not-sent pg-control/unsafe']
   const { unit1, unit2 } = reuse.database_outcome.transactions
   assert.equal(unit2.xid, unit1.xid, 'the next unit ran inside the failed transaction')
@@ -60,12 +49,13 @@ test('controls: the known-good implementation passes, the known-bad one is detec
   assert.equal(reuse.database_outcome.markers.doomed, true)
   assert.ok(violated(reuse, 'TX-03.1'))
   assert.match(reuse.evaluation.reason, /open at report time \(`after-unit1`: xid \d+ in progress\); committed by later work in the case/)
-  // TX-04: no fault is injected, so both modes keep the savepoint boundaries; the control declares no propagation modes,
-  // and that is recorded as UNSUPPORTED, not FAIL.
-  for (const id of ['TX-04.nested-failure-contained', 'TX-04.nested-released-outer-rollback']) {
-    for (const mode of ['correct', 'unsafe']) assert.equal(cls(`${id} pg-control/${mode}`), 'PASS', `${id} ${mode}`)
-  }
-  assert.equal(cls('TX-04.independent-inner pg-control/correct'), 'UNSUPPORTED')
+  // TX-04: the unsafe control's deferred caller write is rolled back with the failed nested scope: a lost write.
+  const lost = r['TX-04.nested-failure-contained pg-control/unsafe']
+  assert.ok(violated(lost, 'TX-04.1'))
+  assert.equal(lost.database_outcome.markers.outer, false)
+  assert.equal(lost.api_outcome.reported, 'committed')
+  const na = r['TX-04.independent-inner pg-control/correct']
+  assert.equal(na.evaluation.classification, 'UNSUPPORTED')
   // The schema check is not vacuous: it rejects an unknown classification, and a FAIL without its contract basis.
   assert.notDeepEqual(resultErrors({ ...negative, evaluation: { ...negative.evaluation, classification: 'MAYBE' } }), [])
   assert.notDeepEqual(resultErrors({ ...negative, evaluation: { ...negative.evaluation, contract_basis: null } }), [])

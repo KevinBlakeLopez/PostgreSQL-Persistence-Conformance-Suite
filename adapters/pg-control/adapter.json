@@ -2,7 +2,7 @@
   "manifest": "ppcs-adapter/1",
   "name": "pg-control",
   "framework": "pg-control",
-  "description": "Positive and negative controls: transactions written directly against node-postgres. `correct` checks PostgreSQL's reply to COMMIT and reports a COMMIT error as a failure; `unsafe` deliberately gets both wrong. Used to show that the runner passes a known-good implementation and detects a known-bad one.",
+  "description": "Positive and negative controls: transactions written directly against node-postgres. `correct` checks PostgreSQL's reply to COMMIT and reports a COMMIT error as a failure; `unsafe` deliberately gets these wrong. Used to show that the runner passes a known-good implementation and detects a known-bad one. `expectations` states each mode's expected classification per case; a framework's result for a case counts only when these hold in the same run.",
   "command": [
     "node",
     "main.mjs"
@@ -19,7 +19,7 @@
     {
       "id": "unsafe",
       "kind": "control",
-      "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, and returns a connection whose ROLLBACK failed to its pool as it is."
+      "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint."
     }
   ],
   "implements": [
@@ -39,6 +39,56 @@
   "rollback_claim_channels": [
     "result"
   ],
+  "expectations": {
+    "CTL-01.commit": {
+      "correct": "PASS",
+      "unsafe": "PASS"
+    },
+    "CTL-01.rollback": {
+      "correct": "PASS",
+      "unsafe": "PASS"
+    },
+    "TX-01A.caught-error-then-commit": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-01B.conn-lost-before-commit": {
+      "correct": "PASS",
+      "unsafe": "PASS"
+    },
+    "TX-01B.commit-reply-discarded": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-02.savepoint-rollback-not-sent": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-02.savepoint-rollback-rejected": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-02.conn-lost-before-savepoint-rollback": {
+      "correct": "PASS",
+      "unsafe": "PASS"
+    },
+    "TX-03.rollback-not-sent": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-03.conn-lost-in-transaction": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-04.nested-failure-contained": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-04.nested-released-outer-rollback": {
+      "correct": "PASS",
+      "unsafe": "PASS"
+    }
+  },
   "unsupported": {
     "TX-04.independent-inner": "The control implements no propagation modes, so it has no API that promises an independent inner transaction."
   }
