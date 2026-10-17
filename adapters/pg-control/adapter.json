@@ -14,12 +14,12 @@
     {
       "id": "correct",
       "kind": "control",
-      "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed."
+      "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed. It starts a transaction at the isolation level requested of it."
     },
     {
       "id": "unsafe",
       "kind": "control",
-      "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint."
+      "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, ignoring a requested isolation level."
     }
   ],
   "implements": [
@@ -35,7 +35,9 @@
     "TX-02.savepoint-rollback-rejected",
     "TX-02.conn-lost-before-savepoint-rollback",
     "TX-04.nested-failure-contained",
-    "TX-04.nested-released-outer-rollback"
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
   ],
   "rollback_claim_channels": [
     "result"
@@ -92,6 +94,14 @@
     "TX-04.nested-released-outer-rollback": {
       "correct": "PASS",
       "unsafe": "PASS"
+    },
+    "TX-05.managed-serializable": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
+    },
+    "TX-05.explicit-serializable": {
+      "correct": "PASS",
+      "unsafe": "FAIL"
     }
   },
   "unsupported": {
