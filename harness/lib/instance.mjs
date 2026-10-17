@@ -13,6 +13,9 @@ export const OBSERVER_APP = 'ppcs-observer'
 
 export class SafetyError extends Error {}
 
+/** How many of the runner's most recent backend PIDs the observer excludes from a case's sessions. */
+const RUNNER_PIDS_KEPT = 256
+
 /**
  * The server settings every case assumes. A durable, synchronous commit with no replication wait; READ COMMITTED;
  * activity tracking (the observer reads pg_stat_activity); and no server-side timeout that could end a session or a
@@ -64,6 +67,17 @@ export class Instance {
     this.verified = false
     this.owned = new Set()
     this.server = null
+    this.runnerPids = new Set() // backend PIDs of the runner's own connections, most recent last
+  }
+
+  /**
+   * Backend PIDs of the runner's own connections. A closed connection's backend can linger briefly in
+   * pg_stat_activity, so the observer excludes these PIDs (together with the runner's application_name) rather than
+   * trusting a name an adapter could also use. Bounded to the most recent ones, so that a PID the server later reuses
+   * for an adapter's backend is soon no longer excluded.
+   */
+  runnerSessions() {
+    return { pids: [...this.runnerPids], applicationName: OBSERVER_APP }
   }
 
   /** Connection parameters for `database`. Callers that pass them on must not record `password`. */
@@ -79,6 +93,10 @@ export class Instance {
     const c = new pg.Client({ ...this.connection(database), connectionTimeoutMillis: 10000, ...(serverTimeout ? { statement_timeout: 15000 } : {}), query_timeout: 20000 })
     c.on('error', () => {}) // a terminated or dropped connection must not crash the runner
     await c.connect()
+    if (Number.isInteger(c.processID)) {
+      this.runnerPids.add(c.processID) // from BackendKeyData: no extra round trip
+      if (this.runnerPids.size > RUNNER_PIDS_KEPT) this.runnerPids.delete(this.runnerPids.values().next().value)
+    }
     return c
   }
 

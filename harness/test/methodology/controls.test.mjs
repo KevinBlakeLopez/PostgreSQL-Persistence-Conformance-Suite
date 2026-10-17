@@ -84,6 +84,7 @@ test('misbehaving adapters: never PASS; UNSUPPORTED is not FAIL; unimplemented i
     'escaped-checkpoint': /transaction "tx" is not bound to its session/,
     flaky: /the repetitions disagree: #1 PASS; #2 FAIL; #3 PASS/,
     'extra-connection': /adapter sessions, more than pool_max \(1\)/,
+    'impersonate-observer': /adapter sessions, more than pool_max \(1\)/,
     'repeated-checkpoint': /checkpoint "before-end" reported more than once/,
   }
   for (const [mode, reason] of Object.entries(inconclusive)) {

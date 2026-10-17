@@ -92,9 +92,13 @@ export class Observer {
 
   /** Client sessions connected to `database`, other than the runner's own connections. */
   async sessions(database) {
+    // A session is the runner's only if both its PID is one of the runner's own connections and it carries the runner's
+    // application_name. An adapter connection that uses that name is still counted, and so is a backend that reuses an
+    // old runner PID.
+    const runner = this.instance.runnerSessions?.() ?? { pids: [], applicationName: 'ppcs-observer' }
     return this.instance.query(database, `select pid, state, (xact_start is not null or state like 'idle in transaction%') as in_transaction, application_name
       from pg_stat_activity where datname = current_database() and backend_type = 'client backend' and pid <> pg_backend_pid()
-      and application_name <> 'ppcs-observer' order by pid`)
+      and not (pid = any($1::int[]) and application_name = $2) order by pid`, [runner.pids, runner.applicationName])
   }
 
   /**

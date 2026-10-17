@@ -73,6 +73,14 @@ const behaviours = {
     await extra.connect()
     try { return await behaviours.ok(c, ctx) } finally { await extra.end() }
   },
+  // As extra-connection, but the second connection uses the runner's own application_name ("ppcs-observer"). The
+  // runner tells its connections apart by their backend PIDs, so this one still counts against the pool.
+  'impersonate-observer': async (c, ctx) => {
+    const extra = new pg.Client({ ...ctx.connection, application_name: 'ppcs-observer' })
+    extra.on('error', () => {})
+    await extra.connect()
+    try { return await behaviours.ok(c, ctx) } finally { await extra.end() }
+  },
   // Reports its capture checkpoint twice, as a retried transaction body would.
   'repeated-checkpoint': async (c, { markers, checkpoint }) => {
     await c.query('begin'); await c.query('insert into item (name) values ($1)', [markers.tx])

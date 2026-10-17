@@ -16,3 +16,13 @@ test('server profile: the expected settings pass; any one of them changed stops 
   const { fsync: __, ...noFsync } = SERVER_PROFILE
   assert.deepEqual(profileProblems(noFsync), ['fsync is missing'])
 })
+
+test('sessions: only a session with both a runner PID and the runner\'s name is the runner\'s own', async () => {
+  const { Observer } = await import('../../lib/observer.mjs')
+  const calls = []
+  const instance = { runnerSessions: () => ({ pids: [41, 42], applicationName: 'ppcs-observer' }), query: async (db, text, params) => { calls.push({ text, params }); return [] } }
+  await new Observer(instance).sessions('db')
+  assert.equal(calls.length, 1)
+  assert.match(calls[0].text, /not \(pid = any\(\$1::int\[\]\) and application_name = \$2\)/)
+  assert.deepEqual(calls[0].params, [[41, 42], 'ppcs-observer'])
+})
