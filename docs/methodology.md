@@ -33,7 +33,7 @@ A committed transaction whose confirmed write is missing is not an inconsistency
 
 ## Fault-injection categories
 
-| Category | Meaning | Mechanisms in PPCS 0.1 | Depends on driver internals |
+| Category | Meaning | Mechanisms in PPCS | Depends on driver internals |
 | --- | --- | --- | --- |
 | **A** | An error PostgreSQL generates in ordinary operation | A unique violation caught inside the transaction (TX-01A) | No |
 | **B** | Server-side termination of the backend | `pg_terminate_backend(pid)`, run by the runner, only inside the case's own database | No |
@@ -63,7 +63,7 @@ The signature is read at the fault, not when the API returns. A framework that r
 
 **Category D:** the fault must have fired exactly once, and PostgreSQL's outcome must be the one the case produces (committed), both at report time and at the end. The simulation has one known artifact: node-postgres parses PostgreSQL's reply before the simulated loss, so the driver's own state is "idle". Results of `TX-01B.commit-reply-discarded` therefore say nothing about logic that reads driver state, or about pool recovery after a real loss.
 
-**Deferred: a network-level unknown-outcome fault.** A TCP proxy that understands the PostgreSQL protocol could discard the reply to `COMMIT` without touching the client. It would make an unknown-outcome case available to adapters in any language. PPCS 0.1 does not include it; its only case of that kind is the category D simulation in TX-01B.
+**Deferred: a network-level unknown-outcome fault.** A TCP proxy that understands the PostgreSQL protocol could discard the reply to `COMMIT` without touching the client. It would make an unknown-outcome case available to adapters in any language. PPCS does not include it yet; its only case of that kind is the category D simulation in TX-01B.
 
 ## Commit outcome ambiguity
 
@@ -75,7 +75,7 @@ There are three possible situations after `COMMIT`:
 
 PPCS never reads a later observation of committed state as proof that the client could have known the outcome. In `TX-01B.commit-reply-discarded`, PostgreSQL committed. A framework that reported success still fails TX-01B.1, because it had no reply to base the report on.
 
-**TX-01B.2 needs a channel.** TX-01B.2 forbids a confirmed rollback after an unknown outcome. A framework can claim a rollback through its result, its error types, or its rollback hooks or events. Each adapter declares, in `rollback_claim_channels`, which of these it observes. A rollback reported through the result always violates TX-01B.2. Otherwise, TX-01B.2 holds only for an adapter that observes at least one channel. For the others it is recorded as *not exercised*, never as held. PPCS 0.1's framework adapters observe no such channel. Their TX-01B.2 results are therefore "not exercised", and the summary says so.
+**TX-01B.2 needs a channel.** TX-01B.2 forbids a confirmed rollback after an unknown outcome. A framework can claim a rollback through its result, its error types, or its rollback hooks or events. Each adapter declares, in `rollback_claim_channels`, which of these it observes. A rollback reported through the result always violates TX-01B.2. Otherwise, TX-01B.2 holds only for an adapter that observes at least one channel. For the others it is recorded as *not exercised*, never as held. The current framework adapters observe no such channel. Their TX-01B.2 results are therefore "not exercised", and the summary says so.
 
 ## Classification
 
@@ -119,7 +119,7 @@ A result that fails a gate is INCONCLUSIVE. The classification it would have had
 
 An adapter runs each case in its `native` mode: the framework's defaults, through its ordinary APIs. It may also declare other modes, each a separate column in the report:
 
-| Kind | Meaning | Example in 0.1 |
+| Kind | Meaning | Example |
 | --- | --- | --- |
 | `recommended` | A configuration the framework's documentation recommends for the pattern. The mode must cite that documentation (`documentation`), or the manifest is refused | none |
 | `configured` | A documented, non-default option | MikroORM `clear-forks`: `{ clear: true }` on nested calls |

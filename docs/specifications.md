@@ -53,7 +53,7 @@ The two cases differ in what the client can know:
 - **`conn-lost-before-commit`** is a known outcome. The session ended before the framework tried to commit, and the driver refused to send `COMMIT`. A report of rollback is justified, so the case declares only TX-01B.1.
 - **`commit-reply-discarded`** is unknown to the client. TX-01B.2 is exercised only for adapters that observe a channel through which the framework could claim a rollback (`rollback_claim_channels`); otherwise it is recorded as not exercised.
 
-A framework that verified the outcome, for example with `pg_xact_status()`, and reported it would still fail TX-01B.2: PPCS 0.1 does not evaluate such evidence.
+A framework that verified the outcome, for example with `pg_xact_status()`, and reported it would still fail TX-01B.2: PPCS does not yet evaluate such evidence.
 
 | Case | Steps | PostgreSQL's outcome |
 | --- | --- | --- |
@@ -120,10 +120,10 @@ In every TX-04 case, the outer scope writes `outer` through the framework's ordi
 
 The negative control's `unsafe` mode defers the outer write into the nested scope's savepoint, so `TX-04.nested-failure-contained` must FAIL for it.
 
-## Planned, not in 0.1
+## Planned, not yet included
 
 - **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
 - **The aborted-leak variant of TX-03:** a statement error, then an unsent `ROLLBACK`, then the next unit of work.
 - **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`.
 - **After-commit callbacks.**
-- **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS 0.1 does not.
+- **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS does not yet.
