@@ -33,6 +33,9 @@
   ],
   "rollback_claim_channels": [],
   "unsupported": {
-    "TX-04.independent-inner": "TypeORM has no propagation modes: a nested manager.transaction() is always a savepoint, and an independent transaction is an unrelated ds.transaction() on another connection, which this case does not test."
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "TypeORM has no propagation modes and no deferred writes in the repository API this adapter uses: a nested manager.transaction() is always a savepoint, and every insert is sent when it is made. An independent transaction is an unrelated ds.transaction() on another connection, which shares no pending writes with the outer one, so the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise."
+    }
   }
 }

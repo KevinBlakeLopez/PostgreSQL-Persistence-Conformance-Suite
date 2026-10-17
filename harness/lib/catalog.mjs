@@ -16,6 +16,7 @@ export class CatalogError extends Error {}
 export const CHECKPOINT_ACTIONS = ['terminate_backend']
 /** The checkpoint every case has implicitly: the adapter sends it as soon as the framework's API has returned. */
 export const IMPLICIT_CHECKPOINT = 'after-end'
+export const UNSUPPORTED_CLASSES = ['capability-absent', 'not-applicable-by-design']
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
 
@@ -83,6 +84,12 @@ export function loadAdapters(base = join(ROOT, 'adapters')) {
     if (!Array.isArray(m.command) || !m.command.length) throw new CatalogError(`${where}: command must be a non-empty array`)
     if (!Array.isArray(m.modes) || !m.modes.length) throw new CatalogError(`${where}: needs at least one mode`)
     for (const mode of m.modes) if (!mode.id || !MODE_KINDS.includes(mode.kind)) throw new CatalogError(`${where}: mode "${mode.id}" needs a kind among ${MODE_KINDS.join(', ')}`)
+    // RECOMMENDED claims that the framework's documentation recommends the mode for the pattern, so it must cite it.
+    for (const mode of m.modes) if (mode.kind === 'recommended' && !mode.documentation) throw new CatalogError(`${where}: mode "${mode.id}" is of kind recommended, so it must cite the framework's documentation (documentation)`)
+    // An UNSUPPORTED declaration states why: the capability is absent from the supported API, or the hazard the case
+    // targets cannot arise by the framework's design (for example, no deferred writes).
+    const unsupported = Object.fromEntries(Object.entries(m.unsupported ?? {}).map(([id, u]) => [id, typeof u === 'string' ? { reason: u, class: 'capability-absent' } : u]))
+    for (const [id, u] of Object.entries(unsupported)) if (!UNSUPPORTED_CLASSES.includes(u.class) || !u.reason) throw new CatalogError(`${where}: unsupported ${id} needs a reason and a class among ${UNSUPPORTED_CLASSES.join(', ')}`)
     if (m.rollback_claim_channels && !Array.isArray(m.rollback_claim_channels)) throw new CatalogError(`${where}: rollback_claim_channels must be an array`)
     // A control adapter states the classification it expects in each mode, per case; suite.mjs checks them in every run.
     for (const [id, byMode] of Object.entries(m.expectations ?? {})) {
@@ -94,7 +101,7 @@ export function loadAdapters(base = join(ROOT, 'adapters')) {
     }
     const dir = join(base, name)
     const shared = (m.shared ?? []).map((p) => resolve(dir, p))
-    adapters.push({ ...m, rollback_claim_channels: m.rollback_claim_channels ?? [], dir, manifestPath: where, sourceSha256: treeSha256([dir, ...shared]) })
+    adapters.push({ ...m, unsupported, rollback_claim_channels: m.rollback_claim_channels ?? [], dir, manifestPath: where, sourceSha256: treeSha256([dir, ...shared]) })
   }
   return adapters
 }
@@ -128,7 +135,7 @@ export function plan(catalog, adapters, { adapterFilter = [], caseFilter = [], m
       if (!wanted) continue
       const auto = asControl || !matchCase(kase.id)
       const unsupported = adapter.unsupported?.[kase.id]
-      if (unsupported) { if (!asControl) items.push({ adapter, mode: modes[0], kase, plan: 'unsupported', reason: unsupported, auto }); continue }
+      if (unsupported) { if (!asControl) items.push({ adapter, mode: modes[0], kase, plan: 'unsupported', reason: unsupported.reason, unsupportedClass: unsupported.class, auto }); continue }
       if (!adapter.implements?.includes(kase.id)) { if (!auto) items.push({ adapter, mode: modes[0], kase, plan: 'not-run', reason: 'the adapter does not implement this case', auto }); continue }
       for (const mode of modes) if (!mode.cases || mode.cases.includes(kase.id) || ctlIds.includes(kase.id)) items.push({ adapter, mode, kase, plan: 'run', auto })
     }

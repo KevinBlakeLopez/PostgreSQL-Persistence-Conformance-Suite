@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { CatalogError, DEFAULT_CATALOG, ROOT, loadAdapters, loadCatalog, plan, treeSha256 } from '../../lib/catalog.mjs'
+import { CatalogError, DEFAULT_CATALOG, ROOT, UNSUPPORTED_CLASSES, loadAdapters, loadCatalog, plan, treeSha256 } from '../../lib/catalog.mjs'
 
 const catalog = loadCatalog()
 const ids = new Set(catalog.cases.map((c) => c.id))
@@ -31,13 +31,14 @@ test('every case declares its fault, settings, checkpoints and writes consistent
   }
 })
 
-test('adapter manifests reference only catalog cases, and modes only implemented ones', () => {
+test('adapter manifests reference only catalog cases, and say why a case is unsupported', () => {
   for (const a of [...loadAdapters(), ...loadAdapters(join(ROOT, 'harness/test/fixtures/adapters'))]) {
     for (const id of a.implements) assert.ok(ids.has(id), `${a.name} implements unknown case ${id}`)
-    for (const id of Object.keys(a.unsupported ?? {})) {
+    for (const [id, u] of Object.entries(a.unsupported ?? {})) {
       assert.ok(ids.has(id), `${a.name} declares unknown case ${id} unsupported`)
       assert.ok(!a.implements.includes(id), `${a.name}: ${id} is both implemented and unsupported`)
-      assert.ok(a.unsupported[id].length > 20, `${a.name}: ${id} needs a reason`)
+      assert.ok(u.reason.length > 20, `${a.name}: ${id} needs a reason`)
+      assert.ok(UNSUPPORTED_CLASSES.includes(u.class), `${a.name}: ${id} needs a class`)
     }
     for (const m of a.modes) for (const id of m.cases ?? []) assert.ok(a.implements.includes(id), `${a.name} mode ${m.id} lists ${id}, which it does not implement`)
     assert.ok(Array.isArray(a.rollback_claim_channels), `${a.name}: rollback_claim_channels`)
@@ -86,11 +87,14 @@ function loadManifest(manifest) {
 }
 const MANIFEST = { manifest: 'ppcs-adapter/1', name: 'probe', command: ['node', 'main.mjs'], modes: [{ id: 'native', kind: 'native', description: 'd' }], implements: ['CTL-01.commit'] }
 
-test('manifests: malformed expectations are refused', () => {
+test('manifests: a reasonless unsupported case, an uncited RECOMMENDED mode, and malformed expectations are refused', () => {
+  assert.equal(loadManifest({ ...MANIFEST, unsupported: { 'TX-04.independent-inner': 'a reason long enough to be a reason' } })[0].unsupported['TX-04.independent-inner'].class, 'capability-absent')
+  assert.throws(() => loadManifest({ ...MANIFEST, unsupported: { 'TX-04.independent-inner': { class: 'impossible', reason: 'a reason' } } }), /needs a reason and a class/)
+  assert.throws(() => loadManifest({ ...MANIFEST, modes: [{ id: 'rec', kind: 'recommended', description: 'd' }] }), /must cite the framework's documentation/)
+  assert.doesNotThrow(() => loadManifest({ ...MANIFEST, modes: [{ id: 'rec', kind: 'recommended', description: 'd', documentation: 'https://example.org/docs' }] }))
   assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'TX-01A.caught-error-then-commit': { native: 'PASS' } } }), /does not implement/)
   assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { other: 'PASS' } } }), /unknown mode "other"/)
   assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'MAYBE' } } }), /must be PASS or FAIL/)
-  assert.doesNotThrow(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'PASS' } } }))
 })
 
 const planned = (filters) => plan(catalog, loadAdapters(), filters).map((i) => `${i.adapter.name}/${i.mode.id} ${i.kase.id} ${i.plan}${i.auto ? ' auto' : ''}`)

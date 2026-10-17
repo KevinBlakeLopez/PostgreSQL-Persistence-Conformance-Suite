@@ -31,6 +31,12 @@ const REQUIRES_NEW_API = {
   contract: 'MikroORM 7.2.5 documents REQUIRES_NEW as "Always create a new transaction, suspending the current one if it exists" (enums.d.ts, TransactionPropagation).',
 }
 
+// The native forms these cases use where the case leaves MikroORM a choice. Each result records its form.
+const TX01A_FORM = 'Reused experiment T4f: the outer scope flushes its write; the duplicate insert runs in an inner em.transactional() with propagation REQUIRED, which joins the outer transaction; the outer scope catches the error and returns with nothing pending. Other forms (for example T4g) are not covered by this result.'
+const TX02_FORM = 'The nested em.transactional() is called with { clear: true }, as in reused experiments R1a, T7c and R1e. The outer scope flushes its write before the nested scope starts, and the clear fork keeps the nested scope\'s flush to its own entity, so the case isolates the savepoint rollback from the pending-write hazard that TX-04 targets.'
+const TX04_FORM = 'The outer write is left pending in the unit of work, as ordinary MikroORM code leaves it; the nested scope flushes its own write.'
+const TX04_INDEPENDENT_FORM = 'The outer write is left pending in the unit of work, as ordinary MikroORM code leaves it; the inner transaction\'s write is flushed when it commits.'
+
 /** pg_current_xact_id() and the backend PID, read on the transaction's own connection (PostgreSQL 13 or later). */
 async function identify(em) {
   const r = await em.getConnection().execute('select pg_current_xact_id()::text as xid, pg_backend_pid() as pid', [], 'get', em.getTransactionContext())
@@ -42,7 +48,7 @@ const managed = ({ orm }) => (callback) => inRequest(orm, () => orm.em.transacti
 // TX-02. Experiments R1a (the savepoint rollback fails on the client), T7c (PostgreSQL rejects it) and R1e (the backend
 // is terminated). The outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the outer
 // scope handles the error and ends normally. When the fault fires, the driver reports `after-fault`. As in those
-// experiments, the nested call uses { clear: true }, so the nested scope starts from a clear fork.
+// experiments, the nested call uses { clear: true }, so the nested scope starts from a clear fork (TX02_FORM).
 const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) => {
   let armed = null
   let id = null
@@ -69,7 +75,7 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) 
   }, MANAGED)
   pgTrace.clearFaults()
   await checkpoint('after-outer', { pid: id?.pid ?? null })
-  return { ...outcome, steps: { nested, ...(armed ? { fault: faultReport(armed) } : {}) } }
+  return { ...outcome, steps: { nested, ...(armed ? { fault: faultReport(armed) } : {}) }, form: TX02_FORM }
 }
 
 // TX-03. Experiments P1a (the ROLLBACK fails on the client) and P1c (the backend is terminated before it). Unit 1 fails
@@ -117,7 +123,7 @@ const nestedScope = (variant) => async (ctx, { markers, checkpoint, mode }) => {
     }
     if (variant === 'outer-fails') throw new Error('application error: the outer scope fails')
   }, NESTED_API)
-  return { ...outcome, steps: { nested } }
+  return { ...outcome, steps: { nested }, form: TX04_FORM }
 }
 
 // TX-04.3. Experiments T1a/T1b: REQUIRES_NEW after a pending outer write, then the outer scope fails. Mode clear-forks
@@ -133,7 +139,7 @@ const independentInner = async (ctx, { markers, checkpoint, mode }) => {
     nested.completed = true
     throw new Error('application error: the outer scope fails')
   }, REQUIRES_NEW_API)
-  return { ...outcome, steps: { nested } }
+  return { ...outcome, steps: { nested }, form: TX04_INDEPENDENT_FORM }
 }
 
 const cases = {
@@ -166,7 +172,7 @@ const cases = {
       }
       await checkpoint('before-end', { pid: id.pid })
     }, MANAGED)
-    return { ...outcome, steps }
+    return { ...outcome, steps, form: TX01A_FORM }
   },
 
   // Experiment R1f: the backend is terminated after the last write (by the runner, at the checkpoint).

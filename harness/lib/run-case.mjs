@@ -162,6 +162,7 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
       kind: mode.kind,
       description: mode.description,
       configuration: hello.configuration ?? {},
+      form: result.form ?? null, // the native form the adapter used, where the case leaves a choice
     },
     configuration: kase.settings ?? {},
     server: { ...instance.server, image: instance.settings.image ?? UNKNOWN },

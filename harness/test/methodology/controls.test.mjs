@@ -59,6 +59,7 @@ test('controls: every pg-control expectation holds; the known-good implementatio
   assert.equal(lost.api_outcome.reported, 'committed')
   const na = r['TX-04.independent-inner pg-control/correct']
   assert.equal(na.evaluation.classification, 'UNSUPPORTED')
+  assert.equal(na.evaluation.unsupported_class, 'not-applicable-by-design')
   // The schema check is not vacuous: it rejects an unknown classification, and a FAIL without its contract basis.
   assert.notDeepEqual(resultErrors({ ...negative, evaluation: { ...negative.evaluation, classification: 'MAYBE' } }), [])
   assert.notDeepEqual(resultErrors({ ...negative, evaluation: { ...negative.evaluation, contract_basis: null } }), [])

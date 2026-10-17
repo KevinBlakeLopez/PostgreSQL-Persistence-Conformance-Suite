@@ -109,8 +109,9 @@ test('comparison with an earlier run is refused when the harness or the catalog 
   assert.match(incomparable(now, { ...now, catalog: { sha256: 'c'.repeat(64) } }).join(), /the catalog differs/)
 })
 
-test('report qualifiers: a PASS whose mechanism did not run, invariants not exercised, gated', () => {
+test('report qualifiers: a PASS whose mechanism did not run, invariants not exercised, not applicable, gated', () => {
   assert.deepEqual(qualifiers(result('TX-01A.caught-error-then-commit', 'lucid', 'pre-commit-probe', 'PASS', { mechanism_exercised: false })), ['mechanism not exercised'])
   assert.deepEqual(qualifiers(result('TX-01B.commit-reply-discarded', 'lucid', 'native', 'PASS', { not_exercised: ['TX-01B.2'] })), ['TX-01B.2 not exercised'])
+  assert.deepEqual(qualifiers({ ...result('TX-04.independent-inner', 'lucid', 'native', 'UNSUPPORTED', { unsupported_class: 'not-applicable-by-design' }), repetitions: null }), ['not applicable by design'])
   assert.deepEqual(qualifiers(result('TX-02.savepoint-rollback-not-sent', 'lucid', 'native', 'INCONCLUSIVE', { ungated: { classification: 'FAIL', reason: 'r' } })), ['gated; ungated FAIL'])
 })

@@ -28,6 +28,7 @@ export function qualifiers(r) {
   const q = []
   if (e.classification === 'PASS' && e.mechanism_exercised === false) q.push('mechanism not exercised')
   if ((e.classification === 'PASS' || e.classification === 'FAIL') && e.not_exercised?.length) q.push(`${e.not_exercised.join(', ')} not exercised`)
+  if (e.classification === 'UNSUPPORTED' && e.unsupported_class === 'not-applicable-by-design') q.push('not applicable by design')
   if (e.ungated) q.push(`gated; ungated ${e.ungated.classification}`)
   if (r.repetitions && !r.repetitions.agreed) q.push('repetitions disagree')
   return q
@@ -86,6 +87,7 @@ export function renderSummary(manifest, results) {
   const byKey = new Map(results.map((r) => [`${r.specification.id}|${columnOf(r)}`, r]))
   const faultOf = new Map(results.map((r) => [r.specification.id, r.fault.category]))
   const server = manifest.server ?? {}
+  const notApplicable = results.filter((r) => r.evaluation.unsupported_class === 'not-applicable-by-design').length
   const out = []
   out.push(`# PPCS run ${manifest.run_id}`, '')
   out.push(`- **PostgreSQL:** ${server.server_version ?? 'UNKNOWN'} (\`${server.image ?? 'UNKNOWN'}\`)`)
@@ -93,9 +95,9 @@ export function renderSummary(manifest, results) {
   out.push(`- **Runner:** PPCS ${manifest.ppcs_version}, harness sha256 \`${manifest.harness.sha256.slice(0, 12)}…\`, Node ${manifest.runner_runtime}`)
   out.push(`- **Repetitions:** every executed case ran ${manifest.repetitions === 1 ? 'once' : `${manifest.repetitions} times`}, each time on a fresh database; a result counts only if its repetitions agree`)
   out.push(`- **Started:** ${manifest.started_at}; duration ${Math.round((manifest.duration_ms ?? 0) / 1000)} s`)
-  out.push(`- **Counts:** ${Object.entries(manifest.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(', ')}`, '')
+  out.push(`- **Counts:** ${Object.entries(manifest.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}${k === 'UNSUPPORTED' && notApplicable ? ` (${notApplicable} not applicable by design, outside coverage)` : ''}`).join(', ')}`, '')
   out.push('Each cell links to that case\'s evidence. A FAIL is a reproducible counterexample to the stated PPCS invariant under the recorded conditions. By itself it is not a claim that the framework has a defect (docs/methodology.md).')
-  out.push('', 'A qualifier in parentheses changes what a classification means: "mechanism not exercised" (the case\'s mechanism did not run, so the PASS says less), "not exercised" (an invariant the adapter cannot exercise), "gated" (the run\'s controls did not hold, so the result does not count). Faults of category C and D are client-side injections and simulations, not network failures (docs/methodology.md).')
+  out.push('', 'A qualifier in parentheses changes what a classification means: "mechanism not exercised" (the case\'s mechanism did not run, so the PASS says less), "not exercised" (an invariant the adapter cannot exercise), "not applicable by design", "gated" (the run\'s controls did not hold, so the result does not count). Faults of category C and D are client-side injections and simulations, not network failures (docs/methodology.md).')
   if (results.some((r) => r.execution.kind === 'control')) out.push('', 'Columns of kind `control` are the suite\'s own positive and negative controls: the negative control is expected to FAIL where its manifest says so, which shows that the runner detects a known-bad implementation.')
   out.push('', '## Results', '')
   out.push(`| Case | Fault | ${columns.join(' | ')} |`)
@@ -116,6 +118,7 @@ export function renderSummary(manifest, results) {
       out.push(`3. **What the application could know:** ${knowledge(r)}`)
       out.push(`4. **Contract:** ${violated.map((i) => `${i.id} violated: ${i.statement}`).join(' ')} Framework contract: ${r.evaluation.contract_basis?.framework ?? 'UNKNOWN'}`, '')
       out.push(`- **Fault:** ${r.fault.category === 'none' ? 'none' : `category ${FAULT_LABELS[r.fault.category] ?? r.fault.category}. ${r.fault.mechanism}`}`)
+      if (r.execution.form) out.push(`- **Form:** ${r.execution.form}`)
       out.push(`- **Conditions:** ${versionLine(r)}; mode \`${r.execution.mode}\` (${r.execution.kind}); settings \`${JSON.stringify(r.configuration)}\``)
       out.push(`- **Repetitions:** ${r.repetitions ? `${r.repetitions.runs.filter((x) => x.classification === 'FAIL').length} of ${r.repetitions.count} FAILed` : 'not recorded'}`)
       out.push(`- **Reproduce:** \`${r.reproduction.command}\``)

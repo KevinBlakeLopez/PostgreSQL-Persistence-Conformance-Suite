@@ -52,9 +52,9 @@
     },
     "TX-04": {
       "title": "Nested transaction propagation",
-      "version": "1.0",
+      "version": "1.1",
       "question": "When application code nests transactional work through an API that promises a propagation behaviour, does the work land in the transaction boundary the API promises?",
-      "notes": "Frameworks do not share propagation modes. Each case names the behaviour it tests. An adapter whose framework does not expose that behaviour through its supported API reports the case UNSUPPORTED, which is not a failure.",
+      "notes": "Frameworks do not share propagation modes. Each case names the behaviour it tests. An adapter whose framework does not expose that behaviour through its supported API declares the case UNSUPPORTED in its manifest, which is not a failure, with a class: not-applicable-by-design where the hazard the case targets cannot arise by the framework's design (for example, no propagation modes and no deferred writes).",
       "invariants": {
         "TX-04.1": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
         "TX-04.2": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too.",

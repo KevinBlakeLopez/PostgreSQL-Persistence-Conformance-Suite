@@ -41,6 +41,9 @@
   ],
   "rollback_claim_channels": [],
   "unsupported": {
-    "TX-04.independent-inner": "Lucid has no propagation modes: a nested trx.transaction() is always a savepoint, and an independent transaction is an unrelated db.transaction() on another connection, which this case does not test."
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Lucid has no propagation modes and no deferred writes: a nested trx.transaction() is always a savepoint, and every write is sent when it is made. An independent transaction is an unrelated db.transaction() on another connection, which shares no pending writes with the outer one, so the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise."
+    }
   }
 }

@@ -5,7 +5,10 @@
 //   describe()            -> { adapter, framework, driver, components }   versions, read from the installed packages
 //   modes                 -> { [modeId]: { configuration } }               what each execution mode changes
 //   open(message, mode)   -> { context, close(), diagnostics() }           framework setup for one case
-//   cases                 -> { [caseId]: async (context, tools) => ({ reported, basis, api_error?, steps? }) }
+//   cases                 -> { [caseId]: async (context, tools) => ({ reported, basis, api_error?, steps?, form? }) }
+//
+// `form` names the native form a case implementation used, where the case leaves the framework a choice (for example,
+// a flushed or a pending write), with the reason for the choice. The runner records it in the result.
 //
 // As soon as the case implementation has returned (the framework's API has returned), main() sends the checkpoint
 // `after-end`, so that the runner can record the state at report time, before the framework is closed.

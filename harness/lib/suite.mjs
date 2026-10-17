@@ -39,7 +39,7 @@ function notExecuted(item, { runId, catalog, server, image, harness }, evaluatio
       adapter: { name: adapter.name, version: 'UNKNOWN', source_sha256: adapter.sourceSha256 },
       framework: { name: adapter.framework ?? 'UNKNOWN', version: 'UNKNOWN' }, driver: { name: 'UNKNOWN', version: 'UNKNOWN' }, components: {}, runtime: { name: 'UNKNOWN', version: 'UNKNOWN' },
     },
-    execution: { mode: mode.id, kind: mode.kind, description: mode.description, configuration: {} },
+    execution: { mode: mode.id, kind: mode.kind, description: mode.description, configuration: {}, form: null },
     configuration: kase.settings ?? {},
     server: { ...server, image: image ?? 'UNKNOWN' },
     fault: kase.fault,
@@ -55,7 +55,7 @@ function notExecuted(item, { runId, catalog, server, image, harness }, evaluatio
 }
 
 const planned = (item) => (item.plan === 'unsupported'
-  ? { classification: 'UNSUPPORTED', reason: item.reason, preconditions: [], invariants: [] }
+  ? { classification: 'UNSUPPORTED', reason: item.reason, unsupported_class: item.unsupportedClass, preconditions: [], invariants: [] }
   : notRun(item.reason))
 
 /** What must agree across repetitions: the classification and the qualifiers that change its meaning. */
