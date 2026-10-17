@@ -53,6 +53,7 @@ The case implementations in `adapters/*/main.mjs` are adaptations of the experim
 | `TX-02.savepoint-rollback-rejected` | LT5b FAIL → FAIL | T7c FAIL → FAIL | TR1b FAIL → FAIL (TX-02.2). TR1b also ran the next unit of work; PPCS stops when the outer API returns. |
 | `TX-02.conn-lost-before-savepoint-rollback` | LR1b FAIL → FAIL | R1e PASS → PASS | TR1c2 PASS → PASS |
 | `TX-03.rollback-not-sent` | LT5c FAIL → FAIL | P1a FAIL → FAIL | TR1d FAIL → FAIL |
+| `TX-03.statement-error-rollback-not-sent` | New in 0.2 → FAIL | New in 0.2 → FAIL | New in 0.2 → FAIL |
 | `TX-03.conn-lost-in-transaction` | LR1c PASS → PASS | P1c FAIL → FAIL | TR1d2 PASS → PASS |
 | `TX-04.nested-failure-contained` | LT2b PASS → PASS | T2a FAIL → FAIL; T2b PASS → `clear-forks` PASS | TT2b PASS → PASS |
 | `TX-04.nested-released-outer-rollback` | New → PASS | New → PASS | New → PASS |

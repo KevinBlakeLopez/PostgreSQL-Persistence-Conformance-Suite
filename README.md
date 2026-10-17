@@ -69,7 +69,7 @@ These are the stacks and versions of the experiments PPCS was extracted from (`d
 
 ## Results of the recorded run
 
-The recorded run is [`reports/examples/2026-10-17T00-11-44Z-9512ec/`](reports/examples/2026-10-17T00-11-44Z-9512ec/summary.md), on PostgreSQL 18.6. It produced 72 results: 44 PASS, 25 FAIL, 3 UNSUPPORTED (all three not applicable by design), 0 INCONCLUSIVE. Each executed case ran three times, and every repetition agreed. A second full run on the same machine reproduced all 72 classifications.
+The recorded run is [`reports/examples/2026-10-17T01-51-34Z-c1a29f/`](reports/examples/2026-10-17T01-51-34Z-c1a29f/summary.md), PPCS 0.2.0 on PostgreSQL 18.6. It produced 77 results: 45 PASS, 29 FAIL, 3 UNSUPPORTED (all three not applicable by design), 0 INCONCLUSIVE. Each executed case ran three times, and every repetition agreed. A second full run on the same machine reproduced all 77 classifications.
 
 | Case | Fault | Lucid | MikroORM | TypeORM |
 | --- | --- | --- | --- | --- |
@@ -82,6 +82,7 @@ The recorded run is [`reports/examples/2026-10-17T00-11-44Z-9512ec/`](reports/ex
 | `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL |
 | `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS |
 | `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL |
+| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL |
 | `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS |
 | `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS |
 | `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS |
@@ -90,7 +91,7 @@ The recorded run is [`reports/examples/2026-10-17T00-11-44Z-9512ec/`](reports/ex
 **How to read the matrix:**
 
 - **Fault categories:** A is an error PostgreSQL generated, B a backend terminated by the runner, C an error injected in the client, D a client-side simulation (`docs/methodology.md`).
-- **The 18 framework FAILs:** 8 need no client-side injection, and 10 depend on one.
+- **The 21 framework FAILs:** 8 need no client-side injection, and 13 depend on one.
 - **Qualifiers:**
   - **"Mechanism not exercised":** Lucid's `pre-commit-probe` passes TX-01A by failing before COMMIT. That makes it a valid mitigation, not evidence that Lucid reads the reply to COMMIT.
   - **"TX-01B.2 not exercised":** the framework adapters observe no channel through which a framework could claim a rollback, so TX-01B.2 was not tested for them.
