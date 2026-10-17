@@ -13,7 +13,7 @@ import { CONTROL_FAMILY, ROOT, harnessSha256, isControlAdapter, loadAdapters, lo
 import { Instance, loadSettings } from './instance.mjs'
 import { Observer } from './observer.mjs'
 import { runCase, RESULT_SCHEMA } from './run-case.mjs'
-import { CLASSIFICATIONS, notRun } from './classify.mjs'
+import { CLASSIFICATIONS, RECORDS_INCONCLUSIVE_REASON, notRun } from './classify.mjs'
 import { RUN_SCHEMA, caseFileName, prepareRunDir, renderSummary, writeJson } from './report.mjs'
 
 export class SetupError extends Error {}
@@ -93,7 +93,9 @@ export function combineRepetitions(records) {
   }
   if (!agreed) {
     const label = (s) => `#${s.repetition} ${s.classification}${s.mechanism_exercised === false ? ' (mechanism not exercised)' : ''}${s.not_exercised.length ? ` (${s.not_exercised.join(', ')} not exercised)` : ''}`
-    combined.evaluation = { ...first.evaluation, classification: 'INCONCLUSIVE', reason: `the repetitions disagree: ${runs.map(label).join('; ')}`, contract_basis: null }
+    // Repetitions that disagree are observations that contradict each other.
+    const inconclusiveReason = RECORDS_INCONCLUSIVE_REASON.has(first.specification?.family) ? 'observation-conflict' : (first.evaluation.inconclusive_reason ?? null)
+    combined.evaluation = { ...first.evaluation, classification: 'INCONCLUSIVE', reason: `the repetitions disagree: ${runs.map(label).join('; ')}`, contract_basis: null, inconclusive_reason: inconclusiveReason }
   }
   return combined
 }
@@ -115,6 +117,8 @@ export function applyGates(results, catalog, adapters) {
       r.evaluation.classification = 'INCONCLUSIVE'
       r.evaluation.reason = `${name === 'controls' ? 'the observation controls' : 'the case controls'} did not hold in this run (${detail}); ungated: ${r.evaluation.ungated.classification}`
       r.evaluation.contract_basis = null
+      // A gate that did not hold means the run's own apparatus did not support a conclusion.
+      if (RECORDS_INCONCLUSIVE_REASON.has(r.specification?.family)) r.evaluation.inconclusive_reason = 'environment'
     }
   }
   const ran = (r) => r.repetitions != null

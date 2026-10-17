@@ -60,6 +60,16 @@
         "TX-04.2": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too.",
         "TX-04.3": "An inner transaction started through an API that promises an independent transaction commits only its own writes: the outer scope's writes, whether already sent or still pending in the framework, are committed only by the outer transaction."
       }
+    },
+    "TX-05": {
+      "title": "Requested isolation level",
+      "version": "1.0",
+      "question": "When application code asks a framework's API to start a transaction at an isolation level that PostgreSQL supports, does the API either run the transaction at that level or refuse the request openly?",
+      "notes": "Every case requests SERIALIZABLE. A PASS needs two observations that agree. The first is PostgreSQL's own report, current_setting('transaction_isolation'), which the adapter reads in the same statement that captures the transaction's ID. The second comes from the runner's own connection: an SIReadLock held by that backend on item, or on an index of item, after a read of item that the runner confirmed by its AccessShareLock. The runner attributes each SIReadLock by its target, not by its count. It distinguishes SERIALIZABLE from weaker levels only. The binding to the transaction comes from PPCS's existing evidence: the captured ID is the backend's backend_xid, the backend holds the write's RowExclusiveLock and the read's AccessShareLock, and the visible marker's xmin is the captured ID. A rejected request counts against TX-05.2 only when its cause is established: no PostgreSQL SQLSTATE or operating-system error code, and a plain transaction through the same API form, started right after it, was bound at `baseline`. The ordering of levels is PostgreSQL's: READ UNCOMMITTED and READ COMMITTED, which PostgreSQL implements identically, then REPEATABLE READ, then SERIALIZABLE; another database engine would need its own, from its documented semantics. An adapter declares a case UNSUPPORTED (capability-absent) when its framework has no such API form, or documents that it does not support the requested level. Every INCONCLUSIVE result records a reason: observation-conflict, evidence-missing, environment, or cause-not-established.",
+      "invariants": {
+        "TX-05.1": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.",
+        "TX-05.2": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction."
+      }
     }
   },
   "cases": [
@@ -823,6 +833,110 @@
         "pool_max": 2
       },
       "knowledge": "The caller knows that the inner transaction committed and the outer one rolled back. From the API alone, it cannot see which transaction carried a write the framework still had pending."
+    },
+    {
+      "id": "TX-05.managed-serializable",
+      "family": "TX-05",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "A managed transaction requests SERIALIZABLE",
+      "steps": [
+        "Start a transaction with the framework's managed transaction API, the one that runs a callback inside the transaction and commits when it returns, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+        "Write the marker `tx` through the framework's ordinary write API, and make sure that write was sent.",
+        "Read the marker back through the framework's ordinary query API, inside the same transaction, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+        "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+        "Return from the callback normally, so that the framework commits the transaction. Then go to the last step.",
+        "Only if the API raised at step 1: start a plain transaction through the same managed API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+        "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+      ],
+      "checkpoints": {
+        "after-read": {
+          "captures": "tx",
+          "captures_isolation": true,
+          "optional": true
+        },
+        "baseline": {
+          "captures": "baseline",
+          "optional": true
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "marker_writes": {
+        "tx": {
+          "transaction": "tx",
+          "level": "top",
+          "sent": "after-read"
+        }
+      },
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "committed"
+      },
+      "invariants": [
+        "TX-05.1",
+        "TX-05.2"
+      ],
+      "settings": {
+        "pool_max": 1,
+        "isolation_level": "serializable"
+      },
+      "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead."
+    },
+    {
+      "id": "TX-05.explicit-serializable",
+      "family": "TX-05",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "An explicit transaction requests SERIALIZABLE",
+      "steps": [
+        "Start a transaction with the framework's explicit transaction API, the one that returns a transaction handle which the application commits with an explicit call, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+        "Write the marker `tx` through the framework's ordinary write API, using the handle, and make sure that write was sent.",
+        "Read the marker back through the framework's ordinary query API, using the handle, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+        "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+        "Commit with the handle's explicit commit call. Then go to the last step.",
+        "Only if the API raised at step 1: start a plain transaction through the same explicit API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+        "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+      ],
+      "checkpoints": {
+        "after-read": {
+          "captures": "tx",
+          "captures_isolation": true,
+          "optional": true
+        },
+        "baseline": {
+          "captures": "baseline",
+          "optional": true
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "marker_writes": {
+        "tx": {
+          "transaction": "tx",
+          "level": "top",
+          "sent": "after-read"
+        }
+      },
+      "fault": {
+        "category": "none"
+      },
+      "expected": {
+        "reported": "committed"
+      },
+      "invariants": [
+        "TX-05.1",
+        "TX-05.2"
+      ],
+      "settings": {
+        "pool_max": 1,
+        "isolation_level": "serializable"
+      },
+      "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead."
     }
   ]
 }

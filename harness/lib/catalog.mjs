@@ -59,6 +59,8 @@ export function loadCatalog(file = DEFAULT_CATALOG) {
     if (checkpoints[IMPLICIT_CHECKPOINT]) throw new CatalogError(`${c.id}: "${IMPLICIT_CHECKPOINT}" is implicit in every case and must not be declared`)
     for (const [name, cp] of Object.entries(checkpoints)) {
       if (cp.action && !CHECKPOINT_ACTIONS.includes(cp.action)) throw new CatalogError(`${c.id}: checkpoint "${name}" has unknown action "${cp.action}"`)
+      // PostgreSQL's report of the isolation level is read in the same statement as the captured ID (TX-05).
+      if (cp.captures_isolation !== undefined && (typeof cp.captures_isolation !== 'boolean' || !cp.captures)) throw new CatalogError(`${c.id}: checkpoint "${name}" declares captures_isolation, which must be a boolean on a checkpoint that captures a transaction`)
     }
     if (c.fault?.signature !== undefined && !FAULT_SIGNATURES.includes(c.fault.signature)) throw new CatalogError(`${c.id}: unknown fault signature "${c.fault.signature}"`)
     const captured = new Set(Object.values(checkpoints).map((cp) => cp.captures).filter(Boolean))

@@ -11,7 +11,7 @@ The machine-readable catalog is `specifications/transactions.v1.json`; this page
 
 **Checkpoints.** Each case declares its checkpoints. Every case also has an implicit last checkpoint, `after-end`, reported as soon as the framework's API has returned: the runner records the state at report time there. A case with a client-side fault (category C) also declares `after-fault`, which the adapter's driver layer reports as the fault takes effect, before the framework sees the error.
 
-**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`, except `TX-03.statement-error-rollback-not-sent`, which PPCS 0.2 added at 1.0.
+**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`, except `TX-03.statement-error-rollback-not-sent`, which PPCS 0.2 added at 1.0, and the TX-05 cases, which PPCS 0.3 added at 1.0.
 
 The case ID is followed by the fault category (`docs/methodology.md`).
 
@@ -128,9 +128,63 @@ In every TX-04 case, the outer scope writes `outer` through the framework's ordi
 
 The negative control's `unsafe` mode defers the outer write into the nested scope's savepoint, so `TX-04.nested-failure-contained` must FAIL for it.
 
+## TX-05: Requested isolation level
+
+Application code asks the framework's API to start a transaction at an isolation level that PostgreSQL supports. A framework that drops the request runs the transaction at the server's default, READ COMMITTED. Nothing tells the application: the transaction works, and the anomalies the requested level excludes, such as lost updates, can occur. A framework that refuses the request, in contrast, tells the application, which can decide what to do.
+
+- **TX-05.1** On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.
+- **TX-05.2** An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction.
+
+**The ordering is PostgreSQL's.** READ UNCOMMITTED and READ COMMITTED come first, and PostgreSQL implements them identically; then REPEATABLE READ; then SERIALIZABLE. Isolation levels do not form one ordering across database engines, so another engine would need its own, from its documented semantics.
+
+**Every case requests SERIALIZABLE** (`settings.isolation_level`). It is the one level whose effect a separate connection can observe: a SERIALIZABLE transaction that has read a table holds SIRead locks on it.
+
+**Two observations, which must agree:**
+
+1. **PostgreSQL's report.** At `after-read`, the adapter reads `current_setting('transaction_isolation')` in the same statement as `pg_current_xact_id()` and `pg_backend_pid()`, through the transaction's own connection, and reports all three.
+2. **The runner's observation.** At `after-read`, while the transaction is idle, the runner reads that backend's locks. Under SERIALIZABLE, a read of `item`, confirmed by an `AccessShareLock`, leaves an `SIReadLock` on `item` or on an index of `item`. Under a weaker level it leaves none. Locks are attributed by their target, never by their number.
+
+The work is bound to the transaction as in every case: the captured ID is the backend's `backend_xid`, the backend holds the write's and the read's locks on `item`, and the visible marker's `xmin` is the captured ID.
+
+| Observations | Result |
+| --- | --- |
+| PostgreSQL reports SERIALIZABLE, and the backend holds an `SIReadLock` on `item` | TX-05.1 holds |
+| PostgreSQL reports a weaker level, and the backend holds no `SIReadLock` | TX-05.1 is violated: FAIL |
+| The report and the locks disagree, or the `SIReadLock`s are only on other relations | INCONCLUSIVE (`observation-conflict`) |
+| An observation, the binding or the confirmed read is missing | INCONCLUSIVE (`evidence-missing`) |
+
+**A rejected request.** If the API raises instead of starting the transaction, TX-05.1 is not exercised, and the adapter starts a plain transaction through the same form, with no isolation level, reported at `baseline`. TX-05.2 is violated (FAIL) only if:
+
+- the error carries no PostgreSQL SQLSTATE and no operating-system error code;
+- the plain transaction was bound at `baseline`.
+
+An error with such a code, or a failed plain transaction, is INCONCLUSIVE (`environment`). A missing or unbound `baseline` is INCONCLUSIVE (`cause-not-established`).
+
+`backend_xmin`, the backend's snapshot horizon, is recorded as a diagnostic. It decides nothing.
+
+**Shared steps:**
+
+1. Start a transaction requesting SERIALIZABLE, through the API each case names. The server's default is READ COMMITTED.
+2. Write the marker `tx`, and make sure the write was sent.
+3. Read the marker back inside the transaction, with a query that reaches PostgreSQL, not a lookup in the framework's identity map.
+4. Checkpoint `after-read`: report the transaction's ID, its backend PID and `current_setting('transaction_isolation')`, all read in one statement.
+5. End the transaction normally.
+6. Only if step 1 raised: start a plain transaction through the same form, report it at `baseline`, end it, and report `failed` with the first error. If the plain transaction fails too, report its error in `steps.baseline`.
+
+| Case | The API |
+| --- | --- |
+| `TX-05.managed-serializable` (none) | The managed transaction API: the framework runs a callback inside the transaction, and commits when it returns |
+| `TX-05.explicit-serializable` (none) | The explicit transaction API: a call returns a transaction handle, and the application commits it with an explicit call |
+
+**UNSUPPORTED.** An adapter declares a case UNSUPPORTED (`capability-absent`) in its manifest, citing the framework's documentation, when the framework has no such API form, or documents that it does not support the requested level. That is not a failure.
+
+The negative control's `unsafe` mode sends a plain `BEGIN`, ignoring the requested level, and reports the level PostgreSQL applied. Both cases must FAIL for it.
+
+**What the application could know:** a successful start says nothing about the level PostgreSQL applied. Only `current_setting('transaction_isolation')`, read inside the transaction, does. A rejected request reaches the application as an error.
+
 ## Planned, not yet included
 
 - **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
-- **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`.
+- **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`, in the families other than TX-05, which covers them.
 - **After-commit callbacks.**
 - **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS does not yet.

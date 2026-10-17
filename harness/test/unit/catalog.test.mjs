@@ -75,6 +75,13 @@ test('the catalog refuses marker writes it cannot confirm, and a declared after-
   assert.doesNotThrow(() => loadChanged(() => {}))
 })
 
+test('the catalog accepts captures_isolation only as a boolean on a checkpoint that captures a transaction (TX-05)', () => {
+  const afterRead = (c) => caseOf(c, 'TX-05.explicit-serializable').checkpoints['after-read']
+  assert.throws(() => loadChanged((c) => { afterRead(c).captures_isolation = 'yes' }), /captures_isolation, which must be a boolean/)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').checkpoints['before-end'] = { captures_isolation: true } }), /captures_isolation, which must be a boolean on a checkpoint that captures/)
+  assert.equal(afterRead(loadCatalog()).captures_isolation, true)
+})
+
 /** Loads a single adapter manifest from a scratch directory. */
 function loadManifest(manifest) {
   const dir = scratch()

@@ -14,14 +14,23 @@
 //  5. PASS: every exercised invariant held. An invariant the adapter cannot exercise is recorded as not exercised,
 //     never as held.
 // Run-level gates (controls, repetitions) are applied afterwards, in suite.mjs.
+//
+// An INCONCLUSIVE result of a family in RECORDS_INCONCLUSIVE_REASON also records why, in `inconclusive_reason`: the
+// kind of the first precondition that did not hold, or `evidence-missing` when the evidence itself is incomplete.
+// Other families can adopt it later; theirs is null.
 import { low32 } from './observer.mjs'
 
 export const CLASSIFICATIONS = ['PASS', 'FAIL', 'UNSUPPORTED', 'INCONCLUSIVE', 'NOT_RUN']
 export const REPORTED = ['committed', 'rolled_back', 'failed', 'pending']
 /** The checkpoint every adapter sends when the framework's API has returned: the state at report time. */
 export const REPORT_POINT = 'after-end'
+/** Why a result is INCONCLUSIVE (docs/methodology.md, "Classification"). */
+export const INCONCLUSIVE_REASONS = ['observation-conflict', 'evidence-missing', 'environment', 'cause-not-established']
+/** The families whose INCONCLUSIVE results record an `inconclusive_reason`. */
+export const RECORDS_INCONCLUSIVE_REASON = new Set(['TX-05'])
 
-const check = (description, met, detail = null) => ({ description, met: met === true, detail })
+/** A precondition. `kind`, one of INCONCLUSIVE_REASONS, says why the case is INCONCLUSIVE when it does not hold. */
+const check = (description, met, detail = null, kind = null) => ({ description, met: met === true, detail, ...(kind ? { kind } : {}) })
 const invariant = (id, statement, holds, detail) => ({ id, statement, holds, detail })
 const notExercised = (id, statement, detail) => ({ id, statement, holds: null, detail, not_exercised: true })
 
@@ -110,6 +119,17 @@ function faultSignature(ev) {
 function evaluateDeclared(ev, statements, evaluators) {
   return ev.case.invariants.map((id) => (evaluators[id] ? evaluators[id](statements[id]) : invariant(id, statements[id], null, 'no rule evaluates this invariant')))
 }
+
+/** PostgreSQL's ordering of isolation levels (TX-05.1). It runs READ UNCOMMITTED as READ COMMITTED; another database
+ * engine would need its own ordering, from its documented semantics. */
+const LEVEL_RANK = { 'read uncommitted': 1, 'read committed': 1, 'repeatable read': 2, serializable: 3 }
+/** A PostgreSQL SQLSTATE: five digits or capital letters. */
+const isSqlState = (code) => typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)
+/** An operating-system or Node.js error code, such as ECONNREFUSED, EAI_AGAIN or ERR_SOCKET_CLOSED. A framework code
+ * such as E_INVALID_LEVEL, where the E is followed directly by an underscore, is not one. */
+const isSystemErrorCode = (code) => typeof code === 'string' && /^E[A-Z]{2,}(?:_[A-Z0-9]+)*$/.test(code)
+const lockText = (l) => [l.locktype, l.relation, l.page, l.tuple].filter((x) => x != null).join(':')
+const errorText = (e) => (e ? `${e.class ?? 'Error'}${e.code ? ` ${e.code}` : ''}: ${e.message ?? ''}` : 'no error')
 
 /** Family-specific preconditions and invariants. `ev` is the evidence object assembled by run-case.mjs. */
 const FAMILIES = {
@@ -242,6 +262,67 @@ const FAMILIES = {
       }),
     }
   },
+
+  // TX-05: the requested isolation level. A transaction the API started passes TX-05.1 only on two observations that
+  // agree: PostgreSQL's own report, current_setting('transaction_isolation'), read by the adapter with the captured
+  // ID; and the runner's SIReadLock on item, or one of its indexes, after a read of item. The runner's observation
+  // tells SERIALIZABLE from weaker levels only, which is why every case requests SERIALIZABLE. The binding to the
+  // transaction is PPCS's usual evidence: the ID is the session's backend_xid (evidenceProblems), the backend holds the
+  // write's and the read's locks, and the visible marker's xmin is the ID. A request the API rejects fails TX-05.2
+  // only when the rejection's cause is established; otherwise it is INCONCLUSIVE, with its reason.
+  'TX-05': (ev, statements) => {
+    const requested = ev.case.settings?.isolation_level
+    const at = checkpoint(ev, 'after-read')
+    const corroborated = check('the case requests SERIALIZABLE, the one level whose effect the runner can corroborate', requested === 'serializable', `requested: ${requested ?? 'nothing'}`, 'evidence-missing')
+
+    if (!at) {
+      // The API raised instead of starting the transaction. The adapter then started a plain transaction through the
+      // same API form, with no isolation level: if that one works, the database and the API form work, and the
+      // rejection is of the requested level.
+      const err = ev.apiError
+      const plain = ev.observed.transactions?.baseline
+      const plainFailed = ev.steps?.baseline
+      return {
+        preconditions: [
+          corroborated,
+          check('the API raised instead of starting the transaction: it reported "failed", and `after-read` was not reached', ev.reported === 'failed', `reported: ${ev.reported ?? 'nothing'}`, 'evidence-missing'),
+          check('the API\'s error carries no PostgreSQL SQLSTATE and no operating-system error code, so it is not a database or connection failure', !isSqlState(err?.code) && !isSystemErrorCode(err?.code), errorText(err), 'environment'),
+          check('a plain transaction through the same API form, with no isolation level, did not fail', !plainFailed, plainFailed ? `the plain transaction failed: ${errorText(plainFailed.error ?? plainFailed)}` : 'no failure reported', 'environment'),
+          check('the plain transaction was reported at `baseline`, so the rejection\'s cause is established', !!plain && !!checkpoint(ev, 'baseline'), plain ? `xid ${plain.xid} at \`baseline\`` : '`baseline` was not reported', 'cause-not-established'),
+        ],
+        invariants: evaluateDeclared(ev, statements, {
+          'TX-05.1': (s) => notExercised('TX-05.1', s, 'the API did not start the transaction, so no transaction ran at a weaker level'),
+          'TX-05.2': (s) => invariant('TX-05.2', s, false, `requested ${requested}; the API raised instead of starting the transaction (${errorText(err)}), while a plain transaction through the same API form started (xid ${plain?.xid})`),
+        }),
+      }
+    }
+
+    const s = at.session
+    const locks = at.locks
+    const level = at.reported?.transaction_isolation ?? null
+    const rank = LEVEL_RANK[level]
+    const siread = Array.isArray(locks?.siread) ? locks.siread : []
+    // SERIALIZABLE is corroborated by an SIReadLock on item or one of its indexes. Locks on other relations alone
+    // contradict the report; beside one on item, they are reads of other tables and change nothing.
+    const onItem = siread.filter((l) => l.on_item === true)
+    const agree = level === 'serializable' ? onItem.length > 0 : rank != null && siread.length === 0
+    return {
+      preconditions: [
+        corroborated,
+        check('at `after-read` the transaction\'s session was idle in its transaction ("idle in transaction"), so its locks show the statements it had run', s?.state === 'idle in transaction', `session: ${sessionText(s)}`, 'evidence-missing'),
+        check('the transaction\'s read of item reached PostgreSQL: its backend held an AccessShareLock on item at `after-read`', locks?.read_item === true, locks && !locks.error ? `AccessShareLock on item: ${locks.read_item === true ? 'held' : 'not held'}` : 'locks not observed', 'evidence-missing'),
+        check('PostgreSQL\'s own report of the level, current_setting(\'transaction_isolation\'), came with the captured ID at `after-read`', rank != null, `reported: ${level ?? 'nothing'}`, 'evidence-missing'),
+        check('PostgreSQL\'s report and the runner\'s lock evidence agree: SERIALIZABLE with an SIReadLock on item or one of its indexes, or a weaker level with no SIReadLock at all', agree, `reported: ${level}; SIReadLocks: ${siread.length ? siread.map(lockText).join(', ') : 'none'}`, 'observation-conflict'),
+      ],
+      invariants: evaluateDeclared(ev, statements, {
+        'TX-05.1': (st) => invariant('TX-05.1', st, rank >= LEVEL_RANK[requested],
+          level === 'serializable'
+            ? `requested ${requested}; PostgreSQL reported ${level}, and the backend held an SIReadLock on ${onItem.map(lockText).join(', ')} after its read of item`
+            : `requested ${requested}; PostgreSQL ran the transaction at ${level}: current_setting('transaction_isolation') reported ${level}, and at \`after-read\` the backend held no SIReadLock although it had read item`),
+        'TX-05.2': (st) => invariant('TX-05.2', st, true, 'the API started the transaction'),
+      }),
+    }
+  },
 }
 
 /** The subtransaction IDs seen in backend `pid`'s locks at any checkpoint, other than the top-level ID. */
@@ -334,18 +415,22 @@ export function evidenceProblems(ev) {
 
 /** Classifies one executed case. `statements` maps invariant IDs to their text (from the catalog). */
 export function classify(ev, statements) {
-  const base = { preconditions: [], invariants: [], not_exercised: [], mechanism_exercised: null }
+  const base = { preconditions: [], invariants: [], not_exercised: [], mechanism_exercised: null, inconclusive_reason: null }
+  const records = RECORDS_INCONCLUSIVE_REASON.has(ev.case.family)
   const problems = evidenceProblems(ev)
-  if (problems.length) return { ...base, classification: 'INCONCLUSIVE', reason: problems.join('; ') }
+  if (problems.length) return { ...base, classification: 'INCONCLUSIVE', reason: problems.join('; '), inconclusive_reason: records ? 'evidence-missing' : null }
 
   const family = FAMILIES[ev.case.family]
   if (!family) return { ...base, classification: 'INCONCLUSIVE', reason: `no classification rules for family ${ev.case.family}` }
   const result = family(ev, statements)
-  const preconditions = [...writePreconditions(ev), ...result.preconditions]
+  const checks = [...writePreconditions(ev).map((p) => ({ ...p, kind: 'evidence-missing' })), ...result.preconditions]
+  // A precondition's kind decides the reason for INCONCLUSIVE; it is not part of the recorded precondition.
+  const preconditions = checks.map(({ kind, ...p }) => p)
   const mechanism = { mechanism_exercised: result.mechanismExercised ?? null, ...(result.mechanismDetail ? { mechanism_detail: result.mechanismDetail } : {}) }
-  const unmet = preconditions.filter((p) => !p.met)
+  const unmet = checks.filter((p) => !p.met)
   if (unmet.length) {
-    return { ...base, ...mechanism, classification: 'INCONCLUSIVE', reason: `precondition not established: ${unmet.map((p) => `${p.description} (${p.detail})`).join('; ')}`, preconditions }
+    return { ...base, ...mechanism, classification: 'INCONCLUSIVE', reason: `precondition not established: ${unmet.map((p) => `${p.description} (${p.detail})`).join('; ')}`, preconditions,
+      inconclusive_reason: records ? (unmet.find((p) => p.kind)?.kind ?? null) : null }
   }
   const { invariants } = result
   const evaluated = invariants.map((i) => i.id).sort().join(', ')
@@ -353,12 +438,12 @@ export function classify(ev, statements) {
   if (evaluated !== declared) return { ...base, ...mechanism, classification: 'INCONCLUSIVE', reason: `the rules evaluated [${evaluated}], but the case declares [${declared}]`, preconditions, invariants }
   const violated = invariants.filter((i) => i.holds === false)
   const notEx = invariants.filter((i) => i.not_exercised).map((i) => i.id)
-  if (violated.length) return { ...mechanism, classification: 'FAIL', reason: violated.map((i) => `${i.id} violated: ${i.detail}`).join('; '), preconditions, invariants, not_exercised: notEx }
+  if (violated.length) return { ...mechanism, classification: 'FAIL', reason: violated.map((i) => `${i.id} violated: ${i.detail}`).join('; '), preconditions, invariants, not_exercised: notEx, inconclusive_reason: null }
   if (invariants.some((i) => i.holds !== true && !i.not_exercised)) return { ...base, ...mechanism, classification: 'INCONCLUSIVE', reason: `an invariant could not be evaluated: ${invariants.filter((i) => i.holds !== true && !i.not_exercised).map((i) => `${i.id} (${i.detail})`).join('; ')}`, preconditions, invariants }
   if (!invariants.some((i) => i.holds === true)) return { ...base, ...mechanism, classification: 'INCONCLUSIVE', reason: 'no invariant was exercised', preconditions, invariants, not_exercised: notEx }
   const held = invariants.filter((i) => i.holds === true).map((i) => `${i.id} held: ${i.detail}`)
   const skipped = invariants.filter((i) => i.not_exercised).map((i) => `${i.id} not exercised: ${i.detail}`)
-  return { ...mechanism, classification: 'PASS', reason: [...held, ...skipped].join('; '), preconditions, invariants, not_exercised: notEx }
+  return { ...mechanism, classification: 'PASS', reason: [...held, ...skipped].join('; '), preconditions, invariants, not_exercised: notEx, inconclusive_reason: null }
 }
 
 export const notRun = (reason) => ({ classification: 'NOT_RUN', reason, preconditions: [], invariants: [], not_exercised: [], mechanism_exercised: null })

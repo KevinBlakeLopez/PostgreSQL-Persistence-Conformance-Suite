@@ -20,6 +20,7 @@ An adapter runs inside the framework under test, so its reports are claims. The 
   - a `RowExclusiveLock` on `item` shows that a write to the marker table reached PostgreSQL in that transaction;
   - a second `transactionid` lock shows a write inside a savepoint (the savepoint's subtransaction ID).
   Each case declares, in `marker_writes`, the checkpoint at which each marker's write must have been sent, and at which level. A missing marker counts as a lost write only if its write was confirmed this way. Otherwise the case is INCONCLUSIVE. A write the framework may defer, such as a pending write in a unit of work, is declared `possibly-pending` and is not required.
+- **Predicate-lock evidence (TX-05).** A SERIALIZABLE transaction that has read a table holds `SIReadLock` entries on it in `pg_locks`; a transaction at a weaker level holds none. At the capture checkpoint, while the transaction is idle, the runner reads the backend's locks, as it does for write evidence, and attributes each `SIReadLock` by its target: its lock type, relation, page and tuple. It confirms the read by the transaction's `AccessShareLock` on `item`. The observation distinguishes SERIALIZABLE from weaker levels only. It counts only together with PostgreSQL's own report, `current_setting('transaction_isolation')`, which the adapter reads in the same statement that captures the ID. If the two disagree, the case is INCONCLUSIVE with the reason `observation-conflict`. The runner also records the backend's `backend_xmin` as a diagnostic.
 - **Marker visibility and attribution.** Each case writes markers: rows with unique, per-run values. After the adapter has exited, a new READ COMMITTED connection reads which markers are visible, and each visible row's `xmin`, the ID of the transaction that inserted it.
   - A visible marker whose write was confirmed at a checkpoint must have been inserted by its declared transaction: by the top-level ID, or, for a savepoint write, by a subtransaction seen in its locks. Otherwise the observation is about some other transaction, and the case is INCONCLUSIVE.
   - A `possibly-pending` write is not attributed, because where it lands is what TX-04 observes. It can also land in a subtransaction created after the last checkpoint. For example, MikroORM flushed a pending outer write inside a savepoint that `ROLLBACK TO` had kept established.
@@ -98,6 +99,14 @@ For each executed case, the runner applies these checks in order (`harness/lib/c
 3. **INCONCLUSIVE:** the invariants evaluated are not exactly the ones the case declares, or none of them was exercised.
 4. **FAIL:** an invariant was violated, with complete and consistent observations. The result names the invariant, the observations at report time and at the end, the conditions, and the framework contract that gives the API outcome its meaning.
 5. **PASS:** every exercised invariant held.
+
+- **Reasons for INCONCLUSIVE.** A result records why it is INCONCLUSIVE, in `evaluation.inconclusive_reason`:
+  - `observation-conflict`: observations contradict each other, which calls for investigation;
+  - `evidence-missing`: a required observation is absent;
+  - `environment`: a database or connection failure;
+  - `cause-not-established`: the run cannot tell why the API behaved as it did.
+
+  TX-05 records it today.
 
 **Qualified PASS results.** Two qualifiers change what a PASS means, and the summary prints them in the cell:
 
@@ -188,3 +197,4 @@ A suite that cannot detect a known-bad implementation is not credible, so PPCS t
 - **TX-03's recovery bound** is `bound_ms` (5 s), measured by the adapter. A pool slot that never comes back fails it whatever the bound.
 - **Single node, local container.** Results cover these PostgreSQL settings (recorded in each result) and this network path. Poolers such as PgBouncer, replicas and managed services are not covered.
 - **Client-side faults depend on node-postgres.** Categories C and D patch `pg.Client.prototype.query` in the adapter's process, which also reports `after-fault`. Adapters in other languages must implement their own injections and that checkpoint, and say so.
+- **The predicate-lock evidence was observed for TX-05's workload,** a write and then a read of `item`, on PostgreSQL 11, 14, 16 and 18.6. There, the read left one relation-level `SIReadLock` on the table. It needs an idle transaction that has read `item`: a SERIALIZABLE transaction that has only written holds no SIRead lock. PPCS does not claim that every operation of a transaction holding an `SIReadLock` received SERIALIZABLE semantics, only that PostgreSQL's report of SERIALIZABLE is corroborated by its predicate-locking mechanism.
