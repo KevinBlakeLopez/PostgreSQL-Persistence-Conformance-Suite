@@ -1,291 +1,501 @@
-// Unit tests for the classification rules (harness/lib/classify.mjs). No database: evidence is built by hand.
+// Unit tests for the classification rules (harness/lib/classify.mjs). No database: evidence is built by hand, in the
+// shape run-case.mjs assembles. Tests named H1 to H9 port the harness counterexamples of the independent methodology
+// review (ppcs-methodology-review, evidence/harness-counterexamples.mjs); each must now give the result it calls for.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classify } from '../../lib/classify.mjs'
+import { classify, fateStory } from '../../lib/classify.mjs'
 import { loadCatalog } from '../../lib/catalog.mjs'
 
 const catalog = loadCatalog()
-const caseById = (id) => catalog.cases.find((c) => c.id === id)
-
-/** Evidence for a completed single-transaction case; `over` replaces parts of it. */
-function evidence(caseId, over = {}) {
-  const base = {
-    case: caseById(caseId),
-    adapterStatus: 'completed',
-    reported: 'committed',
-    steps: {},
-    observed: {
-      checkpoints: { 'before-end': { reported: { pid: 10, xid: '700' }, session: { present: true, state: 'idle in transaction' } } },
-      transactions: { tx: { xid: '700', pid: 10, captured_at: 'before-end', session_xid_matches: true, fate: 'committed' } },
-      markers: { tx: true },
-      sessions_at_end: [],
-    },
-    harness: { timedOut: false, timeoutMs: 60000, helloReceived: true, exit: { code: 0, signal: null }, protocolErrors: [], missingCheckpoints: [] },
-  }
-  const observed = { ...base.observed, ...over.observed, transactions: { tx: { ...base.observed.transactions.tx, ...over.observed?.transactions?.tx } } }
-  // A visible marker was inserted by transaction tx; an invisible one has no row, so no xmin.
-  if (!over.observed?.marker_xmin) observed.marker_xmin = Object.fromEntries(Object.entries(observed.markers ?? {}).map(([k, v]) => [k, v ? observed.transactions.tx.xid : null]))
-  return { ...base, ...over, observed, harness: { ...base.harness, ...over.harness } }
-}
+const kase = (id) => catalog.cases.find((c) => c.id === id)
 const run = (ev) => classify(ev, catalog.statements)
 
-test('a genuinely committed marker is detected: CTL-01.commit passes', () => {
-  assert.equal(run(evidence('CTL-01.commit')).classification, 'PASS')
-})
+const PID = 10
+const API_ERROR = { class: 'Error', code: null, message: 'raised by the API' }
+const HARNESS = { timedOut: false, timeoutMs: 60000, helloReceived: true, exit: { code: 0, signal: null }, protocolErrors: [], missingCheckpoints: [] }
 
-test('a genuinely rolled-back marker is absent: CTL-01.rollback passes', () => {
-  const r = run(evidence('CTL-01.rollback', { reported: 'rolled_back', observed: { markers: { tx: false }, transactions: { tx: { fate: 'aborted' } } } }))
-  assert.equal(r.classification, 'PASS')
-})
+// Sessions as Observer.session() reports them.
+const inTx = (xid, extra = {}) => ({ pid: PID, present: true, state: 'idle in transaction', in_transaction: true, backend_xid: xid, xid_matches: null, backend_start: 'T0', query: 'insert into item', application_name: 'ppcs-adapter', ...extra })
+const aborted = (extra = {}) => ({ pid: PID, present: true, state: 'idle in transaction (aborted)', in_transaction: true, backend_xid: null, xid_matches: null, backend_start: 'T0', query: 'insert into uniq', application_name: 'ppcs-adapter', ...extra })
+const idle = (query, extra = {}) => ({ pid: PID, present: true, state: 'idle', in_transaction: false, backend_xid: null, xid_matches: null, backend_start: 'T0', query, application_name: 'ppcs-adapter', ...extra })
+const closed = { pid: PID, present: false }
+// Locks as Observer.locks() reports them.
+const wrote = (...xids) => ({ wrote_item: true, xids })
+const noWrite = (...xids) => ({ wrote_item: false, xids })
 
-test('a report the database contradicts is a FAIL', () => {
-  const r = run(evidence('CTL-01.commit', { observed: { markers: { tx: false }, transactions: { tx: { fate: 'aborted' } } } }))
-  assert.equal(r.classification, 'FAIL')
-  assert.match(r.reason, /CTL-01\.1 violated/)
-})
-
-test('a missing observation is never PASS: unknown pg_xact_status()', () => {
-  for (const fate of [null, 'in progress']) {
-    const r = run(evidence('CTL-01.commit', { observed: { transactions: { tx: { fate } } } }))
-    assert.equal(r.classification, 'INCONCLUSIVE', String(fate))
+/** A checkpoint entry as run-case.mjs records it. `now` maps transaction labels to [fate, session]. */
+function point({ pid = PID, xid = null, session = null, locks = null, now = {}, sessions = 1, action } = {}) {
+  return {
+    reported: { pid, xid },
+    session,
+    locks,
+    transactions_now: Object.fromEntries(Object.entries(now).map(([label, [fate, s]]) => [label, { fate, session: s }])),
+    adapter_sessions: sessions,
+    ...(action ? { action } : {}),
   }
+}
+
+/** Replaces parts of `base`: objects merge recursively; arrays, nulls and other values replace. */
+function merge(base, over) {
+  if (over === undefined) return base
+  if (over === null || typeof over !== 'object' || Array.isArray(over) || base === null || typeof base !== 'object' || Array.isArray(base)) return over
+  const out = { ...base }
+  for (const [k, v] of Object.entries(over)) out[k] = merge(base[k], v)
+  return out
+}
+
+/** Complete evidence for case `id`: the case's normal, passing run, with `over` merged in. */
+function evidence(id, observed, rest = {}, over = {}) {
+  const base = {
+    case: kase(id),
+    adapterStatus: 'completed',
+    adapterReason: null,
+    adapterError: null,
+    reported: 'committed',
+    apiError: null,
+    steps: {},
+    observed: { markers: {}, marker_xmin: {}, stray_rows: [], sessions_at_end: [], fixture: { before: 'fx', after: 'fx' }, ...observed },
+    adapter: { rollbackClaimChannels: [] },
+    harness: HARNESS,
+    ...rest,
+  }
+  return merge(base, over)
+}
+
+const tx = (xid, capturedAt, fate, extra = {}) => ({ xid, pid: PID, captured_at: capturedAt, session_xid_matches: true, backend_start: 'T0', fate, ...extra })
+
+// CTL-01: one transaction writes the marker, then commits or rolls back.
+function ctl(id, over = {}) {
+  const commit = id === 'CTL-01.commit'
+  const fate = commit ? 'committed' : 'aborted'
+  return evidence(id, {
+    checkpoints: {
+      'before-end': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { tx: ['in progress', inTx('700')] } }),
+      'after-end': point({ pid: null, now: { tx: [fate, idle(commit ? 'COMMIT' : 'ROLLBACK')] } }),
+    },
+    transactions: { tx: tx('700', 'before-end', fate) },
+    markers: { tx: commit },
+    marker_xmin: { tx: commit ? '700' : null },
+  }, { reported: commit ? 'committed' : 'rolled_back', apiError: commit ? null : API_ERROR }, over)
+}
+
+test('CTL-01: a genuinely committed marker passes, and a genuinely rolled-back one passes', () => {
+  assert.equal(run(ctl('CTL-01.commit')).classification, 'PASS')
+  assert.equal(run(ctl('CTL-01.rollback')).classification, 'PASS')
 })
 
-test('a missing observation is never PASS: transaction ID not captured, checkpoint missing, markers unreadable', () => {
-  assert.equal(run(evidence('CTL-01.commit', { observed: { transactions: { tx: { xid: null } } } })).classification, 'INCONCLUSIVE')
-  assert.equal(run(evidence('CTL-01.commit', { harness: { missingCheckpoints: ['before-end'] } })).classification, 'INCONCLUSIVE')
-  assert.equal(run(evidence('CTL-01.commit', { observed: { markers: null, markersError: 'relation "item" does not exist' } })).classification, 'INCONCLUSIVE')
-})
-
-test('a reported commit whose marker is not visible is a FAIL (a lost write), never PASS', () => {
-  const r = run(evidence('CTL-01.commit', { observed: { markers: { tx: false } } }))
+test('CTL-01: a report the database contradicts is a FAIL', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { transactions: { tx: { fate: 'aborted' } }, checkpoints: { 'after-end': { transactions_now: { tx: { fate: 'aborted' } } } }, markers: { tx: false }, marker_xmin: { tx: null } } }))
   assert.equal(r.classification, 'FAIL')
   assert.match(r.reason, /CTL-01\.1 violated/)
 })
 
-test('a visible row inserted by a transaction PostgreSQL reports aborted means the observations are wrong: INCONCLUSIVE', () => {
-  const r = run(evidence('CTL-01.commit', { observed: { markers: { tx: true }, marker_xmin: { tx: '700' }, transactions: { tx: { fate: 'aborted' } } } }))
+test('a reported commit whose confirmed write is not visible is a FAIL (a lost write)', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { markers: { tx: false }, marker_xmin: { tx: null } } }))
+  assert.equal(r.classification, 'FAIL')
+  assert.match(r.reason, /CTL-01\.1 violated/)
+})
+
+test('a missing marker whose write was never confirmed is INCONCLUSIVE, not a lost write', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { checkpoints: { 'before-end': { locks: noWrite('700') } }, markers: { tx: false }, marker_xmin: { tx: null } } }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /write of marker "tx" had reached PostgreSQL at `before-end`/)
+})
+
+test('rows in the marker table that are not markers make the case INCONCLUSIVE', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { stray_rows: ['tx-wrong'], markers: { tx: false }, marker_xmin: { tx: null } } }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /not the case's markers/)
+})
+
+test('a missing observation is never PASS: unknown fate, uncaptured ID, missing checkpoint, unreadable markers', () => {
+  const inconclusive = (ev, reason) => { const r = run(ev); assert.equal(r.classification, 'INCONCLUSIVE'); assert.match(r.reason, reason) }
+  for (const fate of [null, 'in progress']) inconclusive(ctl('CTL-01.commit', { observed: { transactions: { tx: { fate } } } }), /pg_xact_status\(\) for transaction "tx" is/)
+  inconclusive(ctl('CTL-01.commit', { observed: { transactions: { tx: { xid: null } } } }), /was not captured inside it/)
+  inconclusive(ctl('CTL-01.commit', { harness: { missingCheckpoints: ['after-end'] } }), /checkpoint "after-end" was not reached/)
+  inconclusive(ctl('CTL-01.commit', { observed: { markers: null, markersError: 'relation "item" does not exist' } }), /marker visibility could not be read/)
+})
+
+test('a visible row inserted by a transaction PostgreSQL reports aborted means the observations are wrong', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { transactions: { tx: { fate: 'aborted' } } } }))
   assert.equal(r.classification, 'INCONCLUSIVE')
   assert.match(r.reason, /inserted by transaction "tx" \(xid 700\), which pg_xact_status\(\) reports as aborted/)
 })
 
-test('a transaction ID that does not match its session is INCONCLUSIVE', () => {
-  assert.equal(run(evidence('CTL-01.commit', { observed: { transactions: { tx: { session_xid_matches: false } } } })).classification, 'INCONCLUSIVE')
+test('binding: a transaction ID that is not its session\'s transaction is INCONCLUSIVE', () => {
+  for (const [why, over] of [
+    ['xid mismatch', { observed: { transactions: { tx: { session_xid_matches: false } } } }],
+    ['xid not compared', { observed: { transactions: { tx: { session_xid_matches: null } } } }],
+    ['session not in a transaction', { observed: { checkpoints: { 'before-end': { session: idle('select pg_current_xact_id()') } } } }],
+    ['no such session', { observed: { checkpoints: { 'before-end': { session: closed } } } }],
+  ]) {
+    const r = run(ctl('CTL-01.commit', over))
+    assert.equal(r.classification, 'INCONCLUSIVE', why)
+    assert.match(r.reason, /not bound/, why)
+  }
 })
 
-test('a timeout is never success', () => {
-  const r = run(evidence('CTL-01.commit', { adapterStatus: null, reported: null, harness: { timedOut: true, exit: { code: null, signal: 'SIGKILL' } } }))
+test('H1: an escaped checkpoint (an autocommit xid; the marker inserted by another transaction) is INCONCLUSIVE', () => {
+  const r = run(ctl('CTL-01.commit', { observed: {
+    checkpoints: { 'before-end': { session: idle('select pg_current_xact_id()', { xid_matches: null }), locks: wrote('809') } },
+    transactions: { tx: { xid: '810', session_xid_matches: null } },
+    marker_xmin: { tx: '809' },
+  } }))
   assert.equal(r.classification, 'INCONCLUSIVE')
-  assert.match(r.reason, /did not finish within/)
+  assert.match(r.reason, /not bound/)
+  assert.match(r.reason, /inserted by transaction 809, not by the case's transaction "tx"/)
 })
 
-test('an adapter error or protocol error is INCONCLUSIVE', () => {
-  assert.equal(run(evidence('CTL-01.commit', { adapterStatus: 'error', adapterError: 'Error: boom' })).classification, 'INCONCLUSIVE')
-  assert.equal(run(evidence('CTL-01.commit', { harness: { protocolErrors: ['unknown message type "x"'] } })).classification, 'INCONCLUSIVE')
-  assert.equal(run(evidence('CTL-01.commit', { harness: { helloReceived: false } })).classification, 'INCONCLUSIVE')
+test('attribution: a visible top-level marker inserted by a different transaction is INCONCLUSIVE', () => {
+  const r = run(ctl('CTL-01.commit', { observed: { marker_xmin: { tx: '699' } } }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /inserted by transaction 699/)
 })
 
-test('an unsupported capability is UNSUPPORTED, never FAIL', () => {
-  const r = run(evidence('TX-01A.caught-error-then-commit', { adapterStatus: 'unsupported', adapterReason: 'no such API', reported: 'committed', observed: { markers: { tx: false }, transactions: { tx: { fate: 'aborted' } } } }))
-  assert.equal(r.classification, 'UNSUPPORTED')
+test('a timeout, an adapter error, a protocol error or a missing hello is never a result', () => {
+  assert.match(run(ctl('CTL-01.commit', { adapterStatus: null, reported: null, harness: { timedOut: true, exit: { code: null, signal: 'SIGKILL' } } })).reason, /did not finish within/)
+  assert.match(run(ctl('CTL-01.commit', { adapterStatus: 'error', adapterError: 'Error: boom' })).reason, /the adapter reported an error: Error: boom/)
+  assert.match(run(ctl('CTL-01.commit', { harness: { protocolErrors: ['unknown message type "x"'] } })).reason, /protocol: unknown message type/)
+  assert.match(run(ctl('CTL-01.commit', { harness: { helloReceived: false } })).reason, /no hello message/)
 })
 
-// TX-01A: evidence of an aborted transaction whose end the framework reported as `reported`.
-function aborted(reported, { state = 'idle in transaction (aborted)', violation = '23505' } = {}) {
+test('H4: a runtime "unsupported" never overrides the evidence: INCONCLUSIVE', () => {
+  const r = run(evidence('TX-01A.caught-error-then-commit', { checkpoints: {}, transactions: {}, markers: null, marker_xmin: null }, {
+    adapterStatus: 'unsupported', adapterReason: 'not today', reported: null,
+    harness: { ...HARNESS, protocolErrors: ['the adapter reported "unsupported" at run time; only its manifest may declare a case unsupported'], missingCheckpoints: [] },
+  }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /only its manifest may declare a case unsupported/)
+})
+
+test('H9: an adapter status the classifier does not know (not_implemented) is INCONCLUSIVE', () => {
+  const r = run(evidence('CTL-01.commit', { checkpoints: {}, transactions: {}, markers: { tx: false }, marker_xmin: { tx: null } }, { adapterStatus: 'not_implemented', adapterReason: 'no such case', reported: null }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /status "not_implemented"/)
+})
+
+test('H6: "failed" or "rolled_back" without the error the API raised is INCONCLUSIVE; so are "pending" and unknown outcomes', () => {
+  assert.match(run(ctl('CTL-01.rollback', { apiError: null })).reason, /without the error the API raised/)
+  assert.match(run(txA('failed', { apiError: null })).reason, /reported "failed" without the error the API raised/)
+  assert.match(run(ctl('CTL-01.commit', { reported: 'pending' })).reason, /had not returned/)
+  assert.match(run(ctl('CTL-01.commit', { reported: 'maybe' })).reason, /did not report the API outcome/)
+})
+
+test('H5: invariants the rules do not evaluate are never passed over: INCONCLUSIVE', () => {
+  const ev = txA('rolled_back')
+  ev.case = { ...ev.case, invariants: ['TX-01A.1', 'CTL-01.2'] }
+  const r = run(ev)
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /CTL-01\.2/)
+})
+
+test('runner robustness: leftover sessions, too many sessions, another backend under the same PID, a changed fixture', () => {
+  assert.match(run(ctl('CTL-01.commit', { observed: { sessions_at_end: [{ pid: 11 }] } })).reason, /still connected/)
+  assert.match(run(ctl('CTL-01.commit', { observed: { checkpoints: { 'before-end': { adapter_sessions: 2 } } } })).reason, /more than pool_max \(1\)/)
+  assert.match(run(ctl('CTL-01.commit', { observed: { transactions: { tx: { backend_start: 'T1' } } } })).reason, /belongs to a different backend/)
+  assert.match(run(ctl('CTL-01.commit', { observed: { fixture: { after: 'changed' } } })).reason, /fixture's tables or constraints changed/)
+})
+
+// TX-01A: the write, a caught unique violation, then the end of the callback.
+function txA(reported, { state = aborted(), fateBefore = 'aborted', violation = '23505', after = idle('COMMIT'), apiError, ...over } = {}) {
   return evidence('TX-01A.caught-error-then-commit', {
-    reported,
-    steps: { violation: { code: violation } },
-    observed: {
-      checkpoints: {
-        'after-write': { reported: { pid: 10, xid: '700' }, session: { present: true, state: 'idle in transaction' } },
-        'before-end': { reported: { pid: 10, xid: null }, session: { present: true, state } },
-      },
-      transactions: { tx: { captured_at: 'after-write', fate: 'aborted' } },
-      markers: { tx: false },
+    checkpoints: {
+      'after-write': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { tx: ['in progress', inTx('700')] } }),
+      'before-end': point({ session: state, locks: noWrite(), now: { tx: [fateBefore, state] } }),
+      'after-end': point({ pid: null, now: { tx: ['aborted', after] } }),
     },
-  })
+    transactions: { tx: tx('700', 'after-write', 'aborted') },
+    markers: { tx: false },
+    marker_xmin: { tx: null },
+  }, { reported, apiError: apiError !== undefined ? apiError : reported === 'committed' ? null : API_ERROR, steps: { violation: violation ? { code: violation } : undefined } }, over)
 }
 
-test('TX-01A: reporting a commit of an aborted transaction is a FAIL', () => {
-  const r = run(aborted('committed'))
+test('TX-01A: reporting a commit of an aborted transaction is a FAIL, and the mechanism ran', () => {
+  const r = run(txA('committed'))
   assert.equal(r.classification, 'FAIL')
   assert.ok(r.invariants.some((i) => i.id === 'TX-01A.1' && i.holds === false))
+  assert.equal(r.mechanism_exercised, true)
 })
 
-test('TX-01A: reporting a rollback or a failure passes', () => {
-  assert.equal(run(aborted('rolled_back')).classification, 'PASS')
-  assert.equal(run(aborted('failed')).classification, 'PASS')
+test('TX-01A: reporting a rollback or a failure after COMMIT passes, with the mechanism exercised', () => {
+  for (const reported of ['rolled_back', 'failed']) {
+    const r = run(txA(reported))
+    assert.equal(r.classification, 'PASS', reported)
+    assert.equal(r.mechanism_exercised, true, reported)
+  }
 })
 
-test('TX-01A: without the aborted state, the invariant does not apply (INCONCLUSIVE, even if a commit is reported)', () => {
-  assert.equal(run(aborted('committed', { state: 'idle in transaction' })).classification, 'INCONCLUSIVE')
-  assert.equal(run(aborted('committed', { violation: null })).classification, 'INCONCLUSIVE')
+test('H3: a failure before COMMIT was sent passes, but is recorded as "mechanism not exercised"', () => {
+  for (const after of [idle('ROLLBACK'), aborted({ query: 'select 1' })]) {
+    const r = run(txA('failed', { after }))
+    assert.equal(r.classification, 'PASS')
+    assert.equal(r.mechanism_exercised, false)
+    assert.match(r.mechanism_detail, /last statement/)
+  }
 })
 
-// TX-01B: evidence of a commit whose reply the client never received.
-function unknown(caseId, reported, { fate, terminated = true, gone = true, fired = 1 } = {}) {
-  const kase = caseById(caseId)
-  const isB = kase.fault.category === 'B'
-  const f = fate ?? kase.expected.fate
-  return evidence(caseId, {
-    reported,
-    steps: isB ? {} : { fault: { mode: 'reply-lost', fired } },
-    observed: {
-      checkpoints: { 'before-end': { reported: { pid: 10, xid: '700' }, session: { present: true, state: 'idle in transaction' }, ...(isB ? { action: { action: 'terminate_backend', pid: 10, terminated, gone } } : {}) } },
-      transactions: { tx: { fate: f } },
-      markers: { tx: f === 'committed' },
+test('TX-01A: without the aborted state before the end, or without the violation, INCONCLUSIVE', () => {
+  assert.match(run(txA('committed', { state: inTx('700'), fateBefore: 'in progress' })).reason, /precondition not established: the top-level transaction was aborted before it ended/)
+  assert.match(run(txA('committed', { violation: null })).reason, /precondition not established: the duplicate insert failed with unique_violation/)
+})
+
+// TX-01B: the commit's outcome reaches the client only through what the API reports.
+function txB(id, reported, { fate, reportFate, terminated = true, gone = true, fired = 1, channels = [] } = {}) {
+  const c = kase(id)
+  const isB = c.fault.category === 'B'
+  const f = fate ?? c.expected.fate
+  return evidence(id, {
+    checkpoints: {
+      'before-end': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { tx: ['in progress', inTx('700')] }, ...(isB ? { action: { action: 'terminate_backend', pid: PID, terminated, gone } } : {}) }),
+      'after-end': point({ pid: null, sessions: isB ? 0 : 1, now: { tx: [reportFate ?? f, isB ? closed : idle('COMMIT')] } }),
     },
-  })
+    transactions: { tx: tx('700', 'before-end', f) },
+    markers: { tx: f === 'committed' },
+    marker_xmin: { tx: f === 'committed' ? '700' : null },
+  }, { reported, apiError: reported === 'committed' ? null : API_ERROR, steps: isB ? {} : { fault: { mode: 'reply-lost', fired } }, adapter: { rollbackClaimChannels: channels } })
 }
 
-test('TX-01B: an unknown outcome reported as success is a FAIL, whatever PostgreSQL did', () => {
+test('TX-01B: a commit reported after the connection or the reply was lost is a FAIL of TX-01B.1', () => {
   for (const id of ['TX-01B.conn-lost-before-commit', 'TX-01B.commit-reply-discarded']) {
-    const r = run(unknown(id, 'committed'))
+    const r = run(txB(id, 'committed'))
     assert.equal(r.classification, 'FAIL', id)
     assert.ok(r.invariants.some((i) => i.id === 'TX-01B.1' && i.holds === false), id)
   }
 })
 
-test('TX-01B: an unknown outcome is not converted to a confirmed rollback', () => {
-  for (const id of ['TX-01B.conn-lost-before-commit', 'TX-01B.commit-reply-discarded']) {
-    const r = run(unknown(id, 'rolled_back'))
-    assert.equal(r.classification, 'FAIL', id)
-    assert.ok(r.invariants.some((i) => i.id === 'TX-01B.2' && i.holds === false), id)
+test('H2: conn-lost-before-commit is a known outcome, so a truthful "rolled_back" passes', () => {
+  const r = run(txB('TX-01B.conn-lost-before-commit', 'rolled_back'))
+  assert.equal(r.classification, 'PASS')
+  assert.deepEqual(r.invariants.map((i) => i.id), ['TX-01B.1'])
+})
+
+test('TX-01B.2: a confirmed rollback of a commit that may have happened is a FAIL, whatever the declared channels', () => {
+  for (const channels of [[], ['result']]) {
+    const r = run(txB('TX-01B.commit-reply-discarded', 'rolled_back', { channels }))
+    assert.equal(r.classification, 'FAIL', String(channels))
+    assert.ok(r.invariants.some((i) => i.id === 'TX-01B.2' && i.holds === false))
   }
 })
 
-test('TX-01B: reporting a failure without asserting an outcome passes', () => {
-  assert.equal(run(unknown('TX-01B.conn-lost-before-commit', 'failed')).classification, 'PASS')
-  assert.equal(run(unknown('TX-01B.commit-reply-discarded', 'failed')).classification, 'PASS')
+test('TX-01B.2: without a declared rollback-claim channel, a failure report leaves TX-01B.2 not exercised, never held', () => {
+  const r = run(txB('TX-01B.commit-reply-discarded', 'failed'))
+  assert.equal(r.classification, 'PASS')
+  assert.deepEqual(r.not_exercised, ['TX-01B.2'])
+  const i = r.invariants.find((x) => x.id === 'TX-01B.2')
+  assert.equal(i.holds, null)
+  assert.equal(i.not_exercised, true)
+  const withChannel = run(txB('TX-01B.commit-reply-discarded', 'failed', { channels: ['result'] }))
+  assert.equal(withChannel.classification, 'PASS')
+  assert.deepEqual(withChannel.not_exercised, [])
 })
 
-test('TX-01B: a fault that did not take effect makes the case INCONCLUSIVE', () => {
-  assert.equal(run(unknown('TX-01B.conn-lost-before-commit', 'committed', { terminated: false, gone: false })).classification, 'INCONCLUSIVE')
-  assert.equal(run(unknown('TX-01B.conn-lost-before-commit', 'committed', { gone: false })).classification, 'INCONCLUSIVE')
-  assert.equal(run(unknown('TX-01B.commit-reply-discarded', 'committed', { fired: 0 })).classification, 'INCONCLUSIVE')
+test('TX-01B: a fault that did not take effect, or a fate other than the case produces, is INCONCLUSIVE', () => {
+  assert.match(run(txB('TX-01B.conn-lost-before-commit', 'committed', { terminated: false, gone: false })).reason, /the runner terminated the backend at `before-end`/)
+  assert.match(run(txB('TX-01B.conn-lost-before-commit', 'committed', { gone: false })).reason, /terminated: true; gone: false/)
+  assert.match(run(txB('TX-01B.commit-reply-discarded', 'committed', { fired: 0 })).reason, /fired exactly once \(fired: 0\)/)
+  assert.match(run(txB('TX-01B.commit-reply-discarded', 'failed', { reportFate: 'in progress' })).reason, /PostgreSQL's outcome is the one the case produces \(committed\)/)
 })
 
-// TX-03: unit 1 failed (and its rollback failed); unit 2 is the next unit of work on the same pool.
-function reuse(caseId, { unit1Fate = 'aborted', unit2 = { xid: '701', fate: 'committed' }, next = { outcome: 'completed', reported: 'committed', elapsed_ms: 10 }, doomed = false, nextVisible = true, fired = 1 } = {}) {
-  const kase = caseById(caseId)
-  const transactions = { unit1: { xid: '700', pid: 10, captured_at: 'unit1-after-write', session_xid_matches: true, fate: unit1Fate } }
-  if (unit2) transactions.unit2 = { pid: 10, captured_at: 'unit2-after-write', session_xid_matches: true, ...unit2 }
-  const isB = kase.fault.category === 'B'
-  return {
-    ...evidence(caseId),
-    reported: 'rolled_back',
-    steps: { unit2: next, ...(isB ? {} : { fault: { mode: 'client-reject', fired } }) },
-    observed: {
-      checkpoints: { 'unit1-after-write': { reported: { pid: 10, xid: '700' }, ...(isB ? { action: { action: 'terminate_backend', pid: 10, terminated: true, gone: true } } : {}) }, 'after-unit1': { reported: { pid: 10 } } },
-      transactions,
-      markers: { doomed, next: nextVisible },
-      sessions_at_end: [],
+// TX-02: the outer scope writes; a nested scope writes and fails; its savepoint rollback fails.
+function txTwo(id, { reported = 'committed', fate = 'committed', reportFate, outer = true, inner = false, after = idle('COMMIT'), faultSession, faultLocks, faultFate = 'in progress', innerLocks = wrote('700', '701'), caught = true, fired = 1, gone = true, replyCodes = ['3B001'] } = {}) {
+  const c = kase(id)
+  const isB = c.fault.category === 'B'
+  const mode = id.endsWith('not-sent') ? 'client-reject' : 'rewrite'
+  const atReport = reportFate ?? fate
+  const checkpoints = {
+    'outer-after-write': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { tx: ['in progress', inTx('700')] } }),
+    'inner-after-write': point({ session: inTx('700'), locks: innerLocks, now: { tx: ['in progress', inTx('700')] }, ...(isB ? { action: { action: 'terminate_backend', pid: PID, terminated: true, gone } } : {}) }),
+  }
+  if (!isB) {
+    // The signature of the fault as it fires: a withheld ROLLBACK TO leaves the savepoint live; a rejected one aborts it.
+    const fs = faultSession ?? (mode === 'client-reject' ? inTx('700') : aborted({ backend_xid: '700' }))
+    checkpoints['after-fault'] = point({ session: fs, locks: faultLocks ?? (mode === 'client-reject' ? wrote('700', '701') : wrote('700')), now: { tx: [faultFate, fs] } })
+  }
+  return evidence(id, {
+    checkpoints: {
+      ...checkpoints,
+      'after-outer': point({ session: after, locks: after?.present ? noWrite() : null, now: { tx: [atReport, after] } }),
+      'after-end': point({ pid: null, now: { tx: [atReport, after] } }),
     },
-  }
+    transactions: { tx: tx('700', 'outer-after-write', fate) },
+    markers: { outer, inner },
+    marker_xmin: { outer: outer ? '700' : null, inner: inner ? '701' : null },
+  }, {
+    reported,
+    apiError: reported === 'committed' ? null : API_ERROR,
+    steps: { nested: { caught, error: caught ? { class: 'Error' } : undefined }, ...(isB ? {} : { fault: { mode, fired, ...(mode === 'rewrite' ? { reply_codes: replyCodes } : {}) } }) },
+  })
 }
 
-test('TX-03: the next unit running inside the failed transaction is a FAIL of TX-03.1', () => {
-  const r = run(reuse('TX-03.rollback-not-sent', { unit1Fate: 'committed', unit2: { xid: '700', fate: 'committed' }, doomed: true }))
+test('TX-02: a reported commit that includes the failed scope\'s writes is a FAIL of TX-02.1', () => {
+  const r = run(txTwo('TX-02.savepoint-rollback-not-sent', { inner: true }))
   assert.equal(r.classification, 'FAIL')
-  assert.ok(r.invariants.some((i) => i.id === 'TX-03.1' && i.holds === false))
+  assert.ok(r.invariants.some((i) => i.id === 'TX-02.1' && i.holds === false))
 })
 
-test('TX-03: a next unit still pending at the bound is a FAIL of TX-03.2, not INCONCLUSIVE', () => {
-  const r = run(reuse('TX-03.conn-lost-in-transaction', { unit2: null, next: { outcome: 'pending', elapsed_ms: 5000 }, nextVisible: false }))
+test('H7: a commit reported while the transaction was still open is a FAIL, described as decided at teardown', () => {
+  const r = run(txTwo('TX-02.savepoint-rollback-not-sent', { fate: 'aborted', reportFate: 'in progress', outer: false, after: inTx('700', { query: 'RELEASE SAVEPOINT typeorm_1' }) }))
+  assert.equal(r.classification, 'FAIL')
+  const tx1 = r.invariants.find((i) => i.id === 'TX-02.1')
+  assert.equal(tx1.holds, false)
+  assert.match(tx1.detail, /open at report time \(`after-outer`: xid 700 in progress\); rolled back at teardown/)
+  assert.ok(r.invariants.some((i) => i.id === 'TX-02.2' && i.holds === false))
+})
+
+test('TX-02: a session left inside its transaction after the API returned is a FAIL of TX-02.2, even when the failure was reported', () => {
+  const r = run(txTwo('TX-02.savepoint-rollback-rejected', { reported: 'failed', fate: 'aborted', reportFate: 'in progress', outer: false, after: aborted({ backend_xid: '700' }) }))
+  assert.equal(r.classification, 'FAIL')
+  assert.deepEqual(r.invariants.filter((i) => i.holds === false).map((i) => i.id), ['TX-02.2'])
+})
+
+test('TX-02: a failure reported, nothing committed, and the session out of its transaction passes', () => {
+  assert.equal(run(txTwo('TX-02.savepoint-rollback-rejected', { reported: 'rolled_back', fate: 'aborted', outer: false, after: idle('ROLLBACK') })).classification, 'PASS')
+  assert.equal(run(txTwo('TX-02.savepoint-rollback-not-sent', { reported: 'rolled_back', fate: 'aborted', outer: false, after: idle('ROLLBACK') })).classification, 'PASS')
+  assert.equal(run(txTwo('TX-02.conn-lost-before-savepoint-rollback', { reported: 'failed', fate: 'aborted', outer: false, after: closed })).classification, 'PASS')
+})
+
+test('TX-02: a fault that fired without its effect on the server is INCONCLUSIVE', () => {
+  const rejected = { reported: 'rolled_back', fate: 'aborted', outer: false, after: idle('ROLLBACK') }
+  // client-reject: as the fault fired, the savepoint's subtransaction lock was already gone
+  assert.match(run(txTwo('TX-02.savepoint-rollback-not-sent', { faultLocks: wrote('700') })).reason, /left the savepoint live/)
+  // rewrite: PostgreSQL did not reject the rewritten statement, or the rejection did not abort the subtransaction
+  assert.match(run(txTwo('TX-02.savepoint-rollback-rejected', { ...rejected, replyCodes: ['ok'] })).reason, /rejected the rewritten ROLLBACK TO SAVEPOINT/)
+  assert.match(run(txTwo('TX-02.savepoint-rollback-rejected', { ...rejected, faultSession: inTx('700') })).reason, /aborted only the subtransaction/)
+  assert.match(run(txTwo('TX-02.savepoint-rollback-rejected', { ...rejected, faultFate: 'aborted' })).reason, /top-level pg_xact_status: aborted/)
+  // termination: the backend had not gone when the adapter resumed
+  assert.match(run(txTwo('TX-02.conn-lost-before-savepoint-rollback', { reported: 'failed', fate: 'aborted', outer: false, after: closed, gone: false })).reason, /terminated: true; gone: false/)
+  // the fault's own checkpoint could not be reported
+  const hook = txTwo('TX-02.savepoint-rollback-not-sent')
+  hook.steps.fault.hook_error = 'checkpoint "after-fault": the runner closed the protocol stream'
+  assert.match(run(hook).reason, /could not report the fault's checkpoint/)
+})
+
+test('TX-02: a framework that reacts to the failed savepoint rollback at once still passes: the signature is read as the fault fires', () => {
+  // The outer scope's error handling ran after a framework that rolled the whole transaction back immediately.
+  assert.equal(run(txTwo('TX-02.savepoint-rollback-not-sent', { reported: 'rolled_back', fate: 'aborted', outer: false, after: idle('ROLLBACK') })).classification, 'PASS')
+})
+
+test('TX-02: without the nested write, the nested failure reaching the outer scope, or the session observation, INCONCLUSIVE', () => {
+  assert.match(run(txTwo('TX-02.savepoint-rollback-not-sent', { innerLocks: wrote('700') })).reason, /marker "inner" had reached PostgreSQL/)
+  assert.match(run(txTwo('TX-02.savepoint-rollback-not-sent', { caught: false })).reason, /precondition not established: the nested scope's error reached the outer scope/)
+  assert.match(run(txTwo('TX-02.savepoint-rollback-not-sent', { after: null })).reason, /observed the transaction's session after the outer API returned/)
+})
+
+// TX-03: unit 1 fails and its rollback fails; unit 2 is the next unit of work on the same pool.
+function txThree(id, { unit1Fate = 'aborted', u1Session, faultSession = inTx('700'), unit2 = { xid: '701', fate: 'committed' }, next = { outcome: 'completed', reported: 'committed', elapsed_ms: 10 }, doomed = false, nextVisible = true, fired = 1 } = {}) {
+  const isB = kase(id).fault.category === 'B'
+  const atUnit1 = u1Session ?? (isB ? closed : inTx('700'))
+  const transactions = { unit1: tx('700', 'unit1-after-write', unit1Fate) }
+  const checkpoints = {
+    'unit1-after-write': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { unit1: ['in progress', inTx('700')] }, ...(isB ? { action: { action: 'terminate_backend', pid: PID, terminated: true, gone: true } } : {}) }),
+    ...(isB ? {} : { 'after-fault': point({ session: faultSession, locks: wrote('700'), now: { unit1: ['in progress', faultSession] } }) }),
+    'after-unit1': point({ session: atUnit1, locks: isB || !atUnit1.present ? null : wrote('700'), now: { unit1: [isB || !atUnit1.present ? 'aborted' : 'in progress', atUnit1] } }),
+  }
+  if (unit2) {
+    const pid2 = isB ? 12 : PID
+    transactions.unit2 = { ...tx(unit2.xid, 'unit2-after-write', unit2.fate), pid: pid2, backend_start: isB ? 'T2' : 'T0' }
+    const s2 = { ...inTx(unit2.xid, { xid_matches: true }), pid: pid2, backend_start: isB ? 'T2' : 'T0' }
+    checkpoints['unit2-after-write'] = point({ pid: pid2, xid: unit2.xid, session: s2, locks: wrote(unit2.xid), now: { unit1: [unit2.xid === '700' ? 'in progress' : unit1Fate, atUnit1], unit2: ['in progress', s2] } })
+  }
+  checkpoints['after-end'] = point({ pid: null, now: { unit1: [unit1Fate, idle('COMMIT')], ...(unit2 ? { unit2: [unit2.fate, idle('COMMIT')] } : {}) } })
+  return evidence(id, { checkpoints, transactions, markers: { doomed, next: nextVisible }, marker_xmin: { doomed: doomed ? '700' : null, next: nextVisible ? unit2?.xid ?? null : null } }, {
+    reported: 'rolled_back', apiError: API_ERROR, steps: { unit2: next, ...(isB ? {} : { fault: { mode: 'client-reject', fired } }) },
+  })
+}
+
+test('TX-03: the next unit running inside the failed transaction is a FAIL of TX-03.1, decided by later work', () => {
+  const r = run(txThree('TX-03.rollback-not-sent', { unit1Fate: 'committed', unit2: { xid: '700', fate: 'committed' }, doomed: true }))
+  assert.equal(r.classification, 'FAIL')
+  const i = r.invariants.find((x) => x.id === 'TX-03.1')
+  assert.equal(i.holds, false)
+  assert.match(i.detail, /open at report time \(`after-unit1`: xid 700 in progress\); committed by later work in the case/)
+})
+
+test('TX-03: a next unit still pending at the bound is a FAIL of TX-03.2, and its checkpoint may be missing', () => {
+  const r = run(txThree('TX-03.conn-lost-in-transaction', { unit2: null, next: { outcome: 'pending', elapsed_ms: 5000 }, nextVisible: false }))
   assert.equal(r.classification, 'FAIL')
   assert.ok(r.invariants.some((i) => i.id === 'TX-03.2' && i.holds === false))
   assert.ok(r.invariants.some((i) => i.id === 'TX-03.1' && i.holds === true))
 })
 
 test('TX-03: a fresh transaction for the next unit, and the failed one rolled back, passes', () => {
-  assert.equal(run(reuse('TX-03.rollback-not-sent')).classification, 'PASS')
-  assert.equal(run(reuse('TX-03.conn-lost-in-transaction')).classification, 'PASS')
+  assert.equal(run(txThree('TX-03.rollback-not-sent')).classification, 'PASS')
+  assert.equal(run(txThree('TX-03.conn-lost-in-transaction')).classification, 'PASS')
 })
 
-test('TX-03: a client-side fault that never fired makes the case INCONCLUSIVE', () => {
-  assert.equal(run(reuse('TX-03.rollback-not-sent', { fired: 0 })).classification, 'INCONCLUSIVE')
+test('TX-03: a fault that never fired, or did not leave unit 1 open on the server as it fired, is INCONCLUSIVE', () => {
+  assert.match(run(txThree('TX-03.rollback-not-sent', { fired: 0 })).reason, /fired exactly once \(fired: 0\)/)
+  assert.match(run(txThree('TX-03.rollback-not-sent', { faultSession: idle('ROLLBACK') })).reason, /the withheld ROLLBACK left unit 1's transaction open/)
+  assert.match(run(txThree('TX-03.rollback-not-sent', { faultSession: inTx('699') })).reason, /backend_xid 699/)
 })
 
-// TX-02: an outer transaction whose nested scope failed, and whose savepoint rollback failed.
-function savepointCase(caseId, { reported = 'committed', fate = 'committed', outer = true, inner = false, after = { present: true, state: 'idle', in_transaction: false }, caught = true, fired = 1 } = {}) {
-  const kase = caseById(caseId)
-  const isB = kase.fault.category === 'B'
-  return {
-    ...evidence(caseId),
-    reported,
-    steps: { nested: { caught, error: caught ? { class: 'Error' } : undefined }, ...(isB ? {} : { fault: { mode: 'client-reject', fired } }) },
-    observed: {
-      checkpoints: {
-        'outer-after-write': { reported: { pid: 10, xid: '700' } },
-        ...(isB ? { 'inner-after-write': { reported: { pid: 10 }, action: { action: 'terminate_backend', pid: 10, terminated: true, gone: true } } } : {}),
-        'after-outer': { reported: { pid: 10 }, session: after },
-      },
-      transactions: { tx: { xid: '700', pid: 10, captured_at: 'outer-after-write', session_xid_matches: true, fate } },
-      markers: { outer, inner },
-      sessions_at_end: [],
-    },
-  }
-}
-
-test('TX-02: a reported commit that includes the failed scope\'s writes is a FAIL of TX-02.1', () => {
-  const r = run(savepointCase('TX-02.savepoint-rollback-not-sent', { inner: true }))
-  assert.equal(r.classification, 'FAIL')
-  assert.ok(r.invariants.some((i) => i.id === 'TX-02.1' && i.holds === false))
-})
-
-test('TX-02: a connection left inside a transaction after the API returned is a FAIL of TX-02.2, even when the failure was reported', () => {
-  const r = run(savepointCase('TX-02.savepoint-rollback-rejected', { reported: 'failed', fate: 'aborted', outer: false, after: { present: true, state: 'idle in transaction', in_transaction: true } }))
-  assert.equal(r.classification, 'FAIL')
-  assert.deepEqual(r.invariants.filter((i) => i.holds === false).map((i) => i.id), ['TX-02.2'])
-})
-
-test('TX-02: a failure reported, nothing committed, and the connection out of its transaction passes', () => {
-  assert.equal(run(savepointCase('TX-02.savepoint-rollback-rejected', { reported: 'rolled_back', fate: 'aborted', outer: false })).classification, 'PASS')
-  assert.equal(run(savepointCase('TX-02.conn-lost-before-savepoint-rollback', { reported: 'failed', fate: 'aborted', outer: false, after: { present: false } })).classification, 'PASS')
-})
-
-test('TX-02: without the nested failure reaching the outer scope, or without the session observation, INCONCLUSIVE', () => {
-  assert.equal(run(savepointCase('TX-02.savepoint-rollback-not-sent', { caught: false })).classification, 'INCONCLUSIVE')
-  assert.equal(run(savepointCase('TX-02.savepoint-rollback-not-sent', { after: null })).classification, 'INCONCLUSIVE')
+test('TX-03: a framework that discards the connection inside its API passes: the signature is read as the fault fires, not when the API returns', () => {
+  assert.equal(run(txThree('TX-03.rollback-not-sent', { u1Session: closed })).classification, 'PASS')
 })
 
 // TX-04: nested and independent scopes, no fault.
-function nestedCase(caseId, { reported, fate, outer, inner, nested, innerTx } = {}) {
-  const kase = caseById(caseId)
-  const transactions = innerTx ? { inner: { xid: '800', pid: 11, captured_at: 'inner-after-write', session_xid_matches: true, fate: innerTx } } : { tx: { xid: '700', pid: 10, captured_at: 'inner-after-write', session_xid_matches: true, fate } }
-  return {
-    ...evidence(caseId),
-    case: kase,
-    reported,
-    steps: { nested },
-    observed: { checkpoints: { 'inner-after-write': { reported: { pid: 10, xid: '700' } } }, transactions, markers: { outer, inner }, marker_xmin: { outer: outer ? '800' : null, inner: inner ? '800' : null }, sessions_at_end: [] },
+function txFour(id, { reported, fate, outer, inner, nested, innerLocks = wrote('700', '701'), outerXmin } = {}) {
+  if (id === 'TX-04.independent-inner') {
+    return evidence(id, {
+      checkpoints: {
+        'inner-after-write': point({ pid: 11, xid: '800', session: { ...inTx('800', { xid_matches: true }), pid: 11 }, locks: noWrite('800'), sessions: 2, now: { inner: ['in progress', { ...inTx('800'), pid: 11 }] } }),
+        'after-end': point({ pid: null, now: { inner: ['committed', { ...idle('COMMIT'), pid: 11 }] } }),
+      },
+      transactions: { inner: { ...tx('800', 'inner-after-write', 'committed'), pid: 11 } },
+      markers: { outer, inner },
+      marker_xmin: { outer: outer ? outerXmin ?? '800' : null, inner: inner ? '800' : null },
+    }, { reported, apiError: reported === 'committed' ? null : API_ERROR, steps: { nested } })
   }
+  return evidence(id, {
+    checkpoints: {
+      'inner-after-write': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: innerLocks, now: { tx: ['in progress', inTx('700')] } }),
+      'after-end': point({ pid: null, now: { tx: [fate, idle(fate === 'committed' ? 'COMMIT' : 'ROLLBACK')] } }),
+    },
+    transactions: { tx: tx('700', 'inner-after-write', fate) },
+    markers: { outer, inner },
+    marker_xmin: { outer: outer ? outerXmin ?? '700' : null, inner: inner ? '701' : null },
+  }, { reported, apiError: reported === 'committed' ? null : API_ERROR, steps: { nested } })
 }
 
 test('TX-04.1: a caller write lost with the failed nested scope is a FAIL', () => {
-  const r = run(nestedCase('TX-04.nested-failure-contained', { reported: 'committed', fate: 'committed', outer: false, inner: false, nested: { caught: true } }))
+  const r = run(txFour('TX-04.nested-failure-contained', { reported: 'committed', fate: 'committed', outer: false, inner: false, nested: { caught: true } }))
   assert.equal(r.classification, 'FAIL')
 })
 
 test('TX-04.2: a released nested scope surviving the outer rollback is a FAIL', () => {
-  const r = run(nestedCase('TX-04.nested-released-outer-rollback', { reported: 'rolled_back', fate: 'aborted', outer: false, inner: true, nested: { completed: true } }))
+  const r = run(txFour('TX-04.nested-released-outer-rollback', { reported: 'rolled_back', fate: 'committed', outer: false, inner: true, nested: { completed: true } }))
   assert.equal(r.classification, 'FAIL')
 })
 
-test('TX-04.3: an outer write committed by the independent inner transaction is a FAIL, and is attributed by xmin', () => {
-  const r = run(nestedCase('TX-04.independent-inner', { reported: 'rolled_back', outer: true, inner: true, nested: { completed: true }, innerTx: 'committed' }))
+test('TX-04.2: a unit-of-work mutant that never sends the inner write is INCONCLUSIVE, not PASS', () => {
+  const r = run(txFour('TX-04.nested-released-outer-rollback', { reported: 'rolled_back', fate: 'aborted', outer: false, inner: false, nested: { completed: true }, innerLocks: noWrite('700') }))
+  assert.equal(r.classification, 'INCONCLUSIVE')
+  assert.match(r.reason, /marker "inner" had reached PostgreSQL at `inner-after-write` \(a subtransaction lock/)
+})
+
+test('TX-04.3: an outer write committed by the independent inner transaction is a FAIL, attributed by xmin', () => {
+  const r = run(txFour('TX-04.independent-inner', { reported: 'rolled_back', outer: true, inner: true, nested: { completed: true } }))
   assert.equal(r.classification, 'FAIL')
   assert.match(r.invariants[0].detail, /inserted by transaction 800, the inner transaction/)
 })
 
-test('TX-04: the promised boundaries passes', () => {
-  assert.equal(run(nestedCase('TX-04.nested-failure-contained', { reported: 'committed', fate: 'committed', outer: true, inner: false, nested: { caught: true } })).classification, 'PASS')
-  assert.equal(run(nestedCase('TX-04.nested-released-outer-rollback', { reported: 'rolled_back', fate: 'aborted', outer: false, inner: false, nested: { completed: true } })).classification, 'PASS')
-  assert.equal(run(nestedCase('TX-04.independent-inner', { reported: 'rolled_back', outer: false, inner: true, nested: { completed: true }, innerTx: 'committed' })).classification, 'PASS')
+test('TX-04: a deferred write may land in a subtransaction created after the last checkpoint; it is not misattributed', () => {
+  // MikroORM clear-forks: after ROLLBACK TO the savepoint stays established, so the pending outer insert runs in a new
+  // subtransaction (702), which no checkpoint saw, and commits with the transaction.
+  const r = run(txFour('TX-04.nested-failure-contained', { reported: 'committed', fate: 'committed', outer: true, inner: false, nested: { caught: true }, outerXmin: '702' }))
+  assert.equal(r.classification, 'PASS')
 })
 
-test('an unexpected adapter status (for example not_implemented) is INCONCLUSIVE, never evaluated', () => {
-  const r = run(evidence('TX-01A.caught-error-then-commit', { adapterStatus: 'not_implemented', adapterReason: 'no such case', reported: null, observed: { transactions: {} } }))
-  assert.equal(r.classification, 'INCONCLUSIVE')
-  assert.match(r.reason, /status "not_implemented"/)
+test('TX-04: the promised boundaries pass', () => {
+  assert.equal(run(txFour('TX-04.nested-failure-contained', { reported: 'committed', fate: 'committed', outer: true, inner: false, nested: { caught: true } })).classification, 'PASS')
+  assert.equal(run(txFour('TX-04.nested-released-outer-rollback', { reported: 'rolled_back', fate: 'aborted', outer: false, inner: false, nested: { completed: true } })).classification, 'PASS')
+  assert.equal(run(txFour('TX-04.independent-inner', { reported: 'rolled_back', outer: false, inner: true, nested: { completed: true } })).classification, 'PASS')
+})
+
+test('fateStory: the same fate at report time and at the end, or the moment that decided it', () => {
+  const k = { family: 'CTL-01' }
+  const obs = (atReport, atEnd, end) => ({ transactions: { tx: { xid: '7', fate: end } }, checkpoints: { 'after-end': { transactions_now: { tx: { fate: atEnd } } } }, ...(atReport ? {} : {}) })
+  assert.equal(fateStory(obs(null, 'committed', 'committed'), k, 'tx'), 'xid 7 committed at report time (`after-end`)')
+  assert.match(fateStory(obs(null, 'in progress', 'aborted'), k, 'tx'), /open at report time \(`after-end`: xid 7 in progress\); rolled back at teardown/)
+  assert.match(fateStory({ transactions: { tx: { xid: '7', fate: 'aborted' } }, checkpoints: {} }, k, 'tx'), /not observed at report time/)
 })

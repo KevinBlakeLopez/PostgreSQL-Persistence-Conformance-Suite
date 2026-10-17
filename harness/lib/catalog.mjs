@@ -12,6 +12,8 @@ export class CatalogError extends Error {}
 
 /** What the runner can do at a checkpoint, besides observing (run-case.mjs). */
 export const CHECKPOINT_ACTIONS = ['terminate_backend']
+/** The checkpoint every case has implicitly: the adapter sends it as soon as the framework's API has returned. */
+export const IMPLICIT_CHECKPOINT = 'after-end'
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
 
@@ -46,8 +48,18 @@ export function loadCatalog(file = DEFAULT_CATALOG) {
     if (!catalog.families[c.family]) throw new CatalogError(`${c.id}: unknown family ${c.family}`)
     for (const i of c.invariants) if (!statements[i]) throw new CatalogError(`${c.id}: unknown invariant ${i}`)
     if (!Array.isArray(c.markers) || !c.markers.length) throw new CatalogError(`${c.id}: no markers`)
-    for (const [name, cp] of Object.entries(c.checkpoints ?? {})) {
+    const checkpoints = c.checkpoints ?? {}
+    if (checkpoints[IMPLICIT_CHECKPOINT]) throw new CatalogError(`${c.id}: "${IMPLICIT_CHECKPOINT}" is implicit in every case and must not be declared`)
+    for (const [name, cp] of Object.entries(checkpoints)) {
       if (cp.action && !CHECKPOINT_ACTIONS.includes(cp.action)) throw new CatalogError(`${c.id}: checkpoint "${name}" has unknown action "${cp.action}"`)
+    }
+    const captured = new Set(Object.values(checkpoints).map((cp) => cp.captures).filter(Boolean))
+    const writes = c.marker_writes ?? {}
+    if (Object.keys(writes).sort().join() !== [...c.markers].sort().join()) throw new CatalogError(`${c.id}: marker_writes must describe exactly the markers`)
+    for (const [marker, w] of Object.entries(writes)) {
+      if (!['top', 'savepoint'].includes(w.level)) throw new CatalogError(`${c.id}: marker "${marker}" has level "${w.level}"`)
+      if (w.sent !== 'possibly-pending' && !checkpoints[w.sent]) throw new CatalogError(`${c.id}: marker "${marker}" is confirmed at undeclared checkpoint "${w.sent}"`)
+      if (w.sent !== 'possibly-pending' && !captured.has(w.transaction)) throw new CatalogError(`${c.id}: marker "${marker}" is written by "${w.transaction}", which no checkpoint captures`)
     }
   }
   return { ...catalog, path: relative(ROOT, path), sha256: sha256(text), statements }
@@ -67,9 +79,10 @@ export function loadAdapters(base = join(ROOT, 'adapters')) {
     if (!Array.isArray(m.command) || !m.command.length) throw new CatalogError(`${where}: command must be a non-empty array`)
     if (!Array.isArray(m.modes) || !m.modes.length) throw new CatalogError(`${where}: needs at least one mode`)
     for (const mode of m.modes) if (!mode.id || !MODE_KINDS.includes(mode.kind)) throw new CatalogError(`${where}: mode "${mode.id}" needs a kind among ${MODE_KINDS.join(', ')}`)
+    if (m.rollback_claim_channels && !Array.isArray(m.rollback_claim_channels)) throw new CatalogError(`${where}: rollback_claim_channels must be an array`)
     const dir = join(base, name)
     const shared = (m.shared ?? []).map((p) => resolve(dir, p))
-    adapters.push({ ...m, dir, manifestPath: where, sourceSha256: treeSha256([dir, ...shared]) })
+    adapters.push({ ...m, rollback_claim_channels: m.rollback_claim_channels ?? [], dir, manifestPath: where, sourceSha256: treeSha256([dir, ...shared]) })
   }
   return adapters
 }

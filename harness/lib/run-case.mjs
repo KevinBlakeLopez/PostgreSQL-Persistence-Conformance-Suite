@@ -1,15 +1,18 @@
 // Runs one case on one adapter in one execution mode, and returns its evidence record (schema/result.v1.schema.json).
 //
-// 1. A fresh database, owned by this run, with the catalog's fixture.
+// 1. A fresh database, owned by this run, with the catalog's fixture, fingerprinted.
 // 2. The adapter process, given the case, its connection and its markers (adapter-process.mjs).
 // 3. At each checkpoint the adapter reports, from inside the transaction, its backend PID and pg_current_xact_id().
-//    The runner reads that session's state from pg_stat_activity, as a supplementary check, and resumes the adapter.
+//    The runner then takes a snapshot of the server: that backend's session and locks, and, for every transaction
+//    captured so far, its fate and its session's state. The snapshot at `after-end`, which the adapter sends as soon
+//    as the framework's API has returned, is the state *at report time*.
 // 4. After the adapter has exited and its sessions have closed: pg_xact_status() for every captured transaction ID,
-//    and the visibility of every marker, both read through new connections.
+//    the visibility and xmin of every marker, any other row in the marker table, all read through new connections,
+//    and the fixture's fingerprint again.
 // 5. The database is dropped, and the evidence is classified (classify.mjs).
 import { randomBytes } from 'node:crypto'
 import { runAdapter } from './adapter-process.mjs'
-import { classify } from './classify.mjs'
+import { classify, REPORT_POINT } from './classify.mjs'
 
 export const RESULT_SCHEMA = 'ppcs-result/1'
 const UNKNOWN = 'UNKNOWN'
@@ -18,21 +21,54 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
   const startedAt = new Date()
   const tag = randomBytes(3).toString('hex')
   const markers = Object.fromEntries(kase.markers.map((label) => [label, `${label}-${tag}`]))
-  const observed = { checkpoints: {}, transactions: {}, markers: null, marker_xmin: null, sessions_at_end: null }
-  const unexpectedCheckpoints = []
+  const observed = { checkpoints: {}, transactions: {}, markers: null, marker_xmin: null, stray_rows: null, sessions_at_end: null, fixture: { before: null, after: null } }
+  const runnerErrors = []
+  // `after-end` is a checkpoint of every case: the adapter sends it when the framework's API has returned.
+  const declaredCheckpoints = { ...(kase.checkpoints ?? {}), [REPORT_POINT]: { implicit: true } }
   let record
   const database = await instance.createDatabase(`ppcs_${kase.id.replace(/[^A-Za-z0-9]+/g, '_')}`)
   try {
     await instance.query(database, catalog.fixture.sql)
+    observed.fixture.before = await observer.fixtureFingerprint(database)
+
+    const snapshot = async (pid, xid) => {
+      const safe = (p) => p.catch((e) => ({ error: String(e.message) }))
+      const transactionsNow = {}
+      for (const [label, tx] of Object.entries(observed.transactions)) {
+        transactionsNow[label] = {
+          fate: await observer.fate(database, tx.xid).catch(() => null),
+          session: await safe(observer.session(database, tx.pid)),
+        }
+      }
+      return {
+        session: await safe(observer.session(database, pid, xid)),
+        locks: await safe(observer.locks(database, pid)),
+        transactions_now: transactionsNow,
+        adapter_sessions: (await observer.sessions(database).catch(() => [])).length,
+      }
+    }
 
     const onCheckpoint = async (msg) => {
-      const declared = kase.checkpoints?.[msg.name]
+      if (observed.checkpoints[msg.name]) {
+        // A checkpoint is reported once: a second report (a retried transaction body, for example) would silently
+        // replace the evidence the case is judged on.
+        runnerErrors.push(`checkpoint "${msg.name}" reported more than once`)
+        return { actions: [] }
+      }
+      const declared = declaredCheckpoints[msg.name]
       const reported = { pid: Number.isInteger(msg.pid) ? msg.pid : null, xid: typeof msg.xid === 'string' ? msg.xid : null }
-      const entry = { reported, session: await observer.session(database, reported.pid, reported.xid).catch((e) => ({ pid: reported.pid, error: String(e.message) })) }
+      const entry = { reported }
       observed.checkpoints[msg.name] = entry
-      if (!declared) { unexpectedCheckpoints.push(msg.name); return { actions: [] } }
+      if (!declared) { runnerErrors.push(`undeclared checkpoint "${msg.name}"`); return { actions: [] } }
       if (declared.captures) {
-        observed.transactions[declared.captures] = { xid: reported.xid, pid: reported.pid, captured_at: msg.name, session_xid_matches: entry.session?.xid_matches ?? null, fate: null }
+        // The capture comes first, so that the snapshot includes the transaction being captured.
+        observed.transactions[declared.captures] = { xid: reported.xid, pid: reported.pid, captured_at: msg.name, session_xid_matches: null, fate: null }
+      }
+      Object.assign(entry, await snapshot(reported.pid, reported.xid))
+      if (declared.captures) {
+        const tx = observed.transactions[declared.captures]
+        tx.session_xid_matches = entry.session?.xid_matches ?? null
+        tx.backend_start = entry.session?.backend_start ?? null
       }
       const actions = []
       if (declared.action === 'terminate_backend') {
@@ -66,7 +102,9 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
     try {
       observed.markers = await observer.markers(database, markers)
       observed.marker_xmin = await observer.markerXmins(database, markers)
+      observed.stray_rows = await observer.strayRows(database, markers)
     } catch (e) { observed.markersError = String(e.message) }
+    observed.fixture.after = await observer.fixtureFingerprint(database).catch((e) => `error: ${String(e.message)}`)
   } finally {
     if (!process.env.PPCS_KEEP_DB) await instance.dropDatabase(database)
   }
@@ -75,16 +113,19 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
   const completed = result.status === 'completed'
   // An optional checkpoint may legitimately not be reached: a next unit of work that never gets a connection is the
   // finding, not missing evidence.
-  const missingCheckpoints = completed ? Object.entries(kase.checkpoints ?? {}).filter(([n, cp]) => !cp.optional && !observed.checkpoints[n]).map(([n]) => n) : []
-  const protocolErrors = [...record.protocolErrors, ...unexpectedCheckpoints.map((n) => `undeclared checkpoint "${n}"`)]
+  const missingCheckpoints = completed ? Object.entries(declaredCheckpoints).filter(([n, cp]) => !cp.optional && !observed.checkpoints[n]).map(([n]) => n) : []
+  const protocolErrors = [...record.protocolErrors, ...runnerErrors]
+  if (result.status === 'unsupported') protocolErrors.push('the adapter reported "unsupported" at run time; only its manifest may declare a case unsupported')
   const evidence = {
     case: kase,
     adapterStatus: result.status ?? null,
     adapterReason: result.reason ?? null,
     adapterError: result.error ? `${result.error.class ?? 'Error'}: ${result.error.message ?? ''}` : null,
     reported: result.reported ?? null,
+    apiError: result.api_error ?? null,
     steps: result.steps ?? {},
     observed,
+    adapter: { rollbackClaimChannels: adapter.rollback_claim_channels ?? [] },
     harness: { timedOut: record.timedOut, timeoutMs, helloReceived: !!record.hello, exit: record.exit, protocolErrors, missingCheckpoints },
   }
   const evaluation = classify(evidence, catalog.statements)

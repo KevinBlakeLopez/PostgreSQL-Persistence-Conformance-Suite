@@ -19,7 +19,7 @@ const newRunId = () => `${new Date().toISOString().replace(/\.\d+Z$/, 'Z').repla
 function notExecuted(item, runId, catalog, server, image) {
   const { adapter, mode, kase } = item
   const evaluation = item.plan === 'unsupported'
-    ? { classification: 'UNSUPPORTED', reason: item.reason, preconditions: [], invariants: [], contract_basis: null }
+    ? { classification: 'UNSUPPORTED', reason: item.reason, preconditions: [], invariants: [], not_exercised: [], mechanism_exercised: null, contract_basis: null }
     : { ...notRun(item.reason), contract_basis: null }
   const now = new Date().toISOString()
   return {
@@ -39,7 +39,7 @@ function notExecuted(item, runId, catalog, server, image) {
     fault: kase.fault,
     knowledge: kase.knowledge ?? null,
     api_outcome: { reported: 'UNKNOWN', basis: null, contract: null, error: null, steps: {} },
-    database_outcome: { checkpoints: {}, transactions: {}, markers: null, marker_xmin: null, sessions_at_end: null },
+    database_outcome: { checkpoints: {}, transactions: {}, markers: null, marker_xmin: null, stray_rows: null, sessions_at_end: null, fixture: { before: null, after: null } },
     evaluation,
     reproduction: { command: `node harness/run.mjs --adapter=${adapter.name} --mode=${mode.id} --case=${kase.id}`, requires: 'pnpm run setup, then pnpm run pg:up (README.md)' },
     diagnostics: { adapter: null, stderr: null, stdout: null, protocol_errors: [], exit: null, timed_out: false },

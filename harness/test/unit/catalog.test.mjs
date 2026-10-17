@@ -1,12 +1,14 @@
 // Consistency of the catalog, its documentation and the adapter manifests. No database.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ROOT, loadAdapters, loadCatalog } from '../../lib/catalog.mjs'
+import { CatalogError, DEFAULT_CATALOG, ROOT, loadAdapters, loadCatalog } from '../../lib/catalog.mjs'
 
 const catalog = loadCatalog()
 const ids = new Set(catalog.cases.map((c) => c.id))
+const scratch = () => mkdtempSync(join(tmpdir(), 'ppcs-catalog-test-'))
 
 test('every case is described in docs/specifications.md', () => {
   const doc = readFileSync(join(ROOT, 'docs/specifications.md'), 'utf8')
@@ -17,13 +19,14 @@ test('every case is described in docs/specifications.md', () => {
   }
 })
 
-test('every case declares its fault, settings and checkpoints consistently', () => {
+test('every case declares its fault, settings, checkpoints and writes consistently', () => {
   for (const c of catalog.cases) {
     assert.ok(['none', 'A', 'B', 'C', 'D'].includes(c.fault.category), c.id)
     if (c.fault.category !== 'none') for (const k of ['mechanism', 'injection_point', 'expected_server', 'expected_client']) assert.ok(c.fault[k], `${c.id}: fault.${k}`)
     if (c.fault.category === 'B') assert.ok(Object.values(c.checkpoints).some((cp) => cp.action === 'terminate_backend'), `${c.id}: category B needs a terminate_backend checkpoint`)
     assert.ok(Number.isInteger(c.settings?.pool_max), `${c.id}: settings.pool_max`)
     assert.ok(Object.values(c.checkpoints).some((cp) => cp.captures), `${c.id}: no checkpoint captures a transaction ID`)
+    assert.ok(c.steps.at(-1).startsWith('Checkpoint `after-end`'), `${c.id}: the steps end with the implicit after-end checkpoint`)
   }
 })
 
@@ -36,5 +39,30 @@ test('adapter manifests reference only catalog cases, and modes only implemented
       assert.ok(a.unsupported[id].length > 20, `${a.name}: ${id} needs a reason`)
     }
     for (const m of a.modes) for (const id of m.cases ?? []) assert.ok(a.implements.includes(id), `${a.name} mode ${m.id} lists ${id}, which it does not implement`)
+    assert.ok(Array.isArray(a.rollback_claim_channels), `${a.name}: rollback_claim_channels`)
   }
+})
+
+/** Writes a copy of the catalog with `change` applied, and loads it. */
+function loadChanged(change) {
+  const dir = scratch()
+  try {
+    const c = JSON.parse(readFileSync(join(ROOT, DEFAULT_CATALOG), 'utf8'))
+    change(c)
+    const file = join(dir, 'catalog.json')
+    writeFileSync(file, JSON.stringify(c))
+    return loadCatalog(file)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+const caseOf = (c, id) => c.cases.find((k) => k.id === id)
+
+test('the catalog refuses marker writes it cannot confirm, and a declared after-end', () => {
+  assert.throws(() => loadChanged((c) => { delete caseOf(c, 'CTL-01.commit').marker_writes.tx }), CatalogError)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.level = 'nested' }), /level "nested"/)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.sent = 'nowhere' }), /undeclared checkpoint "nowhere"/)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.transaction = 'other' }), /which no checkpoint captures/)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').checkpoints['after-end'] = {} }), /implicit in every case/)
+  assert.doesNotThrow(() => loadChanged(() => {}))
 })

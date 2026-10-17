@@ -6,6 +6,9 @@
 //   modes                 -> { [modeId]: { configuration } }               what each execution mode changes
 //   open(message, mode)   -> { context, close(), diagnostics() }           framework setup for one case
 //   cases                 -> { [caseId]: async (context, tools) => ({ reported, basis, api_error?, steps? }) }
+//
+// As soon as the case implementation has returned (the framework's API has returned), main() sends the checkpoint
+// `after-end`, so that the runner can record the state at report time, before the framework is closed.
 import { readCase, hello, checkpoint as sendCheckpoint, finish } from './protocol.mjs'
 import { errInfo, withTimeout } from './util.mjs'
 
@@ -30,6 +33,7 @@ export async function main({ describe, modes, open, cases, closeTimeoutMs = 5000
   try {
     opened = await open(message, mode)
     const outcome = await impl(opened.context, { markers: message.markers, settings: message.case.settings ?? {}, mode: message.mode, checkpoint, ProtocolError })
+    await checkpoint('after-end', {})
     result = { status: 'completed', ...outcome }
   } catch (e) {
     result = { status: 'error', error: { ...errInfo(e), protocol: e instanceof ProtocolError } }

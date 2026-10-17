@@ -6,13 +6,16 @@
 //   ROLLBACK TO SAVEPOINT fails      ends with ROLLBACK, not COMMIT        commits anyway
 //   top-level ROLLBACK fails         discards the connection               returns it to the pool as it is
 //
+// A rollback the control reports without the body having thrown (from the reply to COMMIT, or after a failed savepoint
+// rollback) is raised to the caller as a TransactionRolledBackError, as an API would raise it.
+//
 // The controls show that the runner passes a known-good implementation and detects a known-bad one. They are not a
 // framework, and not a recommendation.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { ProtocolError, boundedUnit, main } from '../node-kit/adapter-main.mjs'
-import { instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
+import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
@@ -28,6 +31,8 @@ const CONTRACT = {
   unsafe: 'The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks.',
 }
 
+const rolledBackError = (message) => ({ class: 'TransactionRolledBackError', code: null, message })
+
 /** BEGIN, the body, then COMMIT, reporting the outcome as the mode dictates. `state.rollbackOnly` is set by nestedScope(). */
 async function transaction(client, mode, body, state = {}) {
   const contract = CONTRACT[mode]
@@ -41,7 +46,7 @@ async function transaction(client, mode, body, state = {}) {
   }
   if (mode === 'correct' && state.rollbackOnly) {
     await client.query('ROLLBACK').catch(() => {})
-    return { reported: 'rolled_back', basis: 'a savepoint rollback had failed, so the control ended the transaction with ROLLBACK instead of COMMIT', contract }
+    return { reported: 'rolled_back', basis: 'a savepoint rollback had failed, so the control ended the transaction with ROLLBACK instead of COMMIT', contract, api_error: rolledBackError('a savepoint rollback failed, so the transaction was rolled back') }
   }
   let reply
   try {
@@ -51,7 +56,7 @@ async function transaction(client, mode, body, state = {}) {
     return { reported: 'failed', basis: 'COMMIT raised an error', contract, api_error: errInfo(e) }
   }
   if (mode === 'correct' && reply.command !== 'COMMIT') {
-    return { reported: 'rolled_back', basis: `COMMIT was answered with the command tag ${reply.command}`, contract, api_error: null }
+    return { reported: 'rolled_back', basis: `COMMIT was answered with the command tag ${reply.command}`, contract, api_error: rolledBackError(`COMMIT was answered with ${reply.command}: the transaction was rolled back`) }
   }
   return { reported: 'committed', basis: `COMMIT did not raise (command tag ${reply.command})`, contract }
 }
@@ -85,8 +90,9 @@ class OneConnectionPool {
     }
     return this.client
   }
-  release(broken) {
-    if (broken && this.mode === 'correct') { this.client.end().catch(() => {}); this.client = null }
+  /** Discarding waits until the connection has closed, so that the next unit never runs beside it. */
+  async release(broken) {
+    if (broken && this.mode === 'correct') { const c = this.client; this.client = null; await c.end().catch(() => {}) }
   }
   close() { return this.client?.end() }
 }
@@ -104,7 +110,7 @@ async function pooledUnit(pool, mode, body) {
     client = await pool.acquire()
     await client.query('BEGIN')
   } catch (e) {
-    if (client) pool.release(true)
+    if (client) await pool.release(true)
     return { reported: 'failed', basis: 'the unit could not start a transaction', contract, api_error: errInfo(e) }
   }
   let broken = false
@@ -117,11 +123,12 @@ async function pooledUnit(pool, mode, body) {
     try { await client.query('ROLLBACK') } catch { broken = true }
     return { reported: 'rolled_back', basis: broken ? `the body threw; ROLLBACK failed, and the connection was ${mode === 'correct' ? 'discarded' : 'kept'}` : 'the body threw; ROLLBACK succeeded', contract, api_error: errInfo(e) }
   } finally {
-    pool.release(broken)
+    await pool.release(broken)
   }
 }
 
-// TX-02: the outer scope writes; a nested scope writes and fails; its savepoint rollback fails.
+// TX-02: the outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the outer scope handles
+// the error. When the fault fires, the driver reports `after-fault`.
 const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings, mode }) => {
   const state = {}
   let armed = null
@@ -134,8 +141,9 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings, mo
     try {
       await nestedScope(c, state, async (n) => {
         await n.query('insert into item (name) values ($1)', [markers.inner])
-        if (fault === 'conn-lost') { await checkpoint('inner-after-write', { pid: id.pid }); await sleep(settings.settle_ms ?? 100) }
-        else armed = savepointRollbackFault(pgTrace, fault)
+        await checkpoint('inner-after-write', { pid: id.pid })
+        if (fault === 'conn-lost') await sleep(settings.settle_ms ?? 100)
+        else armed = savepointRollbackFault(pgTrace, fault, () => checkpoint('after-fault', { pid: id.pid }))
         throw new Error('application error: the nested scope fails')
       })
     } catch (e) {
@@ -146,7 +154,7 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings, mo
   }, state)
   pgTrace.clearFaults()
   await checkpoint('after-outer', { pid: id?.pid ?? null })
-  return { ...outcome, steps: { nested, ...(armed ? { fault: { mode: armed.mode, fired: armed.fired ?? 0 } } : {}) } }
+  return { ...outcome, steps: { nested, ...(armed ? { fault: faultReport(armed) } : {}) } }
 }
 
 // TX-03: unit 1 fails and its ROLLBACK fails too; then the next unit of work runs on the same pool of one connection.
@@ -158,7 +166,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await c.query('insert into item (name) values ($1)', [markers.doomed])
     id = await identify(c)
     await checkpoint('unit1-after-write', id)
-    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject' })
+    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
     else await sleep(settings.settle_ms ?? 100)
     throw new Error('application error: unit 1 fails')
   })
@@ -168,7 +176,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await c.query('insert into item (name) values ($1)', [markers.next])
     await cp('unit2-after-write', await identify(c))
   }))
-  return { ...unit1, steps: { unit2, ...(fault ? { fault: { mode: 'client-reject', fired: fault.fired ?? 0 } } : {}) } }
+  return { ...unit1, steps: { unit2, ...(fault ? { fault: faultReport(fault) } : {}) } }
 }
 
 // TX-04.1 and TX-04.2 on the control's own savepoints. Both modes behave alike: no fault is injected.

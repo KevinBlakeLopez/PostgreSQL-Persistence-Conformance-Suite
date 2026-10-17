@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { ProtocolError, boundedUnit, main, managedOutcome } from '../node-kit/adapter-main.mjs'
-import { instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
+import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Item, Uniq, openDatabase } from './lucid.mjs'
 
@@ -36,7 +36,7 @@ const managed = ({ db }) => (callback) => db.transaction(callback)
 
 // TX-02. Experiments LR1a (the savepoint rollback fails on the client), LT5b (PostgreSQL rejects it) and LR1b (the
 // backend is terminated). The outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the
-// outer scope handles the error and ends normally.
+// outer scope handles the error and ends normally. When the fault fires, the driver reports `after-fault`.
 const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) => {
   let armed = null
   let id = null
@@ -48,8 +48,9 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) 
     try {
       await t.transaction(async (n) => {
         await Item.create({ name: markers.inner }, { client: n })
-        if (fault === 'conn-lost') { await checkpoint('inner-after-write', { pid: id.pid }); await sleep(settings.settle_ms ?? 100) }
-        else armed = savepointRollbackFault(pgTrace, fault)
+        await checkpoint('inner-after-write', { pid: id.pid })
+        if (fault === 'conn-lost') await sleep(settings.settle_ms ?? 100)
+        else armed = savepointRollbackFault(pgTrace, fault, () => checkpoint('after-fault', { pid: id.pid }))
         throw new Error('application error: the nested scope fails')
       })
     } catch (e) {
@@ -60,7 +61,7 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) 
   }, MANAGED)
   pgTrace.clearFaults()
   await checkpoint('after-outer', { pid: id?.pid ?? null })
-  return { ...outcome, steps: { nested, ...(armed ? { fault: { mode: armed.mode, fired: armed.fired ?? 0 } } : {}) } }
+  return { ...outcome, steps: { nested, ...(armed ? { fault: faultReport(armed) } : {}) } }
 }
 
 // TX-03. Experiments LT5c (the ROLLBACK fails on the client) and LR1c (the backend is terminated before it). Unit 1
@@ -72,7 +73,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await Item.create({ name: markers.doomed }, { client: t })
     id = await identify(t)
     await checkpoint('unit1-after-write', id)
-    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject' })
+    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
     else await sleep(settings.settle_ms ?? 100)
     throw new Error('application error: unit 1 fails')
   }, MANAGED)
@@ -82,7 +83,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await Item.create({ name: markers.next }, { client: t })
     await cp('unit2-after-write', await identify(t))
   }, MANAGED))
-  return { ...unit1, steps: { unit2, ...(fault ? { fault: { mode: 'client-reject', fired: fault.fired ?? 0 } } : {}) } }
+  return { ...unit1, steps: { unit2, ...(fault ? { fault: faultReport(fault) } : {}) } }
 }
 
 // TX-04. Experiment LT2b (a failing nested transaction), and a nested transaction released before the outer one fails.

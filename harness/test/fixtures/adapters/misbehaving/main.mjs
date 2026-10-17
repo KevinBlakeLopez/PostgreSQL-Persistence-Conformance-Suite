@@ -31,7 +31,8 @@ const behaviours = {
     const id = await identify(c)
     await checkpoint('before-end', { pid: id.pid, xid: '4000000000' }); await c.query('commit'); return committed
   },
-  // Commits a transaction that never wrote the marker, and reports a commit: a lost write, which must be a FAIL.
+  // Commits a transaction that never wrote the marker, and reports a commit. Nothing confirms that the write was sent,
+  // so a missing marker cannot be read as a lost write: INCONCLUSIVE, not FAIL.
   'no-marker': async (c, { checkpoint }) => {
     await c.query('begin'); await checkpoint('before-end', await identify(c)); await c.query('commit'); return committed
   },
@@ -56,6 +57,26 @@ const behaviours = {
     await rawCheckpoint('not-in-the-catalog', {})
     return behaviours.ok(c, ctx)
   },
+  // Reads pg_current_xact_id() outside the transaction (in autocommit, before BEGIN), so the reported ID belongs to an
+  // unrelated, committed transaction: the binding check must reject it.
+  'escaped-checkpoint': async (c, { markers, checkpoint }) => {
+    const id = await identify(c)
+    await c.query('begin'); await c.query('insert into item (name) values ($1)', [markers.tx])
+    await checkpoint('before-end', id); await c.query('commit'); return committed
+  },
+  // Opens a second connection to the case's database while the case runs, beyond the case's pool of one.
+  'extra-connection': async (c, ctx) => {
+    const extra = new pg.Client(ctx.connection)
+    extra.on('error', () => {})
+    await extra.connect()
+    try { return await behaviours.ok(c, ctx) } finally { await extra.end() }
+  },
+  // Reports its capture checkpoint twice, as a retried transaction body would.
+  'repeated-checkpoint': async (c, { markers, checkpoint }) => {
+    await c.query('begin'); await c.query('insert into item (name) values ($1)', [markers.tx])
+    const id = await identify(c)
+    await checkpoint('before-end', id); await checkpoint('before-end', id); await c.query('commit'); return committed
+  },
 }
 
 await main({
@@ -65,7 +86,7 @@ await main({
     const client = new pg.Client(message.connection)
     client.on('error', () => {})
     await client.connect()
-    return { context: { client }, close: () => client.end() }
+    return { context: { client, connection: message.connection }, close: () => client.end() }
   },
-  cases: { 'CTL-01.commit': ({ client }, tools) => behaviours[tools.mode](client, tools) },
+  cases: { 'CTL-01.commit': ({ client, connection }, tools) => behaviours[tools.mode](client, { ...tools, connection }) },
 })

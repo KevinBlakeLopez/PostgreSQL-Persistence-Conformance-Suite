@@ -11,6 +11,11 @@
 //   rewrite        the statement is altered before it is sent, so that PostgreSQL rejects it
 //   reply-lost     the statement is sent and completes on the server; then the client closes its own connection and
 //                  discards the reply (a simulation inside the driver, not a network fault)
+//
+// A fault can carry an `onFire` hook (client-reject and rewrite). It runs once the fault has taken effect (the
+// statement withheld, or PostgreSQL's reply to the rewritten one received) and before the framework sees the error,
+// so the adapter can report the checkpoint `after-fault` and the runner can observe the fault's effect on the server
+// before the framework reacts to it.
 const TX_CONTROL = /^(begin|start transaction|commit|end|rollback|savepoint|release)\b/i
 
 /**
@@ -18,12 +23,15 @@ const TX_CONTROL = /^(begin|start transaction|commit|end|rollback|savepoint|rele
  * ROLLBACK TO SAVEPOINT without sending it; `rejected` rewrites it to name a savepoint that does not exist, so that
  * PostgreSQL rejects it.
  */
-export function savepointRollbackFault(tracer, kind) {
+export function savepointRollbackFault(tracer, kind, onFire) {
   const match = /^rollback to (savepoint )?/i
   return kind === 'not-sent'
-    ? tracer.addFault({ match, mode: 'client-reject' })
-    : tracer.addFault({ match, mode: 'rewrite', rewrite: () => 'ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint' })
+    ? tracer.addFault({ match, mode: 'client-reject', onFire })
+    : tracer.addFault({ match, mode: 'rewrite', rewrite: () => 'ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint', onFire })
 }
+
+/** A fault as the adapter reports it in `steps.fault`: its mode, how often it fired, and, for a rewrite, PostgreSQL's replies. */
+export const faultReport = (fault) => ({ mode: fault.mode, fired: fault.fired ?? 0, ...(fault.reply_codes ? { reply_codes: [...fault.reply_codes] } : {}), ...(fault.hook_error ? { hook_error: fault.hook_error } : {}) })
 
 export function instrument(pg) {
   const entries = []
@@ -36,6 +44,12 @@ export function instrument(pg) {
   const observe = (client, text, err, res) => {
     if (err) record(client, `-> ERROR ${err.code ?? ''} ${String(err.message).split('\n')[0]}`, 'error')
     else if (res && typeof text === 'string' && TX_CONTROL.test(text.trim()) && res.command) record(client, `-> command tag ${res.command} for: ${text.trim()}`, 'reply')
+  }
+  // Runs the fault's onFire hook. A failure of the hook (a protocol failure) is recorded on the fault, never thrown
+  // into the framework, which must see only the injected error.
+  const fire = async (fault) => {
+    if (!fault.onFire) return
+    try { await fault.onFire() } catch (e) { fault.hook_error = String(e?.message ?? e) }
   }
   const issue = (client, config, vals, cb, text) => {
     if (cb) {
@@ -60,13 +74,21 @@ export function instrument(pg) {
       if (fault.mode === 'client-reject') {
         record(this, `${text}  -- INJECTED client-side failure, statement NOT sent`, 'fault')
         const err = new Error(`injected client-side failure for: ${text.trim().slice(0, 60)}`)
-        if (cb) { process.nextTick(() => cb(err)); return undefined }
-        return Promise.reject(err)
+        if (cb) { fire(fault).then(() => cb(err)); return undefined }
+        return fire(fault).then(() => { throw err })
       }
       if (fault.mode === 'rewrite') {
         const rewritten = fault.rewrite(text)
         record(this, `${rewritten}  -- INJECTED rewrite of: ${text.trim()}`, 'fault')
-        return issue(this, typeof config === 'string' ? rewritten : { ...config, text: rewritten }, vals, cb, rewritten)
+        // PostgreSQL's reply to the rewritten statement (its SQLSTATE, or "ok") is the evidence that the fault took effect.
+        fault.reply_codes = fault.reply_codes ?? []
+        const note = (err) => fault.reply_codes.push(err ? (err.code ?? 'error') : 'ok')
+        const rewrittenConfig = typeof config === 'string' ? rewritten : { ...config, text: rewritten }
+        if (cb) return issue(this, rewrittenConfig, vals, (err, res) => { note(err); fire(fault).then(() => cb(err, res)) }, rewritten)
+        return issue(this, rewrittenConfig, vals, undefined, rewritten).then(
+          (res) => { note(null); return fire(fault).then(() => res) },
+          (err) => { note(err); return fire(fault).then(() => { throw err }) },
+        )
       }
       if (fault.mode === 'reply-lost') {
         record(this, `${text}  -- INJECTED (client-side simulation): sent, then the client closes its connection and discards the reply`, 'fault')
@@ -87,7 +109,7 @@ export function instrument(pg) {
   }
 
   return {
-    /** Adds a fault: { match: RegExp, mode, rewrite?, once = true }. Returns it, so its `fired` count can be read. */
+    /** Adds a fault: { match: RegExp, mode, rewrite?, onFire?, once = true }. Returns it, so its `fired` count can be read. */
     addFault(f) { const fault = { once: true, used: false, ...f }; faults.push(fault); return fault },
     clearFaults() { faults.length = 0 },
     /** The trace, with stable connection labels (c1, c2, ...) in order of first appearance. */
