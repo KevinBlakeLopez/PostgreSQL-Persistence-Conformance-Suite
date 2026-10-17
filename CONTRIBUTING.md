@@ -12,10 +12,16 @@ An adapter runs catalog cases with **one framework's own APIs**, as an applicati
    For a JavaScript adapter, `scripts/setup.sh` installs it with `pnpm install --frozen-lockfile`. For another language, extend `scripts/setup.sh` with that ecosystem's equivalent frozen install.
 2. **Write `adapter.json`** (`docs/protocol.md`, "Manifest"):
    - the command to run;
-   - the modes, with `native` first;
+   - the modes, with `native` first. A `recommended` mode cites the documentation that recommends it;
    - the cases you implement (`implements`);
-   - the cases your framework's supported API cannot express (`unsupported`), each with a reason.
-3. **Implement each case in the framework's ordinary style:** its managed transaction API, its nested-transaction API, its ordinary write API. Read `pg_current_xact_id()` and `pg_backend_pid()` through the transaction's own connection at each checkpoint.
+   - the cases your framework cannot run (`unsupported`), each with a reason and a class: `capability-absent` or `not-applicable-by-design`;
+   - the channels through which you observe a claimed rollback (`rollback_claim_channels`), or `[]`.
+3. **Implement each case in the framework's ordinary style:** its managed transaction API, its nested-transaction API, its ordinary write API.
+   - Read `pg_current_xact_id()` and `pg_backend_pid()` through the transaction's own connection at each checkpoint, after the transaction has written.
+   - Make sure each write has reached PostgreSQL by the checkpoint the case's `marker_writes` names, unless it is declared `possibly-pending`.
+   - Report `after-end` as soon as the framework's API has returned; `adapters/node-kit/adapter-main.mjs` does this for you.
+   - For a client-side fault, report `after-fault` from your driver layer as the fault takes effect, before the framework sees the error; `adapters/node-kit/pg-instrument.mjs` does this through `onFire`.
+   - Where a case leaves the framework a choice of native form, return `form`: the form you used, and why.
 4. **Report the API's outcome**:
    - `reported` is `committed`, `rolled_back` or `failed`;
    - `basis` says what was observed;
@@ -26,16 +32,16 @@ An adapter runs catalog cases with **one framework's own APIs**, as an applicati
    pnpm run test:methodology && node harness/run.mjs --adapter=<name>
    ```
 
-   Your adapter must pass `CTL-01` before its other results mean anything.
+   The runner enforces the controls. Your adapter's results in a mode count only if both `CTL-01` cases pass in that mode, in the same run. A result for a case counts only if `pg-control`'s expectations for that case hold, and its three repetitions agree.
 
 ## Rules that protect the evidence
 
 - **Native means native.** Do not patch, wrap or configure the framework to change the behaviour under test in the `native` mode. A documented non-default option is a `configured` mode. A mitigation in application code is a `hardened` mode. Both are separate columns, and neither replaces the native result.
 - **Do not make a case pass.** If your framework fails a case, the FAIL is the evidence. Report it accurately: the case states the invariant, and the result states the conditions.
-- **UNSUPPORTED is not a way out.** Declare a case UNSUPPORTED only when the framework's supported API has no way to express the behaviour, for example no propagation mode that promises an independent transaction. A missing convenience API is not a reason. If you have not written a case yet, leave it out of both lists: it is then NOT_RUN.
+- **UNSUPPORTED is not a way out.** Declare a case UNSUPPORTED only when the framework's supported API has no way to express the behaviour, for example no propagation mode that promises an independent transaction. Use the class `not-applicable-by-design` only when the hazard the case targets cannot arise by the framework's design, and say why in the reason. A missing convenience API is not a reason. If you have not written a case yet, leave it out of both lists: it is then NOT_RUN. An adapter cannot report `unsupported` at run time.
 - **Label faults truthfully.**
   - The runner injects category B faults (connection termination).
-  - If your adapter injects faults in its own driver layer, report how often each fired, and keep the category: C for errors injected in the client, D for driver or ORM state manipulation.
+  - If your adapter injects faults in its own driver layer, report how often each fired, and keep the category: C for errors injected in the client, D for a client-side simulation in the driver. The runner confirms a category C fault's effect on the server at `after-fault`.
   - A client-side simulation is never described as a network failure.
 - **No claims of defects.** Results, commit messages and documentation describe observations and invariants. Whether a FAIL is a defect is for the framework's maintainers to judge, against their own contract.
 
@@ -47,7 +53,9 @@ Specifications live in `specifications/transactions.v1.json` and are described i
 - **Changing what a family asserts:** raise the family's `version`.
 - **Never edit an invariant to accommodate a framework.** If a framework's contract genuinely differs, add a case or a family that states the other behaviour explicitly.
 
-`harness/lib/classify.mjs` holds the classification rules. Every rule change needs a unit test in `harness/test/unit/`. If it affects how controls or misbehaving adapters are classified, it also needs a methodology test.
+`harness/lib/classify.mjs` holds the classification rules. Every rule change needs a unit test in `harness/test/unit/`. If it affects how controls or misbehaving adapters are classified, it also needs a methodology test, and `pg-control`'s `expectations` must state the classifications its modes should now reach.
+
+A change to `harness/lib/` or `harness/run.mjs` changes the harness digest, so `--expect` refuses to compare with runs recorded before it. Re-record `reports/examples/` with the change, and point the CI workflow at the new run.
 
 ## Dependency discipline
 

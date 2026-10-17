@@ -1,9 +1,10 @@
 # Provenance
 
-PPCS 0.1 was extracted on 2026-10-16 from the PostgreSQL experiments of the Adonis' Nest persistence research repository (`nest-adonis-spike`, at commit `0b98556`). It was not published at the time of extraction.
+PPCS 0.1 was extracted on 2026-10-16 from the PostgreSQL experiments of the Adonis' Nest persistence research repository (`nest-adonis-spike`). It was not published at the time of extraction.
 
 - **What the experiments were for.** Three experiment projects measured Lucid, MikroORM and TypeORM against an internal persistence standard, on the same PostgreSQL server image.
-- **Why files are identified by hash.** The projects were untracked files in that repository, so this page identifies each source file by its path under `docs/experiments/` and the first 16 hex digits of its SHA-256.
+- **Why files are identified by hash.** At extraction, the projects were uncommitted files on top of commit `015cc82`. So this page identifies each source file by its path under `docs/experiments/` and the first 16 hex digits of its SHA-256.
+- **Where the files are now.** They have since been committed unchanged, and every digest on this page matches the committed file: the Lucid project in `3781772`, MikroORM in `7497dd0`, TypeORM in `06f93bb`. (The repository's history was rewritten after the extraction; `015cc82` was `0b98556` before.)
 - **Independence.** PPCS does not need the source repository to run. Its specifications are stated independently, and its results come from its own runs.
 
 ## Files reused
@@ -41,7 +42,7 @@ The case implementations in `adapters/*/main.mjs` are adaptations of the experim
 
 **Original verdicts.** They come from the latest baselines: `lucid-22.4.2.rev4.json` (`02fed8e928eb9b38`), `mikro-orm-7.2.5.rev3.json` (`69e0ec8058ecb137`) and `typeorm-1.1.2.rev2.json` (`cac51ec8344d8b1f`). They were judged against the internal standard's pass conditions, not against PPCS's invariants, so agreement means the same scenario failed or passed in the same direction.
 
-**PPCS results.** They come from the run in `reports/examples/`, on the same package versions.
+**PPCS results.** They come from the run in `reports/examples/`, on the same package versions. Hardening the methodology changed no framework classification in this table: only the controls' own expected results changed.
 
 | PPCS case | Lucid 22.4.2 | MikroORM 7.2.5 | TypeORM 1.1.2 |
 | --- | --- | --- | --- |
@@ -63,7 +64,9 @@ The case implementations in `adapters/*/main.mjs` are adaptations of the experim
 - the `pg-control` controls;
 - the misbehaving fixture;
 - the case runner, observer, classification and reports;
-- `xmin` attribution of markers.
+- `xmin` attribution of markers;
+- observation at report time, write evidence in `pg_locks`, and the server-side signature of each fault;
+- the run-level gates: controls in the same run, and three agreeing repetitions.
 
 ## Versions reproduced
 
