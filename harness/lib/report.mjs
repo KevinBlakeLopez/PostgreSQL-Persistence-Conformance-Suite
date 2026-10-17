@@ -28,6 +28,8 @@ export function qualifiers(r) {
   const q = []
   if (e.classification === 'PASS' && e.mechanism_exercised === false) q.push('mechanism not exercised')
   if ((e.classification === 'PASS' || e.classification === 'FAIL') && e.not_exercised?.length) q.push(`${e.not_exercised.join(', ')} not exercised`)
+  if (e.ungated) q.push(`gated; ungated ${e.ungated.classification}`)
+  if (r.repetitions && !r.repetitions.agreed) q.push('repetitions disagree')
   return q
 }
 
@@ -57,6 +59,27 @@ function knowledge(r) {
   return `${r.knowledge ?? 'Not stated by the case.'}${trace}`
 }
 
+/** The controls section: the observation controls per adapter and mode, and the control adapters' expectations. */
+function controlsSection(results) {
+  const out = ['## Controls in this run', '']
+  const gated = results.filter((r) => r.evaluation.gates)
+  const byColumn = new Map()
+  for (const r of gated) if (r.evaluation.gates.controls) byColumn.set(columnOf(r), r.evaluation.gates.controls)
+  if (byColumn.size) {
+    out.push('Observation controls (CTL-01). A scenario result counts only if both CTL-01 cases PASSed for the same adapter and mode in this run:', '')
+    for (const [column, g] of byColumn) out.push(`- ${column}: ${g.held ? 'held' : `**did not hold**: ${g.detail}`}`)
+    out.push('')
+  }
+  const caseGates = new Map()
+  for (const r of gated) if (r.evaluation.gates.case_controls) caseGates.set(r.specification.id, r.evaluation.gates.case_controls)
+  if (caseGates.size) {
+    out.push('Case controls. A framework\'s result for a case counts only if the control adapters\' expectations for that case held in this run:', '')
+    for (const [id, g] of caseGates) out.push(`- \`${id}\`: ${g.held === null ? g.detail : g.held ? `held (${g.detail})` : `**did not hold**: ${g.detail}`}`)
+    out.push('')
+  }
+  return byColumn.size || caseGates.size ? out : []
+}
+
 export function renderSummary(manifest, results) {
   const columns = [...new Set(results.map(columnOf))]
   const caseIds = [...new Set(results.map((r) => r.specification.id))]
@@ -67,17 +90,19 @@ export function renderSummary(manifest, results) {
   out.push(`# PPCS run ${manifest.run_id}`, '')
   out.push(`- **PostgreSQL:** ${server.server_version ?? 'UNKNOWN'} (\`${server.image ?? 'UNKNOWN'}\`)`)
   out.push(`- **Catalog:** \`${manifest.catalog.path}\`, sha256 \`${manifest.catalog.sha256.slice(0, 12)}…\``)
-  out.push(`- **Runner:** PPCS ${manifest.ppcs_version}, Node ${manifest.runner_runtime}`)
+  out.push(`- **Runner:** PPCS ${manifest.ppcs_version}, harness sha256 \`${manifest.harness.sha256.slice(0, 12)}…\`, Node ${manifest.runner_runtime}`)
+  out.push(`- **Repetitions:** every executed case ran ${manifest.repetitions === 1 ? 'once' : `${manifest.repetitions} times`}, each time on a fresh database; a result counts only if its repetitions agree`)
   out.push(`- **Started:** ${manifest.started_at}; duration ${Math.round((manifest.duration_ms ?? 0) / 1000)} s`)
   out.push(`- **Counts:** ${Object.entries(manifest.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(', ')}`, '')
   out.push('Each cell links to that case\'s evidence. A FAIL is a reproducible counterexample to the stated PPCS invariant under the recorded conditions. By itself it is not a claim that the framework has a defect (docs/methodology.md).')
-  out.push('', 'A qualifier in parentheses changes what a classification means: "mechanism not exercised" (the case\'s mechanism did not run, so the PASS says less), "not exercised" (an invariant the adapter cannot exercise). Faults of category C and D are client-side injections and simulations, not network failures (docs/methodology.md).')
-  if (results.some((r) => r.execution.kind === 'control')) out.push('', 'Columns of kind `control` are the suite\'s own positive and negative controls: the negative control is expected to FAIL, which shows that the runner detects a known-bad implementation.')
+  out.push('', 'A qualifier in parentheses changes what a classification means: "mechanism not exercised" (the case\'s mechanism did not run, so the PASS says less), "not exercised" (an invariant the adapter cannot exercise), "gated" (the run\'s controls did not hold, so the result does not count). Faults of category C and D are client-side injections and simulations, not network failures (docs/methodology.md).')
+  if (results.some((r) => r.execution.kind === 'control')) out.push('', 'Columns of kind `control` are the suite\'s own positive and negative controls: the negative control is expected to FAIL where its manifest says so, which shows that the runner detects a known-bad implementation.')
   out.push('', '## Results', '')
   out.push(`| Case | Fault | ${columns.join(' | ')} |`)
   out.push(`| --- | --- | ${columns.map(() => '---').join(' | ')} |`)
   for (const id of caseIds) out.push(`| \`${id}\` | ${FAULT_LABELS[faultOf.get(id)] ?? faultOf.get(id)} | ${columns.map((c) => (byKey.has(`${id}|${c}`) ? cell(byKey.get(`${id}|${c}`)) : '—')).join(' | ')} |`)
   out.push('')
+  out.push(...controlsSection(results))
 
   const fails = results.filter((r) => r.evaluation.classification === 'FAIL')
   if (fails.length) {
@@ -92,6 +117,7 @@ export function renderSummary(manifest, results) {
       out.push(`4. **Contract:** ${violated.map((i) => `${i.id} violated: ${i.statement}`).join(' ')} Framework contract: ${r.evaluation.contract_basis?.framework ?? 'UNKNOWN'}`, '')
       out.push(`- **Fault:** ${r.fault.category === 'none' ? 'none' : `category ${FAULT_LABELS[r.fault.category] ?? r.fault.category}. ${r.fault.mechanism}`}`)
       out.push(`- **Conditions:** ${versionLine(r)}; mode \`${r.execution.mode}\` (${r.execution.kind}); settings \`${JSON.stringify(r.configuration)}\``)
+      out.push(`- **Repetitions:** ${r.repetitions ? `${r.repetitions.runs.filter((x) => x.classification === 'FAIL').length} of ${r.repetitions.count} FAILed` : 'not recorded'}`)
       out.push(`- **Reproduce:** \`${r.reproduction.command}\``)
       out.push(`- **Evidence:** [cases/${caseFileName(r)}](cases/${caseFileName(r)})`, '')
     }

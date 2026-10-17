@@ -5,11 +5,18 @@
   "description": "run.json: one run of the suite. Each entry in results points to that case's evidence file (schema/result.v1.schema.json).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "run_id", "ppcs_version", "runner_runtime", "status", "started_at", "finished_at", "duration_ms", "filters", "server", "catalog", "adapters", "results", "counts"],
+  "required": ["schema", "run_id", "ppcs_version", "harness", "runner_runtime", "status", "started_at", "finished_at", "duration_ms", "filters", "repetitions", "server", "catalog", "adapters", "results", "counts"],
   "properties": {
     "schema": { "const": "ppcs-run/1" },
     "run_id": { "type": "string" },
     "ppcs_version": { "type": "string" },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ppcs_version", "sha256"],
+      "description": "The runner: sha256 covers harness/lib and harness/run.mjs. --expect refuses to compare runs whose harness or catalog differ.",
+      "properties": { "ppcs_version": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+    },
     "runner_runtime": { "type": "string" },
     "status": { "enum": ["running", "completed"], "description": "A manifest that still says running belongs to a run that did not finish." },
     "started_at": { "type": "string" },
@@ -21,6 +28,7 @@
       "required": ["adapters", "cases", "modes"],
       "properties": { "adapters": { "type": "array", "items": { "type": "string" } }, "cases": { "type": "array", "items": { "type": "string" } }, "modes": { "type": "array", "items": { "type": "string" } } }
     },
+    "repetitions": { "type": "integer", "minimum": 1, "description": "How many times every executed case ran; a result counts only if its repetitions agree." },
     "server": {
       "type": "object",
       "required": ["version", "server_version", "server_version_num", "settings", "image"],
@@ -48,6 +56,7 @@
           "adapter": { "type": "string" },
           "mode": { "type": "string" },
           "classification": { "enum": ["PASS", "FAIL", "UNSUPPORTED", "INCONCLUSIVE", "NOT_RUN"] },
+          "ungated": { "enum": ["PASS", "FAIL"], "description": "Present when a run-level gate made the result INCONCLUSIVE: the classification it would have had." },
           "file": { "type": "string" }
         }
       }

@@ -32,7 +32,7 @@ export async function main({ describe, modes, open, cases, closeTimeoutMs = 5000
   let result
   try {
     opened = await open(message, mode)
-    const outcome = await impl(opened.context, { markers: message.markers, settings: message.case.settings ?? {}, mode: message.mode, checkpoint, ProtocolError })
+    const outcome = await impl(opened.context, { markers: message.markers, settings: message.case.settings ?? {}, mode: message.mode, repetition: message.repetition ?? 1, checkpoint, ProtocolError })
     await checkpoint('after-end', {})
     result = { status: 'completed', ...outcome }
   } catch (e) {

@@ -17,7 +17,7 @@ import { classify, REPORT_POINT } from './classify.mjs'
 export const RESULT_SCHEMA = 'ppcs-result/1'
 const UNKNOWN = 'UNKNOWN'
 
-export async function runCase({ instance, observer, catalog, adapter, mode, kase, runId, timeoutMs = 60000 }) {
+export async function runCase({ instance, observer, catalog, adapter, mode, kase, runId, harness, repetition = 1, timeoutMs = 60000 }) {
   const startedAt = new Date()
   const tag = randomBytes(3).toString('hex')
   const markers = Object.fromEntries(kase.markers.map((label) => [label, `${label}-${tag}`]))
@@ -90,6 +90,7 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
       message: {
         case: { id: kase.id, family: kase.family, version: kase.version, title: kase.title, settings: kase.settings ?? {} },
         mode: mode.id,
+        repetition,
         connection: instance.connection(database, 'ppcs-adapter'),
         markers,
       },
@@ -135,6 +136,7 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
   return {
     schema: RESULT_SCHEMA,
     run_id: runId,
+    harness,
     specification: {
       id: kase.id,
       version: kase.version,

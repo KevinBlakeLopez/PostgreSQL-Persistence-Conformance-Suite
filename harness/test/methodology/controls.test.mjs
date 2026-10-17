@@ -16,14 +16,17 @@ const byKey = (results) => Object.fromEntries(results.map((r) => [`${r.specifica
 const violated = (r, id) => r.evaluation.invariants.some((i) => i.id === id && i.holds === false)
 
 test('controls: every pg-control expectation holds; the known-good implementation passes, the known-bad one is detected', async () => {
-  const { results, runDir } = await runSuite({ adapterFilter: ['pg-control'], outDir })
+  const { results, runDir, manifest } = await runSuite({ adapterFilter: ['pg-control'], outDir })
   assert.deepEqual(checkRunDir(runDir), [], 'every file matches its schema, and none contains the password')
+  assert.equal(manifest.repetitions, 3)
   const r = byKey(results)
   const pg = loadAdapters().find((a) => a.name === 'pg-control')
   for (const [id, byMode] of Object.entries(pg.expectations)) {
     for (const [mode, expected] of Object.entries(byMode)) {
       const x = r[`${id} pg-control/${mode}`]
       assert.equal(x.evaluation.classification, expected, `${id} ${mode}: ${x.evaluation.reason}`)
+      assert.equal(x.repetitions.agreed, true, `${id} ${mode}`)
+      if (x.specification.family !== 'CTL-01') assert.equal(x.evaluation.gates.controls.held, true, `${id} ${mode}`)
     }
   }
   // TX-01A: the unsafe control reports a commit of a transaction PostgreSQL aborted; COMMIT reached the server.
@@ -78,6 +81,7 @@ test('misbehaving adapters: never PASS; UNSUPPORTED is not FAIL; unimplemented i
     'undeclared-checkpoint': /undeclared checkpoint "not-in-the-catalog"/,
     'no-marker': /precondition not established: the write of marker "tx" had reached PostgreSQL/,
     'escaped-checkpoint': /transaction "tx" is not bound to its session/,
+    flaky: /the repetitions disagree: #1 PASS; #2 FAIL; #3 PASS/,
     'extra-connection': /adapter sessions, more than pool_max \(1\)/,
     'repeated-checkpoint': /checkpoint "before-end" reported more than once/,
   }

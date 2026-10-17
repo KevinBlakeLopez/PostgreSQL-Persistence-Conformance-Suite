@@ -64,6 +64,8 @@ const behaviours = {
     await c.query('begin'); await c.query('insert into item (name) values ($1)', [markers.tx])
     await checkpoint('before-end', id); await c.query('commit'); return committed
   },
+  // Correct, except on its second repetition, where it rolls back and reports a commit: the repetitions disagree.
+  flaky: async (c, ctx) => (ctx.repetition === 2 ? behaviours.lying(c, ctx) : behaviours.ok(c, ctx)),
   // Opens a second connection to the case's database while the case runs, beyond the case's pool of one.
   'extra-connection': async (c, ctx) => {
     const extra = new pg.Client(ctx.connection)

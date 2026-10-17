@@ -1,10 +1,11 @@
-// Consistency of the catalog, its documentation and the adapter manifests. No database.
+// Consistency of the catalog, its documentation and the adapter manifests, the plan's controls, and the harness
+// digest. No database.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { CatalogError, DEFAULT_CATALOG, ROOT, loadAdapters, loadCatalog } from '../../lib/catalog.mjs'
+import { CatalogError, DEFAULT_CATALOG, ROOT, loadAdapters, loadCatalog, plan, treeSha256 } from '../../lib/catalog.mjs'
 
 const catalog = loadCatalog()
 const ids = new Set(catalog.cases.map((c) => c.id))
@@ -90,4 +91,34 @@ test('manifests: malformed expectations are refused', () => {
   assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { other: 'PASS' } } }), /unknown mode "other"/)
   assert.throws(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'MAYBE' } } }), /must be PASS or FAIL/)
   assert.doesNotThrow(() => loadManifest({ ...MANIFEST, expectations: { 'CTL-01.commit': { native: 'PASS' } } }))
+})
+
+const planned = (filters) => plan(catalog, loadAdapters(), filters).map((i) => `${i.adapter.name}/${i.mode.id} ${i.kase.id} ${i.plan}${i.auto ? ' auto' : ''}`)
+
+test('plan: the observation controls run in every selected mode, including modes that list their cases', () => {
+  const items = planned({ adapterFilter: ['lucid'], caseFilter: ['TX-01A'] })
+  for (const mode of ['native', 'pre-commit-probe']) for (const id of ['CTL-01.commit', 'CTL-01.rollback']) assert.ok(items.includes(`lucid/${mode} ${id} run auto`), `${mode} ${id}`)
+})
+
+test('plan: the control adapter runs in all its modes beside the selected scenarios, without a mode filter of its own', () => {
+  const items = planned({ adapterFilter: ['typeorm'], caseFilter: ['TX-02.savepoint-rollback-not-sent'], modeFilter: ['native'] })
+  for (const mode of ['correct', 'unsafe']) {
+    assert.ok(items.includes(`pg-control/${mode} TX-02.savepoint-rollback-not-sent run auto`), mode)
+    assert.ok(items.includes(`pg-control/${mode} CTL-01.commit run auto`), mode)
+  }
+  assert.ok(!items.some((i) => i.includes('TX-04.independent-inner')), 'an auto-included control adds no unsupported entries')
+  assert.ok(items.includes('typeorm/native TX-02.savepoint-rollback-not-sent run'))
+})
+
+test('the harness digest changes when the code that classifies changes', () => {
+  const dir = scratch()
+  try {
+    cpSync(join(ROOT, 'harness', 'lib'), join(dir, 'lib'), { recursive: true })
+    const before = treeSha256([join(dir, 'lib')])
+    assert.equal(treeSha256([join(dir, 'lib')]), before, 'deterministic')
+    writeFileSync(join(dir, 'lib', 'classify.mjs'), `${readFileSync(join(dir, 'lib', 'classify.mjs'), 'utf8')}\n// changed\n`)
+    assert.notEqual(treeSha256([join(dir, 'lib')]), before)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

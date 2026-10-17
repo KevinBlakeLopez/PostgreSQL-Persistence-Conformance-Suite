@@ -1,5 +1,5 @@
 // Loads the specification catalog (specifications/*.json) and the adapter manifests (adapters/*/adapter.json), checks
-// their structure, and computes the source digests that every result records.
+// their structure, computes the source digests that every result records, and plans which cases run.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, relative, resolve } from 'node:path'
@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 
 export const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 export const DEFAULT_CATALOG = 'specifications/transactions.v1.json'
+/** The family whose cases gate every other result of the same adapter and mode (suite.mjs). */
+export const CONTROL_FAMILY = 'CTL-01'
 
 export class CatalogError extends Error {}
 
@@ -17,22 +19,24 @@ export const IMPLICIT_CHECKPOINT = 'after-end'
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
 
-/** SHA-256 over every file below `dirs` (sorted relative paths and contents), excluding node_modules. */
-export function treeSha256(dirs) {
+/** SHA-256 over every file below `paths` (files or directories; sorted relative paths and contents), excluding node_modules. */
+export function treeSha256(paths) {
   const files = []
-  const walk = (dir) => {
-    for (const entry of readdirSync(dir).sort()) {
+  const walk = (p) => {
+    if (statSync(p).isFile()) { files.push(p); return }
+    for (const entry of readdirSync(p).sort()) {
       if (entry === 'node_modules') continue
-      const full = join(dir, entry)
-      if (statSync(full).isDirectory()) walk(full)
-      else files.push(full)
+      walk(join(p, entry))
     }
   }
-  for (const d of dirs) walk(d)
+  for (const p of paths) walk(p)
   const h = createHash('sha256')
   for (const f of files.sort()) h.update(relative(ROOT, f)).update('\0').update(readFileSync(f)).update('\0')
   return h.digest('hex')
 }
+
+/** The digest of the code that observes and classifies: the runner and its library, not its tests. */
+export const harnessSha256 = () => treeSha256([join(ROOT, 'harness', 'lib'), join(ROOT, 'harness', 'run.mjs')])
 
 export function loadCatalog(file = DEFAULT_CATALOG) {
   const path = resolve(ROOT, file)
@@ -95,23 +99,38 @@ export function loadAdapters(base = join(ROOT, 'adapters')) {
   return adapters
 }
 
+export const isControlAdapter = (adapter) => adapter.modes.every((m) => m.kind === 'control')
+
 /**
- * The cases to run, as { adapter, mode, kase, plan } where plan is 'run', 'unsupported' or 'not-run'.
+ * The cases to run, as { adapter, mode, kase, plan, auto } where plan is 'run', 'unsupported' or 'not-run'.
  * - A case the adapter declares unsupported, or does not implement, appears once, under the adapter's first mode.
- * - An implemented case runs in every mode that applies to it: a mode that lists cases applies only to those.
+ * - An implemented case runs in every mode that applies to it: a mode that lists cases applies only to those, plus the
+ *   observation controls.
+ * - Controls always run with what they gate (`auto: true` when the filters did not select them): the CTL-01 cases of
+ *   every selected adapter and mode, and the control adapters, in all their modes, on every selected scenario case.
+ *   A mode filter applies to a control adapter only when it is selected by name.
  */
 export function plan(catalog, adapters, { adapterFilter = [], caseFilter = [], modeFilter = [] } = {}) {
   const items = []
+  const ctlIds = catalog.cases.filter((c) => c.family === CONTROL_FAMILY).map((c) => c.id)
   const matchCase = (id) => !caseFilter.length || caseFilter.some((f) => id.startsWith(f)) // "TX-01" selects TX-01A.* and TX-01B.*
+  const scenarios = catalog.cases.filter((c) => c.family !== CONTROL_FAMILY && matchCase(c.id)).map((c) => c.id)
   for (const adapter of adapters) {
-    if (adapterFilter.length && !adapterFilter.includes(adapter.name)) continue
-    const modes = adapter.modes.filter((m) => !modeFilter.length || modeFilter.includes(m.id))
+    const named = adapterFilter.includes(adapter.name)
+    const selected = !adapterFilter.length || named
+    const control = isControlAdapter(adapter)
+    const asControl = !selected && control && scenarios.length > 0
+    if (!selected && !asControl) continue
+    const modes = adapter.modes.filter((m) => (control && !named) || !modeFilter.length || modeFilter.includes(m.id))
     if (!modes.length) continue
     for (const kase of catalog.cases) {
-      if (!matchCase(kase.id)) continue
-      if (adapter.unsupported?.[kase.id]) { items.push({ adapter, mode: modes[0], kase, plan: 'unsupported', reason: adapter.unsupported[kase.id] }); continue }
-      if (!adapter.implements?.includes(kase.id)) { items.push({ adapter, mode: modes[0], kase, plan: 'not-run', reason: 'the adapter does not implement this case' }); continue }
-      for (const mode of modes) if (!mode.cases || mode.cases.includes(kase.id)) items.push({ adapter, mode, kase, plan: 'run' })
+      const wanted = asControl ? scenarios.includes(kase.id) || ctlIds.includes(kase.id) : matchCase(kase.id) || (scenarios.length > 0 && ctlIds.includes(kase.id))
+      if (!wanted) continue
+      const auto = asControl || !matchCase(kase.id)
+      const unsupported = adapter.unsupported?.[kase.id]
+      if (unsupported) { if (!asControl) items.push({ adapter, mode: modes[0], kase, plan: 'unsupported', reason: unsupported, auto }); continue }
+      if (!adapter.implements?.includes(kase.id)) { if (!auto) items.push({ adapter, mode: modes[0], kase, plan: 'not-run', reason: 'the adapter does not implement this case', auto }); continue }
+      for (const mode of modes) if (!mode.cases || mode.cases.includes(kase.id) || ctlIds.includes(kase.id)) items.push({ adapter, mode, kase, plan: 'run', auto })
     }
   }
   return items

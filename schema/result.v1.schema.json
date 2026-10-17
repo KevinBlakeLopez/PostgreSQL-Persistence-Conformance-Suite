@@ -8,6 +8,7 @@
   "required": [
     "schema",
     "run_id",
+    "harness",
     "specification",
     "subject",
     "execution",
@@ -18,6 +19,7 @@
     "api_outcome",
     "database_outcome",
     "evaluation",
+    "repetitions",
     "reproduction",
     "diagnostics",
     "timing"
@@ -28,6 +30,24 @@
     },
     "run_id": {
       "type": "string"
+    },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ppcs_version",
+        "sha256"
+      ],
+      "description": "The runner that produced the record: a change to the code that observes or classifies changes sha256.",
+      "properties": {
+        "ppcs_version": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 over harness/lib and harness/run.mjs (catalog.mjs, treeSha256)."
+        }
+      }
     },
     "specification": {
       "type": "object",
@@ -580,6 +600,46 @@
         "mechanism_detail": {
           "type": "string"
         },
+        "gates": {
+          "type": "object",
+          "description": "The run-level gates applied to this result (suite.mjs): controls (CTL-01 of the same adapter and mode) and case_controls (the control adapters' expectations for the case). held is null when no gate applies.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "held",
+              "detail"
+            ],
+            "properties": {
+              "held": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "ungated": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "classification",
+            "reason"
+          ],
+          "description": "Present when a gate failed: the classification the result would have had.",
+          "properties": {
+            "classification": {
+              "$ref": "#/$defs/classification"
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        },
         "contract_basis": {
           "description": "Present for every FAIL: the violated PPCS invariants, and the framework contract that gives the API outcome its meaning.",
           "oneOf": [
@@ -623,6 +683,97 @@
           }
         }
       }
+    },
+    "repetitions": {
+      "description": "Every repetition of the case, each on a fresh database. Null for a case that was not executed. The record's evidence is the first repetition's; repetitions that disagree keep their full records.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "agreed",
+            "runs"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "agreed": {
+              "type": "boolean"
+            },
+            "runs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "repetition",
+                  "classification",
+                  "reason",
+                  "mechanism_exercised",
+                  "not_exercised",
+                  "reported",
+                  "fates",
+                  "markers",
+                  "duration_ms"
+                ],
+                "properties": {
+                  "repetition": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "classification": {
+                    "$ref": "#/$defs/classification"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "mechanism_exercised": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "not_exercised": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "reported": {
+                    "type": "string"
+                  },
+                  "fates": {
+                    "type": "object"
+                  },
+                  "markers": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "records": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "description": "The full records of repetitions 2 and later, kept only when the repetitions disagree."
+            }
+          }
+        }
+      ]
     },
     "reproduction": {
       "type": "object",
