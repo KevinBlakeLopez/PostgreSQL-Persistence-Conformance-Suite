@@ -6,6 +6,8 @@ Results from different versions are not comparable: each version can change what
 
 Hardening after an independent methodology review.
 
+- **New case: `TX-03.statement-error-rollback-not-sent`.** A failed statement leaves unit 1 in an aborted transaction block when its `ROLLBACK` is withheld; the open-block case leaves an open transaction. A unit of work handed the connection then fails loudly with `25P02`, instead of silently joining a transaction. The case's fault declares the signature it must leave (`aborted-block`).
+- **Runner sessions.** These are now identified by backend PID together with the runner's `application_name`. An adapter connection that uses the runner's name is counted against the pool.
 - **Evidence.**
   - Fates are recorded at report time (`after-end`), when the framework's API returns, as well as after the framework has gone. A fate decided at teardown is reported as such.
   - A captured transaction ID must belong to the session that reported it.

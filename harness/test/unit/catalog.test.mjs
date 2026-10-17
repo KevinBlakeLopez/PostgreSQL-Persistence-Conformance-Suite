@@ -71,6 +71,7 @@ test('the catalog refuses marker writes it cannot confirm, and a declared after-
   assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.sent = 'nowhere' }), /undeclared checkpoint "nowhere"/)
   assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').marker_writes.tx.transaction = 'other' }), /which no checkpoint captures/)
   assert.throws(() => loadChanged((c) => { caseOf(c, 'CTL-01.commit').checkpoints['after-end'] = {} }), /implicit in every case/)
+  assert.throws(() => loadChanged((c) => { caseOf(c, 'TX-03.statement-error-rollback-not-sent').fault.signature = 'half-open' }), /unknown fault signature "half-open"/)
   assert.doesNotThrow(() => loadChanged(() => {}))
 })
 

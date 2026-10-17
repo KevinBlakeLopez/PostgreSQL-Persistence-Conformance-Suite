@@ -85,6 +85,12 @@ function faultSignature(ev) {
   const where = `at \`after-fault\`: session ${sessionText(s)}, backend_xid ${s?.backend_xid ?? 'NULL'}; transactionid locks [${xids.join(', ')}]`
   if (ev.case.family === 'TX-03') {
     const unit1 = ev.observed.transactions.unit1
+    if (ev.case.fault.signature === 'aborted-block') {
+      // The failed statement has already aborted unit 1 (pg_xact_status reports it, and the session no longer has an
+      // xid); the withheld ROLLBACK leaves the session in its aborted block.
+      const fate = at?.transactions_now?.unit1?.fate
+      return [check('the withheld ROLLBACK left unit 1\'s aborted transaction block in place: its session was "idle in transaction (aborted)", with no backend_xid, and pg_xact_status() already reported unit 1 aborted', s?.state === 'idle in transaction (aborted)' && s?.backend_xid == null && fate === 'aborted', `${where}; unit 1 pg_xact_status: ${fate ?? 'not observed'}`)]
+    }
     return [check('the withheld ROLLBACK left unit 1\'s transaction open: its session was in a transaction holding unit 1\'s ID', s?.state === 'idle in transaction' && s?.backend_xid === low32(unit1?.xid), where)]
   }
   if (f.mode === 'client-reject') {
@@ -193,7 +199,13 @@ const FAMILIES = {
     const markers = ev.observed.markers
     const bound = ev.case.settings.bound_ms
     const u1AtReport = checkpoint(ev, reportPointOf(ev.case, 'unit1'))?.transactions_now?.unit1
-    const preconditions = [faultTookEffect(ev, 'unit1-after-write'), check('the next unit of work was attempted', !!next, `next unit: ${next?.outcome ?? 'not attempted'}`), ...faultSignature(ev)]
+    const violation = ev.steps?.violation
+    const preconditions = [
+      faultTookEffect(ev, 'unit1-after-write'),
+      ...(ev.case.fault.signature === 'aborted-block' ? [check('unit 1\'s failing statement failed with unique_violation (23505), as reported by the adapter', violation?.code === '23505', `caught: ${violation?.code ?? 'nothing'}`)] : []),
+      check('the next unit of work was attempted', !!next, `next unit: ${next?.outcome ?? 'not attempted'}`),
+      ...faultSignature(ev),
+    ]
     // Unsafe reuse, observed server-side: the next unit's pg_current_xact_id() is the failed transaction's ID.
     const sameTransaction = !!unit2 && unit2.xid === unit1.xid
     return {
@@ -202,7 +214,7 @@ const FAMILIES = {
         'TX-03.1': (s) => invariant('TX-03.1', s, unit1.fate !== 'committed' && markers.doomed === false && !sameTransaction,
           `failed transaction: ${fateStory(ev.observed, ev.case, 'unit1')}; doomed visible: ${markers.doomed}; next unit's transaction: ${unit2 ? `${unit2.xid}${sameTransaction ? ' (the failed transaction itself)' : ''}` : 'not reached'}`),
         'TX-03.2': (s) => invariant('TX-03.2', s, next?.outcome === 'completed' && next.reported === 'committed' && unit2?.fate === 'committed' && markers.next === true,
-          `next unit: ${next?.outcome === 'pending' ? `still pending after ${bound} ms` : `${next?.outcome}, reported ${next?.reported}${next?.elapsed_ms != null ? ` after ${next.elapsed_ms} ms` : ''}`}; its transaction: ${unit2 ? `${unit2.xid} ${unit2.fate}` : 'not reached'}; next visible: ${markers.next}`),
+          `next unit: ${next?.outcome === 'pending' ? `still pending after ${bound} ms` : `${next?.outcome}, reported ${next?.reported}${next?.api_error?.code ? ` (${next.api_error.code})` : ''}${next?.elapsed_ms != null ? ` after ${next.elapsed_ms} ms` : ''}`}; its transaction: ${unit2 ? `${unit2.xid} ${unit2.fate}` : 'not reached'}; next visible: ${markers.next}`),
       }),
     }
   },

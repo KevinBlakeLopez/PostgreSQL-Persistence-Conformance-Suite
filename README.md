@@ -45,7 +45,7 @@ A full run takes about three minutes. The runner refuses any server that is not 
 
 ## What is implemented
 
-**Specifications** (`specifications/transactions.v1.json`, described in `docs/specifications.md`): 6 families, 13 cases.
+**Specifications** (`specifications/transactions.v1.json`, described in `docs/specifications.md`): 6 families, 14 cases.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -53,7 +53,7 @@ A full run takes about three minutes. The runner refuses any server that is not 
 | TX-01A | Is a COMMIT that PostgreSQL answered with ROLLBACK reported as a success? | 1 |
 | TX-01B | After the connection or the reply is lost around COMMIT, does the framework report only what it has evidence for? | 2 |
 | TX-02 | After a failed savepoint rollback, does the transaction continue under an incorrect nesting state? | 3 |
-| TX-03 | After a failed rollback, is the connection reused unsafely, and does the pool recover? | 2 |
+| TX-03 | After a failed rollback, is the connection reused unsafely, and does the pool recover? | 3 |
 | TX-04 | Does nested work land in the boundary the propagation API promises? | 3 |
 
 **Adapters:**

@@ -65,15 +65,22 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings }) 
 
 // TX-03. Experiments TR1d (the ROLLBACK fails on the client) and TR1d2 (the backend is terminated before it). Unit 1
 // fails and its ROLLBACK fails too; then the next unit of work runs on the same pool of one connection.
+// The statement-error variant, new in PPCS 0.2 with no reused experiment, fails unit 1 with an uncaught unique
+// violation instead, so the withheld ROLLBACK leaves an aborted transaction block rather than an open transaction.
 const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, settings }) => {
   let fault = null
   let id = null
+  let violation = null
   const unit1 = await managedOutcome(managed(ctx), async (t) => {
     await t.getRepository(Item).insert({ name: markers.doomed })
     id = await identify(t)
     await checkpoint('unit1-after-write', id)
-    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
-    else await sleep(settings.settle_ms ?? 100)
+    if (failure === 'conn-lost') await sleep(settings.settle_ms ?? 100)
+    else fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
+    if (failure === 'statement-error') {
+      // Not caught: the unique violation aborts the transaction, and the framework's ROLLBACK is then withheld.
+      try { await t.getRepository(Uniq).insert({ code: 'taken' }) } catch (e) { violation = { ...errInfo(e), code: e.code ?? e.driverError?.code ?? null }; throw e }
+    }
     throw new Error('application error: unit 1 fails')
   }, MANAGED)
   pgTrace.clearFaults() // an unfired fault must not reach unit 2
@@ -82,7 +89,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await t.getRepository(Item).insert({ name: markers.next })
     await cp('unit2-after-write', await identify(t))
   }, MANAGED))
-  return { ...unit1, steps: { unit2, ...(fault ? { fault: faultReport(fault) } : {}) } }
+  return { ...unit1, steps: { unit2, ...(violation ? { violation } : {}), ...(fault ? { fault: faultReport(fault) } : {}) } }
 }
 
 // TX-04. Experiment TT2b (a failing nested transaction), and a nested transaction released before the outer one fails.
@@ -154,6 +161,7 @@ const cases = {
   'TX-02.conn-lost-before-savepoint-rollback': nestedFailure('conn-lost'),
 
   'TX-03.rollback-not-sent': failedUnitThenNext('rollback-not-sent'),
+  'TX-03.statement-error-rollback-not-sent': failedUnitThenNext('statement-error'),
   'TX-03.conn-lost-in-transaction': failedUnitThenNext('conn-lost'),
 
   'TX-04.nested-failure-contained': nestedScope('nested-fails'),

@@ -58,6 +58,7 @@ If the termination did not happen, the case's precondition fails and the case is
 | `client-reject` on `ROLLBACK TO SAVEPOINT` | The session is `idle in transaction`, still holding the savepoint's subtransaction lock |
 | `rewrite` of `ROLLBACK TO SAVEPOINT` | PostgreSQL answered `3B001`. The session is `idle in transaction (aborted)`, and the top-level transaction is still in progress |
 | `client-reject` on `ROLLBACK` | The session is `idle in transaction`, and its `backend_xid` is the failed transaction's ID |
+| `client-reject` on `ROLLBACK`, after a failed statement (`TX-03.statement-error-rollback-not-sent`) | The session is `idle in transaction (aborted)`, with no `backend_xid`, and `pg_xact_status()` already reports the failed transaction aborted |
 
 The signature is read at the fault, not when the API returns. A framework that reacts correctly, by discarding the connection or by rolling the transaction back at once, would otherwise look like a fault that changed nothing.
 

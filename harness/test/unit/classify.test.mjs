@@ -382,14 +382,14 @@ test('TX-02: without the nested write, the nested failure reaching the outer sco
 })
 
 // TX-03: unit 1 fails and its rollback fails; unit 2 is the next unit of work on the same pool.
-function txThree(id, { unit1Fate = 'aborted', u1Session, faultSession = inTx('700'), unit2 = { xid: '701', fate: 'committed' }, next = { outcome: 'completed', reported: 'committed', elapsed_ms: 10 }, doomed = false, nextVisible = true, fired = 1 } = {}) {
+function txThree(id, { unit1Fate = 'aborted', u1Session, u1Fate, faultSession = inTx('700'), faultFate = 'in progress', violation, unit2 = { xid: '701', fate: 'committed' }, next = { outcome: 'completed', reported: 'committed', elapsed_ms: 10 }, doomed = false, nextVisible = true, fired = 1 } = {}) {
   const isB = kase(id).fault.category === 'B'
   const atUnit1 = u1Session ?? (isB ? closed : inTx('700'))
   const transactions = { unit1: tx('700', 'unit1-after-write', unit1Fate) }
   const checkpoints = {
     'unit1-after-write': point({ xid: '700', session: inTx('700', { xid_matches: true }), locks: wrote('700'), now: { unit1: ['in progress', inTx('700')] }, ...(isB ? { action: { action: 'terminate_backend', pid: PID, terminated: true, gone: true } } : {}) }),
-    ...(isB ? {} : { 'after-fault': point({ session: faultSession, locks: wrote('700'), now: { unit1: ['in progress', faultSession] } }) }),
-    'after-unit1': point({ session: atUnit1, locks: isB || !atUnit1.present ? null : wrote('700'), now: { unit1: [isB || !atUnit1.present ? 'aborted' : 'in progress', atUnit1] } }),
+    ...(isB ? {} : { 'after-fault': point({ session: faultSession, locks: faultFate === 'aborted' ? noWrite() : wrote('700'), now: { unit1: [faultFate, faultSession] } }) }),
+    'after-unit1': point({ session: atUnit1, locks: isB || !atUnit1.present ? null : wrote('700'), now: { unit1: [u1Fate ?? (isB || !atUnit1.present ? 'aborted' : 'in progress'), atUnit1] } }),
   }
   if (unit2) {
     const pid2 = isB ? 12 : PID
@@ -399,7 +399,7 @@ function txThree(id, { unit1Fate = 'aborted', u1Session, faultSession = inTx('70
   }
   checkpoints['after-end'] = point({ pid: null, now: { unit1: [unit1Fate, idle('COMMIT')], ...(unit2 ? { unit2: [unit2.fate, idle('COMMIT')] } : {}) } })
   return evidence(id, { checkpoints, transactions, markers: { doomed, next: nextVisible }, marker_xmin: { doomed: doomed ? '700' : null, next: nextVisible ? unit2?.xid ?? null : null } }, {
-    reported: 'rolled_back', apiError: API_ERROR, steps: { unit2: next, ...(isB ? {} : { fault: { mode: 'client-reject', fired } }) },
+    reported: 'rolled_back', apiError: API_ERROR, steps: { unit2: next, ...(violation ? { violation: { code: violation } } : {}), ...(isB ? {} : { fault: { mode: 'client-reject', fired } }) },
   })
 }
 
@@ -431,6 +431,30 @@ test('TX-03: a fault that never fired, or did not leave unit 1 open on the serve
 
 test('TX-03: a framework that discards the connection inside its API passes: the signature is read as the fault fires, not when the API returns', () => {
   assert.equal(run(txThree('TX-03.rollback-not-sent', { u1Session: closed })).classification, 'PASS')
+})
+
+// TX-03, aborted block: unit 1's failing statement aborts its transaction before the withheld ROLLBACK.
+const ABORTED_LEAK = 'TX-03.statement-error-rollback-not-sent'
+const abortedLeak = (over = {}) => txThree(ABORTED_LEAK, { faultSession: aborted(), faultFate: 'aborted', violation: '23505', ...over })
+
+test('TX-03, aborted block: a connection discarded after the withheld ROLLBACK passes', () => {
+  assert.equal(run(abortedLeak({ u1Session: closed })).classification, 'PASS')
+})
+
+test('TX-03, aborted block: handing the connection on as it is fails loudly, a FAIL of TX-03.2 naming the error', () => {
+  const r = run(abortedLeak({ u1Session: aborted(), u1Fate: 'aborted', unit2: null, nextVisible: false, next: { outcome: 'completed', reported: 'failed', elapsed_ms: 1, api_error: { class: 'Error', code: '25P02', message: 'current transaction is aborted' } } }))
+  assert.equal(r.classification, 'FAIL')
+  const i = r.invariants.find((x) => x.id === 'TX-03.2')
+  assert.equal(i.holds, false)
+  assert.match(i.detail, /reported failed \(25P02\)/)
+  assert.ok(r.invariants.some((x) => x.id === 'TX-03.1' && x.holds === true))
+})
+
+test('TX-03, aborted block: an open block at the fault, or no unique violation, is INCONCLUSIVE', () => {
+  assert.match(run(abortedLeak({ faultSession: inTx('700'), faultFate: 'in progress' })).reason, /left unit 1's aborted transaction block in place/)
+  assert.match(run(abortedLeak({ violation: undefined })).reason, /failing statement failed with unique_violation/)
+  // The open-block case keeps its own signature: an aborted block there is not the fault it injects.
+  assert.match(run(txThree('TX-03.rollback-not-sent', { faultSession: aborted(), faultFate: 'aborted' })).reason, /left unit 1's transaction open/)
 })
 
 // TX-04: nested and independent scopes, no fault.

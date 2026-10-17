@@ -16,6 +16,8 @@ export class CatalogError extends Error {}
 export const CHECKPOINT_ACTIONS = ['terminate_backend']
 /** The checkpoint every case has implicitly: the adapter sends it as soon as the framework's API has returned. */
 export const IMPLICIT_CHECKPOINT = 'after-end'
+/** What a withheld top-level ROLLBACK must have left on the server (TX-03): an open transaction, or an aborted block. */
+export const FAULT_SIGNATURES = ['open-block', 'aborted-block']
 export const UNSUPPORTED_CLASSES = ['capability-absent', 'not-applicable-by-design']
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
@@ -58,6 +60,7 @@ export function loadCatalog(file = DEFAULT_CATALOG) {
     for (const [name, cp] of Object.entries(checkpoints)) {
       if (cp.action && !CHECKPOINT_ACTIONS.includes(cp.action)) throw new CatalogError(`${c.id}: checkpoint "${name}" has unknown action "${cp.action}"`)
     }
+    if (c.fault?.signature !== undefined && !FAULT_SIGNATURES.includes(c.fault.signature)) throw new CatalogError(`${c.id}: unknown fault signature "${c.fault.signature}"`)
     const captured = new Set(Object.values(checkpoints).map((cp) => cp.captures).filter(Boolean))
     const writes = c.marker_writes ?? {}
     if (Object.keys(writes).sort().join() !== [...c.markers].sort().join()) throw new CatalogError(`${c.id}: marker_writes must describe exactly the markers`)

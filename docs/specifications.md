@@ -11,7 +11,7 @@ The machine-readable catalog is `specifications/transactions.v1.json`; this page
 
 **Checkpoints.** Each case declares its checkpoints. Every case also has an implicit last checkpoint, `after-end`, reported as soon as the framework's API has returned: the runner records the state at report time there. A case with a client-side fault (category C) also declares `after-fault`, which the adapter's driver layer reports as the fault takes effect, before the framework sees the error.
 
-**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`.
+**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`, except `TX-03.statement-error-rollback-not-sent`, which PPCS 0.2 added at 1.0.
 
 The case ID is followed by the fault category (`docs/methodology.md`).
 
@@ -90,7 +90,7 @@ A transaction fails on a pooled connection, and its `ROLLBACK` fails too. Does t
 
 **Shared steps:**
 
-1. Unit 1 writes `doomed` and raises an application error.
+1. Unit 1 writes `doomed`, then fails: with an application error, or, in `TX-03.statement-error-rollback-not-sent`, with an uncaught unique violation.
 2. Its `ROLLBACK` fails, as each case below describes.
 3. At `after-unit1`, when unit 1's API has returned, the runner records unit 1's fate at report time.
 4. Unit 2, the next unit of work on the same pool of one connection, writes `next` and ends normally.
@@ -100,7 +100,15 @@ A transaction fails on a pooled connection, and its `ROLLBACK` fails too. Does t
 | Case | How the ROLLBACK fails | The fault's signature on the server |
 | --- | --- | --- |
 | `TX-03.rollback-not-sent` (C) | The driver fails the top-level `ROLLBACK` without sending it, so the connection keeps its open transaction. | At `after-fault`: `idle in transaction`, with `backend_xid` equal to unit 1's ID |
+| `TX-03.statement-error-rollback-not-sent` (C) | Unit 1's insert of `'taken'` into `uniq` fails with `23505`, which aborts its transaction. The driver then fails the top-level `ROLLBACK` without sending it, so the connection stays in its aborted transaction block. | At `after-fault`: `idle in transaction (aborted)`, with no `backend_xid`, and `pg_xact_status()` already reporting unit 1 aborted |
 | `TX-03.conn-lost-in-transaction` (B) | The runner terminates unit 1's backend before the `ROLLBACK`. | The backend has gone |
+
+**An open block or an aborted one.** The two client-side cases leave different states behind (case signature `open-block` or `aborted-block`).
+
+- **An open transaction.** The next unit of work on that connection *joins* it without an error: its `BEGIN` only draws a warning, and its `COMMIT` commits both units' writes.
+- **An aborted block.** The transaction is already rolled back, and it holds no locks. But every statement on the connection fails with `25P02` until a `ROLLBACK`, so a unit of work handed the connection fails loudly.
+
+A pool that validates connections with a query such as `SELECT 1` catches only the second: `SELECT 1` succeeds inside an open block.
 
 ## TX-04: Nested transaction propagation
 
@@ -123,7 +131,6 @@ The negative control's `unsafe` mode defers the outer write into the nested scop
 ## Planned, not yet included
 
 - **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
-- **The aborted-leak variant of TX-03:** a statement error, then an unsent `ROLLBACK`, then the next unit of work.
 - **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`.
 - **After-commit callbacks.**
 - **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS does not yet.

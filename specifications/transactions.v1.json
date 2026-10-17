@@ -550,6 +550,69 @@
       }
     },
     {
+      "id": "TX-03.statement-error-rollback-not-sent",
+      "family": "TX-03",
+      "version": "1.0",
+      "kind": "scenario",
+      "markers": [
+        "doomed",
+        "next"
+      ],
+      "marker_writes": {
+        "doomed": {
+          "transaction": "unit1",
+          "level": "top",
+          "sent": "unit1-after-write"
+        },
+        "next": {
+          "transaction": "unit2",
+          "level": "top",
+          "sent": "unit2-after-write"
+        }
+      },
+      "invariants": [
+        "TX-03.1",
+        "TX-03.2"
+      ],
+      "title": "A statement fails inside a transaction and its top-level ROLLBACK fails on the client; then the next unit of work runs on the same pool",
+      "steps": [
+        "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+        "Write the marker `doomed`.",
+        "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+        "Insert the value 'taken' into uniq through the framework's ordinary write API, and do not catch the error. It fails with unique_violation (23505), which aborts the transaction. The framework attempts ROLLBACK, which fails, so the connection stays in its aborted transaction block.",
+        "When the fault fires, before the framework sees its error, the adapter's driver layer reports checkpoint `after-fault` (the backend PID): the runner records the fault's effect on the server.",
+        "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+        "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+        "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+      ],
+      "checkpoints": {
+        "unit1-after-write": {
+          "captures": "unit1"
+        },
+        "after-fault": {},
+        "after-unit1": {},
+        "unit2-after-write": {
+          "captures": "unit2",
+          "optional": true
+        }
+      },
+      "fault": {
+        "category": "C",
+        "signature": "aborted-block",
+        "mechanism": "A unique_violation raised by PostgreSQL inside unit 1, which aborts its transaction, then a client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+        "injection_point": "The framework's ROLLBACK of unit 1, after the failed statement.",
+        "preconditions": "The row 'taken' already exists in uniq (fixture). The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+        "expected_server": "Unit 1's transaction is already aborted: pg_xact_status() reports it aborted, and it holds no locks. Its connection stays in the aborted transaction block (\"idle in transaction (aborted)\"), where every statement except ROLLBACK fails with 25P02.",
+        "expected_client": "The unique violation, then an error from the framework's rollback; what the framework then does with the connection is under test. A unit of work given the connection as it is fails loudly with 25P02, instead of silently joining the open transaction as in TX-03.rollback-not-sent.",
+        "depends_on_internals": true
+      },
+      "knowledge": "The framework received PostgreSQL's error for the failed statement, and knows that its ROLLBACK failed, so it knows that the connection is still inside a transaction block.",
+      "settings": {
+        "pool_max": 1,
+        "bound_ms": 5000
+      }
+    },
+    {
       "id": "TX-03.conn-lost-in-transaction",
       "family": "TX-03",
       "version": "1.1",

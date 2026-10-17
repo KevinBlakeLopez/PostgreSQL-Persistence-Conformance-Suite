@@ -160,16 +160,23 @@ const nestedFailure = (fault) => async (ctx, { markers, checkpoint, settings, mo
 }
 
 // TX-03: unit 1 fails and its ROLLBACK fails too; then the next unit of work runs on the same pool of one connection.
+// The statement-error variant, new in PPCS 0.2 with no reused experiment, fails unit 1 with an uncaught unique
+// violation instead, so the withheld ROLLBACK leaves an aborted transaction block rather than an open transaction.
 const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, settings, mode }) => {
   const pool = ctx.pool(mode)
   let fault = null
   let id = null
+  let violation = null
   const unit1 = await pooledUnit(pool, mode, async (c) => {
     await c.query('insert into item (name) values ($1)', [markers.doomed])
     id = await identify(c)
     await checkpoint('unit1-after-write', id)
-    if (failure === 'rollback-not-sent') fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
-    else await sleep(settings.settle_ms ?? 100)
+    if (failure === 'conn-lost') await sleep(settings.settle_ms ?? 100)
+    else fault = pgTrace.addFault({ match: /^rollback;?$/i, mode: 'client-reject', onFire: () => checkpoint('after-fault', { pid: id.pid }) })
+    if (failure === 'statement-error') {
+      // Not caught: the unique violation aborts the transaction, and the failing unit's ROLLBACK is then withheld.
+      try { await c.query(`insert into uniq (code) values ('taken')`) } catch (e) { violation = errInfo(e); throw e }
+    }
     throw new Error('application error: unit 1 fails')
   })
   pgTrace.clearFaults()
@@ -178,7 +185,7 @@ const failedUnitThenNext = (failure) => async (ctx, { markers, checkpoint, setti
     await c.query('insert into item (name) values ($1)', [markers.next])
     await cp('unit2-after-write', await identify(c))
   }))
-  return { ...unit1, steps: { unit2, ...(fault ? { fault: faultReport(fault) } : {}) } }
+  return { ...unit1, steps: { unit2, ...(violation ? { violation } : {}), ...(fault ? { fault: faultReport(fault) } : {}) } }
 }
 
 // TX-04.1 and TX-04.2 on the control's own savepoints. No fault is injected. `correct` sends the outer write at once;
@@ -252,6 +259,7 @@ const cases = {
   'TX-02.conn-lost-before-savepoint-rollback': nestedFailure('conn-lost'),
 
   'TX-03.rollback-not-sent': failedUnitThenNext('rollback-not-sent'),
+  'TX-03.statement-error-rollback-not-sent': failedUnitThenNext('statement-error'),
   'TX-03.conn-lost-in-transaction': failedUnitThenNext('conn-lost'),
 
   'TX-04.nested-failure-contained': nestedOnly('nested-fails'),
