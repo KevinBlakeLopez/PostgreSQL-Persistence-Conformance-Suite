@@ -1,0 +1,24 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "sqlalchemy",
+  "framework": "sqlalchemy",
+  "description": "SQLAlchemy 2.1 Session.begin() and Session.begin_nested() through psycopg 3. Category C faults are withheld in this process, before psycopg sends the statement.",
+  "command": [
+    "./.venv/bin/python",
+    "main.py"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "SQLAlchemy's Session.begin() context manager, with Session.begin_nested() for a savepoint. pool_size 1, max_overflow 0."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-02.savepoint-rollback-not-sent"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {}
+}
