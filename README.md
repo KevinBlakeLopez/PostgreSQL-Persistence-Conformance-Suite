@@ -9,6 +9,7 @@ It answers questions like these:
 - After a nested scope's savepoint rollback fails, can its abandoned writes be committed anyway?
 - After a rollback fails, can the pool hand the connection, still holding the failed transaction, to unrelated work?
 - Does nested transactional work land in the boundary the framework's propagation API promises?
+- When application code asks for an isolation level, does the transaction run at that level?
 
 ## Why
 
@@ -45,7 +46,7 @@ A full run takes about three minutes. The runner refuses any server that is not 
 
 ## What is implemented
 
-**Specifications** (`specifications/transactions.v1.json`, described in `docs/specifications.md`): 6 families, 14 cases.
+**Specifications** (`specifications/transactions.v1.json`, described in `docs/specifications.md`): 7 families, 16 cases.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -55,6 +56,7 @@ A full run takes about three minutes. The runner refuses any server that is not 
 | TX-02 | After a failed savepoint rollback, does the transaction continue under an incorrect nesting state? | 3 |
 | TX-03 | After a failed rollback, is the connection reused unsafely, and does the pool recover? | 3 |
 | TX-04 | Does nested work land in the boundary the propagation API promises? | 3 |
+| TX-05 | When a framework is asked for an isolation level, does the transaction run at that level? | 2 |
 
 **Adapters:**
 
@@ -69,7 +71,7 @@ These are the stacks and versions of the experiments PPCS was extracted from (`d
 
 ## Results of the recorded run
 
-The recorded run is [`reports/examples/2026-10-17T01-51-34Z-c1a29f/`](reports/examples/2026-10-17T01-51-34Z-c1a29f/summary.md), PPCS 0.2.0 on PostgreSQL 18.6. It produced 77 results: 45 PASS, 29 FAIL, 3 UNSUPPORTED (all three not applicable by design), 0 INCONCLUSIVE. Each executed case ran three times, and every repetition agreed. A second full run on the same machine reproduced all 77 classifications.
+The recorded run is [`reports/examples/2026-10-17T15-37-31Z-362562/`](reports/examples/2026-10-17T15-37-31Z-362562/summary.md), PPCS 0.3.0 on PostgreSQL 18.6. It produced 87 results: 52 PASS, 32 FAIL, 3 UNSUPPORTED (all three not applicable by design), 0 INCONCLUSIVE. Each executed case ran three times, and every repetition agreed. The 77 classifications from the 0.2.0 recording are unchanged. The ten new results are TX-05. A second full run on the same machine reproduced all 87 classifications.
 
 | Case | Fault | Lucid | MikroORM | TypeORM |
 | --- | --- | --- | --- | --- |
@@ -87,16 +89,18 @@ The recorded run is [`reports/examples/2026-10-17T01-51-34Z-c1a29f/`](reports/ex
 | `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS |
 | `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS |
 | `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) |
+| `TX-05.managed-serializable` | none | PASS | PASS | PASS |
+| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS |
 
 **How to read the matrix:**
 
 - **Fault categories:** A is an error PostgreSQL generated, B a backend terminated by the runner, C an error injected in the client, D a client-side simulation (`docs/methodology.md`).
-- **The 21 framework FAILs:** 8 need no client-side injection, and 13 depend on one.
+- **The 22 framework FAILs:** 9 need no client-side injection, and 13 depend on one.
 - **Qualifiers:**
   - **"Mechanism not exercised":** Lucid's `pre-commit-probe` passes TX-01A by failing before COMMIT. That makes it a valid mitigation, not evidence that Lucid reads the reply to COMMIT.
   - **"TX-01B.2 not exercised":** the framework adapters observe no channel through which a framework could claim a rollback, so TX-01B.2 was not tested for them.
 - **Report time:** where a transaction was still open when the API returned, each FAIL says so, and says whether teardown or later work decided its fate. In TypeORM's TX-02 cases, for example, the transaction was open at report time and rolled back at teardown.
-- **Controls:** the positive control passes every case it implements. The negative control fails the 7 cases it is built to fail, so the runner detects a known-bad implementation. That includes unsafe connection reuse, which the observer sees server-side: the next unit of work runs inside the failed transaction's own ID. It also includes a write lost with a failed nested scope. Every control expectation held in this run, so no result was gated.
+- **Controls:** the positive control passes every case it implements. The negative control fails the 10 cases it is built to fail, so the runner detects a known-bad implementation. That includes unsafe connection reuse, which the observer sees server-side: the next unit of work runs inside the failed transaction's own ID. It also includes a write lost with a failed nested scope, and a requested isolation level dropped by a plain `BEGIN`. Every control expectation held in this run, so no result was gated.
 - **Detail:** each FAIL in `reports/examples/*/summary.md` gives what the API reported, what PostgreSQL did at report time and at the end, what the application could know, the violated invariant, the framework's contract, and a reproduction command.
 
 ## Classifications

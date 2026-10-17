@@ -2,7 +2,20 @@
 
 Results from different versions are not comparable: each version can change what the evidence must show before a case passes or fails. Every run records the harness digest that identifies its rules, and `--expect` refuses to compare runs whose digests differ.
 
-## 0.2.0 (unreleased)
+## 0.3.0 (unreleased)
+
+A requested isolation level.
+
+- **New family: TX-05.** Two cases, one per API form (managed and explicit), request SERIALIZABLE.
+  - **TX-05.1.** On PostgreSQL, a transaction the API started at a requested level runs at that level or a stricter one. A PASS needs two observations that agree: `current_setting('transaction_isolation')`, read in the same statement as the captured ID, and an `SIReadLock` the runner sees on `item` or one of its indexes, after a confirmed read of `item`.
+  - **TX-05.2.** An API whose documentation accepts a level PostgreSQL supports does not reject a valid request. A rejection fails it only when its cause is established: the error carries no PostgreSQL SQLSTATE and no operating-system error code, and a plain transaction through the same form was bound at `baseline`.
+- **INCONCLUSIVE reasons.** A TX-05 result records why it is INCONCLUSIVE, in `evaluation.inconclusive_reason`: `observation-conflict`, `evidence-missing`, `environment`, or `cause-not-established`. Other families keep none.
+- **Evidence.** The observer records each `SIReadLock`'s target, whether the backend held an `AccessShareLock` on `item`, and `backend_xmin` as a diagnostic. A checkpoint that declares `captures_isolation` carries `transaction_isolation`.
+- **Adapters.** Lucid, MikroORM and TypeORM implement both forms. `pg-control` `correct` starts the transaction with `BEGIN ISOLATION LEVEL SERIALIZABLE`; `unsafe` sends a plain `BEGIN`.
+
+Results under 0.2.0 and 0.3.0 are not comparable: the harness digest changed.
+
+## 0.2.0 (2026-10-17)
 
 Hardening after an independent methodology review.
 

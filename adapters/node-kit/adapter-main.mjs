@@ -74,6 +74,60 @@ async function exit(result) {
 }
 
 /**
+ * Runs an explicit transaction: `start()` returns a transaction handle, `body(handle)` is the case's work, `commit(handle)`
+ * commits it, and `rollback(handle)` rolls it back. Maps what the API did onto PPCS's reported outcome:
+ *   commit resolved                        -> committed
+ *   start raised, or commit raised         -> failed (no outcome asserted)
+ * An error from the body is the case's own failure, not the framework's outcome: the transaction is rolled back and the
+ * error rethrown. `state.started` is set once start() has returned a handle (TX-05 needs to know).
+ *
+ * `api` names the calls and states the framework's contract: { start, commit, contract }.
+ */
+export async function explicitOutcome({ start, commit, rollback }, body, api, state = {}) {
+  let handle
+  try {
+    handle = await start()
+  } catch (e) {
+    if (e instanceof ProtocolError) throw e
+    return { reported: 'failed', basis: `${api.start} raised before it returned a transaction`, contract: api.contract, api_error: errInfo(e) }
+  }
+  state.started = true
+  try {
+    await body(handle)
+  } catch (e) {
+    await Promise.resolve().then(() => rollback(handle)).catch(() => {})
+    throw e
+  }
+  try {
+    await commit(handle)
+    return { reported: 'committed', basis: `${api.commit} resolved`, contract: api.contract }
+  } catch (e) {
+    if (e instanceof ProtocolError) throw e
+    return { reported: 'failed', basis: `${api.commit} raised`, contract: api.contract, api_error: errInfo(e) }
+  }
+}
+
+/**
+ * TX-05: a transaction at a requested isolation level, run by `attempt(state)`, which sets `state.started` as soon as the
+ * framework's API has started the transaction (its callback ran, or its handle came back). If the API raised before that,
+ * `plain()` runs a transaction through the same API form with no isolation level, and reports the checkpoint `baseline`.
+ * If the plain transaction works, the database and the API form work, so the runner can read the rejection as one of
+ * the requested level. A failure of the plain transaction is reported in steps.baseline.
+ */
+export async function requestedLevel(attempt, plain) {
+  const state = { started: false }
+  const outcome = await attempt(state)
+  if (state.started || outcome.reported !== 'failed') return outcome
+  try {
+    await plain()
+    return outcome
+  } catch (e) {
+    if (e instanceof ProtocolError) throw e
+    return { ...outcome, steps: { ...(outcome.steps ?? {}), baseline: { error: errInfo(e) } } }
+  }
+}
+
+/**
  * Runs a managed (callback) transaction and maps what the API did onto PPCS's reported outcome:
  *   resolved                                   -> committed
  *   rejected with the callback's own error      -> rolled_back (the managed-transaction contract: roll back, rethrow)
