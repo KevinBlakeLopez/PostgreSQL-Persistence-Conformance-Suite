@@ -71,7 +71,7 @@ A full run takes about six minutes. The runner refuses any server that is not th
 
 These are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`).
 
-An adapter is a separate program. It does not have to be written in JavaScript. [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md) is a Python adapter for SQLAlchemy 2.1 `Session.begin()` and `Session.begin_nested()`, using psycopg 3. It implements `CTL-01.commit`, `CTL-01.rollback`, and `TX-02.savepoint-rollback-not-sent`. Every other case is NOT_RUN. It is not a general Python ORM runner. The recorded-run table below does not include it. That table is the Node run from PPCS 0.2.0. `pnpm run setup` does not install the Python virtualenv. The adapter README has the install and the runner command.
+An adapter is a separate program. It does not have to be written in JavaScript. [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md) is a Python adapter for SQLAlchemy 2.1 `Session.begin()` and `Session.begin_nested()`, using psycopg 3. It implements `CTL-01.commit`, `CTL-01.rollback`, and `TX-02.savepoint-rollback-not-sent`. Every other case is NOT_RUN. It is not a general Python ORM runner. The recorded-run table below does not include it. That table is the Node run from PPCS 0.3.0. `pnpm run setup` does not install the Python virtualenv. The adapter README has the install and the runner command.
 
 ## Results of the recorded run
 
