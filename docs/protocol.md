@@ -10,7 +10,7 @@ A **protocol line** is a JSON object with `"ppcs": 1`. Any other stdout line, an
 - the adapter runs the case;
 - the runner observes and injects faults at checkpoints.
 
-There is no transaction API, no RPC, and no shared library: PPCS's JavaScript adapters use `adapters/node-kit/`, but nothing requires it.
+There is no transaction API, no RPC, and no shared library: PPCS's JavaScript adapters use `adapters/node-kit/`, but nothing requires it. `adapters/sqlalchemy` is a Python implementation of this protocol. It covers SQLAlchemy's `Session.begin()` and `Session.begin_nested()` for `CTL-01.commit`, `CTL-01.rollback`, and `TX-02.savepoint-rollback-not-sent`.
 
 ## Messages
 

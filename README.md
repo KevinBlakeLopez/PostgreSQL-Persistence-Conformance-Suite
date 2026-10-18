@@ -67,6 +67,8 @@ A full run takes about three minutes. The runner refuses any server that is not 
 
 These are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`).
 
+An adapter is a separate program. It does not have to be written in JavaScript. [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md) is a Python adapter for SQLAlchemy 2.1 `Session.begin()` and `Session.begin_nested()`, using psycopg 3. It implements `CTL-01.commit`, `CTL-01.rollback`, and `TX-02.savepoint-rollback-not-sent`. Every other case is NOT_RUN. It is not a general Python ORM runner. The recorded-run table below does not include it. That table is the Node run from PPCS 0.2.0. `pnpm run setup` does not install the Python virtualenv. The adapter README has the install and the runner command.
+
 ## Results of the recorded run
 
 The recorded run is [`reports/examples/2026-10-17T01-51-34Z-c1a29f/`](reports/examples/2026-10-17T01-51-34Z-c1a29f/summary.md), PPCS 0.2.0 on PostgreSQL 18.6. It produced 77 results: 45 PASS, 29 FAIL, 3 UNSUPPORTED (all three not applicable by design), 0 INCONCLUSIVE. Each executed case ran three times, and every repetition agreed. A second full run on the same machine reproduced all 77 classifications.
