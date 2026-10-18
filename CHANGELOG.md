@@ -4,7 +4,7 @@ Results from different versions are not comparable: each version can change what
 
 ## Unreleased
 
-- **MG-02 and MG-03 run on Lucid and `pg-control`.** Seven cases: a held migration, a first deployment, a lost session, an idle-session timeout, a valid reversal, a migration with no reversal, and a reversal that fails. Each role is its own process, named `ppcs-A`, `ppcs-B` or `ppcs-C`. The harness's own sessions stay excluded by backend PID together with `ppcs-observer`. On Lucid 22.4.2 the idle-session timeout is inconclusive, because the session inside the migration is not idle, and a migration with no reversal is reported reverted while its marker remains.
+- **MG-02 and MG-03 run on Lucid and `pg-control`.** Seven cases: a held migration, a first deployment, a lost session, an idle-session timeout, a valid reversal, a migration with no reversal, and a reversal that fails. Each role is its own process, named `ppcs-A`, `ppcs-B` or `ppcs-C`. The harness's own sessions stay excluded by backend PID together with `ppcs-observer`. On Lucid 22.4.2 the idle-session timeout is inconclusive, because the session inside the migration is not idle, and a migration with no reversal is reported reverted while its marker remains. The recorded run is `reports/examples/2026-10-18T00-11-46Z-95887b`.
 
 ## 0.3.0 (unreleased)
 
