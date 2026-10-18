@@ -132,6 +132,16 @@ export class Instance {
     if (!this.verified) throw new SafetyError('Refusing to touch the server before verify() has succeeded.')
   }
 
+  /**
+   * A connection the caller keeps. Its backend PID is one of the runner's own, so the observer excludes it together
+   * with application_name ppcs-observer. The caller closes it.
+   */
+  async borrow(database) {
+    this.#assertVerified()
+    if (!this.owned.has(database)) throw new SafetyError(`Refusing to borrow a connection to "${database}": this run did not create it.`)
+    return this.#connect(database)
+  }
+
   async query(database, text, params = []) {
     this.#assertVerified()
     const c = await this.#connect(database)

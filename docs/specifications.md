@@ -11,7 +11,7 @@ The machine-readable catalog is `specifications/transactions.v1.json`; this page
 
 **Checkpoints.** Each case declares its checkpoints. Every case also has an implicit last checkpoint, `after-end`, reported as soon as the framework's API has returned: the runner records the state at report time there. A case with a client-side fault (category C) also declares `after-fault`, which the adapter's driver layer reports as the fault takes effect, before the framework sees the error.
 
-**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`, except `TX-03.statement-error-rollback-not-sent`, which PPCS 0.2 added at 1.0.
+**Common settings.** Unless a case says otherwise, the pool holds one connection (`pool_max: 1`). Cases are versioned individually, and families and the catalog as a whole are versioned too. Every case is at version 1.1, which added `after-end` and `marker_writes`, except `TX-03.statement-error-rollback-not-sent`, which PPCS 0.2 added at 1.0, and the TX-05 cases, which PPCS 0.3 added at 1.0.
 
 The case ID is followed by the fault category (`docs/methodology.md`).
 
@@ -128,9 +128,99 @@ In every TX-04 case, the outer scope writes `outer` through the framework's ordi
 
 The negative control's `unsafe` mode defers the outer write into the nested scope's savepoint, so `TX-04.nested-failure-contained` must FAIL for it.
 
+## TX-05: Requested isolation level
+
+Application code asks the framework's API to start a transaction at an isolation level that PostgreSQL supports. A framework that drops the request runs the transaction at the server's default, READ COMMITTED. Nothing tells the application: the transaction works, and the anomalies the requested level excludes, such as lost updates, can occur. A framework that refuses the request, in contrast, tells the application, which can decide what to do.
+
+- **TX-05.1** On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.
+- **TX-05.2** An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction.
+
+**The ordering is PostgreSQL's.** READ UNCOMMITTED and READ COMMITTED come first, and PostgreSQL implements them identically; then REPEATABLE READ; then SERIALIZABLE. Isolation levels do not form one ordering across database engines, so another engine would need its own, from its documented semantics.
+
+**Every case requests SERIALIZABLE** (`settings.isolation_level`). It is the one level whose effect a separate connection can observe: a SERIALIZABLE transaction that has read a table holds SIRead locks on it.
+
+**Two observations, which must agree:**
+
+1. **PostgreSQL's report.** At `after-read`, the adapter reads `current_setting('transaction_isolation')` in the same statement as `pg_current_xact_id()` and `pg_backend_pid()`, through the transaction's own connection, and reports all three.
+2. **The runner's observation.** At `after-read`, while the transaction is idle, the runner reads that backend's locks. Under SERIALIZABLE, a read of `item`, confirmed by an `AccessShareLock`, leaves an `SIReadLock` on `item` or on an index of `item`. Under a weaker level it leaves none. Locks are attributed by their target, never by their number.
+
+The work is bound to the transaction as in every case: the captured ID is the backend's `backend_xid`, the backend holds the write's and the read's locks on `item`, and the visible marker's `xmin` is the captured ID.
+
+| Observations | Result |
+| --- | --- |
+| PostgreSQL reports SERIALIZABLE, and the backend holds an `SIReadLock` on `item` | TX-05.1 holds |
+| PostgreSQL reports a weaker level, and the backend holds no `SIReadLock` | TX-05.1 is violated: FAIL |
+| The report and the locks disagree, or the `SIReadLock`s are only on other relations | INCONCLUSIVE (`observation-conflict`) |
+| An observation, the binding or the confirmed read is missing | INCONCLUSIVE (`evidence-missing`) |
+
+**A rejected request.** If the API raises instead of starting the transaction, TX-05.1 is not exercised, and the adapter starts a plain transaction through the same form, with no isolation level, reported at `baseline`. TX-05.2 is violated (FAIL) only if:
+
+- the error carries no PostgreSQL SQLSTATE and no operating-system error code;
+- the plain transaction was bound at `baseline`.
+
+An error with such a code, or a failed plain transaction, is INCONCLUSIVE (`environment`). A missing or unbound `baseline` is INCONCLUSIVE (`cause-not-established`).
+
+`backend_xmin`, the backend's snapshot horizon, is recorded as a diagnostic. It decides nothing.
+
+**Shared steps:**
+
+1. Start a transaction requesting SERIALIZABLE, through the API each case names. The server's default is READ COMMITTED.
+2. Write the marker `tx`, and make sure the write was sent.
+3. Read the marker back inside the transaction, with a query that reaches PostgreSQL, not a lookup in the framework's identity map.
+4. Checkpoint `after-read`: report the transaction's ID, its backend PID and `current_setting('transaction_isolation')`, all read in one statement.
+5. End the transaction normally.
+6. Only if step 1 raised: start a plain transaction through the same form, report it at `baseline`, end it, and report `failed` with the first error. If the plain transaction fails too, report its error in `steps.baseline`.
+
+| Case | The API |
+| --- | --- |
+| `TX-05.managed-serializable` (none) | The managed transaction API: the framework runs a callback inside the transaction, and commits when it returns |
+| `TX-05.explicit-serializable` (none) | The explicit transaction API: a call returns a transaction handle, and the application commits it with an explicit call |
+
+**UNSUPPORTED.** An adapter declares a case UNSUPPORTED (`capability-absent`) in its manifest, citing the framework's documentation, when the framework has no such API form, or documents that it does not support the requested level. That is not a failure.
+
+The negative control's `unsafe` mode sends a plain `BEGIN`, ignoring the requested level, and reports the level PostgreSQL applied. Both cases must FAIL for it.
+
+**What the application could know:** a successful start says nothing about the level PostgreSQL applied. Only `current_setting('transaction_isolation')`, read inside the transaction, does. A rejected request reaches the application as an error.
+
+## MG-02: Concurrent runner coordination
+
+Several processes apply one migration to one database. Each process is a runner, named A, B or C, and sets `application_name` to `ppcs-A`, `ppcs-B` or `ppcs-C`. The migration inserts one marker row per execution. The count of that marker is the number of times the migration committed. History is the framework's own record that the migration was applied; the adapter names the table, and the runner reads it.
+
+The runner holds an advisory lock on its own session. The migration waits on that lock after inserting its marker, so a runner that is executing the migration is visible to another connection. The harness's own session is excluded from the case's sessions only when its backend PID is one of the runner's connections and its name is `ppcs-observer`. `settings.pool_max` is the ceiling for each role.
+
+- **MG-02.1** After every runner has finished, the migration's marker count is 1 and history holds one entry for it.
+- **MG-02.2** A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).
+- **MG-02.4** If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE.
+- **MG-02.5** No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.
+
+| Case | What it does |
+| --- | --- |
+| `MG-02.held` (none) | A is inside the migration, held at the gate. B starts. Then C, after both have finished. |
+| `MG-02.first-deployment` (none) | A and B are released together against a database with no history storage. |
+| `MG-02.session-loss` (B) | While A is inside the migration, one of A's sessions, chosen by `application_name`, is terminated. Then B, then C. |
+| `MG-02.idle-session-timeout` (none) | A's connections set `idle_session_timeout = 1s`. A session busy inside the migration's transaction is not idle, so the setting does not end it. |
+
+On Lucid 22.4.2, `MG-02.held`, `MG-02.first-deployment` and `MG-02.session-loss` pass. `MG-02.idle-session-timeout` is inconclusive on MG-02.4: the session inside the migration is not idle, so the timeout does not end it, and the marker count stays 1.
+
+## MG-03: Rollback and history consistency
+
+One runner applies a migration, reverts it, and the runner reads the marker count and the history count after the revert returns, before any later apply.
+
+- **MG-03.1** If a revert reports a migration as reverted, its history entry is absent and its marker is absent.
+- **MG-03.2** If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent.
+- **MG-03.3** If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains.
+
+| Case | What it does |
+| --- | --- |
+| `MG-03.valid-reversal` (none) | The reversal deletes the marker. The runner then applies the migration again. |
+| `MG-03.no-reversal` (none) | The migration provides no reversal. |
+| `MG-03.failing-reversal` (none) | The reversal deletes the marker and then raises. The migration is transactional. |
+
+On Lucid 22.4.2, `MG-03.valid-reversal` and `MG-03.failing-reversal` pass. `MG-03.no-reversal` fails: the revert reports the migration reverted, the history entry is gone, and the marker remains.
+
 ## Planned, not yet included
 
 - **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
-- **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`.
+- **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`, in the families other than TX-05, which covers them.
 - **After-commit callbacks.**
-- **Migration safety.** The reused experiments cover it (`docs/provenance.md`), but PPCS does not yet.
+- **The other migration families.** MG-01, MG-04, MG-05 and MG-06 are specified in the migration research and are not in this catalog yet.

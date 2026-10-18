@@ -4,7 +4,7 @@ import { readFileSync, realpathSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
-import { ProtocolError, boundedUnit, main, managedOutcome } from '../node-kit/adapter-main.mjs'
+import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Item, Uniq, openDataSource } from './orm.mjs'
@@ -32,6 +32,40 @@ async function identify(manager) {
 }
 
 const managed = ({ ds }) => (callback) => ds.transaction(callback)
+
+// TX-05: the requested isolation level, in TypeORM's managed and explicit (query runner) transaction forms.
+const LEVELS = { 'read uncommitted': 'READ UNCOMMITTED', 'read committed': 'READ COMMITTED', 'repeatable read': 'REPEATABLE READ', serializable: 'SERIALIZABLE' }
+const LEVEL_TYPE = 'IsolationLevel is one of \'READ COMMITTED\' | \'READ UNCOMMITTED\' | \'REPEATABLE READ\' | \'SERIALIZABLE\' | \'SNAPSHOT\' (driver/types/IsolationLevel.d.ts)'
+const LEVEL_MANAGED = {
+  call: 'ds.transaction(isolationLevel, callback)',
+  contract: `In TypeORM 1.1.2, DataSource.transaction(isolationLevel, runInTransaction) "Wraps given function execution (and all operations made there) into a transaction" (data-source/DataSource.d.ts); ${LEVEL_TYPE}. It resolves once the transaction has committed.`,
+}
+const LEVEL_EXPLICIT = {
+  start: 'queryRunner.startTransaction(isolationLevel)',
+  commit: 'queryRunner.commitTransaction()',
+  contract: `In TypeORM 1.1.2, QueryRunner.startTransaction(isolationLevel?: IsolationLevel) "Starts transaction", and commitTransaction() commits it (query-runner/QueryRunner.d.ts); ${LEVEL_TYPE}.`,
+}
+const TX05_MANAGED_FORM = 'ds.transaction(isolationLevel, callback). The marker is inserted through the repository, then read back with findOneBy().'
+const TX05_EXPLICIT_FORM = 'ds.createQueryRunner(), connect(), startTransaction(isolationLevel), then commitTransaction() and release(). The marker is inserted and read back through queryRunner.manager.'
+
+const typeormLevel = (level) => {
+  if (!LEVELS[level]) throw new ProtocolError(`the case requests an unknown isolation level: ${JSON.stringify(level)}`)
+  return LEVELS[level]
+}
+
+/** The TX-05 transaction's work: insert the marker, read it back with a query, and report the ID with PostgreSQL's level. */
+async function requestedLevelWork(manager, { markers, checkpoint }) {
+  await manager.getRepository(Item).insert({ name: markers.tx })
+  await manager.getRepository(Item).findOneBy({ name: markers.tx })
+  const [r] = await manager.query("select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setting('transaction_isolation') as transaction_isolation")
+  await checkpoint('after-read', { xid: r.xid, pid: r.pid, transaction_isolation: r.transaction_isolation })
+}
+
+/** Runs `run(queryRunner)` on a query runner of its own, and releases it afterwards: the pool holds one connection. */
+async function onQueryRunner(ds, run) {
+  const qr = ds.createQueryRunner()
+  try { return await run(qr) } finally { await qr.release().catch(() => {}) }
+}
 
 // TX-02. Experiments TR1c (the savepoint rollback fails on the client), TR1b (PostgreSQL rejects it) and TR1c2 (the
 // backend is terminated). The outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the
@@ -166,6 +200,23 @@ const cases = {
 
   'TX-04.nested-failure-contained': nestedScope('nested-fails'),
   'TX-04.nested-released-outer-rollback': nestedScope('outer-fails'),
+
+  'TX-05.managed-serializable': async ({ ds }, tools) => ({
+    ...await requestedLevel(
+      (state) => managedOutcome((callback) => ds.transaction(typeormLevel(tools.settings.isolation_level), async (m) => { state.started = true; return callback(m) }), (m) => requestedLevelWork(m, tools), LEVEL_MANAGED),
+      () => ds.transaction(async (m) => { await tools.checkpoint('baseline', await identify(m)) }),
+    ),
+    form: TX05_MANAGED_FORM,
+  }),
+
+  // The attempt's query runner is released before the plain transaction starts, since the pool holds one connection.
+  'TX-05.explicit-serializable': async ({ ds }, tools) => ({
+    ...await requestedLevel(
+      (state) => onQueryRunner(ds, (qr) => explicitOutcome({ start: async () => { await qr.connect(); await qr.startTransaction(typeormLevel(tools.settings.isolation_level)); return qr }, commit: (q) => q.commitTransaction(), rollback: (q) => q.rollbackTransaction() }, (q) => requestedLevelWork(q.manager, tools), LEVEL_EXPLICIT, state)),
+      () => onQueryRunner(ds, async (plain) => { await plain.connect(); await plain.startTransaction(); await tools.checkpoint('baseline', await identify(plain.manager)); await plain.commitTransaction() }),
+    ),
+    form: TX05_EXPLICIT_FORM,
+  }),
 }
 
 await main({

@@ -4,9 +4,10 @@ import { readFileSync, realpathSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
-import { ProtocolError, boundedUnit, main, managedOutcome } from '../node-kit/adapter-main.mjs'
+import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { migrationCases } from './migration.mjs'
 import { Item, Uniq, openDatabase } from './lucid.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
@@ -33,6 +34,28 @@ async function identify(trx) {
 }
 
 const managed = ({ db }) => (callback) => db.transaction(callback)
+
+// TX-05: the requested isolation level, in both of Lucid's transaction forms.
+const LEVEL_CONTRACT = 'In @adonisjs/lucid 22.4.2, db.transaction() takes { isolationLevel?: IsolationLevels } in both its forms, with IsolationLevels \'read uncommitted\' | \'read committed\' | \'snapshot\' | \'repeatable read\' | \'serializable\' (TransactionFn, build/src/types/database.d.ts)'
+const LEVEL_MANAGED = {
+  call: 'db.transaction(callback, { isolationLevel })',
+  contract: `${LEVEL_CONTRACT}. The managed form runs the callback in the transaction, commits when it returns, and resolves with its value.`,
+}
+const LEVEL_EXPLICIT = {
+  start: 'db.transaction({ isolationLevel })',
+  commit: 'trx.commit()',
+  contract: `${LEVEL_CONTRACT}. The explicit form returns a transaction client, which trx.commit() commits.`,
+}
+const TX05_MANAGED_FORM = 'db.transaction(callback, { isolationLevel }) on the default connection. db.connection(name).transaction() and Model.transaction() reach the same QueryClient.transaction().'
+const TX05_EXPLICIT_FORM = 'db.transaction({ isolationLevel }) on the default connection, then trx.commit(). db.connection(name).transaction() and Model.transaction() reach the same QueryClient.transaction().'
+
+/** The TX-05 transaction's work: write the marker, read it back with a query, and report the ID with PostgreSQL's level. */
+async function requestedLevelWork(trx, { markers, checkpoint }) {
+  await Item.create({ name: markers.tx }, { client: trx })
+  await Item.query({ client: trx }).where('name', markers.tx)
+  const { rows: [r] } = await trx.rawQuery("select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setting('transaction_isolation') as transaction_isolation")
+  await checkpoint('after-read', { xid: r.xid, pid: r.pid, transaction_isolation: r.transaction_isolation })
+}
 
 // TX-02. Experiments LR1a (the savepoint rollback fails on the client), LT5b (PostgreSQL rejects it) and LR1b (the
 // backend is terminated). The outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the
@@ -168,6 +191,24 @@ const cases = {
 
   'TX-04.nested-failure-contained': nestedScope('nested-fails'),
   'TX-04.nested-released-outer-rollback': nestedScope('outer-fails'),
+
+  'TX-05.managed-serializable': async ({ db }, tools) => ({
+    ...await requestedLevel(
+      (state) => managedOutcome((callback) => db.transaction(async (trx) => { state.started = true; return callback(trx) }, { isolationLevel: tools.settings.isolation_level }), (trx) => requestedLevelWork(trx, tools), LEVEL_MANAGED),
+      () => db.transaction(async (trx) => { await tools.checkpoint('baseline', await identify(trx)) }),
+    ),
+    form: TX05_MANAGED_FORM,
+  }),
+
+  'TX-05.explicit-serializable': async ({ db }, tools) => ({
+    ...await requestedLevel(
+      (state) => explicitOutcome({ start: () => db.transaction({ isolationLevel: tools.settings.isolation_level }), commit: (trx) => trx.commit(), rollback: (trx) => trx.rollback() }, (trx) => requestedLevelWork(trx, tools), LEVEL_EXPLICIT, state),
+      async () => { const trx = await db.transaction(); await tools.checkpoint('baseline', await identify(trx)); await trx.commit() },
+    ),
+    form: TX05_EXPLICIT_FORM,
+  }),
+
+  ...migrationCases,
 }
 
 await main({
@@ -189,7 +230,8 @@ await main({
   },
   open: (message) => {
     const logLines = []
-    const db = openDatabase(message.connection, { poolMax: message.case.settings?.pool_max ?? 1, logLines })
+    const migration = message.case.family?.startsWith('MG-')
+    const db = openDatabase(message.connection, { poolMax: message.case.settings?.pool_max ?? 1, logLines, defaultPool: migration, migrations: migration ? { naturalSort: true } : undefined })
     return {
       context: { db },
       close: () => db.manager.closeAll(),

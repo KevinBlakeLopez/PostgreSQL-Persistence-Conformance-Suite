@@ -1,0 +1,20 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "misbehaving-tx05",
+  "framework": "fixture",
+  "description": "Methodology test fixture for TX-05. Implements the CTL-01 cases correctly in every mode, so that its TX-05 results are not gated, and TX-05.explicit-serializable correctly in mode ok and broken in each other mode. Its manifest claims support for SERIALIZABLE, so a rejection is a rejection of a documented level.",
+  "command": ["node", "main.mjs"],
+  "modes": [
+    { "id": "ok", "kind": "fixture", "description": "Correct: BEGIN ISOLATION LEVEL SERIALIZABLE, and an honest report." },
+    { "id": "repeatable-read", "kind": "fixture", "description": "Runs REPEATABLE READ when SERIALIZABLE was requested, and reports it honestly.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "claims-serializable", "kind": "fixture", "description": "Runs READ COMMITTED, but reports SERIALIZABLE.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "claims-weaker", "kind": "fixture", "description": "Runs SERIALIZABLE, but reports READ COMMITTED.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "reads-other-table", "kind": "fixture", "description": "Runs SERIALIZABLE, but reads uniq instead of item.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "omits-level", "kind": "fixture", "description": "Runs SERIALIZABLE, but does not report the level.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "rejects", "kind": "fixture", "description": "Rejects the request with an error of its own, then runs a plain transaction through the same form.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "rejects-sqlstate", "kind": "fixture", "description": "Rejects the request with PostgreSQL's error for an invalid BEGIN (a SQLSTATE), then runs a plain transaction.", "cases": ["TX-05.explicit-serializable"] },
+    { "id": "rejects-no-baseline", "kind": "fixture", "description": "Rejects the request with an error of its own, and runs no plain transaction.", "cases": ["TX-05.explicit-serializable"] }
+  ],
+  "implements": ["CTL-01.commit", "CTL-01.rollback", "TX-05.explicit-serializable"],
+  "unsupported": {}
+}

@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { TransactionPropagation } from '@mikro-orm/postgresql'
-import { ProtocolError, boundedUnit, main, managedOutcome } from '../node-kit/adapter-main.mjs'
+import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Item, Uniq, inRequest, openOrm } from './orm.mjs'
@@ -44,6 +44,29 @@ async function identify(em) {
 }
 
 const managed = ({ orm }) => (callback) => inRequest(orm, () => orm.em.transactional(callback))
+
+// TX-05: the requested isolation level, in MikroORM's managed and explicit transaction forms.
+const LEVEL_OPTION = 'TransactionOptions.isolationLevel is IsolationLevel | `${IsolationLevel}`, whose values include SERIALIZABLE = "serializable" (core/enums.d.ts)'
+const LEVEL_MANAGED = {
+  call: 'em.transactional(callback, { isolationLevel })',
+  contract: `In MikroORM 7.2.5, em.transactional(cb, options?: TransactionOptions) "Runs your callback wrapped inside a database transaction" (core/EntityManager.d.ts), and ${LEVEL_OPTION}. It resolves once the transaction has committed.`,
+}
+const LEVEL_EXPLICIT = {
+  start: 'em.begin({ isolationLevel })',
+  commit: 'em.commit()',
+  contract: `In MikroORM 7.2.5, em.begin(options?: Omit<TransactionOptions, 'ignoreNestedTransactions'>) "Starts new transaction bound to this EntityManager", and em.commit() "Commits the transaction bound to this EntityManager. Flushes before doing the actual commit query." (core/EntityManager.d.ts). ${LEVEL_OPTION}.`,
+}
+const TX05_MANAGED_FORM = 'em.transactional(callback, { isolationLevel }) on the request context\'s EntityManager, with the default propagation. The marker is flushed, then read back with em.find().'
+const TX05_EXPLICIT_FORM = 'em.begin({ isolationLevel }) on a fork of the EntityManager, then em.commit(). The marker is flushed, then read back with em.find().'
+
+/** The TX-05 transaction's work: write and flush the marker, read it back with a query, and report the ID with PostgreSQL's level. */
+async function requestedLevelWork(em, { markers, checkpoint }) {
+  em.create(Item, { name: markers.tx })
+  await em.flush()
+  await em.find(Item, { name: markers.tx })
+  const r = await em.getConnection().execute("select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setting('transaction_isolation') as transaction_isolation", [], 'get', em.getTransactionContext())
+  await checkpoint('after-read', { xid: r.xid, pid: r.pid, transaction_isolation: r.transaction_isolation })
+}
 
 // TX-02. Experiments R1a (the savepoint rollback fails on the client), T7c (PostgreSQL rejects it) and R1e (the backend
 // is terminated). The outer scope writes; a nested scope writes and fails; its savepoint rollback fails; the outer
@@ -214,6 +237,22 @@ const cases = {
   'TX-04.nested-failure-contained': nestedScope('nested-fails'),
   'TX-04.nested-released-outer-rollback': nestedScope('outer-fails'),
   'TX-04.independent-inner': independentInner,
+
+  'TX-05.managed-serializable': async ({ orm }, tools) => ({
+    ...await requestedLevel(
+      (state) => managedOutcome((callback) => inRequest(orm, () => orm.em.transactional(async (em) => { state.started = true; return callback(em) }, { isolationLevel: tools.settings.isolation_level })), (em) => requestedLevelWork(em, tools), LEVEL_MANAGED),
+      () => inRequest(orm, () => orm.em.transactional(async (em) => { await tools.checkpoint('baseline', await identify(em)) })),
+    ),
+    form: TX05_MANAGED_FORM,
+  }),
+
+  'TX-05.explicit-serializable': async ({ orm }, tools) => ({
+    ...await requestedLevel(
+      (state) => explicitOutcome({ start: async () => { const em = orm.em.fork(); await em.begin({ isolationLevel: tools.settings.isolation_level }); return em }, commit: (em) => em.commit(), rollback: (em) => em.rollback() }, (em) => requestedLevelWork(em, tools), LEVEL_EXPLICIT, state),
+      async () => { const em = orm.em.fork(); await em.begin(); await tools.checkpoint('baseline', await identify(em)); await em.commit() },
+    ),
+    form: TX05_EXPLICIT_FORM,
+  }),
 }
 
 await main({

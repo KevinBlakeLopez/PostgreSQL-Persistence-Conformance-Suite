@@ -523,3 +523,132 @@ test('fateStory: the same fate at report time and at the end, or the moment that
   assert.match(fateStory(obs(null, 'in progress', 'aborted'), k, 'tx'), /open at report time \(`after-end`: xid 7 in progress\); rolled back at teardown/)
   assert.match(fateStory({ transactions: { tx: { xid: '7', fate: 'aborted' } }, checkpoints: {} }, k, 'tx'), /not observed at report time/)
 })
+
+// TX-05: the requested isolation level. A transaction requests SERIALIZABLE, writes `tx`, reads it back, and reports
+// PostgreSQL's own current_setting('transaction_isolation') with its ID at `after-read`; or the API rejects the
+// request, and a plain transaction through the same API form is reported at `baseline`.
+const TX05 = ['TX-05.managed-serializable', 'TX-05.explicit-serializable']
+/** SIReadLocks as Observer.locks() reports them; `on_item` is whether the relation is item or one of its indexes. */
+const siread = (...relations) => relations.map((relation) => ({ locktype: 'relation', relation, page: null, tuple: null, on_item: relation === 'item' || relation === 'item_pkey' }))
+
+/** A started TX-05 transaction. `level` is what PostgreSQL reported; by default the locks agree with it. */
+function tx5(id, { level = 'serializable', locks = {}, session, over = {} } = {}) {
+  const held = { wrote_item: true, xids: ['900'], read_item: true, siread: level === 'serializable' ? siread('item') : [], ...locks }
+  const afterRead = { ...point({ xid: '900', session: session ?? inTx('900', { xid_matches: true }), locks: held, now: { tx: ['in progress', inTx('900')] } }), reported: { pid: PID, xid: '900', transaction_isolation: level } }
+  return evidence(id, {
+    checkpoints: { 'after-read': afterRead, 'after-end': point({ pid: null, now: { tx: ['committed', idle('COMMIT')] } }) },
+    transactions: { tx: tx('900', 'after-read', 'committed') },
+    markers: { tx: true },
+    marker_xmin: { tx: '900' },
+  }, {}, over)
+}
+
+/** A rejected TX-05 request. With `baseline`, a plain transaction through the same API form was reported and bound. */
+function tx5Rejected(id, { apiError = { class: 'Error', code: null, message: 'this isolation level is not supported' }, baseline = true, steps = {} } = {}) {
+  return evidence(id, {
+    checkpoints: {
+      ...(baseline ? { baseline: point({ xid: '901', session: inTx('901', { xid_matches: true }), locks: noWrite('901'), now: { baseline: ['in progress', inTx('901')] } }) } : {}),
+      'after-end': point({ pid: null, now: baseline ? { baseline: ['committed', idle('COMMIT')] } : {} }),
+    },
+    transactions: baseline ? { baseline: tx('901', 'baseline', 'committed') } : {},
+    markers: { tx: false },
+    marker_xmin: { tx: null },
+  }, { reported: 'failed', apiError, steps })
+}
+
+test('TX-05: PostgreSQL reports SERIALIZABLE and the backend holds an SIReadLock on item: PASS, in both forms', () => {
+  for (const id of TX05) {
+    const r = run(tx5(id))
+    assert.equal(r.classification, 'PASS', `${id}: ${r.reason}`)
+    assert.equal(r.inconclusive_reason, null)
+    assert.deepEqual(r.invariants.map((i) => [i.id, i.holds]), [['TX-05.1', true], ['TX-05.2', true]])
+    assert.match(r.reason, /SIReadLock on relation:item/)
+  }
+})
+
+test('TX-05: an SIReadLock on an index of item corroborates SERIALIZABLE; one beside it on another table changes nothing', () => {
+  assert.equal(run(tx5(TX05[0], { locks: { siread: siread('item_pkey') } })).classification, 'PASS')
+  assert.equal(run(tx5(TX05[0], { locks: { siread: siread('item', 'other_table') } })).classification, 'PASS')
+})
+
+test('TX-05: a weaker level, reported honestly and with no SIReadLock, is a FAIL of TX-05.1: the Lucid explicit-form bug', () => {
+  for (const level of ['read committed', 'repeatable read', 'read uncommitted']) {
+    const r = run(tx5(TX05[1], { level }))
+    assert.equal(r.classification, 'FAIL', `${level}: ${r.reason}`)
+    assert.deepEqual(r.invariants.map((i) => [i.id, i.holds]), [['TX-05.1', false], ['TX-05.2', true]])
+    assert.match(r.reason, new RegExp(`PostgreSQL ran the transaction at ${level}.*no SIReadLock although it had read item`))
+  }
+})
+
+test('TX-05: a report the locks contradict is INCONCLUSIVE (observation-conflict), never PASS', () => {
+  const conflicts = {
+    'serializable claimed, no SIReadLock': tx5(TX05[0], { locks: { siread: [] } }),
+    'serializable claimed, SIReadLocks only on another table': tx5(TX05[0], { locks: { siread: siread('other_table') } }),
+    'a weaker level claimed, with an SIReadLock on item': tx5(TX05[0], { level: 'read committed', locks: { siread: siread('item') } }),
+  }
+  for (const [what, ev] of Object.entries(conflicts)) {
+    const r = run(ev)
+    assert.equal(r.classification, 'INCONCLUSIVE', `${what}: ${r.classification}`)
+    assert.equal(r.inconclusive_reason, 'observation-conflict', what)
+  }
+})
+
+test('TX-05: missing evidence is INCONCLUSIVE (evidence-missing): no confirmed read, no report of the level, a session not idle, an unbound ID', () => {
+  const missing = {
+    'no AccessShareLock on item': tx5(TX05[0], { locks: { read_item: false } }),
+    'no report of the level': tx5(TX05[0], { over: { observed: { checkpoints: { 'after-read': { reported: { transaction_isolation: null } } } } } }),
+    'an unknown level name': tx5(TX05[0], { over: { observed: { checkpoints: { 'after-read': { reported: { transaction_isolation: 'snapshot' } } } } } }),
+    'a session not idle in its transaction': tx5(TX05[0], { session: aborted({ backend_xid: '900', xid_matches: true }) }),
+    'an ID not bound to its session': tx5(TX05[0], { over: { observed: { transactions: { tx: { session_xid_matches: false } } } } }),
+    'the write not confirmed': tx5(TX05[0], { locks: { wrote_item: false } }),
+    'a case that requests a level the runner cannot corroborate': tx5(TX05[0], { over: { case: { settings: { isolation_level: 'repeatable read' } } } }),
+  }
+  for (const [what, ev] of Object.entries(missing)) {
+    const r = run(ev)
+    assert.equal(r.classification, 'INCONCLUSIVE', `${what}: ${r.classification} (${r.reason})`)
+    assert.equal(r.inconclusive_reason, 'evidence-missing', `${what}: ${r.inconclusive_reason}`)
+  }
+})
+
+test('TX-05: a rejection with an established cause is a FAIL of TX-05.2, with TX-05.1 not exercised', () => {
+  for (const id of TX05) {
+    for (const code of [null, 'E_UNSUPPORTED_ISOLATION_LEVEL']) {
+      const r = run(tx5Rejected(id, { apiError: { class: 'Error', code, message: 'this isolation level is not supported' } }))
+      assert.equal(r.classification, 'FAIL', `${id} ${code}: ${r.reason}`)
+      assert.deepEqual(r.invariants.map((i) => [i.id, i.holds]), [['TX-05.1', null], ['TX-05.2', false]])
+      assert.deepEqual(r.not_exercised, ['TX-05.1'])
+      assert.match(r.reason, /the API raised instead of starting the transaction .*while a plain transaction through the same API form started \(xid 901\)/)
+    }
+  }
+})
+
+test('TX-05: a rejection whose cause is the environment, or unknown, is INCONCLUSIVE with that reason', () => {
+  const cases = {
+    'a PostgreSQL SQLSTATE': [tx5Rejected(TX05[1], { apiError: { class: 'DatabaseError', code: '42601', message: 'syntax error' } }), 'environment'],
+    'a connection error code': [tx5Rejected(TX05[1], { apiError: { class: 'Error', code: 'ECONNREFUSED', message: 'connect ECONNREFUSED' } }), 'environment'],
+    'a DNS error code': [tx5Rejected(TX05[1], { apiError: { class: 'Error', code: 'EAI_AGAIN', message: 'getaddrinfo EAI_AGAIN' } }), 'environment'],
+    'the plain transaction failed too': [tx5Rejected(TX05[1], { baseline: false, steps: { baseline: { error: { class: 'Error', code: null, message: 'Connection terminated unexpectedly' } } } }), 'environment'],
+    'no plain transaction reported': [tx5Rejected(TX05[1], { baseline: false }), 'cause-not-established'],
+  }
+  for (const [what, [ev, reason]] of Object.entries(cases)) {
+    const r = run(ev)
+    assert.equal(r.classification, 'INCONCLUSIVE', `${what}: ${r.classification} (${r.reason})`)
+    assert.equal(r.inconclusive_reason, reason, `${what}: ${r.inconclusive_reason}`)
+  }
+  // A rejection reported without the API's error, and a success reported without `after-read`, are missing evidence.
+  for (const ev of [tx5Rejected(TX05[0], { apiError: null }), merge(tx5Rejected(TX05[0]), { reported: 'committed', apiError: null })]) {
+    const r = run(ev)
+    assert.equal(r.classification, 'INCONCLUSIVE', r.reason)
+    assert.equal(r.inconclusive_reason, 'evidence-missing')
+  }
+})
+
+test('TX-05 records why it is INCONCLUSIVE, other families do not yet, and no recorded precondition carries its kind', () => {
+  const r = run(tx5(TX05[0], { locks: { siread: [] } }))
+  assert.equal(r.inconclusive_reason, 'observation-conflict')
+  for (const p of r.preconditions) assert.deepEqual(Object.keys(p).sort(), ['description', 'detail', 'met'])
+  const other = run(merge(ctl('CTL-01.commit'), { observed: { transactions: { tx: { fate: null } } } }))
+  assert.equal(other.classification, 'INCONCLUSIVE')
+  assert.equal(other.inconclusive_reason, null)
+  assert.equal(run(ctl('CTL-01.commit')).inconclusive_reason, null)
+})

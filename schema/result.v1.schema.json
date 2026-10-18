@@ -302,6 +302,10 @@
             "rolled_back",
             "failed",
             "pending",
+            "applied",
+            "nothing_to_do",
+            "refused",
+            "reverted",
             "UNKNOWN"
           ],
           "description": "What the framework's API reported, mapped by the adapter: committed (it reported success), rolled_back (it reported a rollback, with the error it raised), failed (it raised an error that asserts neither), pending (the call had not returned when the adapter stopped waiting; never a basis for PASS or FAIL)."
@@ -534,6 +538,20 @@
         },
         "reason": {
           "type": "string"
+        },
+        "inconclusive_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "observation-conflict",
+            "evidence-missing",
+            "environment",
+            "cause-not-established",
+            null
+          ],
+          "description": "Why an INCONCLUSIVE result is inconclusive, for the families that record it (TX-05 today); null otherwise."
         },
         "preconditions": {
           "type": "array",

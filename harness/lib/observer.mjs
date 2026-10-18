@@ -7,10 +7,13 @@
 // - markers() and markerXmins(): which marker rows a new READ COMMITTED connection can see, and the ID of the
 //   transaction that inserted each one, so that "committed" means visible to others, and attributable.
 // - locks(): the locks a backend holds. A RowExclusiveLock on `item` shows that a write reached the server; a second
-//   transactionid lock shows a write inside a savepoint (an assigned subtransaction ID). Other sessions cannot see
+//   transactionid lock shows a write inside a savepoint (an assigned subtransaction ID). An AccessShareLock on `item`
+//   shows a read of it, and an SIReadLock on `item` or one of its indexes shows that PostgreSQL's predicate locking,
+//   which only SERIALIZABLE transactions take part in, covered that read (TX-05). Other sessions cannot see
 //   uncommitted rows, but they can see these locks.
 // - session(): pg_stat_activity, as a supplementary check of a backend's state, to cross-check the reported ID, and
-//   to identify the backend (backend_start) across checkpoints. It never identifies a transaction alone.
+//   to identify the backend (backend_start) across checkpoints. It never identifies a transaction alone. Its
+//   backend_xmin is recorded as a diagnostic only.
 import { createHash } from 'node:crypto'
 
 const XID_MOD = 2n ** 32n
@@ -28,6 +31,44 @@ export class Observer {
     if (typeof xid !== 'string' || !/^\d+$/.test(xid)) return null
     const rows = await this.instance.query(database, 'select pg_xact_status($1::xid8) as status', [xid])
     return rows[0]?.status ?? null
+  }
+
+  /** How many rows of `item` have this marker value. A migration's execution count. */
+  async markerCount(database, name) {
+    const rows = await this.instance.query(database, 'select count(*)::int as n from item where name = $1', [name])
+    return rows[0].n
+  }
+
+  /**
+   * How many rows the framework's history table holds. A missing table is zero: the database has no history yet.
+   * `table` is the adapter's declared history table, and it must be a plain identifier.
+   */
+  async historyCount(database, table) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(table ?? '')) throw new Error(`history table is not an identifier: ${JSON.stringify(table)}`)
+    const rel = await this.instance.query(database, 'select to_regclass($1) as rel', [table])
+    if (!rel[0].rel) return 0
+    const rows = await this.instance.query(database, `select count(*)::int as n from ${table}`)
+    return rows[0].n
+  }
+
+  /**
+   * Sessions waiting on advisory lock `key`, other than the runner's own connections. The gate is that lock: a
+   * migration that has reached its hold point waits on it, and the runner's own session holds it.
+   */
+  async gateWaiters(database, key) {
+    const runner = this.instance.runnerSessions?.() ?? { pids: [], applicationName: 'ppcs-observer' }
+    return this.instance.query(database, `select a.pid, a.application_name, a.state, l.granted
+      from pg_locks l join pg_stat_activity a using (pid)
+      where l.locktype = 'advisory' and l.classid = 0 and l.objid = $1 and a.datname = current_database()
+        and not (a.pid = any($2::int[]) and a.application_name = $3)
+      order by a.pid`, [key, runner.pids, runner.applicationName])
+  }
+
+  /** Client sessions of one role. The role's application_name is `ppcs-` plus the role. */
+  async roleSessions(database, role) {
+    return this.instance.query(database, `select pid, state from pg_stat_activity
+      where datname = current_database() and backend_type = 'client backend' and application_name = $1
+      order by pid`, [`ppcs-${role}`])
   }
 
   /** Which of the case's markers an independent connection sees: { label: true | false }. */
@@ -64,29 +105,40 @@ export class Observer {
    */
   async session(database, pid, reportedXid = null) {
     if (!Number.isInteger(pid)) return null
-    const rows = await this.instance.query(database, `select pid, state, backend_xid::text as backend_xid, backend_start::text as backend_start,
-      (xact_start is not null or state like 'idle in transaction%') as in_transaction, left(query, 80) as query, application_name
+    const rows = await this.instance.query(database, `select pid, state, backend_xid::text as backend_xid, backend_xmin::text as backend_xmin,
+      backend_start::text as backend_start, (xact_start is not null or state like 'idle in transaction%') as in_transaction,
+      left(query, 80) as query, application_name
       from pg_stat_activity where pid = $1 and datname = current_database()`, [pid])
     const s = rows[0]
     if (!s) return { pid, present: false }
     let xidMatches = null
     if (s.backend_xid != null && low32(reportedXid) != null) xidMatches = low32(reportedXid) === s.backend_xid
+    // backend_xmin, the backend's snapshot horizon, is not an isolation-level field: it is kept as a diagnostic.
     return { pid, present: true, state: s.state, in_transaction: s.in_transaction, backend_xid: s.backend_xid, xid_matches: xidMatches,
-      backend_start: s.backend_start, query: s.query, application_name: s.application_name }
+      backend_xmin: s.backend_xmin, backend_start: s.backend_start, query: s.query, application_name: s.application_name }
   }
 
   /**
-   * The evidence of writes that backend `pid` holds: `wrote_item`, a RowExclusiveLock on the marker table, and `xids`,
-   * the transaction IDs whose transactionid locks it holds (the top-level ID, then one per open subtransaction that
-   * has written).
+   * The evidence that backend `pid` holds in pg_locks:
+   * - `wrote_item`: a RowExclusiveLock on the marker table;
+   * - `xids`: the transaction IDs whose transactionid locks it holds (the top-level ID, then one per open
+   *   subtransaction that has written);
+   * - `read_item`: an AccessShareLock on the marker table, which a read of it takes;
+   * - `siread`: its SIReadLocks, each with its target (lock type, relation, page, tuple) and `on_item`, whether that
+   *   relation is the marker table or one of its indexes. They are attributed by target, never counted: PostgreSQL can
+   *   change their granularity.
    */
   async locks(database, pid) {
     if (!Number.isInteger(pid)) return null
-    const rows = await this.instance.query(database, `select locktype, mode, relation::regclass::text as relation, transactionid::text as xid
+    const rows = await this.instance.query(database, `select locktype, mode, relation::regclass::text as relation, transactionid::text as xid,
+      page, tuple, coalesce(relation = 'item'::regclass or relation in (select indexrelid from pg_index where indrelid = 'item'::regclass), false) as on_item
       from pg_locks where pid = $1 and granted`, [pid])
     return {
       wrote_item: rows.some((r) => r.locktype === 'relation' && r.relation === 'item' && r.mode === 'RowExclusiveLock'),
       xids: rows.filter((r) => r.locktype === 'transactionid').map((r) => r.xid).sort((a, b) => Number(a) - Number(b)),
+      read_item: rows.some((r) => r.locktype === 'relation' && r.relation === 'item' && r.mode === 'AccessShareLock'),
+      siread: rows.filter((r) => r.mode === 'SIReadLock').map((r) => ({ locktype: r.locktype, relation: r.relation, page: r.page, tuple: r.tuple, on_item: r.on_item }))
+        .sort((a, b) => `${a.relation}:${a.locktype}:${a.page}:${a.tuple}`.localeCompare(`${b.relation}:${b.locktype}:${b.page}:${b.tuple}`)),
     }
   }
 

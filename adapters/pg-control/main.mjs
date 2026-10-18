@@ -7,6 +7,7 @@
 //   top-level ROLLBACK fails         discards the connection               returns it to the pool as it is
 //   a write before a nested scope    sends it at once                      defers it, then sends it inside the nested
 //                                                                          scope's savepoint, as a unit of work might
+//   a requested isolation level      sends it with BEGIN                   sends a plain BEGIN, ignoring it
 //
 // A rollback the control reports without the body having thrown (from the reply to COMMIT, or after a failed savepoint
 // rollback) is raised to the caller as a TransactionRolledBackError, as an API would raise it.
@@ -19,6 +20,7 @@ import pg from 'pg'
 import { ProtocolError, boundedUnit, main } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { migrationCases } from './migration.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const pgTrace = instrument(pg)
@@ -29,16 +31,19 @@ async function identify(client) {
 }
 
 const CONTRACT = {
-  correct: 'The correct control reports committed only when PostgreSQL answers COMMIT with the command tag COMMIT, reports any other tag as a rollback, and reports a COMMIT that raised as a failure. After a failed savepoint rollback, it ends the transaction with ROLLBACK instead of COMMIT.',
-  unsafe: 'The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks, and defers a write made before a nested scope into that scope\'s savepoint.',
+  correct: 'The correct control reports committed only when PostgreSQL answers COMMIT with the command tag COMMIT, reports any other tag as a rollback, and reports a COMMIT that raised as a failure. After a failed savepoint rollback, it ends the transaction with ROLLBACK instead of COMMIT. It starts a transaction at the isolation level requested of it.',
+  unsafe: 'The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks, and defers a write made before a nested scope into that scope\'s savepoint. It starts every transaction with a plain BEGIN, whatever isolation level is requested of it.',
 }
 
 const rolledBackError = (message) => ({ class: 'TransactionRolledBackError', code: null, message })
 
-/** BEGIN, the body, then COMMIT, reporting the outcome as the mode dictates. `state.rollbackOnly` is set by nestedScope(). */
-async function transaction(client, mode, body, state = {}) {
+/**
+ * BEGIN, the body, then COMMIT, reporting the outcome as the mode dictates. `state.rollbackOnly` is set by nestedScope().
+ * `begin` is the statement that starts the transaction (TX-05 passes one with an isolation level).
+ */
+async function transaction(client, mode, body, state = {}, begin = 'BEGIN') {
   const contract = CONTRACT[mode]
-  await client.query('BEGIN')
+  await client.query(begin)
   try {
     await body(client)
   } catch (e) {
@@ -214,6 +219,23 @@ const nestedOnly = (variant) => async (ctx, { markers, checkpoint, mode }) => {
   return { ...outcome, steps: { nested } }
 }
 
+// TX-05: the requested isolation level. `correct` sends it with BEGIN; `unsafe` sends a plain BEGIN, the shape of an API
+// that drops the request. Both report PostgreSQL's own current_setting('transaction_isolation') honestly, read in the
+// statement that captures the ID. The control has no API forms, so both TX-05 cases run this same transaction.
+const LEVELS = ['read uncommitted', 'read committed', 'repeatable read', 'serializable']
+const requestedLevel = async (ctx, { markers, checkpoint, settings, mode }) => {
+  const level = settings.isolation_level
+  if (!LEVELS.includes(level)) throw new ProtocolError(`the case requests an unknown isolation level: ${JSON.stringify(level)}`)
+  const begin = mode === 'correct' ? `BEGIN ISOLATION LEVEL ${level.toUpperCase()}` : 'BEGIN'
+  const outcome = await transaction(await ctx.client(), mode, async (c) => {
+    await c.query('insert into item (name) values ($1)', [markers.tx])
+    await c.query('select name from item where name = $1', [markers.tx])
+    const { rows: [r] } = await c.query("select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setting('transaction_isolation') as transaction_isolation")
+    await checkpoint('after-read', r)
+  }, {}, begin)
+  return { ...outcome, steps: { begin } }
+}
+
 const cases = {
   'CTL-01.commit': async (ctx, { markers, checkpoint, mode }) => transaction(await ctx.client(), mode, async (c) => {
     await c.query('insert into item (name) values ($1)', [markers.tx])
@@ -264,6 +286,11 @@ const cases = {
 
   'TX-04.nested-failure-contained': nestedOnly('nested-fails'),
   'TX-04.nested-released-outer-rollback': nestedOnly('outer-fails'),
+
+  'TX-05.managed-serializable': requestedLevel,
+  'TX-05.explicit-serializable': requestedLevel,
+
+  ...migrationCases,
 }
 
 const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
@@ -276,13 +303,14 @@ await main({
     components: { 'pg-pool': packageVersion(packageDir(HERE, 'pg'), 'pg-pool') },
   }),
   modes: {
-    correct: { configuration: { commit_reply: 'checked', commit_error: 'reported as a failure', failed_savepoint_rollback: 'transaction ended with ROLLBACK', failed_rollback: 'connection discarded', write_before_nested_scope: 'sent at once' } },
-    unsafe: { configuration: { commit_reply: 'ignored', commit_error: 'reported as a rollback', failed_savepoint_rollback: 'ignored', failed_rollback: 'connection returned to the pool', write_before_nested_scope: 'deferred into the nested scope\'s savepoint' } },
+    correct: { configuration: { commit_reply: 'checked', commit_error: 'reported as a failure', failed_savepoint_rollback: 'transaction ended with ROLLBACK', failed_rollback: 'connection discarded', write_before_nested_scope: 'sent at once', isolation_level: 'sent with BEGIN' } },
+    unsafe: { configuration: { commit_reply: 'ignored', commit_error: 'reported as a rollback', failed_savepoint_rollback: 'ignored', failed_rollback: 'connection returned to the pool', write_before_nested_scope: 'deferred into the nested scope\'s savepoint', isolation_level: 'ignored: plain BEGIN' } },
   },
   open: (message) => {
     let client = null
     let pool = null
     const context = {
+      connection: message.connection,
       // A terminated connection is reported through the failing query, not as a crash.
       client: async () => { if (!client) { client = new pg.Client(message.connection); client.on('error', () => {}); await client.connect() } return client },
       pool: (mode) => (pool ??= new OneConnectionPool(message.connection, mode)),

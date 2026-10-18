@@ -57,6 +57,9 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
       }
       const declared = declaredCheckpoints[msg.name]
       const reported = { pid: Number.isInteger(msg.pid) ? msg.pid : null, xid: typeof msg.xid === 'string' ? msg.xid : null }
+      // PostgreSQL's own report of the isolation level, which the adapter read in the same statement as the ID (TX-05).
+      // It is the adapter's claim: classify.mjs counts it only when the runner's lock evidence agrees.
+      if (declared?.captures_isolation) reported.transaction_isolation = typeof msg.transaction_isolation === 'string' ? msg.transaction_isolation : null
       const entry = { reported }
       observed.checkpoints[msg.name] = entry
       if (!declared) { runnerErrors.push(`undeclared checkpoint "${msg.name}"`); return { actions: [] } }

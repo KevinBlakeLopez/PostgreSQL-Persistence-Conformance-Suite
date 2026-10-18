@@ -16,9 +16,9 @@ There is no transaction API, no RPC, and no shared library: PPCS's JavaScript ad
 
 | Direction | `type` | When | Fields |
 | --- | --- | --- | --- |
-| runner → adapter | `case` | First, once | `case` (`id`, `family`, `version`, `title`, `settings`), `mode`, `repetition` (1, 2, 3, …), `connection` (`host`, `port`, `user`, `password`, `database`, `application_name`), `markers` (label → value) |
+| runner → adapter | `case` | First, once | `case` (`id`, `family`, `version`, `title`, `settings`), `mode`, `repetition` (1, 2, 3, …), `connection` (`host`, `port`, `user`, `password`, `database`, `application_name`), `markers` (label → value). A migration case also sends `migration`: `role`, `operation` (`apply` or `revert`), `gate`, `migrationId`, `reversal`, `hold` |
 | adapter → runner | `hello` | After reading `case`, once | `adapter`, `framework`, `driver` (each `name` and `version`), `components` (name → version), `runtime` (`name`, `version`), `mode`, `configuration` (what the mode changes) |
-| adapter → runner | `checkpoint` | At each checkpoint the case declares, and at `after-end` | `name`, `pid` (the backend running the current transaction), `xid` (its `pg_current_xact_id()`, as text) when the case captures it |
+| adapter → runner | `checkpoint` | At each checkpoint the case declares, and at `after-end` | `name`, `pid` (the backend running the current transaction), `xid` (its `pg_current_xact_id()`, as text) when the case captures it; `transaction_isolation` (its `current_setting('transaction_isolation')`, read in the same statement as `xid`) when the checkpoint declares `captures_isolation` |
 | runner → adapter | `resume` | After observing a checkpoint | `name`, `actions` (what the runner did, for example `{ "action": "terminate_backend", "pid": 123, "terminated": true, "gone": true }`) |
 | adapter → runner | `result` | Last, once; then exit | `status`, plus the fields below |
 
@@ -52,7 +52,7 @@ adapter {"ppcs":1,"type":"result","status":"completed","reported":"committed","b
 ## Rules
 
 - **Native APIs only.** Use the framework's ordinary, documented APIs. Do not patch the framework to change its behaviour; a mitigation is a separate execution mode, never the native one (`docs/methodology.md`).
-- **The identity comes from inside the transaction.** Read `pg_current_xact_id()` and `pg_backend_pid()` through the transaction's own connection, after the transaction has written. The runner checks that the ID is that session's transaction.
+- **The identity comes from inside the transaction.** Read `pg_current_xact_id()` and `pg_backend_pid()` through the transaction's own connection, after the transaction has written. The runner checks that the ID is that session's transaction. At a checkpoint that declares `captures_isolation` (TX-05), read `current_setting('transaction_isolation')` in the same statement, and report it as `transaction_isolation`. The runner counts it only when its own lock evidence agrees.
 - **Writes are sent where the case says.** A case's `marker_writes` names the checkpoint by which each marker's write must have reached PostgreSQL. Make sure it has, for example by flushing a unit of work, unless the write is declared `possibly-pending`.
 - **Checkpoints:**
   - report only those the case declares, plus `after-end`;

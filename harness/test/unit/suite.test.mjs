@@ -101,6 +101,24 @@ test('repetitions: agreement keeps the classification; any disagreement is INCON
   assert.equal(qualified.evaluation.classification, 'INCONCLUSIVE', 'a PASS whose mechanism did not run is not the same result')
 })
 
+test('TX-05 records a reason when repetitions disagree or a gate fails; other families keep none', () => {
+  const tx05 = (classification) => ({ ...record(classification, { inconclusive_reason: null }), specification: { id: 'TX-05.explicit-serializable', family: 'TX-05' } })
+  const disagree = combineRepetitions([tx05('PASS'), tx05('FAIL'), tx05('PASS')])
+  assert.equal(disagree.evaluation.classification, 'INCONCLUSIVE')
+  assert.equal(disagree.evaluation.inconclusive_reason, 'observation-conflict')
+  const other = combineRepetitions([record('PASS'), record('FAIL'), record('PASS')])
+  assert.equal(other.evaluation.inconclusive_reason ?? null, null)
+
+  // No observation controls for lucid (native) in this run: its results are gated.
+  const results = [...controls(), result('TX-05.explicit-serializable', 'lucid', 'native', 'FAIL', { inconclusive_reason: null }), result('TX-01A.caught-error-then-commit', 'lucid', 'native', 'FAIL')]
+  applyGates(results, catalog, adapters)
+  const gated = find(results, 'TX-05.explicit-serializable', 'lucid', 'native')
+  assert.equal(gated.evaluation.classification, 'INCONCLUSIVE')
+  assert.equal(gated.evaluation.ungated.classification, 'FAIL')
+  assert.equal(gated.evaluation.inconclusive_reason, 'environment')
+  assert.equal(find(results, 'TX-01A.caught-error-then-commit', 'lucid', 'native').evaluation.inconclusive_reason, undefined)
+})
+
 test('comparison with an earlier run is refused when the harness or the catalog differs', () => {
   const now = { harness: { sha256: 'a'.repeat(64) }, catalog: { sha256: 'b'.repeat(64) } }
   assert.deepEqual(incomparable(now, now), [])

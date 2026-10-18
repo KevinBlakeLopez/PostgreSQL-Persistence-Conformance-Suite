@@ -41,7 +41,8 @@ export function treeSha256(paths) {
 /** The digest of the code that observes and classifies: the runner and its library, not its tests. */
 export const harnessSha256 = () => treeSha256([join(ROOT, 'harness', 'lib'), join(ROOT, 'harness', 'run.mjs')])
 
-export function loadCatalog(file = DEFAULT_CATALOG) {
+/** One catalog file. A path other than the default is loaded alone, so a test can hand the loader a rewritten copy. */
+function loadOne(file) {
   const path = resolve(ROOT, file)
   const text = readFileSync(path, 'utf8')
   const catalog = JSON.parse(text)
@@ -59,6 +60,8 @@ export function loadCatalog(file = DEFAULT_CATALOG) {
     if (checkpoints[IMPLICIT_CHECKPOINT]) throw new CatalogError(`${c.id}: "${IMPLICIT_CHECKPOINT}" is implicit in every case and must not be declared`)
     for (const [name, cp] of Object.entries(checkpoints)) {
       if (cp.action && !CHECKPOINT_ACTIONS.includes(cp.action)) throw new CatalogError(`${c.id}: checkpoint "${name}" has unknown action "${cp.action}"`)
+      // PostgreSQL's report of the isolation level is read in the same statement as the captured ID (TX-05).
+      if (cp.captures_isolation !== undefined && (typeof cp.captures_isolation !== 'boolean' || !cp.captures)) throw new CatalogError(`${c.id}: checkpoint "${name}" declares captures_isolation, which must be a boolean on a checkpoint that captures a transaction`)
     }
     if (c.fault?.signature !== undefined && !FAULT_SIGNATURES.includes(c.fault.signature)) throw new CatalogError(`${c.id}: unknown fault signature "${c.fault.signature}"`)
     const captured = new Set(Object.values(checkpoints).map((cp) => cp.captures).filter(Boolean))
@@ -70,7 +73,44 @@ export function loadCatalog(file = DEFAULT_CATALOG) {
       if (w.sent !== 'possibly-pending' && !captured.has(w.transaction)) throw new CatalogError(`${c.id}: marker "${marker}" is written by "${w.transaction}", which no checkpoint captures`)
     }
   }
-  return { ...catalog, path: relative(ROOT, path), sha256: sha256(text), statements }
+  return { ...catalog, path: relative(ROOT, path), sha256: sha256(text), statements, text }
+}
+
+/**
+ * The default catalog is every file in specifications/, transaction families first. A migration case counts marker
+ * rows after the run, so its writes are possibly-pending: any runner may insert them. The fixture is the transaction
+ * catalog's. A migration case creates its own extra tables.
+ */
+function loadMerged() {
+  const dir = join(ROOT, 'specifications')
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort()
+  const ordered = [...files.filter((f) => f.startsWith('transactions')), ...files.filter((f) => !f.startsWith('transactions'))]
+  const parts = ordered.map((f) => loadOne(join('specifications', f)))
+  const families = {}
+  const cases = []
+  const ids = new Set()
+  for (const part of parts) {
+    for (const [id, family] of Object.entries(part.families)) {
+      if (families[id]) throw new CatalogError(`family ${id} is declared in more than one catalog`)
+      families[id] = family
+    }
+    for (const c of part.cases) {
+      if (ids.has(c.id)) throw new CatalogError(`duplicate case ID ${c.id}`)
+      ids.add(c.id)
+      cases.push(c)
+    }
+  }
+  const statements = {}
+  for (const family of Object.values(families)) Object.assign(statements, family.invariants)
+  const fixture = parts.find((p) => p.fixture)?.fixture
+  return { catalog: 'ppcs-specifications/1', fixture, families, cases, path: 'specifications', sha256: sha256(parts.map((p) => p.text).join('\n')), statements }
+}
+
+export function loadCatalog(file = DEFAULT_CATALOG) {
+  if (resolve(ROOT, file) === resolve(ROOT, DEFAULT_CATALOG)) return loadMerged()
+  const one = loadOne(file)
+  delete one.text
+  return one
 }
 
 export const MODE_KINDS = ['native', 'recommended', 'configured', 'hardened', 'control', 'fixture']

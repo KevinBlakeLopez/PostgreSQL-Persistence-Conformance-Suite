@@ -18,12 +18,17 @@ export function captureLogger(lines) {
 export const NOOP_EMITTER = { emit() {}, hasListeners() { return false } }
 
 /** A standalone Database for the case's connection: the constructor call DatabaseServiceProvider.register() makes. */
-export function openDatabase(connection, { poolMax, logLines }) {
-  const { host, port, user, password, database, application_name } = connection
+export function openDatabase(connection, { poolMax, logLines, migrations, defaultPool = false }) {
+  const { host, port, user, password, database, application_name, options } = connection
   const config = {
     connection: 'pg',
     connections: {
-      pg: { client: 'pg', connection: { host, port, user, password, database, application_name }, pool: { min: 0, max: poolMax } },
+      pg: {
+        client: 'pg',
+        connection: { host, port, user, password, database, application_name, ...(options ? { options } : {}) },
+        ...(defaultPool ? {} : { pool: { min: 0, max: poolMax } }),
+        ...(migrations ? { migrations } : {}),
+      },
     },
   }
   const db = new Database(config, captureLogger(logLines), NOOP_EMITTER)

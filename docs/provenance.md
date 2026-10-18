@@ -58,6 +58,8 @@ The case implementations in `adapters/*/main.mjs` are adaptations of the experim
 | `TX-04.nested-failure-contained` | LT2b PASS → PASS | T2a FAIL → FAIL; T2b PASS → `clear-forks` PASS | TT2b PASS → PASS |
 | `TX-04.nested-released-outer-rollback` | New → PASS | New → PASS | New → PASS |
 | `TX-04.independent-inner` | No propagation API → UNSUPPORTED | T1a FAIL → FAIL; T1b PASS → `clear-forks` PASS | No propagation API → UNSUPPORTED |
+| `TX-05.managed-serializable` | New in 0.3 → PASS | New in 0.3 → PASS | New in 0.3 → PASS |
+| `TX-05.explicit-serializable` | New in 0.3 → FAIL | New in 0.3 → PASS | New in 0.3 → PASS |
 | `CTL-01.*` | New → PASS | New → PASS | New → PASS |
 
 **New in PPCS:**

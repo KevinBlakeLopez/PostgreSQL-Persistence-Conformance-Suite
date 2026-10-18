@@ -57,6 +57,18 @@ test('controls: every pg-control expectation holds; the known-good implementatio
   assert.ok(violated(lost, 'TX-04.1'))
   assert.equal(lost.database_outcome.markers.outer, false)
   assert.equal(lost.api_outcome.reported, 'committed')
+  // TX-05: the correct control's SERIALIZABLE is corroborated by an SIReadLock on item; the unsafe control's plain BEGIN
+  // runs READ COMMITTED, reported honestly, which is the FAIL TX-05.1 targets.
+  for (const id of ['TX-05.managed-serializable', 'TX-05.explicit-serializable']) {
+    const good = r[`${id} pg-control/correct`]
+    assert.equal(good.database_outcome.checkpoints['after-read'].reported.transaction_isolation, 'serializable')
+    assert.ok(good.database_outcome.checkpoints['after-read'].locks.siread.some((l) => l.on_item), `${id}: an SIReadLock on item`)
+    assert.equal(good.evaluation.inconclusive_reason, null)
+    const bad = r[`${id} pg-control/unsafe`]
+    assert.ok(violated(bad, 'TX-05.1'), `${id} unsafe`)
+    assert.match(bad.evaluation.reason, /PostgreSQL ran the transaction at read committed/)
+    assert.deepEqual(bad.database_outcome.checkpoints['after-read'].locks.siread, [])
+  }
   const na = r['TX-04.independent-inner pg-control/correct']
   assert.equal(na.evaluation.classification, 'UNSUPPORTED')
   assert.equal(na.evaluation.unsupported_class, 'not-applicable-by-design')
@@ -66,7 +78,7 @@ test('controls: every pg-control expectation holds; the known-good implementatio
 })
 
 test('misbehaving adapters: never PASS; UNSUPPORTED is not FAIL; unimplemented is NOT_RUN', async () => {
-  const fixtures = loadAdapters(join(ROOT, 'harness/test/fixtures/adapters'))
+  const fixtures = loadAdapters(join(ROOT, 'harness/test/fixtures/adapters')).filter((a) => a.name === 'misbehaving')
   const { results, runDir } = await runSuite({ adapters: fixtures, outDir, timeoutMs: 4000 })
   assert.deepEqual(checkRunDir(runDir), [], 'every file matches its schema, and none contains the password')
   const r = byKey(results)
@@ -95,4 +107,36 @@ test('misbehaving adapters: never PASS; UNSUPPORTED is not FAIL; unimplemented i
   assert.equal(cls('CTL-01.commit misbehaving/lying'), 'FAIL', 'a false report is caught by the independent observation')
   assert.equal(cls('CTL-01.rollback misbehaving/ok'), 'UNSUPPORTED')
   assert.equal(cls('TX-01A.caught-error-then-commit misbehaving/ok'), 'NOT_RUN')
+})
+
+test('TX-05 misbehaving adapter: a downgrade FAILs, a false report never PASSes, and every INCONCLUSIVE says why', async () => {
+  const fixtures = loadAdapters(join(ROOT, 'harness/test/fixtures/adapters')).filter((a) => a.name === 'misbehaving-tx05')
+  const { results, runDir } = await runSuite({ adapters: fixtures, outDir, timeoutMs: 4000 })
+  assert.deepEqual(checkRunDir(runDir), [], 'every file matches its schema, and none contains the password')
+  const r = byKey(results)
+  const at = (mode) => r[`TX-05.explicit-serializable misbehaving-tx05/${mode}`].evaluation
+  for (const mode of ['ok', 'repeatable-read', 'rejects']) {
+    for (const id of ['CTL-01.commit', 'CTL-01.rollback']) assert.equal(r[`${id} misbehaving-tx05/${mode}`].evaluation.classification, 'PASS', `${id} ${mode}`)
+    assert.equal(at(mode).gates.controls.held, true, `${mode}: the observation controls hold, so the result is not gated`)
+  }
+  assert.equal(at('ok').classification, 'PASS', `the fixture itself works: ${at('ok').reason}`)
+  assert.equal(at('repeatable-read').classification, 'FAIL')
+  assert.match(at('repeatable-read').reason, /TX-05.1 violated: requested serializable; PostgreSQL ran the transaction at repeatable read/)
+  assert.equal(at('rejects').classification, 'FAIL')
+  assert.match(at('rejects').reason, /TX-05.2 violated/)
+  assert.deepEqual(at('rejects').not_exercised, ['TX-05.1'])
+  const inconclusive = {
+    'claims-serializable': 'observation-conflict',
+    'claims-weaker': 'observation-conflict',
+    'reads-other-table': 'evidence-missing',
+    'omits-level': 'evidence-missing',
+    'rejects-sqlstate': 'environment',
+    'rejects-no-baseline': 'cause-not-established',
+  }
+  for (const [mode, reason] of Object.entries(inconclusive)) {
+    assert.equal(at(mode).classification, 'INCONCLUSIVE', `${mode}: ${at(mode).classification} (${at(mode).reason})`)
+    assert.equal(at(mode).inconclusive_reason, reason, `${mode}: ${at(mode).inconclusive_reason} (${at(mode).reason})`)
+  }
+  assert.match(at('reads-other-table').reason, /AccessShareLock on item/)
+  assert.match(at('rejects-sqlstate').reason, /42601/)
 })
