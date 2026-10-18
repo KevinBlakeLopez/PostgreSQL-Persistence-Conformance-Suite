@@ -1,0 +1,51 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "django",
+  "framework": "django",
+  "description": "Django 6.1 transaction.atomic() through the PostgreSQL backend and psycopg 3. Category C faults are withheld or rewritten in this process, before psycopg sends the statement. Native mode is CONN_MAX_AGE 0. TX-03 runs only in the persistent mode (CONN_MAX_AGE null), because the default closes the connection at the end of each request.",
+  "command": [
+    "./.venv/bin/python",
+    "main.py"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "Django's documented default: transaction.atomic() for the outer transaction and a nested transaction.atomic() for the savepoint, PostgreSQL backend, psycopg 3, CONN_MAX_AGE 0, no connection pool. TX-03 is not run in this mode. The default closes the database connection at the end of each request (not-applicable-by-design for handing a transactionally active connection to later work). https://docs.djangoproject.com/en/6.1/ref/databases/#persistent-connections",
+      "cases": [
+        "CTL-01.commit",
+        "CTL-01.rollback",
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback"
+      ]
+    },
+    {
+      "id": "persistent",
+      "kind": "configured",
+      "description": "CONN_MAX_AGE null, Django's unlimited persistent connections. Between the two units, the adapter calls django.db.close_old_connections(), the handler request_finished runs. No connection pool.",
+      "documentation": "https://docs.djangoproject.com/en/6.1/ref/databases/#persistent-connections",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {}
+}
