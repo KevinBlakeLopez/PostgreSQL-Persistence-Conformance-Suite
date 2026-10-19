@@ -1,0 +1,47 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "drizzle",
+  "framework": "drizzle-orm",
+  "description": "Drizzle ORM with the node-postgres driver, through db.transaction() and the query builder, on a pg.Pool.",
+  "command": [
+    "node",
+    "main.mjs"
+  ],
+  "shared": [
+    "../node-kit"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Drizzle has no propagation modes and no deferred writes: tx.transaction() is always a savepoint (SAVEPOINT spN in NodePgTransaction.transaction), and insert() is sent when it is awaited. An independent transaction is an unrelated db.transaction() on another pooled connection, which shares no pending writes with the outer one, so the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise."
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "Drizzle ORM 0.45.4's documented transaction API is the callback form db.transaction(callback, config). NodePgSession has no method that returns a handle the application commits with a separate call. PgTransaction.rollback() throws TransactionRollbackError from inside a callback; it does not start or commit a transaction. Sending BEGIN and COMMIT through execute() would bypass NodePgSession.transaction, so it is not that API."
+    }
+  }
+}

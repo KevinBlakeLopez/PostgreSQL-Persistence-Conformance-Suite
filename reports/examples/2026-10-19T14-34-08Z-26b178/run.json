@@ -1,0 +1,536 @@
+{
+  "schema": "ppcs-run/1",
+  "run_id": "2026-10-19T14-34-08Z-26b178",
+  "ppcs_version": "0.3.0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "runner_runtime": "v24.14.1",
+  "status": "completed",
+  "started_at": "2026-10-19T14:34:08.966Z",
+  "finished_at": "2026-10-19T14:36:23.415Z",
+  "duration_ms": 134449,
+  "filters": {
+    "adapters": [
+      "drizzle-rc"
+    ],
+    "cases": [],
+    "modes": []
+  },
+  "repetitions": 3,
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "catalog": {
+    "path": "specifications",
+    "sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "adapters": [
+    {
+      "name": "drizzle-rc",
+      "manifest": "adapters/drizzle-rc/adapter.json",
+      "source_sha256": "81aa3f973af9b4306887f89797c0e409325db98b8836c8acea25c55025a081b4"
+    },
+    {
+      "name": "pg-control",
+      "manifest": "adapters/pg-control/adapter.json",
+      "source_sha256": "aaec0b36482fc32c12766845147d7dde66116dbffe7072199ea9f7874d8befc0"
+    }
+  ],
+  "results": [
+    {
+      "case": "CTL-01.commit",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.drizzle-rc.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "INCONCLUSIVE",
+      "file": "cases/TX-01B.conn-lost-before-commit.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "INCONCLUSIVE",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-03.rollback-not-sent.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "INCONCLUSIVE",
+      "file": "cases/TX-03.conn-lost-in-transaction.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-05.explicit-serializable.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-02.held.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-02.first-deployment.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-02.session-loss.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-02.idle-session-timeout.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-03.valid-reversal.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-03.no-reversal.drizzle-rc.native.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/MG-03.failing-reversal.drizzle-rc.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.managed-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.explicit-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.held.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.held.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.first-deployment.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.first-deployment.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.session-loss.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.session-loss.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.valid-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.valid-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.no-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.no-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.failing-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.failing-reversal.pg-control.unsafe.json"
+    }
+  ],
+  "counts": {
+    "PASS": 33,
+    "FAIL": 22,
+    "UNSUPPORTED": 2,
+    "INCONCLUSIVE": 3,
+    "NOT_RUN": 7
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T13-38-47Z-39ea07",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-05.explicit-serializable",
+    "version": "1.0",
+    "family": "TX-05",
+    "family_title": "Requested isolation level",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "An explicit transaction requests SERIALIZABLE",
+    "steps": [
+      "Start a transaction with the framework's explicit transaction API, the one that returns a transaction handle which the application commits with an explicit call, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+      "Write the marker `tx` through the framework's ordinary write API, using the handle, and make sure that write was sent.",
+      "Read the marker back through the framework's ordinary query API, using the handle, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+      "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+      "Commit with the handle's explicit commit call. Then go to the last step.",
+      "Only if the API raised at step 1: start a plain transaction through the same explicit API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+      "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one."
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "drizzle",
+      "version": "UNKNOWN",
+      "source_sha256": "d4d21383daada45765b1e7b48728b4f6826ec7565b07f51d42e25d4fadf93d1d"
+    },
+    "framework": {
+      "name": "drizzle-orm",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "isolation_level": "serializable"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "Drizzle ORM 0.45.4's documented transaction API is the callback form db.transaction(callback, config). NodePgSession has no method that returns a handle the application commits with a separate call. PgTransaction.rollback() throws TransactionRollbackError from inside a callback; it does not start or commit a transaction. Sending BEGIN and COMMIT through execute() would bypass NodePgSession.transaction, so it is not that API.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=TX-05.explicit-serializable",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T13:39:20.016Z",
+    "finished_at": "2026-10-19T13:39:20.016Z",
+    "duration_ms": 0
+  }
+}

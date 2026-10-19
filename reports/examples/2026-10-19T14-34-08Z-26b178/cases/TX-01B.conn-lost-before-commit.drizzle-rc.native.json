@@ -1,0 +1,273 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T14-34-08Z-26b178",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "drizzle-rc",
+      "version": "0.1.0",
+      "source_sha256": "81aa3f973af9b4306887f89797c0e409325db98b8836c8acea25c55025a081b4"
+    },
+    "framework": {
+      "name": "drizzle-orm",
+      "version": "1.0.0-rc.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Drizzle 1.0.0-rc.4's db.transaction(callback) on a pg.Pool passed as drizzle({ client: pool }). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback.",
+    "configuration": {
+      "client": "drizzle({ client: pg.Pool })",
+      "transaction": "db.transaction(callback)"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 227187,
+          "xid": "7193"
+        },
+        "session": {
+          "pid": 227187,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "7193",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 14:34:14.304905+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "7193"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 227187,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "7193",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 14:34:14.304905+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 227187,
+          "terminated": true,
+          "gone": true
+        }
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "7193",
+        "pid": 227187,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 14:34:14.304905+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "preconditions": [],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the adapter exited without a result (exit code 1, signal none)",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for drizzle-rc (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=drizzle-rc --mode=native --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": "node:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nerror: terminating connection due to administrator command\n    at parseErrorMessage (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:306:11)\n    at Parser.handlePacket (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:143:27)\n    at Parser.parse (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:37:38)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Readable.push (node:internal/streams/readable:394:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)\nEmitted 'error' event on Client instance at:\n    at Client._handleErrorEvent (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:422:10)\n    at Client._handleErrorMessage (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:433:12)\n    at Connection.emit (node:events:508:28)\n    at /Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection.js:143:12\n    at Parser.parse (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:38:17)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle-rc/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Readable.push (node:internal/streams/readable:394:5) {\n  length: 116,\n  severity: 'FATAL',\n  code: '57P01',\n  detail: undefined,\n  hint: undefined,\n  position: undefined,\n  internalPosition: undefined,\n  internalQuery: undefined,\n  where: undefined,\n  schema: undefined,\n  table: undefined,\n  column: undefined,\n  dataType: undefined,\n  constraint: undefined,\n  file: 'postgres.c',\n  line: '3354',\n  routine: 'ProcessInterrupts'\n}\n\nNode.js v24.14.1\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T14:34:13.882Z",
+    "finished_at": "2026-10-19T14:34:15.376Z",
+    "duration_ms": 1494
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 520
+      },
+      {
+        "repetition": 2,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 486
+      },
+      {
+        "repetition": 3,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 488
+      }
+    ]
+  }
+}

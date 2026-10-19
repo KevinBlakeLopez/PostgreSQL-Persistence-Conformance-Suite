@@ -46,7 +46,7 @@ A full run of the JavaScript adapters takes about six minutes. Django, SQLAlchem
 
 ## What is implemented
 
-**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. Django, the SQLAlchemy ORM adapter, and Spring JDBC do not implement the migration cases, TX-04, or TX-05. SQLAlchemy Core implements TX-04 and TX-05 and declares the migration cases unsupported. Tortoise implements the two TX-04 savepoint cases. It declares `TX-04.independent-inner` and both TX-05 cases unsupported, and it does not implement the migration cases. The plain JDBC control implements the savepoint TX-04 cases and TX-05, and declares `TX-04.independent-inner` and the migration cases unsupported.
+**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. Django, the SQLAlchemy ORM adapter, and Spring JDBC do not implement the migration cases, TX-04, or TX-05. SQLAlchemy Core implements TX-04 and TX-05 and declares the migration cases unsupported. Tortoise implements the two TX-04 savepoint cases. It declares `TX-04.independent-inner` and both TX-05 cases unsupported, and it does not implement the migration cases. Drizzle implements the transaction cases through `db.transaction()`, including the savepoint TX-04 cases and managed TX-05. It declares `TX-04.independent-inner` not applicable by design and `TX-05.explicit-serializable` capability-absent, and it does not implement the migration cases. The plain JDBC control implements the savepoint TX-04 cases and TX-05, and declares `TX-04.independent-inner` and the migration cases unsupported.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -74,12 +74,14 @@ A full run of the JavaScript adapters takes about six minutes. Django, SQLAlchem
 | `tortoise` | Tortoise ORM 1.1.9, asyncpg 0.32.0 | `native` |
 | `spring-jdbc` | Spring Framework 7.0.9 `TransactionTemplate` and `JdbcTemplate`, PostgreSQL JDBC 42.7.14, HikariCP 7.1.0 | `native` (`DriverManagerDataSource`); `pooled` (HikariCP, `maximumPoolSize` 1, TX-03 only) |
 | `jdbc-control` | PostgreSQL JDBC 42.7.14, Java 21, no framework and no pool | `correct` (positive control); `unsafe` (negative control) |
+| `drizzle` | `drizzle-orm` 0.45.4, `drizzle-orm/node-postgres`, pg 8.23.1, pg-pool 3.14.0 | `native` (`pg.Pool`, `db.transaction(callback)`) |
+| `drizzle-rc` | `drizzle-orm` 1.0.0-rc.4, `drizzle-orm/node-postgres`, pg 8.23.1, pg-pool 3.14.0 | `native` (`drizzle({ client: pg.Pool })`, `db.transaction(callback)`) |
 
-The first four rows are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`). Django, SQLAlchemy, SQLAlchemy Core, Tortoise, Spring JDBC, and the plain JDBC control are later adapters, written as separate programs. They are not part of that extraction. Django and the SQLAlchemy ORM adapter are not general ORM runners. The Core adapter does not use `Session`. Tortoise drives `in_transaction()` on asyncpg, not every Tortoise API. Spring JDBC is not a Spring Boot, Hibernate, or JPA application. The plain JDBC control is not a transaction library. An adapter does not have to be written in JavaScript. Their install and runner commands are in [`adapters/django`](adapters/django/README.md), [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md), [`adapters/sqlalchemy-core`](adapters/sqlalchemy-core/README.md), [`adapters/tortoise`](adapters/tortoise/README.md), [`adapters/spring-jdbc`](adapters/spring-jdbc/README.md), and [`adapters/jdbc-control`](adapters/jdbc-control/README.md).
+The first four rows are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`). Django, SQLAlchemy, SQLAlchemy Core, Tortoise, Spring JDBC, the plain JDBC control, and Drizzle are later adapters, written as separate programs. They are not part of that extraction. Django and the SQLAlchemy ORM adapter are not general ORM runners. The Core adapter does not use `Session`. Tortoise drives `in_transaction()` on asyncpg, not every Tortoise API. Spring JDBC is not a Spring Boot, Hibernate, or JPA application. The plain JDBC control is not a transaction library. An adapter does not have to be written in JavaScript. Their install and runner commands are in [`adapters/django`](adapters/django/README.md), [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md), [`adapters/sqlalchemy-core`](adapters/sqlalchemy-core/README.md), [`adapters/tortoise`](adapters/tortoise/README.md), [`adapters/spring-jdbc`](adapters/spring-jdbc/README.md), [`adapters/jdbc-control`](adapters/jdbc-control/README.md), [`adapters/drizzle`](adapters/drizzle/README.md), and [`adapters/drizzle-rc`](adapters/drizzle-rc/README.md).
 
 ## Results
 
-The matrix below is the Node, Django, SQLAlchemy, SQLAlchemy Core, Tortoise, and Spring JDBC recordings, all on PostgreSQL 18.6 and the same catalog. They are not one execution. The Lucid, MikroORM, and TypeORM columns are the Node run. The Django, SQLAlchemy, SQLAlchemy Core, Tortoise, and Spring JDBC columns are later runs. The plain JDBC control is a separate run and is not a column in the matrix.
+The matrix below is the Node, Django, SQLAlchemy, SQLAlchemy Core, Tortoise, Spring JDBC, and Drizzle recordings, all on PostgreSQL 18.6 and the same catalog. They are not one execution. The Lucid, MikroORM, and TypeORM columns are the Node run. The Django, SQLAlchemy, SQLAlchemy Core, Tortoise, Spring JDBC, and Drizzle columns are later runs. The plain JDBC control is a separate run and is not a column in the matrix.
 
 The Node run is [`reports/examples/2026-10-18T00-11-46Z-95887b/`](reports/examples/2026-10-18T00-11-46Z-95887b/summary.md), PPCS 0.3.0. It produced 122 results: 64 PASS, 40 FAIL, 3 UNSUPPORTED (all three not applicable by design), 1 INCONCLUSIVE, 14 NOT_RUN. Each executed case ran three times, and every repetition agreed. The 87 classifications from the previous recording are unchanged. The 35 new results are MG-02 and MG-03: Lucid and both `pg-control` modes, plus NOT_RUN for MikroORM and TypeORM, which do not implement those cases. A second full run on the same machine reproduced all 122 classifications.
 
@@ -87,31 +89,35 @@ Django 6.1.2 is [`reports/examples/2026-10-18T13-08-22Z-6d8443/`](reports/exampl
 
 Plain JDBC is [`reports/examples/2026-10-19T12-51-00Z-0a0698/`](reports/examples/2026-10-19T12-51-00Z-0a0698/summary.md). The per-case report is [`adapters/jdbc-control/FINDINGS.md`](adapters/jdbc-control/FINDINGS.md). Three repetitions agreed, and CTL-01 and `pg-control` held their gates. `correct` passes every case it executes. `unsafe` fails the eight cases it is built to fail.
 
-| Case | Fault | Lucid | MikroORM | TypeORM | Django | SQLAlchemy | SQLAlchemy Core | Tortoise | Spring JDBC |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `CTL-01.commit` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| `CTL-01.rollback` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL | PASS (mechanism not exercised) | INCONCLUSIVE | FAIL (mechanism exercised) | FAIL | FAIL |
-| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL | PASS | FAIL | FAIL | FAIL | FAIL |
-| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
-| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | PASS | FAIL (pooled) |
-| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | PASS | PASS (pooled) |
-| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS | PASS (persistent) | PASS | PASS | PASS | PASS (pooled) |
-| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS | NOT_RUN | NOT_RUN | PASS | PASS | NOT_RUN |
-| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | PASS | NOT_RUN |
-| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) | NOT_RUN | NOT_RUN | UNSUPPORTED (not applicable by design) | UNSUPPORTED (not applicable by design) | NOT_RUN |
-| `TX-05.managed-serializable` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | UNSUPPORTED | NOT_RUN |
-| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS | NOT_RUN | NOT_RUN | PASS | UNSUPPORTED | NOT_RUN |
-| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
-| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN |
+Drizzle ORM 0.45.4 is [`reports/examples/2026-10-19T13-38-47Z-39ea07/`](reports/examples/2026-10-19T13-38-47Z-39ea07/summary.md). The per-case report is [`adapters/drizzle/FINDINGS.md`](adapters/drizzle/FINDINGS.md). Three repetitions agreed. CTL-01 and `pg-control` held their gates. Five framework FAILs: `TX-01A.caught-error-then-commit`, with the COMMIT-answered-ROLLBACK mechanism exercised, both savepoint-rollback cases, and both client-side TX-03 cases. The three category B cases are INCONCLUSIVE: the process exits on an unhandled `Client` error event before `db.transaction()` returns.
+
+Drizzle ORM 1.0.0-rc.4 is [`reports/examples/2026-10-19T14-34-08Z-26b178/`](reports/examples/2026-10-19T14-34-08Z-26b178/summary.md), on the same PostgreSQL 18.6, Node.js v24.14.1, and pg 8.23.1. The per-case report is [`adapters/drizzle-rc/FINDINGS.md`](adapters/drizzle-rc/FINDINGS.md). Every classification matches 0.45.4, including the command tag on `COMMIT`, the savepoint SQL, and the reused backend after a withheld `ROLLBACK`. The release candidate is not a separate column in the matrix.
+
+| Case | Fault | Lucid | MikroORM | TypeORM | Django | SQLAlchemy | SQLAlchemy Core | Tortoise | Spring JDBC | Drizzle |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `CTL-01.commit` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `CTL-01.rollback` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL | PASS (mechanism not exercised) | INCONCLUSIVE | FAIL (mechanism exercised) | FAIL | FAIL | FAIL (mechanism exercised) |
+| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | INCONCLUSIVE |
+| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | PASS (TX-01B.2 not exercised) |
+| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL | PASS | FAIL | FAIL | FAIL | FAIL | FAIL |
+| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS | PASS | INCONCLUSIVE |
+| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | PASS | FAIL (pooled) | FAIL |
+| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | PASS | PASS (pooled) | FAIL |
+| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS | PASS (persistent) | PASS | PASS | PASS | PASS (pooled) | INCONCLUSIVE |
+| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS | NOT_RUN | NOT_RUN | PASS | PASS | NOT_RUN | PASS |
+| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | PASS | NOT_RUN | PASS |
+| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) | NOT_RUN | NOT_RUN | UNSUPPORTED (not applicable by design) | UNSUPPORTED (not applicable by design) | NOT_RUN | UNSUPPORTED (not applicable by design) |
+| `TX-05.managed-serializable` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | UNSUPPORTED | NOT_RUN | PASS |
+| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS | NOT_RUN | NOT_RUN | PASS | UNSUPPORTED | NOT_RUN | UNSUPPORTED (capability absent) |
+| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN | NOT_RUN | NOT_RUN |
 
 **How to read the matrix:**
 
