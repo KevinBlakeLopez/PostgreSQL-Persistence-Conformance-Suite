@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "expected": true,
+      "name": "in_transaction after nested exit",
+      "observed": false,
+      "ok": false
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after outer exit",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "core in_transaction",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer schema",
+      "observed": [
+        "item"
+      ],
+      "ok": false
+    },
+    {
+      "expected": "error",
+      "name": "observer item",
+      "observed": "ok",
+      "ok": false
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-TX-04.release-then-outer-rollback",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            1,
+            "released"
+          ]
+        ],
+        "status": "ok"
+      },
+      "schema": {
+        "rows": [
+          [
+            "item"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": false,
+  "repetition": 3,
+  "sqlalchemy": "2.1.5",
+  "steps": {},
+  "trace": [
+    "SAVEPOINT sa_savepoint_1",
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "INSERT INTO item(id, name) VALUES (1, 'released')",
+    "RELEASE SAVEPOINT sa_savepoint_1"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "checks": [
+    {
+      "expected": "IntegrityError",
+      "name": "fault type",
+      "observed": "IntegrityError",
+      "ok": true
+    },
+    {
+      "expected": "SQLITE_CONSTRAINT_UNIQUE",
+      "name": "fault name",
+      "observed": "SQLITE_CONSTRAINT_UNIQUE",
+      "ok": true
+    },
+    {
+      "expected": 2067,
+      "name": "fault code",
+      "observed": 2067,
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after catch",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after begin() returns",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "name": "observer",
+      "observed": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-TX-01.caught-unique-then-commit",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            1,
+            "taken"
+          ],
+          [
+            2,
+            "marker"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "sqlalchemy": "2.1.5",
+  "steps": {
+    "fault": {
+      "message": "UNIQUE constraint failed: item.name",
+      "orig_type": "IntegrityError",
+      "sqlite_errorcode": 2067,
+      "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+      "type": "IntegrityError"
+    }
+  },
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'taken')",
+    "COMMIT",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (2, 'marker')",
+    "INSERT INTO item(id, name) VALUES (3, 'taken')",
+    "COMMIT"
+  ]
+}

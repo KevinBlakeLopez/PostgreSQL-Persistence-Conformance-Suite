@@ -1,0 +1,168 @@
+{
+  "checks": [
+    {
+      "expected": [
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "name": "setup statements",
+      "observed": [
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "ok": true
+    },
+    {
+      "expected": "IntegrityError",
+      "name": "fault type",
+      "observed": "IntegrityError",
+      "ok": true
+    },
+    {
+      "expected": 2067,
+      "name": "fault code",
+      "observed": 2067,
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after fault",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer schema while pending",
+      "observed": [],
+      "ok": true
+    },
+    {
+      "expected": "ok",
+      "name": "end status",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after end",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer schema",
+      "observed": [],
+      "ok": true
+    },
+    {
+      "expected": "error",
+      "name": "accounts query",
+      "observed": "error",
+      "ok": true
+    },
+    {
+      "expected": "error",
+      "name": "migrations query",
+      "observed": "error",
+      "ok": true
+    }
+  ],
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/control/evidence/2026-10-19T13-31-40Z/db/SQLITE-DDL.statement-error-rollback.rep3.sqlite",
+  "id": "SQLITE-DDL.statement-error-rollback",
+  "observers": {
+    "after": {
+      "accounts": {
+        "error": {
+          "message": "no such table: account",
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "status": "error"
+      },
+      "in_transaction": false,
+      "migrations": {
+        "error": {
+          "message": "no such table: schema_migrations",
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "status": "error"
+      },
+      "schema": {
+        "rows": [],
+        "status": "ok"
+      }
+    },
+    "pending": {
+      "accounts": {
+        "error": {
+          "message": "no such table: account",
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "status": "error"
+      },
+      "in_transaction": false,
+      "migrations": {
+        "error": {
+          "message": "no such table: schema_migrations",
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "status": "error"
+      },
+      "schema": {
+        "rows": [],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "steps": {
+    "end": {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "params": [],
+      "rowcount": -1,
+      "sql": "ROLLBACK",
+      "status": "ok"
+    },
+    "fault": {
+      "error": {
+        "message": "UNIQUE constraint failed: account.email",
+        "sqlite_errorcode": 2067,
+        "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+        "type": "IntegrityError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "INSERT INTO account(id, email) VALUES (2, 'a@example.com')",
+      "status": "error"
+    }
+  },
+  "trace": [
+    "PRAGMA journal_mode=DELETE",
+    "PRAGMA foreign_keys=ON",
+    "PRAGMA busy_timeout=0",
+    "PRAGMA journal_mode",
+    "PRAGMA foreign_keys",
+    "PRAGMA busy_timeout",
+    "BEGIN",
+    "CREATE TABLE schema_migrations (id TEXT PRIMARY KEY)",
+    "CREATE TABLE account (id INTEGER PRIMARY KEY, email TEXT UNIQUE)",
+    "INSERT INTO schema_migrations(id) VALUES ('001_account')",
+    "INSERT INTO account(id, email) VALUES (1, 'a@example.com')",
+    "INSERT INTO account(id, email) VALUES (2, 'a@example.com')",
+    "ROLLBACK"
+  ]
+}

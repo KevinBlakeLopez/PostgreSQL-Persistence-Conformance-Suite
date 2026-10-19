@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "expected": -1,
+      "name": "driver autocommit",
+      "observed": -1,
+      "ok": true
+    },
+    {
+      "expected": "",
+      "name": "driver isolation_level",
+      "observed": "",
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after begin()",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "marker"
+        ]
+      ],
+      "name": "observer",
+      "observed": [
+        [
+          1,
+          "marker"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "expected": "COMMIT",
+      "name": "trace ends with COMMIT",
+      "observed": "COMMIT",
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-CTL.commit",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            1,
+            "marker"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 1,
+  "sqlalchemy": "2.1.5",
+  "steps": {},
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'marker')",
+    "COMMIT"
+  ]
+}

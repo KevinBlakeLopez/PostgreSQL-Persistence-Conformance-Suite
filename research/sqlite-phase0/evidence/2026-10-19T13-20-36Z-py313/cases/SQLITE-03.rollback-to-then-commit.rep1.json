@@ -1,0 +1,551 @@
+{
+  "checkpoints": {
+    "after_commit": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-commit",
+      "total_changes": 3
+    },
+    "after_continue": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-continue",
+      "total_changes": 3
+    },
+    "after_inner": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-inner",
+      "total_changes": 2
+    },
+    "after_rollback_to": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-rollback-to",
+      "total_changes": 2
+    }
+  },
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-03.rollback-to-then-commit.rep1.sqlite",
+  "experiment": "SQLITE-03",
+  "fingerprint": "{\"commit_status\":\"ok\",\"continue_status\":\"ok\",\"in_transaction_after_commit\":false,\"in_transaction_after_continue\":true,\"in_transaction_after_inner\":true,\"in_transaction_after_rollback_to\":true,\"observer_after_commit\":[\"outer\",\"after\"],\"observer_before_commit\":[],\"release_after_rollback_to_error_name\":null,\"release_after_rollback_to_status\":\"ok\",\"rollback_to_error_name\":null,\"rollback_to_status\":\"ok\",\"writer_after_rollback_to\":[\"outer\"]}",
+  "observed": {
+    "commit_status": "ok",
+    "continue_status": "ok",
+    "in_transaction_after_commit": false,
+    "in_transaction_after_continue": true,
+    "in_transaction_after_inner": true,
+    "in_transaction_after_rollback_to": true,
+    "observer_after_commit": [
+      "outer",
+      "after"
+    ],
+    "observer_before_commit": [],
+    "release_after_rollback_to_error_name": null,
+    "release_after_rollback_to_status": "ok",
+    "rollback_to_error_name": null,
+    "rollback_to_status": "ok",
+    "writer_after_rollback_to": [
+      "outer"
+    ]
+  },
+  "observers": {
+    "after_commit": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "outer"
+          ],
+          [
+            3,
+            "after"
+          ]
+        ],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on",
+      "schema": {
+        "rows": [
+          [
+            "table",
+            "item",
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+          ]
+        ],
+        "status": "ok"
+      }
+    },
+    "before_commit": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on",
+      "schema": {
+        "rows": [
+          [
+            "table",
+            "item",
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "repetition": 1,
+  "session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "writer",
+        "description": [
+          "journal_mode"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "sql": "PRAGMA journal_mode=DELETE",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA foreign_keys=ON",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "timeout"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "sql": "PRAGMA busy_timeout=0",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'outer')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": -1,
+        "sql": "SAVEPOINT sp1",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'inner')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "ROLLBACK TO SAVEPOINT sp1",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "id",
+          "name"
+        ],
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            1,
+            "outer"
+          ]
+        ],
+        "sql": "SELECT id, name FROM item ORDER BY id",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "RELEASE SAVEPOINT sp1",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 3,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (3, 'after')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 3,
+        "params": [],
+        "rowcount": -1,
+        "sql": "COMMIT",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "explicit",
+    "name": "writer",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA journal_mode=DELETE"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA foreign_keys=ON"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA busy_timeout=0"
+      },
+      {
+        "in_transaction": false,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+      },
+      {
+        "in_transaction": false,
+        "sql": "BEGIN"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'outer')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "SAVEPOINT sp1"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'inner')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "ROLLBACK TO SAVEPOINT sp1"
+      },
+      {
+        "in_transaction": true,
+        "sql": "SELECT id, name FROM item ORDER BY id"
+      },
+      {
+        "in_transaction": true,
+        "sql": "RELEASE SAVEPOINT sp1"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (3, 'after')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "COMMIT"
+      }
+    ]
+  },
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {
+    "begin": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "lastrowid": 0,
+      "params": [],
+      "rowcount": -1,
+      "sql": "BEGIN",
+      "status": "ok"
+    },
+    "closed": {
+      "connection": "writer",
+      "in_transaction_after_error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      },
+      "in_transaction_after_status": "error",
+      "in_transaction_before": false,
+      "method": "Connection.close()",
+      "returned": null,
+      "status": "ok"
+    },
+    "commit": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "lastrowid": 3,
+      "params": [],
+      "rowcount": -1,
+      "sql": "COMMIT",
+      "status": "ok"
+    },
+    "continued": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 3,
+      "params": [],
+      "rowcount": 1,
+      "sql": "INSERT INTO item(id, name) VALUES (3, 'after')",
+      "status": "ok"
+    },
+    "inner": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": 1,
+      "sql": "INSERT INTO item(id, name) VALUES (2, 'inner')",
+      "status": "ok"
+    },
+    "outer": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 1,
+      "params": [],
+      "rowcount": 1,
+      "sql": "INSERT INTO item(id, name) VALUES (1, 'outer')",
+      "status": "ok"
+    },
+    "released": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": -1,
+      "sql": "RELEASE SAVEPOINT sp1",
+      "status": "ok"
+    },
+    "rolled": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": -1,
+      "sql": "ROLLBACK TO SAVEPOINT sp1",
+      "status": "ok"
+    },
+    "savepoint": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 1,
+      "params": [],
+      "rowcount": -1,
+      "sql": "SAVEPOINT sp1",
+      "status": "ok"
+    }
+  },
+  "variant": "rollback-to-then-commit"
+}

@@ -1,0 +1,284 @@
+{
+  "checkpoints": {
+    "left": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-pragma",
+      "total_changes": 0
+    },
+    "right": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-rollback",
+      "total_changes": 0
+    }
+  },
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-05.pragma-journal-mode-inside-transaction.rep3.sqlite",
+  "experiment": "SQLITE-05",
+  "fingerprint": "{\"begin_status\":\"ok\",\"change_error\":\"cannot change into wal mode from within a transaction\",\"change_rows\":null,\"change_status\":\"error\",\"in_transaction_after_pragma\":true,\"in_transaction_after_rollback\":false,\"observer_journal_mode\":[[\"delete\"]],\"rollback_error\":null,\"rollback_status\":\"ok\",\"writer_journal_mode\":[[\"delete\"]]}",
+  "observed": {
+    "begin_status": "ok",
+    "change_error": "cannot change into wal mode from within a transaction",
+    "change_rows": null,
+    "change_status": "error",
+    "in_transaction_after_pragma": true,
+    "in_transaction_after_rollback": false,
+    "observer_journal_mode": [
+      [
+        "delete"
+      ]
+    ],
+    "rollback_error": null,
+    "rollback_status": "ok",
+    "writer_journal_mode": [
+      [
+        "delete"
+      ]
+    ]
+  },
+  "observers": {
+    "after": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "journal_mode": {
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on"
+    },
+    "pending": null
+  },
+  "repetition": 3,
+  "session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "writer",
+        "description": [
+          "journal_mode"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "sql": "PRAGMA journal_mode=DELETE",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA foreign_keys=ON",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "timeout"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "sql": "PRAGMA busy_timeout=0",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "error": {
+          "extended": false,
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": true,
+          "is_programming_error": false,
+          "message": "cannot change into wal mode from within a transaction",
+          "module": "sqlite3",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "params": [],
+        "sql": "PRAGMA journal_mode=WAL",
+        "status": "error"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "ROLLBACK",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "journal_mode"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "sql": "PRAGMA journal_mode",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "explicit",
+    "name": "writer",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA journal_mode=DELETE"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA foreign_keys=ON"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA busy_timeout=0"
+      },
+      {
+        "in_transaction": false,
+        "sql": "BEGIN"
+      },
+      {
+        "in_transaction": true,
+        "sql": "PRAGMA journal_mode=WAL"
+      },
+      {
+        "in_transaction": true,
+        "sql": "ROLLBACK"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA journal_mode"
+      }
+    ]
+  },
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {},
+  "variant": "pragma-journal-mode-inside-transaction"
+}

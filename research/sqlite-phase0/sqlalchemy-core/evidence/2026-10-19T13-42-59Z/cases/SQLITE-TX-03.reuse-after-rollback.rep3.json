@@ -1,0 +1,63 @@
+{
+  "checks": [
+    {
+      "expected": false,
+      "name": "in_transaction between units",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after second unit",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          2,
+          "next"
+        ]
+      ],
+      "name": "observer",
+      "observed": [
+        [
+          2,
+          "next"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-TX-03.reuse-after-rollback",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            2,
+            "next"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "sqlalchemy": "2.1.5",
+  "steps": {},
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'doomed')",
+    "ROLLBACK",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (2, 'next')",
+    "COMMIT"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "checks": [
+    {
+      "expected": false,
+      "name": "in_transaction after rollback",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "core in_transaction",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer",
+      "observed": [],
+      "ok": true
+    },
+    {
+      "expected": "ROLLBACK",
+      "name": "trace ends with ROLLBACK",
+      "observed": "ROLLBACK",
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-CTL.rollback",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 2,
+  "sqlalchemy": "2.1.5",
+  "steps": {},
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'marker')",
+    "ROLLBACK"
+  ]
+}

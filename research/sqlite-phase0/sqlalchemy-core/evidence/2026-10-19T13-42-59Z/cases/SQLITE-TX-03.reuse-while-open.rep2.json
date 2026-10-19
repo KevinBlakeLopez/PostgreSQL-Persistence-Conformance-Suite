@@ -1,0 +1,84 @@
+{
+  "checks": [
+    {
+      "expected": "InvalidRequestError",
+      "name": "second begin type",
+      "observed": "InvalidRequestError",
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction while held",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after commit",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "doomed"
+        ],
+        [
+          2,
+          "next"
+        ]
+      ],
+      "name": "observer",
+      "observed": [
+        [
+          1,
+          "doomed"
+        ],
+        [
+          2,
+          "next"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-TX-03.reuse-while-open",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            1,
+            "doomed"
+          ],
+          [
+            2,
+            "next"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 2,
+  "sqlalchemy": "2.1.5",
+  "steps": {
+    "second_begin": {
+      "message": "This connection has already initialized a SQLAlchemy Transaction() object via begin() or autobegin; can't call begin() here unless rollback() or commit() is called first.",
+      "type": "InvalidRequestError"
+    }
+  },
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'doomed')",
+    "INSERT INTO item(id, name) VALUES (2, 'next')",
+    "COMMIT"
+  ]
+}

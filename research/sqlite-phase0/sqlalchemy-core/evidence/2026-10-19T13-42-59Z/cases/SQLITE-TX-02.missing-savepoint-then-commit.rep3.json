@@ -1,0 +1,100 @@
+{
+  "checks": [
+    {
+      "expected": "SQLITE_ERROR",
+      "name": "fault name",
+      "observed": "SQLITE_ERROR",
+      "ok": true
+    },
+    {
+      "expected": 1,
+      "name": "fault code",
+      "observed": 1,
+      "ok": true
+    },
+    {
+      "expected": "no such savepoint: does_not_exist",
+      "name": "fault message",
+      "observed": "no such savepoint: does_not_exist",
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after error",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": 1,
+      "name": "follow-up rowcount",
+      "observed": 1,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "kept"
+        ],
+        [
+          2,
+          "after"
+        ]
+      ],
+      "name": "observer",
+      "observed": [
+        [
+          1,
+          "kept"
+        ],
+        [
+          2,
+          "after"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-TX-02.missing-savepoint-then-commit",
+  "observers": {
+    "after": {
+      "item": {
+        "rows": [
+          [
+            1,
+            "kept"
+          ],
+          [
+            2,
+            "after"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "sqlalchemy": "2.1.5",
+  "steps": {
+    "fault": {
+      "message": "no such savepoint: does_not_exist",
+      "orig_type": "OperationalError",
+      "sqlite_errorcode": 1,
+      "sqlite_errorname": "SQLITE_ERROR",
+      "type": "OperationalError"
+    }
+  },
+  "trace": [
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO item(id, name) VALUES (1, 'kept')",
+    "ROLLBACK TO SAVEPOINT does_not_exist",
+    "INSERT INTO item(id, name) VALUES (2, 'after')",
+    "COMMIT"
+  ]
+}

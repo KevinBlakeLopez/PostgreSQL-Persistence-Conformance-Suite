@@ -1,0 +1,293 @@
+{
+  "checkpoints": {},
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-06.failed-rollback-to-savepoint.rep2.sqlite",
+  "experiment": "SQLITE-06",
+  "fingerprint": "{\"after_in_transaction\":true,\"before_in_transaction\":true,\"commit_description\":null,\"commit_rowcount\":-1,\"commit_status\":\"ok\",\"end_in_transaction\":false,\"error_code\":1,\"error_message\":\"no such savepoint: does_not_exist\",\"error_name\":\"SQLITE_ERROR\",\"error_status\":\"error\",\"error_type\":\"OperationalError\",\"followup_status\":\"ok\",\"kind\":\"failed-rollback-to\",\"observer\":[\"kept\",\"after\"]}",
+  "observed": {
+    "after_in_transaction": true,
+    "before_in_transaction": true,
+    "commit_description": null,
+    "commit_rowcount": -1,
+    "commit_status": "ok",
+    "end_in_transaction": false,
+    "error_code": 1,
+    "error_message": "no such savepoint: does_not_exist",
+    "error_name": "SQLITE_ERROR",
+    "error_status": "error",
+    "error_type": "OperationalError",
+    "followup_status": "ok",
+    "kind": "failed-rollback-to",
+    "observer": [
+      "kept",
+      "after"
+    ]
+  },
+  "observers": {
+    "after": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "kept"
+          ],
+          [
+            2,
+            "after"
+          ]
+        ],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on"
+    }
+  },
+  "repetition": 2,
+  "session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "writer",
+        "description": [
+          "journal_mode"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "sql": "PRAGMA journal_mode=DELETE",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA foreign_keys=ON",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "timeout"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "sql": "PRAGMA busy_timeout=0",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'kept')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "error": {
+          "extended": false,
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": true,
+          "is_programming_error": false,
+          "message": "no such savepoint: does_not_exist",
+          "module": "sqlite3",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "params": [],
+        "sql": "ROLLBACK TO SAVEPOINT does_not_exist",
+        "status": "error"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'after')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "COMMIT",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "explicit",
+    "name": "writer",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA journal_mode=DELETE"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA foreign_keys=ON"
+      },
+      {
+        "in_transaction": false,
+        "sql": "PRAGMA busy_timeout=0"
+      },
+      {
+        "in_transaction": false,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+      },
+      {
+        "in_transaction": false,
+        "sql": "BEGIN"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'kept')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "ROLLBACK TO SAVEPOINT does_not_exist"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'after')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "COMMIT"
+      }
+    ]
+  },
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {},
+  "variant": "failed-rollback-to-savepoint"
+}
