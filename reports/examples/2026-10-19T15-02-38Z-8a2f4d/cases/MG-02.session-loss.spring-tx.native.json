@@ -1,0 +1,153 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T15-02-38Z-8a2f4d",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "MG-02.session-loss",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "One session of runner A ends while A is inside the migration",
+    "steps": [
+      "As MG-02.held, until checkpoint inside-A.",
+      "List runner A's sessions by application_name ppcs-A. Terminate one of them with pg_terminate_backend. The choice does not depend on which session holds the framework's lock.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "spring-tx",
+      "version": "UNKNOWN",
+      "source_sha256": "0f4d555dfb54d8ee3e1891f11b3e7d0f476699b4ed94ec4ae077a8342bfc1f6e"
+    },
+    "framework": {
+      "name": "spring-framework",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Programmatic TransactionTemplate on DataSourceTransactionManager over DriverManagerDataSource. No pool. The outer template uses the default PROPAGATION_REQUIRED. A nested scope uses PROPAGATION_NESTED. An independent inner transaction uses PROPAGATION_REQUIRES_NEW, which opens a second physical connection. The explicit isolation case uses PlatformTransactionManager.getTransaction and commit. TX-03 is not run in this mode: DataSourceTransactionManager.doCleanupAfterCompletion releases the connection, and DriverManagerDataSource closes it, so a later unit cannot be handed that connection.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "enumerate": "sessions-of-A"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend() of one session of runner A, chosen by application_name ppcs-A, without knowing which session coordinates.",
+    "injection_point": "While A's migration waits at the gate, after its marker insert.",
+    "expected_server": "The session ends. Session-scoped locks it held are released. Its open transaction, if any, aborts.",
+    "expected_client": "The client of that session sees the connection drop."
+  },
+  "knowledge": "The runner whose session ended can see the connection error. Another runner cannot see, from the database alone, that the ended session was the one holding coordination.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "Spring Framework transaction management has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=spring-tx --mode=native --case=MG-02.session-loss",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T15:04:55.773Z",
+    "finished_at": "2026-10-19T15:04:55.773Z",
+    "duration_ms": 0
+  }
+}

@@ -1,0 +1,499 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T15-02-38Z-8a2f4d",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-03.conn-lost-in-transaction",
+    "version": "1.1",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The backend of a failing transaction is terminated before its ROLLBACK; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend and waits until it has gone. Then wait settle_ms.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK on the closed connection, which fails.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "spring-tx",
+      "version": "0.1.0",
+      "source_sha256": "0f4d555dfb54d8ee3e1891f11b3e7d0f476699b4ed94ec4ae077a8342bfc1f6e"
+    },
+    "framework": {
+      "name": "spring-framework",
+      "version": "7.0.9"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "spring-tx": "7.0.9",
+      "spring-jdbc": "7.0.9",
+      "spring-aop": "7.0.9",
+      "spring-context": "7.0.9",
+      "postgresql": "42.7.14",
+      "HikariCP": "7.1.0"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "21.0.12.1"
+    }
+  },
+  "execution": {
+    "mode": "declarative-pooled",
+    "kind": "configured",
+    "description": "Declarative @Transactional through TransactionInterceptor, on HikariCP 7.1.0 with maximumPoolSize 1. No other pool setting is changed. The statement-error case uses rollbackFor = Exception.class so the checked SQLException takes the rollback path the case describes. The default rule, which does not roll back a checked exception, is not used for that case.",
+    "configuration": {
+      "dataSource": "com.zaxxer.hikari.HikariDataSource",
+      "pool": "HikariCP",
+      "maximumPoolSize": 1,
+      "transactionManager": "DataSourceTransactionManager",
+      "nestedTransactionAllowed": true,
+      "rollbackOnCommitFailure": false,
+      "globalRollbackOnParticipationFailure": true,
+      "failEarlyOnGlobalRollbackOnly": false,
+      "transactionSynchronization": "SYNCHRONIZATION_ALWAYS",
+      "invocation": "TransactionInterceptor",
+      "connectionAccess": "DataSourceUtils.getConnection",
+      "writes": "PreparedStatement",
+      "rollbackRule": "default RuntimeException and Error; TX-03.statement-error-rollback-not-sent uses rollbackFor Exception.class"
+    },
+    "form": "Declarative: the call goes through a JDK proxy and TransactionInterceptor. PROPAGATION_REQUIRED. Writes are PreparedStatement calls on the connection DataSourceUtils.getConnection returns."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside unit 1, after its write, before the framework's ROLLBACK.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and unit 1's transaction is rolled back.",
+    "expected_client": "An error from the framework's rollback; the pool holds a closed connection.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework knows that its connection failed.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "the @Transactional proxy threw a throwable the method did not throw",
+    "contract": "Spring Framework 7.0.9 @Transactional methods run through TransactionInterceptor (org.springframework.transaction.interceptor.TransactionAspectSupport.completeTransactionAfterThrowing). The call is on a JDK proxy. The target is not invoked directly. If TransactionAttribute.rollbackOn returns true, the interceptor calls PlatformTransactionManager.rollback and rethrows the application throwable. If rollback throws TransactionSystemException, that exception replaces the application throwable and initApplicationException stores the original. If rollbackOn returns false, the interceptor calls commit. With no rollbackFor rules, RuleBasedTransactionAttribute.rollbackOn delegates to DefaultTransactionAttribute.rollbackOn, which is true for RuntimeException and Error only. The 7.0.9 reference, Rolling Back a Declarative Transaction, states: \"In its default configuration, the Spring Framework's transaction infrastructure code marks a transaction for rollback only in the case of runtime, unchecked exceptions. That is, when the thrown exception is an instance or subclass of RuntimeException. (Error instances also, by default, result in a rollback).\" A normal return is reported as committed. The method's own throwable leaving the proxy is reported as rolled_back. Any other throwable leaving the proxy is reported as failed. Propagation.NESTED, Spring Framework 7.0.9: \"Execute within a nested transaction if a current transaction exists, behave like REQUIRED otherwise.\" DataSourceTransactionManager's class javadoc says nestedTransactionAllowed defaults to true and nested transactions use JDBC savepoints. Propagation.REQUIRES_NEW: \"Create a new transaction, and suspend the current transaction if one exists.\" The statement-error case uses rollbackFor = Exception.class so a checked SQLException takes the rollback path that case describes. The default rule would commit on that checked exception. That default is not substituted for the case.",
+    "error": {
+      "class": "TransactionSystemException",
+      "code": "57P01",
+      "message": "JDBC rollback failed: application error: unit 1 fails: FATAL: terminating connection due to administrator command: An I/O error occurred while sending to the backend.",
+      "application_class": "AppException"
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "elapsed_ms": 39,
+        "contract": "Spring Framework 7.0.9 @Transactional methods run through TransactionInterceptor (org.springframework.transaction.interceptor.TransactionAspectSupport.completeTransactionAfterThrowing). The call is on a JDK proxy. The target is not invoked directly. If TransactionAttribute.rollbackOn returns true, the interceptor calls PlatformTransactionManager.rollback and rethrows the application throwable. If rollback throws TransactionSystemException, that exception replaces the application throwable and initApplicationException stores the original. If rollbackOn returns false, the interceptor calls commit. With no rollbackFor rules, RuleBasedTransactionAttribute.rollbackOn delegates to DefaultTransactionAttribute.rollbackOn, which is true for RuntimeException and Error only. The 7.0.9 reference, Rolling Back a Declarative Transaction, states: \"In its default configuration, the Spring Framework's transaction infrastructure code marks a transaction for rollback only in the case of runtime, unchecked exceptions. That is, when the thrown exception is an instance or subclass of RuntimeException. (Error instances also, by default, result in a rollback).\" A normal return is reported as committed. The method's own throwable leaving the proxy is reported as rolled_back. Any other throwable leaving the proxy is reported as failed. Propagation.NESTED, Spring Framework 7.0.9: \"Execute within a nested transaction if a current transaction exists, behave like REQUIRED otherwise.\" DataSourceTransactionManager's class javadoc says nestedTransactionAllowed defaults to true and nested transactions use JDBC savepoints. Propagation.REQUIRES_NEW: \"Create a new transaction, and suspend the current transaction if one exists.\" The statement-error case uses rollbackFor = Exception.class so a checked SQLException takes the rollback path that case describes. The default rule would commit on that checked exception. That default is not substituted for the case.",
+        "reported": "committed",
+        "basis": "the @Transactional proxy returned normally, so the interceptor committed"
+      },
+      "reuse": {
+        "unit1_pid": 255121,
+        "unit2_pid": 255129,
+        "same_backend": false,
+        "thread_bound_after_unit1": false
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 255121,
+          "xid": "9567"
+        },
+        "session": {
+          "pid": 255121,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9567",
+          "xid_matches": true,
+          "backend_xmin": "9567",
+          "backend_start": "2026-10-19 15:04:44.554639+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9567"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 255121,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9567",
+              "xid_matches": null,
+              "backend_xmin": "9567",
+              "backend_start": "2026-10-19 15:04:44.554639+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 255121,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 255121,
+          "xid": null
+        },
+        "session": {
+          "pid": 255121,
+          "present": false
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 255121,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 255129,
+          "xid": "9568"
+        },
+        "session": {
+          "pid": 255129,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9568",
+          "xid_matches": true,
+          "backend_xmin": "9568",
+          "backend_start": "2026-10-19 15:04:44.831616+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9568"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 255121,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "in progress",
+            "session": {
+              "pid": 255129,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9568",
+              "xid_matches": null,
+              "backend_xmin": "9568",
+              "backend_start": "2026-10-19 15:04:44.831616+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 255121,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "committed",
+            "session": {
+              "pid": 255129,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 15:04:44.831616+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "9567",
+        "pid": 255121,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 15:04:44.554639+00"
+      },
+      "unit2": {
+        "xid": "9568",
+        "pid": 255129,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-19 15:04:44.831616+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": true
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": "9568"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-03.1 held: failed transaction: xid 9567 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 9568; TX-03.2 held: next unit: completed, reported committed after 39 ms; its transaction: 9568 committed; next visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"doomed\" had reached PostgreSQL at `unit1-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit1-after-write`: item locked; transactionid [9567]"
+      },
+      {
+        "description": "the write of marker \"next\" had reached PostgreSQL at `unit2-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit2-after-write`: item locked; transactionid [9568]"
+      },
+      {
+        "description": "the runner terminated the backend at `unit1-after-write`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": true,
+        "detail": "failed transaction: xid 9567 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 9568"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": true,
+        "detail": "next unit: completed, reported committed after 39 ms; its transaction: 9568 committed; next visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for spring-tx (declarative-pooled)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=spring-tx --mode=declarative-pooled --case=TX-03.conn-lost-in-transaction",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()"
+      ],
+      "fault_trace": [
+        "Connection.setAutoCommit(false)",
+        "Connection.rollback sent",
+        "Connection.setAutoCommit(true)",
+        "Connection.setAutoCommit(false)",
+        "Connection.commit",
+        "Connection.setAutoCommit(true)"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "injection": null,
+      "interceptor_invocations": 2,
+      "cleanup": {
+        "thread_bound": false,
+        "synchronization_active": false,
+        "actual_transaction_active": false
+      }
+    },
+    "stderr": "SLF4J(W): No SLF4J providers were found.\nSLF4J(W): Defaulting to no-operation (NOP) logger implementation\nSLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T15:04:44.421Z",
+    "finished_at": "2026-10-19T15:04:46.150Z",
+    "duration_ms": 1729
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 9567 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 9568; TX-03.2 held: next unit: completed, reported committed after 39 ms; its transaction: 9568 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 576
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 9572 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 9573; TX-03.2 held: next unit: completed, reported committed after 44 ms; its transaction: 9573 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 576
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 9577 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 9578; TX-03.2 held: next unit: completed, reported committed after 39 ms; its transaction: 9578 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 577
+      }
+    ]
+  }
+}

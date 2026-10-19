@@ -1,0 +1,372 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T15-02-38Z-8a2f4d",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-05.managed-serializable",
+    "version": "1.0",
+    "family": "TX-05",
+    "family_title": "Requested isolation level",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A managed transaction requests SERIALIZABLE",
+    "steps": [
+      "Start a transaction with the framework's managed transaction API, the one that runs a callback inside the transaction and commits when it returns, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+      "Write the marker `tx` through the framework's ordinary write API, and make sure that write was sent.",
+      "Read the marker back through the framework's ordinary query API, inside the same transaction, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+      "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+      "Return from the callback normally, so that the framework commits the transaction. Then go to the last step.",
+      "Only if the API raised at step 1: start a plain transaction through the same managed API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+      "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one."
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "spring-tx",
+      "version": "0.1.0",
+      "source_sha256": "0f4d555dfb54d8ee3e1891f11b3e7d0f476699b4ed94ec4ae077a8342bfc1f6e"
+    },
+    "framework": {
+      "name": "spring-framework",
+      "version": "7.0.9"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "spring-tx": "7.0.9",
+      "spring-jdbc": "7.0.9",
+      "spring-aop": "7.0.9",
+      "spring-context": "7.0.9",
+      "postgresql": "42.7.14"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "21.0.12.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Programmatic TransactionTemplate on DataSourceTransactionManager over DriverManagerDataSource. No pool. The outer template uses the default PROPAGATION_REQUIRED. A nested scope uses PROPAGATION_NESTED. An independent inner transaction uses PROPAGATION_REQUIRES_NEW, which opens a second physical connection. The explicit isolation case uses PlatformTransactionManager.getTransaction and commit. TX-03 is not run in this mode: DataSourceTransactionManager.doCleanupAfterCompletion releases the connection, and DriverManagerDataSource closes it, so a later unit cannot be handed that connection.",
+    "configuration": {
+      "dataSource": "org.springframework.jdbc.datasource.DriverManagerDataSource",
+      "pool": false,
+      "transactionManager": "DataSourceTransactionManager",
+      "nestedTransactionAllowed": true,
+      "rollbackOnCommitFailure": false,
+      "globalRollbackOnParticipationFailure": true,
+      "failEarlyOnGlobalRollbackOnly": false,
+      "transactionSynchronization": "SYNCHRONIZATION_ALWAYS",
+      "invocation": "TransactionTemplate",
+      "connectionAccess": "DataSourceUtils.getConnection",
+      "writes": "PreparedStatement",
+      "rollbackRule": "TransactionTemplate default: RuntimeException and Error. A checked SQLException is rethrown as SqlUnchecked where the case needs it to leave the callback."
+    },
+    "form": "Programmatic: TransactionTemplate on DataSourceTransactionManager. Managed form: the callback runs inside the transaction and a normal return commits. Isolation is ISOLATION_SERIALIZABLE."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "isolation_level": "serializable"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "TransactionTemplate.execute returned normally, so the template committed",
+    "contract": "Spring Framework 7.0.9 TransactionTemplate.execute (org.springframework.transaction.support.TransactionTemplate) obtains a transaction, runs the callback, and calls PlatformTransactionManager.commit only when the callback returns. On a RuntimeException or Error it rolls the transaction back and rethrows that same throwable. On any other throwable it rolls back and throws java.lang.reflect.UndeclaredThrowableException. If rollback throws TransactionSystemException, rollbackOnException stores the callback throwable with initApplicationException and throws the TransactionSystemException instead. DataSourceTransactionManager.doCommit calls Connection.commit and translateException wraps a SQLException as TransactionSystemException(\"JDBC commit failed\", ex). Connection.commit is void and does not return a command tag. A normal return from execute is reported as committed. The callback's own throwable leaving execute is reported as rolled_back. Any other throwable leaving execute is reported as failed. Propagation.NESTED, Spring Framework 7.0.9: \"Execute within a nested transaction if a current transaction exists, behave like REQUIRED otherwise.\" Its note says actual nested transactions work on DataSourceTransactionManager. DataSourceTransactionManager's class javadoc says nestedTransactionAllowed defaults to true and nested transactions use JDBC savepoints. Propagation.REQUIRES_NEW: \"Create a new transaction, and suspend the current transaction if one exists.\" No custom rollback rule is installed on the template. TransactionCallback cannot throw a checked SQLException. Where a case needs that error to leave the callback, the callback rethrows it as SqlUnchecked, a RuntimeException, so the template's RuntimeException rule sees it. That wrap is application code. It is not JdbcTemplate's exception translation.",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-read": {
+        "reported": {
+          "pid": 255686,
+          "xid": "9672",
+          "transaction_isolation": "serializable"
+        },
+        "session": {
+          "pid": 255686,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9672",
+          "xid_matches": true,
+          "backend_xmin": "9672",
+          "backend_start": "2026-10-19 15:04:52.717296+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9672"
+          ],
+          "read_item": true,
+          "siread": [
+            {
+              "locktype": "relation",
+              "relation": "item",
+              "page": null,
+              "tuple": null,
+              "on_item": true
+            }
+          ]
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 255686,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9672",
+              "xid_matches": null,
+              "backend_xmin": "9672",
+              "backend_start": "2026-10-19 15:04:52.717296+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 255686,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "9672",
+        "pid": 255686,
+        "captured_at": "after-read",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-19 15:04:52.717296+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "9672"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-read` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-read`: item locked; transactionid [9672]"
+      },
+      {
+        "description": "the case requests SERIALIZABLE, the one level whose effect the runner can corroborate",
+        "met": true,
+        "detail": "requested: serializable"
+      },
+      {
+        "description": "at `after-read` the transaction's session was idle in its transaction (\"idle in transaction\"), so its locks show the statements it had run",
+        "met": true,
+        "detail": "session: \"idle in transaction\""
+      },
+      {
+        "description": "the transaction's read of item reached PostgreSQL: its backend held an AccessShareLock on item at `after-read`",
+        "met": true,
+        "detail": "AccessShareLock on item: held"
+      },
+      {
+        "description": "PostgreSQL's own report of the level, current_setting('transaction_isolation'), came with the captured ID at `after-read`",
+        "met": true,
+        "detail": "reported: serializable"
+      },
+      {
+        "description": "PostgreSQL's report and the runner's lock evidence agree: SERIALIZABLE with an SIReadLock on item or one of its indexes, or a weaker level with no SIReadLock at all",
+        "met": true,
+        "detail": "reported: serializable; SIReadLocks: relation:item"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.",
+        "holds": true,
+        "detail": "requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item"
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction.",
+        "holds": true,
+        "detail": "the API started the transaction"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for spring-tx (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=spring-tx --mode=native --case=TX-05.managed-serializable",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "insert into item (name, qty) values (?, 0)",
+        "select name from item where name = ?",
+        "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transaction_isolation')"
+      ],
+      "fault_trace": [
+        "Connection.setAutoCommit(false)",
+        "Connection.commit",
+        "Connection.setAutoCommit(true)"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "injection": null,
+      "interceptor_invocations": 0,
+      "cleanup": {
+        "thread_bound": false,
+        "synchronization_active": false,
+        "actual_transaction_active": false
+      }
+    },
+    "stderr": "SLF4J(W): No SLF4J providers were found.\nSLF4J(W): Defaulting to no-operation (NOP) logger implementation\nSLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T15:04:52.583Z",
+    "finished_at": "2026-10-19T15:04:53.576Z",
+    "duration_ms": 993
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 351
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 335
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 307
+      }
+    ]
+  }
+}
