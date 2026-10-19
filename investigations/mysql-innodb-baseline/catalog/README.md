@@ -20,7 +20,7 @@ A lost `COMMIT` reply is `MX-05.lost-commit-reply`. The server committed. mysql2
 | `MX-04.missing-savepoint` | `1305` / `42000`. The transaction stays usable. |
 | `MX-05.commit-and-rollback-packet` | `COMMIT` and `ROLLBACK` are both OK packets, `serverStatus` `16386`, with no command tag. |
 | `MX-05.connection-closed-before-commit` | `COMMIT` was not sent. The API must not report a commit. The marker is absent. |
-| `MX-05.lost-commit-reply` | The server committed. The OK packet was not delivered. The call must not report success. Lucid 22.4.2 `db.transaction` resolved anyway. |
+| `MX-05.lost-commit-reply` | The server committed. The OK packet was not delivered. `query('COMMIT')` and `knex.transaction(callback)` reject. `trx.commit()` and Lucid `db.transaction` resolve. |
 | `MX-06.second-transaction-implicit-commit` | The next `BEGIN` or `START TRANSACTION` commits the open unit. The second unit's rollback does not remove it. |
 | `MX-07.ddl-implicit-commit` | `CREATE TABLE` commits the preceding insert. `ROLLBACK` removes neither. |
 | `MX-08.isolation-report` | The open transaction's performance schema isolation level is the level applied. `@@transaction_isolation` follows `SET SESSION`, not `SET TRANSACTION`. |

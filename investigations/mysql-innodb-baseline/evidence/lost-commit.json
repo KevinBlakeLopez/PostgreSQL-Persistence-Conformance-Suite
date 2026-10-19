@@ -1,5 +1,5 @@
 {
-  "finished_at": "2026-10-19T17:00:15.446Z",
+  "finished_at": "2026-10-19T17:14:32.026Z",
   "not_a_ppcs_adapter": true,
   "server_version": "8.4.11",
   "mysql2": "3.24.6",
@@ -7,6 +7,13 @@
   "lucid": "22.4.2",
   "proxy": "The COMMIT query is forwarded. The server packet that answers it is not written to the client, and the client socket is closed.",
   "drops": [
+    {
+      "payload_length": 20,
+      "first_byte": 0,
+      "looks_like_ok": true,
+      "looks_like_err": false,
+      "hex_prefix": "00000002400000000b0509085f5f5f5f"
+    },
     {
       "payload_length": 20,
       "first_byte": 0,
@@ -41,9 +48,9 @@
         "opened_after_driver_returned": true,
         "client_knowledge": false,
         "reader": {
-          "connection_id": 587,
+          "connection_id": 15,
           "session_at_connect": {
-            "connection_id": "587",
+            "connection_id": "15",
             "autocommit": "1",
             "transaction_isolation": "REPEATABLE-READ",
             "innodb_lock_wait_timeout": "50"
@@ -73,9 +80,9 @@
         "opened_after_driver_returned": true,
         "client_knowledge": false,
         "reader": {
-          "connection_id": 589,
+          "connection_id": 17,
           "session_at_connect": {
-            "connection_id": "589",
+            "connection_id": "17",
             "autocommit": "1",
             "transaction_isolation": "REPEATABLE-READ",
             "innodb_lock_wait_timeout": "50"
@@ -115,9 +122,9 @@
         "opened_after_driver_returned": true,
         "client_knowledge": false,
         "reader": {
-          "connection_id": 591,
+          "connection_id": 19,
           "session_at_connect": {
-            "connection_id": "591",
+            "connection_id": "19",
             "autocommit": "1",
             "transaction_isolation": "REPEATABLE-READ",
             "innodb_lock_wait_timeout": "50"
@@ -141,8 +148,9 @@
       "drops_so_far": 2
     },
     {
-      "client": "lucid",
-      "mode": "commit-reply-dropped",
+      "client": "knex",
+      "mode": "explicit-trx-commit-reply-dropped",
+      "note": "await knex.transaction() returns the transaction handle. await trx.commit() is the promise Lucid awaits. knex.transaction(callback) waits on a different promise.",
       "api": {
         "outcome": "resolved"
       },
@@ -155,9 +163,9 @@
         "opened_after_driver_returned": true,
         "client_knowledge": false,
         "reader": {
-          "connection_id": 593,
+          "connection_id": 21,
           "session_at_connect": {
-            "connection_id": "593",
+            "connection_id": "21",
             "autocommit": "1",
             "transaction_isolation": "REPEATABLE-READ",
             "innodb_lock_wait_timeout": "50"
@@ -178,11 +186,59 @@
           },
           {
             "id": 4,
-            "name": "lucid-lost"
+            "name": "knex-explicit-lost"
           }
         ]
       },
       "drops_so_far": 3
+    },
+    {
+      "client": "lucid",
+      "mode": "commit-reply-dropped",
+      "api": {
+        "outcome": "resolved"
+      },
+      "queries": [
+        "BEGIN;",
+        "insert into `marker` (`name`) values (?)",
+        "COMMIT;"
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 23,
+          "session_at_connect": {
+            "connection_id": "23",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "control-marker"
+          },
+          {
+            "id": 2,
+            "name": "mysql2-lost"
+          },
+          {
+            "id": 3,
+            "name": "knex-lost"
+          },
+          {
+            "id": 4,
+            "name": "knex-explicit-lost"
+          },
+          {
+            "id": 5,
+            "name": "lucid-lost"
+          }
+        ]
+      },
+      "drops_so_far": 4
     }
   ]
 }

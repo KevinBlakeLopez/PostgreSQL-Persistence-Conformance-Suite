@@ -352,12 +352,15 @@ The dropped packet started with `0x00` and contained status bytes `0x4002` (`ser
 | Client | What the call returned | Marker afterward |
 | --- | --- | --- |
 | mysql2 `query('COMMIT')` | Rejected. `PROTOCOL_CONNECTION_LOST`, `fatal: true`, no SQLSTATE. | Visible |
-| Knex 3.3.0 `knex.transaction` | Rejected. Same `PROTOCOL_CONNECTION_LOST`. The log shows `COMMIT;` was sent. | Visible |
+| Knex 3.3.0 `knex.transaction(callback)` | Rejected. Same `PROTOCOL_CONNECTION_LOST`. The log shows `COMMIT;` was sent. | Visible |
+| Knex 3.3.0 `await trx.commit()` | Resolved. The log shows `BEGIN;`, the insert, and `COMMIT;`. | Visible |
 | Lucid 22.4.2 `db.transaction` | Resolved. The log shows `COMMIT;` was sent. | Visible |
 
-**Source.** Lucid awaits `knexClient.commit()` (`@adonisjs/lucid` 22.4.2, `build/src/query_client/index.js`). Knex's mysql2 `Transaction.query` catches a failed transaction statement and still resolves the promise returned to `commit()`, while rejecting the separate promise that `knex.transaction(callback)` waits on (`node_modules/knex/lib/dialects/mysql2/transaction.js`). The recorded calls match that split: Knex's managed transaction rejected, and Lucid's managed transaction resolved.
+**Observed** at `2026-10-19T17:14:32.026Z` for the explicit `trx.commit()` call, in the same evidence file. Four dropped packets, each an OK packet with the `0x4002` status bytes. `await knex.transaction()` then `await trx.commit()` resolved, and `knex-explicit-lost` was visible.
 
-The client that received `PROTOCOL_CONNECTION_LOST` knew the connection failed. It did not receive the OK packet. The visible marker was read afterward. Lucid's resolved promise tells its caller the transaction committed. That caller did not receive the OK packet either.
+**Source.** Lucid awaits `knexClient.commit()` (`@adonisjs/lucid` 22.4.2, `build/src/query_client/index.js`). Knex's mysql2 `Transaction.query` catches a failed transaction statement and still resolves the promise returned to `commit()`, while rejecting the separate promise that `knex.transaction(callback)` waits on (`node_modules/knex/lib/dialects/mysql2/transaction.js`). The explicit `trx.commit()` call resolved on its own. Lucid's resolved `db.transaction` is that promise, not a success Lucid adds after a rejected `commit()`.
+
+The caller of `query('COMMIT')` or `knex.transaction(callback)` received `PROTOCOL_CONNECTION_LOST` and did not receive the OK packet. The caller of `trx.commit()`, including Lucid, was told the transaction committed. The visible marker was read afterward in every case.
 
 ## 13. Limits
 

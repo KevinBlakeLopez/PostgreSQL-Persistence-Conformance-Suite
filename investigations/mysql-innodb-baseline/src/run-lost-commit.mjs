@@ -39,6 +39,7 @@ try {
   clients.push(await mysql2Control(schema))
   clients.push(await mysql2Lost(schema))
   clients.push(await knexLost(schema))
+  clients.push(await knexExplicitCommit(schema))
   clients.push(await lucidLost(schema))
   const text = `${JSON.stringify(plain({
     finished_at: new Date().toISOString(),
@@ -119,6 +120,41 @@ async function knexLost(schema) {
     }
     const fresh = await freshMarkerRead(instance, endpoint, schema)
     return { client: 'knex', mode: 'commit-reply-dropped', api, queries, fresh_reader: fresh, drops_so_far: proxy.drops.length }
+  } finally {
+    await db.destroy()
+  }
+}
+
+async function knexExplicitCommit(schema) {
+  const options = connectionOptions(instance, endpoint, 'app')
+  const db = knex({
+    client: 'mysql2',
+    connection: { ...options, port: proxy.port, database: schema },
+    pool: { min: 0, max: 1 },
+  })
+  const queries = []
+  db.on('query', (query) => queries.push(query.sql))
+  try {
+    const trx = await db.transaction()
+    await trx('marker').insert({ name: 'knex-explicit-lost' })
+    proxy.arm()
+    let api
+    try {
+      await withTimeout(trx.commit(), 5000)
+      api = { outcome: 'resolved' }
+    } catch (error) {
+      api = { outcome: 'rejected', error: describeError(error) }
+    }
+    const fresh = await freshMarkerRead(instance, endpoint, schema)
+    return {
+      client: 'knex',
+      mode: 'explicit-trx-commit-reply-dropped',
+      note: 'await knex.transaction() returns the transaction handle. await trx.commit() is the promise Lucid awaits. knex.transaction(callback) waits on a different promise.',
+      api,
+      queries,
+      fresh_reader: fresh,
+      drops_so_far: proxy.drops.length,
+    }
   } finally {
     await db.destroy()
   }
