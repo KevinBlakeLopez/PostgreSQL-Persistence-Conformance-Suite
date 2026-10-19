@@ -6,7 +6,7 @@ It is not a PPCS catalog. `harness/lib/catalog.mjs` loads every `specifications/
 
 The structured list is [`transactions.v1.json`](transactions.v1.json). Each case cites the evidence file. Knex 3.3.0 and Lucid 22.4.2 were measured only where the evidence column says so.
 
-A lost `COMMIT` reply is not in the list. That run was not done, so the list does not say what the client knew.
+A lost `COMMIT` reply is `MX-05.lost-commit-reply`. The server committed. mysql2 and Knex reported the connection loss. Lucid 22.4.2 resolved the transaction.
 
 | Case | Expectation |
 | --- | --- |
@@ -20,6 +20,7 @@ A lost `COMMIT` reply is not in the list. That run was not done, so the list doe
 | `MX-04.missing-savepoint` | `1305` / `42000`. The transaction stays usable. |
 | `MX-05.commit-and-rollback-packet` | `COMMIT` and `ROLLBACK` are both OK packets, `serverStatus` `16386`, with no command tag. |
 | `MX-05.connection-closed-before-commit` | `COMMIT` was not sent. The API must not report a commit. The marker is absent. |
+| `MX-05.lost-commit-reply` | The server committed. The OK packet was not delivered. The call must not report success. Lucid 22.4.2 `db.transaction` resolved anyway. |
 | `MX-06.second-transaction-implicit-commit` | The next `BEGIN` or `START TRANSACTION` commits the open unit. The second unit's rollback does not remove it. |
 | `MX-07.ddl-implicit-commit` | `CREATE TABLE` commits the preceding insert. `ROLLBACK` removes neither. |
 | `MX-08.isolation-report` | The open transaction's performance schema isolation level is the level applied. `@@transaction_isolation` follows `SET SESSION`, not `SET TRANSACTION`. |

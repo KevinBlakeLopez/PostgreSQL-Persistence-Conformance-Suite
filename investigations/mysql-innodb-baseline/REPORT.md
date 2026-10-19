@@ -343,11 +343,27 @@ The third case is the implicit commit, reached by holding a Knex pool connection
 
 The comparison recorded in `evidence/lucid.json` matches Lucid to Knex on the claim and the marker count for all three cases. Lucid does not add a different commit or rollback outcome on top of the Knex behavior already recorded.
 
-## 12. Limits
+## 12. Lost COMMIT reply
+
+**Observed** (`evidence/lost-commit.json`, `2026-10-19T17:00:15.446Z`). A local proxy forwarded the MySQL protocol. It forwarded the `COMMIT` query. It read the server's reply packet and did not write that packet to the client, then closed the client socket. This is not a driver hook that parses the OK packet and then discards it.
+
+The dropped packet started with `0x00` and contained status bytes `0x4002` (`serverStatus` `16386`), the same OK packet recorded for an ordinary `COMMIT`. A connection that did not go through the proxy saw the marker. A control `COMMIT` through the same proxy, with the drop disarmed, resolved with `serverStatus` `16386` and its marker was visible.
+
+| Client | What the call returned | Marker afterward |
+| --- | --- | --- |
+| mysql2 `query('COMMIT')` | Rejected. `PROTOCOL_CONNECTION_LOST`, `fatal: true`, no SQLSTATE. | Visible |
+| Knex 3.3.0 `knex.transaction` | Rejected. Same `PROTOCOL_CONNECTION_LOST`. The log shows `COMMIT;` was sent. | Visible |
+| Lucid 22.4.2 `db.transaction` | Resolved. The log shows `COMMIT;` was sent. | Visible |
+
+**Source.** Lucid awaits `knexClient.commit()` (`@adonisjs/lucid` 22.4.2, `build/src/query_client/index.js`). Knex's mysql2 `Transaction.query` catches a failed transaction statement and still resolves the promise returned to `commit()`, while rejecting the separate promise that `knex.transaction(callback)` waits on (`node_modules/knex/lib/dialects/mysql2/transaction.js`). The recorded calls match that split: Knex's managed transaction rejected, and Lucid's managed transaction resolved.
+
+The client that received `PROTOCOL_CONNECTION_LOST` knew the connection failed. It did not receive the OK packet. The visible marker was read afterward. Lucid's resolved promise tells its caller the transaction committed. That caller did not receive the OK packet either.
+
+## 13. Limits
 
 - One full run, plus three deadlock repetitions inside it. The duplicate-key, lock-wait, and savepoint results were each a single execution. The 50 second lock wait and the 2 second lock wait agreed on scope. That is not a statistical claim.
 - Knex 3.3.0 and Lucid 22.4.2 were each run once on the three cases (`evidence/knex.json`, `evidence/lucid.json`). Kysely was not run. The first Knex deadlock attempt was discarded because InnoDB killed the fixture instead of the subject. The Lucid deadlock used the heavier fixture from the start.
-- The lost-response fault was not built.
+- The lost COMMIT reply was run once through a local proxy (`evidence/lost-commit.json`). mysql2 and Knex rejected. Lucid resolved.
 - The binary log was not read. `gtid_mode` is off, so there is no GTID to look up after the session ends.
 - `innodb_trx` by connection id was sometimes empty while performance schema and `data_locks` showed the transaction. Do not use that view alone.
 - The host is aarch64. The image pin is the multi-platform index digest of `mysql:8.4.11`.

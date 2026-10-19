@@ -16,12 +16,7 @@
     "lucid": "22.4.2"
   },
   "evidence_run": "2026-10-19",
-  "omitted": [
-    {
-      "id": "lost-commit-reply",
-      "reason": "A COMMIT that the server completed, whose OK packet never reached the client, was not run. No case here says what the client knew in that situation."
-    }
-  ],
+  "omitted": [],
   "cases": [
     {
       "id": "MX-01.duplicate-key-then-commit",
@@ -131,7 +126,18 @@
       "observed_server": "After KILL, the thread is gone before the subject's COMMIT. After connection.destroy(), the thread is gone within 53 ms. In both, a new connection does not see the uncommitted marker.",
       "client_evidence": "COMMIT rejects with fatal true and message \"Can't add new command when connection is in closed state\". The error has no errno and no SQLSTATE. KILL also emits PROTOCOL_CONNECTION_LOST. destroy() did not emit that event in the recorded run.",
       "expectation": "The API must not report a successful commit. COMMIT was not sent, and the marker does not remain.",
-      "not_an_expectation": "This is not a completed COMMIT whose reply was discarded. The lost-reply case is omitted from this catalog."
+      "not_an_expectation": "This is not a completed COMMIT whose reply was discarded. That situation is MX-05.lost-commit-reply."
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "version": "1",
+      "evidence": ["evidence/lost-commit.json"],
+      "do_not_score_as": "TX-01B.commit-reply-discarded",
+      "question": "The server finishes COMMIT and the OK packet is not written to the client. What did the client know when the call returned?",
+      "observed_server": "A proxy forwarded the COMMIT query and read the server's reply before closing the client socket. The dropped packet began with 0x00 and included status bytes 0x4002, which is serverStatus 16386, the same OK packet as an ordinary COMMIT. A new connection, not through the proxy, saw the marker. That read happened after the call returned.",
+      "client_evidence": "mysql2 query('COMMIT') rejected with PROTOCOL_CONNECTION_LOST, fatal true, and no SQLSTATE. Knex 3.3.0 knex.transaction rejected with the same code. The query log shows COMMIT; was sent. Lucid 22.4.2 db.transaction resolved. Its query log also shows COMMIT; was sent, and the marker is visible. Lucid awaits knexClient.commit(). Knex's transaction query() catches a failed COMMIT and resolves the promise returned by commit(), while rejecting the separate promise used by knex.transaction(callback).",
+      "expectation": "The call must not report a successful commit. The client did not receive the OK packet. mysql2 and Knex's managed transaction report the connection loss. A later visible marker does not change what the call returned.",
+      "not_an_expectation": "The server did commit. Reporting failure is not a report that the server rolled back. Lucid 22.4.2 resolving db.transaction does not satisfy this expectation: the OK packet was not delivered to the client."
     },
     {
       "id": "MX-06.second-transaction-implicit-commit",

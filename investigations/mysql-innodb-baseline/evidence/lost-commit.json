@@ -1,0 +1,188 @@
+{
+  "finished_at": "2026-10-19T17:00:15.446Z",
+  "not_a_ppcs_adapter": true,
+  "server_version": "8.4.11",
+  "mysql2": "3.24.6",
+  "knex": "3.3.0",
+  "lucid": "22.4.2",
+  "proxy": "The COMMIT query is forwarded. The server packet that answers it is not written to the client, and the client socket is closed.",
+  "drops": [
+    {
+      "payload_length": 20,
+      "first_byte": 0,
+      "looks_like_ok": true,
+      "looks_like_err": false,
+      "hex_prefix": "00000002400000000b0509085f5f5f5f"
+    },
+    {
+      "payload_length": 20,
+      "first_byte": 0,
+      "looks_like_ok": true,
+      "looks_like_err": false,
+      "hex_prefix": "00000002400000000b0509085f5f5f5f"
+    },
+    {
+      "payload_length": 20,
+      "first_byte": 0,
+      "looks_like_ok": true,
+      "looks_like_err": false,
+      "hex_prefix": "00000002400000000b0509085f5f5f5f"
+    }
+  ],
+  "clients": [
+    {
+      "client": "mysql2",
+      "mode": "proxy-forwards-commit",
+      "api": {
+        "outcome": "resolved",
+        "serverStatus": 16386
+      },
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 587,
+          "session_at_connect": {
+            "connection_id": "587",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "control-marker"
+          }
+        ]
+      }
+    },
+    {
+      "client": "mysql2",
+      "mode": "commit-reply-dropped",
+      "api": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "Connection lost: The server closed the connection.",
+          "code": "PROTOCOL_CONNECTION_LOST",
+          "fatal": true
+        }
+      },
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 589,
+          "session_at_connect": {
+            "connection_id": "589",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "control-marker"
+          },
+          {
+            "id": 2,
+            "name": "mysql2-lost"
+          }
+        ]
+      },
+      "drops_so_far": 1
+    },
+    {
+      "client": "knex",
+      "mode": "commit-reply-dropped",
+      "api": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "COMMIT; - Connection lost: The server closed the connection.",
+          "code": "PROTOCOL_CONNECTION_LOST",
+          "fatal": true
+        }
+      },
+      "queries": [
+        "BEGIN;",
+        "insert into `marker` (`name`) values (?)",
+        "COMMIT;"
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 591,
+          "session_at_connect": {
+            "connection_id": "591",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "control-marker"
+          },
+          {
+            "id": 2,
+            "name": "mysql2-lost"
+          },
+          {
+            "id": 3,
+            "name": "knex-lost"
+          }
+        ]
+      },
+      "drops_so_far": 2
+    },
+    {
+      "client": "lucid",
+      "mode": "commit-reply-dropped",
+      "api": {
+        "outcome": "resolved"
+      },
+      "queries": [
+        "BEGIN;",
+        "insert into `marker` (`name`) values (?)",
+        "COMMIT;"
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 593,
+          "session_at_connect": {
+            "connection_id": "593",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "control-marker"
+          },
+          {
+            "id": 2,
+            "name": "mysql2-lost"
+          },
+          {
+            "id": 3,
+            "name": "knex-lost"
+          },
+          {
+            "id": 4,
+            "name": "lucid-lost"
+          }
+        ]
+      },
+      "drops_so_far": 3
+    }
+  ]
+}
