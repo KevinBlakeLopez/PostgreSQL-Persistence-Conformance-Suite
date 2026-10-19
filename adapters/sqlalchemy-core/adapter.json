@@ -1,0 +1,68 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "sqlalchemy-core",
+  "framework": "sqlalchemy",
+  "description": "SQLAlchemy 2.1 Core Connection.begin() and Connection.begin_nested() through psycopg 3. No ORM Session. Category C faults are injected in this process, once, before Core sees the error. A top-level ROLLBACK is withheld on psycopg.Connection.rollback; ROLLBACK TO SAVEPOINT is withheld or rewritten in before_cursor_execute. TX-03's next unit of work is a second Engine.connect() and Connection.begin() on the same engine (pool_size 1, max_overflow 0).",
+  "command": [
+    "./.venv/bin/python",
+    "main.py"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "SQLAlchemy Core's Connection.begin() context manager, with Connection.begin_nested() for a savepoint. pool_size 1, max_overflow 0, pool_pre_ping off. TX-03's next unit of work is a second connection from that same engine. The engine is not disposed between the units. TX-05 sets isolation_level through Connection.execution_options before begin()."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "SQLAlchemy Core has no propagation modes and no deferred writes. Connection.begin_nested() is a SAVEPOINT on the same transaction, not an independent transaction. An independent transaction is a separate Connection.begin() on another checkout, which shares no pending writes with the outer one, so the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "SQLAlchemy Core's Engine and Connection expose no migration runner, history table, or reversal. Schema migration is not a contract of Core. Alembic is a separate project and is not this adapter."
+    }
+  }
+}

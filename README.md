@@ -42,11 +42,11 @@ pnpm run pg:down   # removes the container
 - **Regression check:** `--expect=<earlier run.json>` exits 1 if any classification changed. It refuses (exit 2) an earlier run made with a different harness or catalog.
 - **Self-tests:** `pnpm run test` for the classification rules, with no database; `pnpm run test:methodology` for the controls through the real runner.
 
-A full run of the JavaScript adapters takes about six minutes. Django and SQLAlchemy each need the virtualenv in their adapter README. Spring JDBC needs JDK 21 and `mvn -B package` in `adapters/spring-jdbc`. `pnpm run setup` does not install those. The runner refuses any server that is not the disposable instance, or whose settings differ from the profile the cases assume. It never touches another database (`docs/methodology.md`).
+A full run of the JavaScript adapters takes about six minutes. Django and SQLAlchemy each need the virtualenv in their adapter README. Spring JDBC and the plain JDBC control need JDK 21 and `mvn -B package` in `adapters/spring-jdbc` and `adapters/jdbc-control`. `pnpm run setup` does not install those. The runner refuses any server that is not the disposable instance, or whose settings differ from the profile the cases assume. It never touches another database (`docs/methodology.md`).
 
 ## What is implemented
 
-**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. Django, SQLAlchemy, and Spring JDBC do not implement the migration cases, TX-04, or TX-05.
+**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. Django, the SQLAlchemy ORM adapter, and Spring JDBC do not implement the migration cases, TX-04, or TX-05. SQLAlchemy Core implements TX-04 and TX-05 and declares the migration cases unsupported. The plain JDBC control implements the savepoint TX-04 cases and TX-05, and declares `TX-04.independent-inner` and the migration cases unsupported.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -69,54 +69,56 @@ A full run of the JavaScript adapters takes about six minutes. Django and SQLAlc
 | `typeorm` | `typeorm` 1.1.2, pg 8.23.1 | `native` |
 | `pg-control` | node-postgres 8.23.1, no framework | `correct` (positive control); `unsafe` (negative control) |
 | `django` | Django 6.1.2, psycopg 3.3.6 | `native` (`CONN_MAX_AGE` 0); `persistent` (`CONN_MAX_AGE` null, TX-03 only) |
-| `sqlalchemy` | SQLAlchemy 2.1.5, psycopg 3.3.6 | `native` |
+| `sqlalchemy` | SQLAlchemy 2.1.5 ORM `Session`, psycopg 3.3.6 | `native` |
+| `sqlalchemy-core` | SQLAlchemy 2.1.5 Core `Connection`, psycopg 3.3.6 | `native` |
 | `spring-jdbc` | Spring Framework 7.0.9 `TransactionTemplate` and `JdbcTemplate`, PostgreSQL JDBC 42.7.14, HikariCP 7.1.0 | `native` (`DriverManagerDataSource`); `pooled` (HikariCP, `maximumPoolSize` 1, TX-03 only) |
 | `jdbc-control` | PostgreSQL JDBC 42.7.14, Java 21, no framework and no pool | `correct` (positive control); `unsafe` (negative control) |
 
-The first four rows are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`). Django, SQLAlchemy, Spring JDBC, and the plain JDBC control are later adapters, written as separate programs. They are not part of that extraction. Django and SQLAlchemy are not general ORM runners. Spring JDBC is not a Spring Boot, Hibernate, or JPA application. The plain JDBC control is not a transaction library. An adapter does not have to be written in JavaScript. Their install and runner commands are in [`adapters/django`](adapters/django/README.md), [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md), [`adapters/spring-jdbc`](adapters/spring-jdbc/README.md), and [`adapters/jdbc-control`](adapters/jdbc-control/README.md).
+The first four rows are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`). Django, SQLAlchemy, SQLAlchemy Core, Spring JDBC, and the plain JDBC control are later adapters, written as separate programs. They are not part of that extraction. Django and the SQLAlchemy ORM adapter are not general ORM runners. The Core adapter does not use `Session`. Spring JDBC is not a Spring Boot, Hibernate, or JPA application. The plain JDBC control is not a transaction library. An adapter does not have to be written in JavaScript. Their install and runner commands are in [`adapters/django`](adapters/django/README.md), [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md), [`adapters/sqlalchemy-core`](adapters/sqlalchemy-core/README.md), [`adapters/spring-jdbc`](adapters/spring-jdbc/README.md), and [`adapters/jdbc-control`](adapters/jdbc-control/README.md).
 
 ## Results
 
-The matrix below is the Node, Django, SQLAlchemy, and Spring JDBC recordings, all on PostgreSQL 18.6 and the same catalog. They are not one execution. The Lucid, MikroORM, and TypeORM columns are the Node run. The Django, SQLAlchemy, and Spring JDBC columns are later runs. The plain JDBC control is a separate run and is not a column in the matrix.
+The matrix below is the Node, Django, SQLAlchemy, SQLAlchemy Core, and Spring JDBC recordings, all on PostgreSQL 18.6 and the same catalog. They are not one execution. The Lucid, MikroORM, and TypeORM columns are the Node run. The Django, SQLAlchemy, SQLAlchemy Core, and Spring JDBC columns are later runs. The plain JDBC control is a separate run and is not a column in the matrix.
 
 The Node run is [`reports/examples/2026-10-18T00-11-46Z-95887b/`](reports/examples/2026-10-18T00-11-46Z-95887b/summary.md), PPCS 0.3.0. It produced 122 results: 64 PASS, 40 FAIL, 3 UNSUPPORTED (all three not applicable by design), 1 INCONCLUSIVE, 14 NOT_RUN. Each executed case ran three times, and every repetition agreed. The 87 classifications from the previous recording are unchanged. The 35 new results are MG-02 and MG-03: Lucid and both `pg-control` modes, plus NOT_RUN for MikroORM and TypeORM, which do not implement those cases. A second full run on the same machine reproduced all 122 classifications.
 
-Django 6.1.2 is [`reports/examples/2026-10-18T13-08-22Z-6d8443/`](reports/examples/2026-10-18T13-08-22Z-6d8443/summary.md). The per-case report is [`adapters/django/FINDINGS.md`](adapters/django/FINDINGS.md). SQLAlchemy 2.1.5 is [`reports/examples/2026-10-19T00-49-25Z-3673a3/`](reports/examples/2026-10-19T00-49-25Z-3673a3/summary.md). The per-case report is [`adapters/sqlalchemy/FINDINGS.md`](adapters/sqlalchemy/FINDINGS.md). Spring JDBC is [`reports/examples/2026-10-18T16-08-25Z-9b025d/`](reports/examples/2026-10-18T16-08-25Z-9b025d/summary.md). The per-case report is [`adapters/spring-jdbc/FINDINGS.md`](adapters/spring-jdbc/FINDINGS.md). In each of these three, three repetitions agreed, and CTL-01 and `pg-control` held their gates.
+Django 6.1.2 is [`reports/examples/2026-10-18T13-08-22Z-6d8443/`](reports/examples/2026-10-18T13-08-22Z-6d8443/summary.md). The per-case report is [`adapters/django/FINDINGS.md`](adapters/django/FINDINGS.md). SQLAlchemy 2.1.5 `Session` is [`reports/examples/2026-10-19T00-49-25Z-3673a3/`](reports/examples/2026-10-19T00-49-25Z-3673a3/summary.md). The per-case report is [`adapters/sqlalchemy/FINDINGS.md`](adapters/sqlalchemy/FINDINGS.md). SQLAlchemy 2.1.5 Core is [`reports/examples/2026-10-19T12-35-51Z-64c5c5/`](reports/examples/2026-10-19T12-35-51Z-64c5c5/summary.md). The per-case report is [`adapters/sqlalchemy-core/FINDINGS.md`](adapters/sqlalchemy-core/FINDINGS.md). Spring JDBC is [`reports/examples/2026-10-18T16-08-25Z-9b025d/`](reports/examples/2026-10-18T16-08-25Z-9b025d/summary.md). The per-case report is [`adapters/spring-jdbc/FINDINGS.md`](adapters/spring-jdbc/FINDINGS.md). In each of these, three repetitions agreed, and CTL-01 and `pg-control` held their gates.
 
 Plain JDBC is [`reports/examples/2026-10-19T12-51-00Z-0a0698/`](reports/examples/2026-10-19T12-51-00Z-0a0698/summary.md). The per-case report is [`adapters/jdbc-control/FINDINGS.md`](adapters/jdbc-control/FINDINGS.md). Three repetitions agreed, and CTL-01 and `pg-control` held their gates. `correct` passes every case it executes. `unsafe` fails the eight cases it is built to fail.
 
-| Case | Fault | Lucid | MikroORM | TypeORM | Django | SQLAlchemy | Spring JDBC |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `CTL-01.commit` | none | PASS | PASS | PASS | PASS | PASS | PASS |
-| `CTL-01.rollback` | none | PASS | PASS | PASS | PASS | PASS | PASS |
-| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL | PASS (mechanism not exercised) | INCONCLUSIVE | FAIL |
-| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS | PASS | PASS | PASS |
-| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL | PASS | FAIL | FAIL |
-| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS | PASS | PASS | PASS |
-| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | FAIL (pooled) |
-| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS (pooled) |
-| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS | PASS (persistent) | PASS | PASS (pooled) |
-| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-05.managed-serializable` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | NOT_RUN |
-| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
-| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| Case | Fault | Lucid | MikroORM | TypeORM | Django | SQLAlchemy | SQLAlchemy Core | Spring JDBC |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `CTL-01.commit` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `CTL-01.rollback` | none | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL | PASS (mechanism not exercised) | INCONCLUSIVE | FAIL (mechanism exercised) | FAIL |
+| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS |
+| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL | PASS | FAIL | FAIL | FAIL |
+| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS | PASS | PASS | PASS | PASS |
+| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | FAIL (pooled) |
+| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS | PASS | PASS (pooled) |
+| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS | PASS (persistent) | PASS | PASS | PASS (pooled) |
+| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS | NOT_RUN | NOT_RUN | PASS | NOT_RUN |
+| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | NOT_RUN |
+| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) | NOT_RUN | NOT_RUN | UNSUPPORTED (not applicable by design) | NOT_RUN |
+| `TX-05.managed-serializable` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN | PASS | NOT_RUN |
+| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS | NOT_RUN | NOT_RUN | PASS | NOT_RUN |
+| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
+| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | UNSUPPORTED (capability absent) | NOT_RUN |
 
 **How to read the matrix:**
 
 - **Fault categories:** A is an error PostgreSQL generated, B a backend terminated by the runner, C an error injected in the client, D a client-side simulation (`docs/methodology.md`).
 - **The Node columns.** Those 23 framework FAILs are 10 that need no client-side injection, and 13 that depend on one. The one added in the 0.3.0 recording is Lucid's `MG-03.no-reversal`.
 - **Django.** One framework FAIL: `TX-02.savepoint-rollback-not-sent`. A plain exception withheld before send, and Django commits both markers. PostgreSQL's `3B001` on the same statement is a PASS. TX-01A passes with the mechanism not exercised: Django rolls back, so COMMIT is never answered with ROLLBACK. Native TX-03 is not run. `CONN_MAX_AGE` 0 closes the connection at the end of each request. The persistent rows are `CONN_MAX_AGE` null, and they pass.
-- **SQLAlchemy.** Two framework FAILs, both TX-02. The withheld savepoint rollback is the same ending as Lucid, MikroORM, Django, and `pg-control` unsafe: the API reports a commit, PostgreSQL commits, and both markers are visible. The rejected savepoint rollback is a different ending: the API reports a commit, the session is idle, the last statement is `COMMIT`, and PostgreSQL aborted the transaction, so neither marker remains. TX-02.2 holds. TX-01A is INCONCLUSIVE: `Session._flush` rolls the transaction back before `before-end`, so the session is already idle there. `TX-01B.commit-reply-discarded` is NOT_RUN for Django, SQLAlchemy, and Spring JDBC. psycopg does not return from `commit()` until the command finishes. pgjdbc does not return from `commit()` until `ReadyForQuery` has set the driver to `IDLE`.
+- **SQLAlchemy.** Two framework FAILs, both TX-02. The withheld savepoint rollback is the same ending as Lucid, MikroORM, Django, and `pg-control` unsafe: the API reports a commit, PostgreSQL commits, and both markers are visible. The rejected savepoint rollback is a different ending: the API reports a commit, the session is idle, the last statement is `COMMIT`, and PostgreSQL aborted the transaction, so neither marker remains. TX-02.2 holds. TX-01A is INCONCLUSIVE: `Session._flush` rolls the transaction back before `before-end`, so the session is already idle there. `TX-01B.commit-reply-discarded` is NOT_RUN for Django, both SQLAlchemy adapters, and Spring JDBC. psycopg does not return from `commit()` until the command finishes. pgjdbc does not return from `commit()` until `ReadyForQuery` has set the driver to `IDLE`.
+- **SQLAlchemy Core.** Three framework FAILs. TX-01A fails with the COMMIT-answered-ROLLBACK mechanism exercised: `Connection.begin()` calls `commit()` after the application catches `23505`, `commit()` returns while the connection is `INERROR`, and PostgreSQL has aborted the transaction. The ORM run did not reach that `commit()`. Both TX-02 failures match the ORM endings: a withheld savepoint rollback commits both markers, and a rejected savepoint rollback reports a commit of a transaction PostgreSQL aborted. TX-01B connection loss and all three TX-03 cases pass, with the same pool reuse as the ORM adapter. `begin_nested()` passes both savepoint propagation cases, and both TX-05 forms run at `serializable`. `TX-04.independent-inner` is not applicable by design. MG-02 and MG-03 are capability-absent.
 - **Spring JDBC.** Four framework FAILs. `TX-02.savepoint-rollback-not-sent` commits both markers, the same ending as Django and SQLAlchemy. The session was closed afterward. `TX-02.savepoint-rollback-rejected` reports a commit of a transaction PostgreSQL aborted, so neither marker remains and the session was closed. That is the same shape as SQLAlchemy's rejected-savepoint FAIL, and it is not TypeORM's ending: the session was not left idle in transaction. `TX-01A.caught-error-then-commit` reports a commit after PostgreSQL had aborted the transaction. Django rolled that transaction back, and SQLAlchemy's flush rolled it back before `before-end`. `TX-03.rollback-not-sent` fails TX-03.1: the withheld `ROLLBACK` was followed by pgjdbc's `COMMIT` when Spring restored autocommit, the doomed marker is visible, and the pool reused the backend. The statement-error case stays aborted and passes, on that same backend. Native TX-03 is not run. `DriverManagerDataSource` closes the connection when Spring releases it.
 - **Qualifiers:**
   - **"Mechanism not exercised":** Lucid's `pre-commit-probe` passes TX-01A by failing before COMMIT. Django's native TX-01A passes the same way in substance: it rolls back inside the block, and COMMIT is not the statement that ends the transaction. Neither is evidence that the framework reads a ROLLBACK command tag on COMMIT.
