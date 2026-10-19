@@ -1,0 +1,387 @@
+{
+  "checkpoints": {
+    "after_commit": {
+      "autocommit": true,
+      "connection": "pooled",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-commit",
+      "total_changes": 3
+    },
+    "after_fault": {
+      "autocommit": true,
+      "connection": "pooled",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-fault",
+      "total_changes": 2
+    },
+    "after_second_begin": {
+      "autocommit": true,
+      "connection": "pooled",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-second-begin",
+      "total_changes": 2
+    }
+  },
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-04.reuse-after-constraint-without-rollback.rep3.sqlite",
+  "experiment": "SQLITE-04",
+  "fingerprint": "{\"commit_status\":\"ok\",\"doomed_status\":\"ok\",\"fault_error_name\":\"SQLITE_CONSTRAINT_UNIQUE\",\"fault_status\":\"error\",\"in_transaction_after_commit\":false,\"in_transaction_after_fault\":true,\"in_transaction_after_second_begin\":true,\"next_status\":\"ok\",\"observer\":[\"taken\",\"doomed\",\"next\"],\"second_begin_message\":\"cannot start a transaction within a transaction\",\"second_begin_status\":\"error\",\"writer_before_commit\":[\"taken\",\"doomed\",\"next\"]}",
+  "observed": {
+    "commit_status": "ok",
+    "doomed_status": "ok",
+    "fault_error_name": "SQLITE_CONSTRAINT_UNIQUE",
+    "fault_status": "error",
+    "in_transaction_after_commit": false,
+    "in_transaction_after_fault": true,
+    "in_transaction_after_second_begin": true,
+    "next_status": "ok",
+    "observer": [
+      "taken",
+      "doomed",
+      "next"
+    ],
+    "second_begin_message": "cannot start a transaction within a transaction",
+    "second_begin_status": "error",
+    "writer_before_commit": [
+      "taken",
+      "doomed",
+      "next"
+    ]
+  },
+  "observers": {
+    "after": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "taken"
+          ],
+          [
+            2,
+            "doomed"
+          ],
+          [
+            4,
+            "next"
+          ]
+        ],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on",
+      "schema": {
+        "rows": [
+          [
+            "table",
+            "item",
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "repetition": 3,
+  "session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "pooled",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'taken')",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'doomed')",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "error": {
+          "extended": true,
+          "is_database_error": true,
+          "is_integrity_error": true,
+          "is_operational_error": false,
+          "is_programming_error": false,
+          "message": "UNIQUE constraint failed: item.name",
+          "module": "sqlite3",
+          "primary_code": 19,
+          "sqlite_errorcode": 2067,
+          "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+          "type": "IntegrityError"
+        },
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "params": [],
+        "sql": "INSERT INTO item(id, name) VALUES (3, 'taken')",
+        "status": "error"
+      },
+      {
+        "connection": "pooled",
+        "error": {
+          "extended": false,
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": true,
+          "is_programming_error": false,
+          "message": "cannot start a transaction within a transaction",
+          "module": "sqlite3",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "OperationalError"
+        },
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "params": [],
+        "sql": "BEGIN",
+        "status": "error"
+      },
+      {
+        "connection": "pooled",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 4,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (4, 'next')",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "description": [
+          "id",
+          "name"
+        ],
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 4,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            1,
+            "taken"
+          ],
+          [
+            2,
+            "doomed"
+          ],
+          [
+            4,
+            "next"
+          ]
+        ],
+        "sql": "SELECT id, name FROM item ORDER BY id",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 4,
+        "params": [],
+        "rowcount": -1,
+        "sql": "COMMIT",
+        "status": "ok"
+      },
+      {
+        "connection": "pooled",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "explicit",
+    "name": "pooled",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'taken')"
+      },
+      {
+        "in_transaction": false,
+        "sql": "BEGIN"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'doomed')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (3, 'taken')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "BEGIN"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (4, 'next')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "SELECT id, name FROM item ORDER BY id"
+      },
+      {
+        "in_transaction": true,
+        "sql": "COMMIT"
+      }
+    ]
+  },
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {
+    "commit": {
+      "connection": "pooled",
+      "description": null,
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "lastrowid": 4,
+      "params": [],
+      "rowcount": -1,
+      "sql": "COMMIT",
+      "status": "ok"
+    },
+    "fault": {
+      "connection": "pooled",
+      "error": {
+        "extended": true,
+        "is_database_error": true,
+        "is_integrity_error": true,
+        "is_operational_error": false,
+        "is_programming_error": false,
+        "message": "UNIQUE constraint failed: item.name",
+        "module": "sqlite3",
+        "primary_code": 19,
+        "sqlite_errorcode": 2067,
+        "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+        "type": "IntegrityError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "INSERT INTO item(id, name) VALUES (3, 'taken')",
+      "status": "error"
+    },
+    "second_begin": {
+      "connection": "pooled",
+      "error": {
+        "extended": false,
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": true,
+        "is_programming_error": false,
+        "message": "cannot start a transaction within a transaction",
+        "module": "sqlite3",
+        "primary_code": 1,
+        "sqlite_errorcode": 1,
+        "sqlite_errorname": "SQLITE_ERROR",
+        "type": "OperationalError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "BEGIN",
+      "status": "error"
+    }
+  },
+  "variant": "reuse-after-constraint-without-rollback"
+}

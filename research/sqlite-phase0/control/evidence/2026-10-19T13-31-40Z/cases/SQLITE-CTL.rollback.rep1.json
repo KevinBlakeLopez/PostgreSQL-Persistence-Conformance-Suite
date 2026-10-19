@@ -1,0 +1,70 @@
+{
+  "checks": [
+    {
+      "expected": [],
+      "name": "pending hidden",
+      "observed": [],
+      "ok": true
+    },
+    {
+      "expected": "ok",
+      "name": "rollback status",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after rollback",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer after rollback",
+      "observed": [],
+      "ok": true
+    }
+  ],
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/control/evidence/2026-10-19T13-31-40Z/db/SQLITE-CTL.rollback.rep1.sqlite",
+  "id": "SQLITE-CTL.rollback",
+  "observers": {
+    "after": {
+      "in_transaction": false,
+      "item": {
+        "rows": [],
+        "status": "ok"
+      }
+    },
+    "pending": {
+      "in_transaction": false,
+      "item": {
+        "rows": [],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 1,
+  "steps": {
+    "rollback": {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "params": [],
+      "rowcount": -1,
+      "sql": "ROLLBACK",
+      "status": "ok"
+    }
+  },
+  "trace": [
+    "PRAGMA journal_mode=DELETE",
+    "PRAGMA foreign_keys=ON",
+    "PRAGMA busy_timeout=0",
+    "PRAGMA journal_mode",
+    "PRAGMA foreign_keys",
+    "PRAGMA busy_timeout",
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN",
+    "INSERT INTO item(id, name) VALUES (1, 'marker')",
+    "ROLLBACK"
+  ]
+}

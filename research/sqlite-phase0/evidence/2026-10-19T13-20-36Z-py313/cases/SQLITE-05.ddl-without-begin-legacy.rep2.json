@@ -1,0 +1,204 @@
+{
+  "checkpoints": {
+    "left": {
+      "autocommit": -1,
+      "connection": "writer",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-create",
+      "total_changes": 0
+    },
+    "right": {
+      "autocommit": -1,
+      "connection": "writer",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-rollback",
+      "total_changes": 1
+    }
+  },
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-05.ddl-without-begin-legacy.rep2.sqlite",
+  "experiment": "SQLITE-05",
+  "fingerprint": "{\"create_status\":\"ok\",\"implicit_begin_count\":1,\"in_transaction_after_create\":false,\"in_transaction_after_insert\":true,\"in_transaction_after_rollback\":false,\"insert_status\":\"ok\",\"mode\":\"legacy\",\"observer_item\":[],\"observer_schema\":[\"item\"],\"rollback_message\":null,\"rollback_status\":\"ok\",\"trace_sql\":[\"CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT)\",\"BEGIN \",\"INSERT INTO item(id, name) VALUES (1, 'marker')\",\"ROLLBACK\"]}",
+  "observed": {
+    "create_status": "ok",
+    "implicit_begin_count": 1,
+    "in_transaction_after_create": false,
+    "in_transaction_after_insert": true,
+    "in_transaction_after_rollback": false,
+    "insert_status": "ok",
+    "mode": "legacy",
+    "observer_item": [],
+    "observer_schema": [
+      "item"
+    ],
+    "rollback_message": null,
+    "rollback_status": "ok",
+    "trace_sql": [
+      "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT)",
+      "BEGIN ",
+      "INSERT INTO item(id, name) VALUES (1, 'marker')",
+      "ROLLBACK"
+    ]
+  },
+  "observers": {
+    "after": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on",
+      "schema": {
+        "rows": [
+          [
+            "table",
+            "item",
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT)"
+          ]
+        ],
+        "status": "ok"
+      }
+    },
+    "pending": null
+  },
+  "repetition": 2,
+  "session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT)",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'marker')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": -1,
+        "sql": "ROLLBACK",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "legacy",
+    "name": "writer",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT)"
+      },
+      {
+        "in_transaction": false,
+        "sql": "BEGIN "
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'marker')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "ROLLBACK"
+      }
+    ]
+  },
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {},
+  "variant": "ddl-without-begin-legacy"
+}

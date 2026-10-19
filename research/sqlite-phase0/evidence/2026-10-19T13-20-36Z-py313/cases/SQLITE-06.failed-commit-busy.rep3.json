@@ -1,0 +1,735 @@
+{
+  "checkpoints": {
+    "after_first_commit": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "after-first-commit",
+      "total_changes": 1
+    },
+    "after_retry": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-retry",
+      "total_changes": 1
+    },
+    "after_setup": {
+      "autocommit": true,
+      "connection": "setup",
+      "in_transaction": false,
+      "isolation_level": "",
+      "label": "after-setup",
+      "total_changes": 1
+    },
+    "before_commit": {
+      "autocommit": true,
+      "connection": "writer",
+      "in_transaction": true,
+      "isolation_level": "",
+      "label": "before-commit",
+      "total_changes": 1
+    }
+  },
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/evidence/2026-10-19T13-20-36Z-py313/db/SQLITE-06.failed-commit-busy.rep3.sqlite",
+  "experiment": "SQLITE-06",
+  "fingerprint": "{\"first_commit_error_code\":5,\"first_commit_error_name\":\"SQLITE_BUSY\",\"first_commit_error_type\":\"OperationalError\",\"first_commit_status\":\"error\",\"in_transaction_after_failed_commit\":true,\"in_transaction_after_retry\":false,\"in_transaction_before\":true,\"kind\":\"failed-commit-busy\",\"observer_after_retry\":[\"seed\",\"marker\"],\"observer_during\":null,\"retry_commit_status\":\"ok\",\"writer_still_sees_marker\":true}",
+  "interpretation": "SQLite does not expose the connection's lock mode to this probe. The sequence above is the operation order and the errors it produced. Mapping those operations onto SHARED, RESERVED, PENDING, and EXCLUSIVE is an interpretation of SQLite's locking documentation, not a direct observation.",
+  "lock_status_available": false,
+  "observed": {
+    "first_commit_error_code": 5,
+    "first_commit_error_name": "SQLITE_BUSY",
+    "first_commit_error_type": "OperationalError",
+    "first_commit_status": "error",
+    "implicit_begin_count": 0,
+    "in_transaction_after_first_commit": true,
+    "in_transaction_after_retry": false,
+    "in_transaction_before_commit": true,
+    "journal_mode_reported": [
+      [
+        "delete"
+      ]
+    ],
+    "journal_mode_requested": "DELETE",
+    "observer_after_retry": [
+      "seed",
+      "marker"
+    ],
+    "observer_during": null,
+    "observer_during_error_name": "SQLITE_BUSY",
+    "observer_during_status": "error",
+    "reader_lock_while_holding": [],
+    "reader_reached_holding_barrier": true,
+    "reader_released_barrier": true,
+    "reader_saw": [
+      "seed"
+    ],
+    "reader_thread_alive_after_join": false,
+    "retry_commit_error_name": null,
+    "retry_commit_status": "ok",
+    "setup_in_transaction": false,
+    "with_reader": true,
+    "writer_lock_after_first_commit": [],
+    "writer_lock_after_insert": [],
+    "writer_sees_marker_after_first_commit": true
+  },
+  "observed_reporting": {
+    "first_commit_error_code": 5,
+    "first_commit_error_name": "SQLITE_BUSY",
+    "first_commit_error_type": "OperationalError",
+    "first_commit_status": "error",
+    "in_transaction_after_failed_commit": true,
+    "in_transaction_after_retry": false,
+    "in_transaction_before": true,
+    "kind": "failed-commit-busy",
+    "observer_after_retry": [
+      "seed",
+      "marker"
+    ],
+    "observer_during": null,
+    "retry_commit_status": "ok",
+    "writer_still_sees_marker": true
+  },
+  "observers": {
+    "after_retry": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "seed"
+          ],
+          [
+            2,
+            "marker"
+          ]
+        ],
+        "status": "ok"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": [
+          [
+            "delete"
+          ]
+        ],
+        "synchronous": [
+          [
+            2
+          ]
+        ],
+        "user_version": [
+          [
+            0
+          ]
+        ]
+      },
+      "query_only": "on"
+    },
+    "during": {
+      "autocommit": true,
+      "in_transaction": false,
+      "in_transaction_after": false,
+      "item": {
+        "error": {
+          "extended": false,
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": true,
+          "is_programming_error": false,
+          "message": "database is locked",
+          "module": "sqlite3",
+          "primary_code": 5,
+          "sqlite_errorcode": 5,
+          "sqlite_errorname": "SQLITE_BUSY",
+          "type": "OperationalError"
+        },
+        "status": "error"
+      },
+      "pragmas": {
+        "busy_timeout": [
+          [
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0
+          ]
+        ],
+        "journal_mode": {
+          "error": {
+            "extended": false,
+            "is_database_error": true,
+            "is_integrity_error": false,
+            "is_operational_error": true,
+            "is_programming_error": false,
+            "message": "database is locked",
+            "module": "sqlite3",
+            "primary_code": 5,
+            "sqlite_errorcode": 5,
+            "sqlite_errorname": "SQLITE_BUSY",
+            "type": "OperationalError"
+          }
+        },
+        "synchronous": {
+          "error": {
+            "extended": false,
+            "is_database_error": true,
+            "is_integrity_error": false,
+            "is_operational_error": true,
+            "is_programming_error": false,
+            "message": "database is locked",
+            "module": "sqlite3",
+            "primary_code": 5,
+            "sqlite_errorcode": 5,
+            "sqlite_errorname": "SQLITE_BUSY",
+            "type": "OperationalError"
+          }
+        },
+        "user_version": {
+          "error": {
+            "extended": false,
+            "is_database_error": true,
+            "is_integrity_error": false,
+            "is_operational_error": true,
+            "is_programming_error": false,
+            "message": "database is locked",
+            "module": "sqlite3",
+            "primary_code": 5,
+            "sqlite_errorcode": 5,
+            "sqlite_errorname": "SQLITE_BUSY",
+            "type": "OperationalError"
+          }
+        }
+      },
+      "query_only": "on"
+    }
+  },
+  "reader_events": [
+    {
+      "begin": {
+        "connection": "reader",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN DEFERRED",
+        "status": "ok"
+      },
+      "event": "holding",
+      "in_transaction": true,
+      "lock_status": {
+        "connection": "reader",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA lock_status",
+        "status": "ok"
+      },
+      "read": {
+        "connection": "reader",
+        "description": [
+          "id",
+          "name"
+        ],
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            1,
+            "seed"
+          ]
+        ],
+        "sql": "SELECT id, name FROM item ORDER BY id",
+        "status": "ok"
+      }
+    },
+    {
+      "calls": [
+        {
+          "connection": "reader",
+          "description": null,
+          "in_transaction_after": true,
+          "in_transaction_before": false,
+          "lastrowid": 0,
+          "params": [],
+          "rowcount": -1,
+          "sql": "BEGIN DEFERRED",
+          "status": "ok"
+        },
+        {
+          "connection": "reader",
+          "description": [
+            "id",
+            "name"
+          ],
+          "in_transaction_after": true,
+          "in_transaction_before": true,
+          "lastrowid": 0,
+          "params": [],
+          "rowcount": -1,
+          "rows": [
+            [
+              1,
+              "seed"
+            ]
+          ],
+          "sql": "SELECT id, name FROM item ORDER BY id",
+          "status": "ok"
+        },
+        {
+          "connection": "reader",
+          "description": null,
+          "in_transaction_after": true,
+          "in_transaction_before": true,
+          "lastrowid": 0,
+          "params": [],
+          "rowcount": -1,
+          "sql": "PRAGMA lock_status",
+          "status": "ok"
+        },
+        {
+          "connection": "reader",
+          "description": null,
+          "in_transaction_after": false,
+          "in_transaction_before": true,
+          "lastrowid": 0,
+          "params": [],
+          "rowcount": -1,
+          "sql": "ROLLBACK",
+          "status": "ok"
+        },
+        {
+          "connection": "reader",
+          "in_transaction_after_error": {
+            "is_database_error": true,
+            "is_integrity_error": false,
+            "is_operational_error": false,
+            "is_programming_error": true,
+            "message": "Cannot operate on a closed database.",
+            "module": "sqlite3",
+            "sqlite_errorcode": null,
+            "sqlite_errorname": null,
+            "type": "ProgrammingError"
+          },
+          "in_transaction_after_status": "error",
+          "in_transaction_before": false,
+          "method": "Connection.close()",
+          "returned": null,
+          "status": "ok"
+        }
+      ],
+      "event": "released",
+      "in_transaction": false,
+      "rollback": {
+        "connection": "reader",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "ROLLBACK",
+        "status": "ok"
+      },
+      "trace": [
+        {
+          "in_transaction": false,
+          "sql": "BEGIN DEFERRED"
+        },
+        {
+          "in_transaction": true,
+          "sql": "SELECT id, name FROM item ORDER BY id"
+        },
+        {
+          "in_transaction": true,
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "in_transaction": true,
+          "sql": "ROLLBACK"
+        }
+      ]
+    }
+  ],
+  "repetition": 3,
+  "sidecars": [
+    "database"
+  ],
+  "status": "recorded",
+  "steps": {
+    "begin": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "lastrowid": 0,
+      "params": [],
+      "rowcount": -1,
+      "sql": "BEGIN DEFERRED",
+      "status": "ok"
+    },
+    "close": {
+      "connection": "writer",
+      "in_transaction_after_error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      },
+      "in_transaction_after_status": "error",
+      "in_transaction_before": false,
+      "method": "Connection.close()",
+      "returned": null,
+      "status": "ok"
+    },
+    "first_commit": {
+      "connection": "writer",
+      "error": {
+        "extended": false,
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": true,
+        "is_programming_error": false,
+        "message": "database is locked",
+        "module": "sqlite3",
+        "primary_code": 5,
+        "sqlite_errorcode": 5,
+        "sqlite_errorname": "SQLITE_BUSY",
+        "type": "OperationalError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "COMMIT",
+      "status": "error"
+    },
+    "marker": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": 1,
+      "sql": "INSERT INTO item(id, name) VALUES (2, 'marker')",
+      "status": "ok"
+    },
+    "retry_commit": {
+      "connection": "writer",
+      "description": null,
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": -1,
+      "sql": "COMMIT",
+      "status": "ok"
+    },
+    "setup": [
+      {
+        "connection": "setup",
+        "description": [
+          "journal_mode"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            "delete"
+          ]
+        ],
+        "sql": "PRAGMA journal_mode=DELETE",
+        "status": "ok"
+      },
+      {
+        "connection": "setup",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA foreign_keys=ON",
+        "status": "ok"
+      },
+      {
+        "connection": "setup",
+        "description": [
+          "timeout"
+        ],
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "sql": "PRAGMA busy_timeout=0",
+        "status": "ok"
+      },
+      {
+        "connection": "setup",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+        "status": "ok"
+      },
+      {
+        "connection": "setup",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "lastrowid": 1,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (1, 'seed')",
+        "status": "ok"
+      }
+    ],
+    "writer_view_after_first_commit": {
+      "connection": "writer",
+      "description": [
+        "id",
+        "name"
+      ],
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "lastrowid": 2,
+      "params": [],
+      "rowcount": -1,
+      "rows": [
+        [
+          1,
+          "seed"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "sql": "SELECT id, name FROM item ORDER BY id",
+      "status": "ok"
+    }
+  },
+  "variant": "failed-commit-busy",
+  "writer_session": {
+    "autocommit": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "calls": [
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "lastrowid": 0,
+        "params": [],
+        "rowcount": -1,
+        "sql": "BEGIN DEFERRED",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": 1,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'marker')",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA lock_status",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "error": {
+          "extended": false,
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": true,
+          "is_programming_error": false,
+          "message": "database is locked",
+          "module": "sqlite3",
+          "primary_code": 5,
+          "sqlite_errorcode": 5,
+          "sqlite_errorname": "SQLITE_BUSY",
+          "type": "OperationalError"
+        },
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "params": [],
+        "sql": "COMMIT",
+        "status": "error"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "PRAGMA lock_status",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": [
+          "id",
+          "name"
+        ],
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "rows": [
+          [
+            1,
+            "seed"
+          ],
+          [
+            2,
+            "marker"
+          ]
+        ],
+        "sql": "SELECT id, name FROM item ORDER BY id",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "description": null,
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "lastrowid": 2,
+        "params": [],
+        "rowcount": -1,
+        "sql": "COMMIT",
+        "status": "ok"
+      },
+      {
+        "connection": "writer",
+        "in_transaction_after_error": {
+          "is_database_error": true,
+          "is_integrity_error": false,
+          "is_operational_error": false,
+          "is_programming_error": true,
+          "message": "Cannot operate on a closed database.",
+          "module": "sqlite3",
+          "sqlite_errorcode": null,
+          "sqlite_errorname": null,
+          "type": "ProgrammingError"
+        },
+        "in_transaction_after_status": "error",
+        "in_transaction_before": false,
+        "method": "Connection.close()",
+        "returned": null,
+        "status": "ok"
+      }
+    ],
+    "connect_warnings": [],
+    "isolation_level": {
+      "error": {
+        "is_database_error": true,
+        "is_integrity_error": false,
+        "is_operational_error": false,
+        "is_programming_error": true,
+        "message": "Cannot operate on a closed database.",
+        "module": "sqlite3",
+        "sqlite_errorcode": null,
+        "sqlite_errorname": null,
+        "type": "ProgrammingError"
+      }
+    },
+    "mode": "explicit",
+    "name": "writer",
+    "trace": [
+      {
+        "in_transaction": false,
+        "sql": "BEGIN DEFERRED"
+      },
+      {
+        "in_transaction": true,
+        "sql": "INSERT INTO item(id, name) VALUES (2, 'marker')"
+      },
+      {
+        "in_transaction": true,
+        "sql": "PRAGMA lock_status"
+      },
+      {
+        "in_transaction": true,
+        "sql": "COMMIT"
+      },
+      {
+        "in_transaction": true,
+        "sql": "PRAGMA lock_status"
+      },
+      {
+        "in_transaction": true,
+        "sql": "SELECT id, name FROM item ORDER BY id"
+      },
+      {
+        "in_transaction": true,
+        "sql": "COMMIT"
+      }
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "checks": [
+    {
+      "expected": "ok",
+      "name": "marker insert",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": "IntegrityError",
+      "name": "fault type",
+      "observed": "IntegrityError",
+      "ok": true
+    },
+    {
+      "expected": 2067,
+      "name": "fault code",
+      "observed": 2067,
+      "ok": true
+    },
+    {
+      "expected": "SQLITE_CONSTRAINT_UNIQUE",
+      "name": "fault name",
+      "observed": "SQLITE_CONSTRAINT_UNIQUE",
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after fault",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "name": "writer still has marker",
+      "observed": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "taken"
+        ]
+      ],
+      "name": "observer before commit",
+      "observed": [
+        [
+          1,
+          "taken"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "expected": "ok",
+      "name": "commit status",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after commit",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "name": "observer after commit",
+      "observed": [
+        [
+          1,
+          "taken"
+        ],
+        [
+          2,
+          "marker"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/control/evidence/2026-10-19T13-31-40Z/db/SQLITE-TX-01.caught-unique-then-commit.rep3.sqlite",
+  "id": "SQLITE-TX-01.caught-unique-then-commit",
+  "observers": {
+    "after": {
+      "in_transaction": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "taken"
+          ],
+          [
+            2,
+            "marker"
+          ]
+        ],
+        "status": "ok"
+      }
+    },
+    "pending": {
+      "in_transaction": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "taken"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "steps": {
+    "commit": {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "params": [],
+      "rowcount": -1,
+      "sql": "COMMIT",
+      "status": "ok"
+    },
+    "fault": {
+      "error": {
+        "message": "UNIQUE constraint failed: item.name",
+        "sqlite_errorcode": 2067,
+        "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+        "type": "IntegrityError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "INSERT INTO item(id, name) VALUES (3, 'taken')",
+      "status": "error"
+    }
+  },
+  "trace": [
+    "PRAGMA journal_mode=DELETE",
+    "PRAGMA foreign_keys=ON",
+    "PRAGMA busy_timeout=0",
+    "PRAGMA journal_mode",
+    "PRAGMA foreign_keys",
+    "PRAGMA busy_timeout",
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "INSERT INTO item(id, name) VALUES (1, 'taken')",
+    "BEGIN",
+    "INSERT INTO item(id, name) VALUES (2, 'marker')",
+    "INSERT INTO item(id, name) VALUES (3, 'taken')",
+    "SELECT id, name FROM item ORDER BY id",
+    "COMMIT"
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "checks": [
+    {
+      "expected": "ok",
+      "name": "kept insert",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": "OperationalError",
+      "name": "missing type",
+      "observed": "OperationalError",
+      "ok": true
+    },
+    {
+      "expected": 1,
+      "name": "missing code",
+      "observed": 1,
+      "ok": true
+    },
+    {
+      "expected": "SQLITE_ERROR",
+      "name": "missing name",
+      "observed": "SQLITE_ERROR",
+      "ok": true
+    },
+    {
+      "expected": "no such savepoint: does_not_exist",
+      "name": "missing message",
+      "observed": "no such savepoint: does_not_exist",
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after error",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": "ok",
+      "name": "follow-up insert",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": [],
+      "name": "observer before commit",
+      "observed": [],
+      "ok": true
+    },
+    {
+      "expected": "ok",
+      "name": "commit status",
+      "observed": "ok",
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after commit",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "kept"
+        ],
+        [
+          2,
+          "after"
+        ]
+      ],
+      "name": "observer after commit",
+      "observed": [
+        [
+          1,
+          "kept"
+        ],
+        [
+          2,
+          "after"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "database": "/Users/kevinlopez/code/ppcs-sqlite-phase0/research/sqlite-phase0/control/evidence/2026-10-19T13-31-40Z/db/SQLITE-TX-02.missing-savepoint-then-commit.rep3.sqlite",
+  "id": "SQLITE-TX-02.missing-savepoint-then-commit",
+  "observers": {
+    "after": {
+      "in_transaction": false,
+      "item": {
+        "rows": [
+          [
+            1,
+            "kept"
+          ],
+          [
+            2,
+            "after"
+          ]
+        ],
+        "status": "ok"
+      }
+    },
+    "pending": {
+      "in_transaction": false,
+      "item": {
+        "rows": [],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "steps": {
+    "commit": {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "params": [],
+      "rowcount": -1,
+      "sql": "COMMIT",
+      "status": "ok"
+    },
+    "missing": {
+      "error": {
+        "message": "no such savepoint: does_not_exist",
+        "sqlite_errorcode": 1,
+        "sqlite_errorname": "SQLITE_ERROR",
+        "type": "OperationalError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "params": [],
+      "sql": "ROLLBACK TO SAVEPOINT does_not_exist",
+      "status": "error"
+    }
+  },
+  "trace": [
+    "PRAGMA journal_mode=DELETE",
+    "PRAGMA foreign_keys=ON",
+    "PRAGMA busy_timeout=0",
+    "PRAGMA journal_mode",
+    "PRAGMA foreign_keys",
+    "PRAGMA busy_timeout",
+    "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
+    "BEGIN",
+    "INSERT INTO item(id, name) VALUES (1, 'kept')",
+    "ROLLBACK TO SAVEPOINT does_not_exist",
+    "INSERT INTO item(id, name) VALUES (2, 'after')",
+    "COMMIT"
+  ]
+}
