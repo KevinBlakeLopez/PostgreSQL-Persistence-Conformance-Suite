@@ -329,10 +329,24 @@ Knex agrees with the careful control on the two cases that go through `knex.tran
 
 The third case is the implicit commit, reached by holding a Knex pool connection in `BEGIN` and then calling `knex.transaction` on that connection. Knex sends its own `BEGIN;` for the second unit. The first marker is visible afterward, and the rejection describes only the second unit. The careful control, which sends `ROLLBACK` before the next transaction, leaves neither marker.
 
-## 11. Limits
+## 11. Lucid 22.4.2
+
+**Observed** (`evidence/lucid.json`, `2026-10-19T16:17:24.357Z`). Lucid 22.4.2, Knex 3.3.0, mysql2 3.24.6, MySQL 8.4.11. The call is `db.transaction(callback)`. This is not a PPCS adapter.
+
+**Source.** Lucid awaits `knex.transaction()` without handing Knex the callback, runs the callback itself, calls `commit()` when the callback returns, and calls `rollback()` then rethrows when the callback throws (`@adonisjs/lucid` 22.4.2, `build/src/query_client/index.js`).
+
+| Case | Lucid | Knex 3.3.0, from `evidence/knex.json` |
+| --- | --- | --- |
+| Caught duplicate key, callback returns | Resolved. Query log: `BEGIN;`, both inserts, `COMMIT;`. Duplicate insert `1062` / `ER_DUP_ENTRY` / `23000`. Marker visible. | Same claim, one marker visible. |
+| Deadlock, subject is the victim | Rejected with `1213` / `ER_LOCK_DEADLOCK` / `40001`. Query log ends in `ROLLBACK`. Victim marker absent. `dl` is `(1, 1)` after the heavier fixture commits. | Same claim, same error, marker absent. |
+| Next transaction without a `ROLLBACK` of the first | Rejected with `second unit fails` and no errno. The first marker remains. | Same claim, one marker remains. |
+
+The comparison recorded in `evidence/lucid.json` matches Lucid to Knex on the claim and the marker count for all three cases. Lucid does not add a different commit or rollback outcome on top of the Knex behavior already recorded.
+
+## 12. Limits
 
 - One full run, plus three deadlock repetitions inside it. The duplicate-key, lock-wait, and savepoint results were each a single execution. The 50 second lock wait and the 2 second lock wait agreed on scope. That is not a statistical claim.
-- Knex 3.3.0 was run on three cases (`evidence/knex.json`). Lucid and Kysely were not run. The Knex deadlock and duplicate-key cases were one execution each, after a first deadlock run was discarded because InnoDB killed the fixture instead of the subject.
+- Knex 3.3.0 and Lucid 22.4.2 were each run once on the three cases (`evidence/knex.json`, `evidence/lucid.json`). Kysely was not run. The first Knex deadlock attempt was discarded because InnoDB killed the fixture instead of the subject. The Lucid deadlock used the heavier fixture from the start.
 - The lost-response fault was not built.
 - The binary log was not read. `gtid_mode` is off, so there is no GTID to look up after the session ends.
 - `innodb_trx` by connection id was sometimes empty while performance schema and `data_locks` showed the transaction. Do not use that view alone.
