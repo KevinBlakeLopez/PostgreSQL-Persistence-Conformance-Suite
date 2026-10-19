@@ -2,7 +2,7 @@
 
 Standalone experiments for a possible MySQL Persistence Conformance suite. They drive `mysql2` directly and read the server from a second connection.
 
-This directory is not a PPCS adapter. It does not run `harness/run.mjs`, and it does not change PostgreSQL cases, adapters, or containers. A passing run here does not mean MySQL PCS is implemented. The investigation is in [REPORT.md](REPORT.md).
+This directory is not a PPCS adapter. It does not run `harness/run.mjs`, and it does not change PostgreSQL cases, adapters, or containers. A passing run here does not mean MySQL PCS is implemented. The investigation is in [REPORT.md](REPORT.md). The measured expectations are in [catalog/README.md](catalog/README.md). That catalog is not loaded by the PostgreSQL runner.
 
 ## Reproduce
 
