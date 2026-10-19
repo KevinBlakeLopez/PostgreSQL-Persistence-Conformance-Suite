@@ -307,12 +307,32 @@ Do not do the following without a separate decision. Each one moves PostgreSQL r
 | Edit `schema/result.v1.schema.json` or `schema/run.v1.schema.json` | The result schema requires `xid` and `pg_xact_status` fate. MySQL evidence should stay in its own files until a schema is approved. |
 | Edit `adapters/node-kit/pg-instrument.mjs` or `adapters/pg-control/` | Category C and D faults and the command-tag control are node-postgres. |
 | Edit root `compose.yaml`, `scripts/pg-up.sh`, or `scripts/pg-down.sh` | The disposable PostgreSQL 18.6 server. MySQL uses `investigations/mysql-innodb-baseline/compose.yaml`. |
-| Add Knex, Lucid, Kysely, or another ORM to `adapters/` | Not measured. The sequence above is the proposal. |
+| Add Knex, Lucid, Kysely, or another ORM under `adapters/` | Knex was measured only as `investigations/mysql-innodb-baseline/src/run-knex.mjs`. It is not a PPCS adapter. |
 
-## 10. Limits
+## 10. Knex 3.3.0
+
+**Observed** (`evidence/knex.json`, `2026-10-19T15:51:36.053Z`). Knex 3.3.0 is the version `@adonisjs/lucid` 22.4.2 depends on. The client is still mysql2 3.24.6, on the same default MySQL 8.4.11 server. This is not a PPCS run and not an ORM result. Lucid was not called.
+
+**Source.** Knex's mysql2 transaction sends `BEGIN;`, commits when the callback resolves, and sends `ROLLBACK` when the callback rejects (`node_modules/knex/lib/execution/transaction.js`). The mysql2 dialect swallows `ER_SP_DOES_NOT_EXIST` on those transaction statements. These three cases do not hit that path.
+
+`mysql2-correct` reports a commit when the `COMMIT` it sent is acknowledged, and it sends `ROLLBACK` after an application error. `mysql2-unsafe` reports a commit when `COMMIT` does not throw, including after a deadlock, and it starts the next transaction without sending `ROLLBACK`.
+
+| Case | mysql2-correct | mysql2-unsafe | Knex native |
+| --- | --- | --- | --- |
+| Caught duplicate key, callback returns | Claims committed. OK packet `serverStatus` `16386`. Marker visible. Error was `1062` / `23000`. | Claims committed because `COMMIT` did not throw. Same packet and the marker is visible. | `knex.transaction` resolved. Query log: `BEGIN;`, both inserts, `COMMIT;`. The duplicate insert was `1062` / `ER_DUP_ENTRY` / `23000`. Marker visible. |
+| Deadlock, subject is the victim | Claims failed. Subject got `1213` / `40001`. `COMMIT` was not sent. Victim marker absent. | Claims committed. Subject got `1213`, then `COMMIT` resolved with `serverStatus` `16386`. Victim marker absent. | `knex.transaction` rejected with `1213` / `ER_LOCK_DEADLOCK` / `40001`. Query log ends in `ROLLBACK`. Victim marker absent. |
+| Next transaction without a `ROLLBACK` of the first | Claims rolled back. First `ROLLBACK` was sent. Neither marker remains. | Claims rolled back because the second `ROLLBACK` was acknowledged. The first marker was already visible at the second `START TRANSACTION`, and it remains. | `knex.transaction` rejected with the callback's error, `second unit fails`, which has no errno. The first marker remains. |
+
+The deadlock subject is the victim only when it is the lighter transaction. A first run, where the subject had inserted a marker and the fixture had not, killed the fixture instead (`1213` on the fixture, and the subject's update resolved). The recorded run gives the fixture eight extra inserts so the subject is the one rolled back. The surviving fixture's later commit leaves `dl` at `(1, 1)`.
+
+Knex agrees with the careful control on the two cases that go through `knex.transaction(callback)`. A caught duplicate key is a commit. A deadlock that escapes the callback is a rejection carrying `1213`, and the victim's marker is absent. The careless control's post-deadlock `COMMIT` is the one that claims a commit the marker does not support. Its OK packet is the same `16386` as a commit of work that was still open.
+
+The third case is the implicit commit, reached by holding a Knex pool connection in `BEGIN` and then calling `knex.transaction` on that connection. Knex sends its own `BEGIN;` for the second unit. The first marker is visible afterward, and the rejection describes only the second unit. The careful control, which sends `ROLLBACK` before the next transaction, leaves neither marker.
+
+## 11. Limits
 
 - One full run, plus three deadlock repetitions inside it. The duplicate-key, lock-wait, and savepoint results were each a single execution. The 50 second lock wait and the 2 second lock wait agreed on scope. That is not a statistical claim.
-- Frameworks were not run. Nothing here is a Knex, Lucid, or Kysely result.
+- Knex 3.3.0 was run on three cases (`evidence/knex.json`). Lucid and Kysely were not run. The Knex deadlock and duplicate-key cases were one execution each, after a first deadlock run was discarded because InnoDB killed the fixture instead of the subject.
 - The lost-response fault was not built.
 - The binary log was not read. `gtid_mode` is off, so there is no GTID to look up after the session ends.
 - `innodb_trx` by connection id was sometimes empty while performance schema and `data_locks` showed the transaction. Do not use that view alone.

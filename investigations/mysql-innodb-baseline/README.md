@@ -43,5 +43,8 @@ Initialization is the official image entrypoint on an empty tmpfs: `MYSQL_DATABA
 | `src/mpcs-04.mjs` | Savepoint rollback, release, and a missing savepoint |
 | `src/mpcs-05.mjs` | `COMMIT` / `ROLLBACK` result shape, `KILL`, and a local socket close |
 | `src/probes.mjs` | Implicit commit, DDL, isolation, `GET_LOCK`, outer rollback |
+| `src/run-knex.mjs` | Knex 3.3.0 beside a careful and a careless mysql2 control |
+
+`node src/run-knex.mjs` runs the Knex comparison after `mysql-up.sh`. It writes `evidence/knex.json`. It is not a PPCS adapter.
 
 Each step stores the SQL that was sent, the `mysql2` result or error, and a snapshot from a different connection. The snapshot is not treated as something the client knew when `mysql2` returned.
