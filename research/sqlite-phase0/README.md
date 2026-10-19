@@ -38,6 +38,8 @@ Each invocation writes a new directory under `research/sqlite-phase0/evidence/<r
 /opt/homebrew/bin/python3.13 research/sqlite-phase0/control/run.py
 ```
 
+`sqlalchemy-core/run.py` scores SQLAlchemy 2.1.5 `Connection.begin()` against that control. See `sqlalchemy-core/README.md`.
+
 ## Transaction control in the baseline
 
 The baseline issues `BEGIN`, `COMMIT`, and `ROLLBACK` itself, on connections opened with `autocommit=True`. Legacy transaction control and `autocommit=False` appear only in the variants that compare driver-managed transactions.

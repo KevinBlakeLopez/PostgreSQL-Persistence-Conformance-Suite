@@ -1,0 +1,128 @@
+{
+  "checks": [
+    {
+      "expected": "SQLITE_CONSTRAINT_UNIQUE",
+      "name": "fault name",
+      "observed": "SQLITE_CONSTRAINT_UNIQUE",
+      "ok": true
+    },
+    {
+      "expected": 2067,
+      "name": "fault code",
+      "observed": 2067,
+      "ok": true
+    },
+    {
+      "expected": true,
+      "name": "in_transaction after fault",
+      "observed": true,
+      "ok": true
+    },
+    {
+      "expected": false,
+      "name": "in_transaction after end",
+      "observed": false,
+      "ok": true
+    },
+    {
+      "expected": [
+        "account",
+        "schema_migrations"
+      ],
+      "name": "observer schema",
+      "observed": [
+        "account",
+        "schema_migrations"
+      ],
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          1,
+          "a@example.com"
+        ]
+      ],
+      "name": "accounts",
+      "observed": [
+        [
+          1,
+          "a@example.com"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "expected": [
+        [
+          "001_account"
+        ]
+      ],
+      "name": "migrations",
+      "observed": [
+        [
+          "001_account"
+        ]
+      ],
+      "ok": true
+    }
+  ],
+  "driver": {
+    "autocommit": -1,
+    "isolation_level": ""
+  },
+  "id": "SQLITE-DDL.statement-error-commit",
+  "observers": {
+    "after": {
+      "accounts": {
+        "rows": [
+          [
+            1,
+            "a@example.com"
+          ]
+        ],
+        "status": "ok"
+      },
+      "migrations": {
+        "rows": [
+          [
+            "001_account"
+          ]
+        ],
+        "status": "ok"
+      },
+      "schema": {
+        "rows": [
+          [
+            "account"
+          ],
+          [
+            "schema_migrations"
+          ]
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "passed": true,
+  "repetition": 3,
+  "sqlalchemy": "2.1.5",
+  "steps": {
+    "fault": {
+      "message": "UNIQUE constraint failed: account.email",
+      "orig_type": "IntegrityError",
+      "sqlite_errorcode": 2067,
+      "sqlite_errorname": "SQLITE_CONSTRAINT_UNIQUE",
+      "type": "IntegrityError"
+    }
+  },
+  "trace": [
+    "CREATE TABLE schema_migrations (id TEXT PRIMARY KEY)",
+    "CREATE TABLE account (id INTEGER PRIMARY KEY, email TEXT UNIQUE)",
+    "BEGIN ",
+    "INSERT INTO schema_migrations(id) VALUES ('001_account')",
+    "INSERT INTO account(id, email) VALUES (1, 'a@example.com')",
+    "INSERT INTO account(id, email) VALUES (2, 'a@example.com')",
+    "COMMIT"
+  ]
+}
