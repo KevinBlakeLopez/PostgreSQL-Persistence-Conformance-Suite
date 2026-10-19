@@ -1,0 +1,318 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T12-51-00Z-0a0698",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "CTL-01.rollback",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and fails with an application error",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Raise an application error inside the transaction, so that the framework rolls it back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "jdbc-control",
+      "version": "0.1.0",
+      "source_sha256": "0b6288d78b09fd62af05e36f275c0b73923aaccfc6d01a4e7ca9f79918992c2f"
+    },
+    "framework": {
+      "name": "jdbc-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "postgresql": "42.7.14"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "21.0.12.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "configured",
+    "description": "Negative control. Connection.commit() returning is reported as committed, including when the driver state was FAILED. A thrown commit() is reported as rolled_back. A failed Connection.rollback(Savepoint) is ignored and the outer transaction is committed. A thrown Connection.rollback() is followed by Connection.setAutoCommit(true), and the connection is kept. Connection.setTransactionIsolation is not called. A write made before a savepoint is executed inside that savepoint. One DriverManager connection is held. It is not a pool.",
+    "configuration": {
+      "commit_outcome": "committed whenever Connection.commit() returns",
+      "commit_error": "reported as rolled_back",
+      "failed_savepoint_rollback": "ignored; Connection.commit()",
+      "failed_rollback": "setAutoCommit(true); connection kept",
+      "isolation_level": "not called",
+      "write_before_savepoint": "sent inside the savepoint",
+      "connections": "DriverManager, one connection, no pool"
+    },
+    "form": "Connection.setAutoCommit(false), the work, then Connection.commit() or Connection.rollback(). Writes use PreparedStatement."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The framework rolls the transaction back, and PostgreSQL confirms the ROLLBACK, so the client knows that nothing committed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw and Connection.rollback() returned",
+    "contract": "The unsafe jdbc-control policy reports committed whenever Connection.commit() returns, whatever PgConnection.getTransactionState() was before the call. It reports rolled_back when Connection.commit() throws. It calls Connection.commit() after Connection.rollback(Savepoint) has thrown. When Connection.rollback() throws, it calls Connection.setAutoCommit(true) and keeps the connection. Java 21 Connection.setAutoCommit says: \"If this method is called during a transaction and the auto-commit mode is changed, the transaction is committed.\" pgjdbc 42.7.14 PgConnection.setAutoCommit(true) calls commit() when auto-commit is off. It does not call Connection.setTransactionIsolation. A write made before a nested savepoint is executed inside that savepoint.",
+    "error": {
+      "class": "AppException",
+      "code": null,
+      "message": "application error: the request fails"
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 160539,
+          "xid": "3873"
+        },
+        "session": {
+          "pid": 160539,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3873",
+          "xid_matches": true,
+          "backend_xmin": "3873",
+          "backend_start": "2026-10-19 12:51:04.677826+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "3873"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 160539,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "3873",
+              "xid_matches": null,
+              "backend_xmin": "3873",
+              "backend_start": "2026-10-19 12:51:04.677826+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 160539,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 12:51:04.677826+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3873",
+        "pid": 160539,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 12:51:04.677826+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.2 held: xid 3873 rolled back at report time (`after-end`); marker visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [3873]"
+      },
+      {
+        "description": "the API reported \"rolled_back\"",
+        "met": true,
+        "detail": "reported: rolled_back"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker.",
+        "holds": true,
+        "detail": "xid 3873 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=jdbc-control --mode=unsafe --case=CTL-01.rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "DriverManager.getConnection",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()"
+      ],
+      "fault_trace": [
+        "ROLLBACK"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "injection": null,
+      "commit_state_before": null,
+      "discarded": false,
+      "autocommit_restored": false
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T12:51:04.435Z",
+    "finished_at": "2026-10-19T12:51:05.498Z",
+    "duration_ms": 1063
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 3873 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 356
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 3877 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 365
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 3881 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 342
+      }
+    ]
+  }
+}

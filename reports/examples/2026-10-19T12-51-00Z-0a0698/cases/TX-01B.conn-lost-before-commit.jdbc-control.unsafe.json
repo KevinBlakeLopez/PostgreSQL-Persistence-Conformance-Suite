@@ -1,0 +1,341 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T12-51-00Z-0a0698",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "jdbc-control",
+      "version": "0.1.0",
+      "source_sha256": "0b6288d78b09fd62af05e36f275c0b73923aaccfc6d01a4e7ca9f79918992c2f"
+    },
+    "framework": {
+      "name": "jdbc-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "postgresql": "42.7.14"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "21.0.12.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "configured",
+    "description": "Negative control. Connection.commit() returning is reported as committed, including when the driver state was FAILED. A thrown commit() is reported as rolled_back. A failed Connection.rollback(Savepoint) is ignored and the outer transaction is committed. A thrown Connection.rollback() is followed by Connection.setAutoCommit(true), and the connection is kept. Connection.setTransactionIsolation is not called. A write made before a savepoint is executed inside that savepoint. One DriverManager connection is held. It is not a pool.",
+    "configuration": {
+      "commit_outcome": "committed whenever Connection.commit() returns",
+      "commit_error": "reported as rolled_back",
+      "failed_savepoint_rollback": "ignored; Connection.commit()",
+      "failed_rollback": "setAutoCommit(true); connection kept",
+      "isolation_level": "not called",
+      "write_before_savepoint": "sent inside the savepoint",
+      "connections": "DriverManager, one connection, no pool"
+    },
+    "form": "Connection.setAutoCommit(false), the work, then Connection.commit() or Connection.rollback(). Writes use PreparedStatement."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "Connection.commit() threw, which the unsafe policy reports as a rollback",
+    "contract": "The unsafe jdbc-control policy reports committed whenever Connection.commit() returns, whatever PgConnection.getTransactionState() was before the call. It reports rolled_back when Connection.commit() throws. It calls Connection.commit() after Connection.rollback(Savepoint) has thrown. When Connection.rollback() throws, it calls Connection.setAutoCommit(true) and keeps the connection. Java 21 Connection.setAutoCommit says: \"If this method is called during a transaction and the auto-commit mode is changed, the transaction is committed.\" pgjdbc 42.7.14 PgConnection.setAutoCommit(true) calls commit() when auto-commit is off. It does not call Connection.setTransactionIsolation. A write made before a nested savepoint is executed inside that savepoint.",
+    "error": {
+      "class": "PSQLException",
+      "code": "57P01",
+      "message": "FATAL: terminating connection due to administrator command"
+    },
+    "steps": {
+      "commit_state_before": "OPEN"
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 160859,
+          "xid": "3921"
+        },
+        "session": {
+          "pid": 160859,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3921",
+          "xid_matches": true,
+          "backend_xmin": "3921",
+          "backend_start": "2026-10-19 12:51:09.536489+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "3921"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 160859,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "3921",
+              "xid_matches": null,
+              "backend_xmin": "3921",
+              "backend_start": "2026-10-19 12:51:09.536489+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 160859,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 160859,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3921",
+        "pid": 160859,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 12:51:09.536489+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: rolled_back",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [3921]"
+      },
+      {
+        "description": "the runner terminated the backend at `before-end`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (aborted), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 3921 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: rolled_back"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for jdbc-control (unsafe)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=jdbc-control --mode=unsafe --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "DriverManager.getConnection",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()",
+        "commit state before=OPEN",
+        "Connection.commit() threw; reported as a rollback"
+      ],
+      "fault_trace": [],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "injection": null,
+      "commit_state_before": "OPEN",
+      "discarded": false,
+      "autocommit_restored": false
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T12:51:09.297Z",
+    "finished_at": "2026-10-19T12:51:10.744Z",
+    "duration_ms": 1447
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 495
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 506
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 446
+      }
+    ]
+  }
+}
