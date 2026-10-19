@@ -10,7 +10,7 @@ A **protocol line** is a JSON object with `"ppcs": 1`. Any other stdout line, an
 - the adapter runs the case;
 - the runner observes and injects faults at checkpoints.
 
-There is no transaction API, no RPC, and no shared library: PPCS's JavaScript adapters use `adapters/node-kit/`, but nothing requires it. `adapters/django` and `adapters/sqlalchemy` are Python implementations of this protocol. Django drives `transaction.atomic()`. SQLAlchemy drives `Session.begin()` and `Session.begin_nested()`. `adapters/spring-jdbc` is a Java implementation. It drives Spring `TransactionTemplate` on `DataSourceTransactionManager`, and writes with `JdbcTemplate`. The cases each one runs are listed in its `adapter.json`.
+There is no transaction API, no RPC, and no shared library: PPCS's JavaScript adapters use `adapters/node-kit/`, but nothing requires it. `adapters/django`, `adapters/sqlalchemy`, and `adapters/tortoise` are Python implementations of this protocol. Django drives `transaction.atomic()`. SQLAlchemy drives `Session.begin()` and `Session.begin_nested()`. Tortoise drives `in_transaction()`, and a nested `in_transaction()` is a savepoint. `adapters/spring-jdbc` is a Java implementation. It drives Spring `TransactionTemplate` on `DataSourceTransactionManager`, and writes with `JdbcTemplate`. The cases each one runs are listed in its `adapter.json`.
 
 ## Messages
 

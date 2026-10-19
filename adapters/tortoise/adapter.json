@@ -1,0 +1,46 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "tortoise",
+  "framework": "tortoise-orm",
+  "description": "Tortoise ORM 1.1.9 in_transaction() through tortoise.backends.asyncpg and asyncpg 0.32.0. postgres:// selects that engine. A nested in_transaction() is a savepoint. Category C faults are withheld or rewritten in this process, on asyncpg.Connection.execute, before Tortoise sees the error. A transaction ROLLBACK is the statement \"ROLLBACK;\". The pool reset's \"ROLLBACK\" has no semicolon and is not withheld. Pool maxsize is 1, the catalog's pool_max. Tortoise's own default maxsize is 5.",
+  "command": [
+    "./.venv/bin/python",
+    "main.py"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "in_transaction() for the outer transaction and a nested in_transaction() for the savepoint. Engine tortoise.backends.asyncpg, the engine postgres:// selects. minsize 1, maxsize 1. The pool is not closed between TX-03's two units."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Tortoise 1.1.9 has no propagation mode that promises an independent transaction. A nested in_transaction() is a savepoint: NestedTransactionContext calls savepoint() (tortoise/backends/base/client.py). Model.save sends its INSERT when it is called, so a nested scope has no pending outer writes it could commit."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "tortoise.transactions.in_transaction accepts only a connection name (tortoise/transactions.py, 1.1.9). It does not accept an isolation level. asyncpg.Connection.transaction(isolation=...) is the driver, not a Tortoise API."
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "Tortoise 1.1.9 has no explicit transaction API that accepts an isolation level. in_transaction() is a context manager, and its signature has no isolation argument."
+    }
+  }
+}
