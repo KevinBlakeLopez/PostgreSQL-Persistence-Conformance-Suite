@@ -1,0 +1,2821 @@
+{
+  "started_at": "2026-10-19T13:48:39.069Z",
+  "finished_at": "2026-10-19T13:48:39.565Z",
+  "ok": true,
+  "experiment": "MPCS-02",
+  "title": "Deterministic two-connection InnoDB deadlock",
+  "schema": "mpcs02",
+  "engines": [
+    {
+      "table_name": "dl",
+      "engine": "InnoDB",
+      "collation": "utf8mb4_0900_ai_ci"
+    },
+    {
+      "table_name": "marker",
+      "engine": "InnoDB",
+      "collation": "utf8mb4_0900_ai_ci"
+    }
+  ],
+  "repetitions": [
+    {
+      "repetition": 1,
+      "sessions": {
+        "t1": {
+          "connection_id": 19,
+          "connection_errors": []
+        },
+        "t2": {
+          "connection_id": 20,
+          "connection_errors": []
+        }
+      },
+      "start1": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "start2": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "before_cross": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "56",
+            "PROCESSLIST_ID": "19",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1858",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1858",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "57",
+            "PROCESSLIST_ID": "20",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1859",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1859",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            }
+          ]
+        }
+      },
+      "t1_entered_lock_wait": {
+        "found": true,
+        "elapsed_ms": 1,
+        "value": {
+          "data_lock_waits": [
+            {
+              "requesting_trx": "1858",
+              "blocking_trx": "1859",
+              "requesting_thread": "56",
+              "blocking_thread": "57"
+            }
+          ]
+        }
+      },
+      "cross1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 2,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "cross2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "rejected",
+          "elapsed_ms": 1,
+          "error": {
+            "name": "Error",
+            "message": "Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+          }
+        }
+      },
+      "after_deadlock": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [
+            {
+              "trx_id": "1858",
+              "trx_state": "RUNNING",
+              "trx_started": "2026-10-19 13:48:39",
+              "trx_requested_lock_id": null,
+              "trx_wait_started": null,
+              "trx_weight": "5",
+              "trx_mysql_thread_id": "19",
+              "trx_query": null,
+              "trx_operation_state": null,
+              "trx_tables_in_use": "0",
+              "trx_tables_locked": "1",
+              "trx_lock_structs": "3",
+              "trx_lock_memory_bytes": "1128",
+              "trx_rows_locked": "2",
+              "trx_rows_modified": "2",
+              "trx_concurrency_tickets": "0",
+              "trx_isolation_level": "REPEATABLE READ",
+              "trx_unique_checks": 1,
+              "trx_foreign_key_checks": 1,
+              "trx_last_foreign_key_error": null,
+              "trx_adaptive_hash_latched": 0,
+              "trx_adaptive_hash_timeout": "0",
+              "trx_is_read_only": 0,
+              "trx_autocommit_non_locking": 0,
+              "trx_schedule_weight": null
+            }
+          ],
+          "thread": {
+            "THREAD_ID": "56",
+            "PROCESSLIST_ID": "19",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1858",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1858",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1858",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "57",
+            "PROCESSLIST_ID": "20",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "visible_dl": [
+          {
+            "id": 1,
+            "v": 0
+          },
+          {
+            "id": 2,
+            "v": 0
+          }
+        ],
+        "deadlock_status": {
+          "present": true,
+          "we_roll_back_transaction": 2,
+          "section": "LATEST DETECTED DEADLOCK\n------------------------\n2026-10-19 13:48:39 269854447562496\n*** (1) TRANSACTION:\nTRANSACTION 1858, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 19, OS thread handle 269854881271552, query id 153 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 2\n\n*** (1) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1858 lock_mode X locks rec but not gap\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 000000000742; asc      B;;\n 2: len 7; hex 01000001200151; asc       Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (1) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1858 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 000000000743; asc      C;;\n 2: len 7; hex 02000001250151; asc     % Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) TRANSACTION:\nTRANSACTION 1859, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 20, OS thread handle 269854880153344, query id 155 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 1\n\n*** (2) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1859 lock_mode X locks rec but not gap\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 000000000743; asc      C;;\n 2: len 7; hex 02000001250151; asc     % Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1859 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 000000000742; asc      B;;\n 2: len 7; hex 01000001200151; asc       Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n*** WE ROLL BACK TRANSACTION (2)\n------------\nTRANSACTIONS\n------------\nTrx id counter 1861\nPurge done for trx's n:o < 1861 undo n:o < 0 state: running but idle\nHistory list length 12\nLIST OF TRANSACTIONS FOR EACH SESSION:\n---TRANSACTION 551330031208016, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031207208, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031205592, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031204784, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031203976, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 1858, ACTIVE 0 sec\n3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 2\nMySQL thread id 19, OS thread handle 269854881271552, query id 153 172.23.0.1 mpcs"
+        }
+      },
+      "victim_connection_id": 20,
+      "survivor_connection_id": 19,
+      "continuation": {
+        "victim_role": "mpcs02-t2",
+        "marker": "rep1-after-deadlock",
+        "session_query": {
+          "requested": {
+            "sql": "SELECT @@autocommit AS autocommit, @@transaction_isolation AS transaction_isolation, CONNECTION_ID() AS connection_id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 1,
+              "rows": [
+                {
+                  "autocommit": "1",
+                  "transaction_isolation": "REPEATABLE-READ",
+                  "connection_id": "20"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "autocommit",
+                  "columnType": 8,
+                  "flags": 128
+                },
+                {
+                  "name": "transaction_isolation",
+                  "columnType": 253,
+                  "flags": 0
+                },
+                {
+                  "name": "connection_id",
+                  "columnType": 8,
+                  "flags": 161
+                }
+              ]
+            }
+          }
+        },
+        "after_session_query": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "57",
+            "PROCESSLIST_ID": "20",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "insert": {
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES (?)",
+            "params": [
+              "rep1-after-deadlock"
+            ]
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 1,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_insert": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "57",
+              "PROCESSLIST_ID": "20",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rep1-after-deadlock"
+            }
+          ]
+        },
+        "commit": {
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 2,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_commit": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "57",
+              "PROCESSLIST_ID": "20",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rep1-after-deadlock"
+            }
+          ]
+        }
+      },
+      "survivor_commit": {
+        "requested": {
+          "sql": "COMMIT",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16386,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 21,
+          "session_at_connect": {
+            "connection_id": "21",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "rep1-after-deadlock"
+          }
+        ]
+      },
+      "dl_after_survivor_commit": [
+        {
+          "id": 1,
+          "v": 1
+        },
+        {
+          "id": 2,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "sessions": {
+        "t1": {
+          "connection_id": 22,
+          "connection_errors": []
+        },
+        "t2": {
+          "connection_id": 23,
+          "connection_errors": []
+        }
+      },
+      "start1": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "start2": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "before_cross": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "59",
+            "PROCESSLIST_ID": "22",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1869",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1869",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "60",
+            "PROCESSLIST_ID": "23",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1870",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1870",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            }
+          ]
+        }
+      },
+      "t1_entered_lock_wait": {
+        "found": true,
+        "elapsed_ms": 53,
+        "value": {
+          "data_lock_waits": [
+            {
+              "requesting_trx": "1869",
+              "blocking_trx": "1870",
+              "requesting_thread": "59",
+              "blocking_thread": "60"
+            }
+          ]
+        }
+      },
+      "cross1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 54,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "cross2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "rejected",
+          "elapsed_ms": 1,
+          "error": {
+            "name": "Error",
+            "message": "Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+          }
+        }
+      },
+      "after_deadlock": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [
+            {
+              "trx_id": "1869",
+              "trx_state": "RUNNING",
+              "trx_started": "2026-10-19 13:48:39",
+              "trx_requested_lock_id": null,
+              "trx_wait_started": null,
+              "trx_weight": "5",
+              "trx_mysql_thread_id": "22",
+              "trx_query": null,
+              "trx_operation_state": null,
+              "trx_tables_in_use": "0",
+              "trx_tables_locked": "1",
+              "trx_lock_structs": "3",
+              "trx_lock_memory_bytes": "1128",
+              "trx_rows_locked": "2",
+              "trx_rows_modified": "2",
+              "trx_concurrency_tickets": "0",
+              "trx_isolation_level": "REPEATABLE READ",
+              "trx_unique_checks": 1,
+              "trx_foreign_key_checks": 1,
+              "trx_last_foreign_key_error": null,
+              "trx_adaptive_hash_latched": 0,
+              "trx_adaptive_hash_timeout": "0",
+              "trx_is_read_only": 0,
+              "trx_autocommit_non_locking": 0,
+              "trx_schedule_weight": null
+            }
+          ],
+          "thread": {
+            "THREAD_ID": "59",
+            "PROCESSLIST_ID": "22",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1869",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1869",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1869",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "60",
+            "PROCESSLIST_ID": "23",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "visible_dl": [
+          {
+            "id": 1,
+            "v": 0
+          },
+          {
+            "id": 2,
+            "v": 0
+          }
+        ],
+        "deadlock_status": {
+          "present": true,
+          "we_roll_back_transaction": 2,
+          "section": "LATEST DETECTED DEADLOCK\n------------------------\n2026-10-19 13:48:39 269854447562496\n*** (1) TRANSACTION:\nTRANSACTION 1869, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 22, OS thread handle 269854879035136, query id 223 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 2\n\n*** (1) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1869 lock_mode X locks rec but not gap\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 00000000074d; asc      M;;\n 2: len 7; hex 01000001220151; asc     \" Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (1) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1869 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 00000000074e; asc      N;;\n 2: len 7; hex 02000001280151; asc     ( Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) TRANSACTION:\nTRANSACTION 1870, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 23, OS thread handle 269854881271552, query id 226 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 1\n\n*** (2) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1870 lock_mode X locks rec but not gap\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 00000000074e; asc      N;;\n 2: len 7; hex 02000001280151; asc     ( Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1870 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 00000000074d; asc      M;;\n 2: len 7; hex 01000001220151; asc     \" Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n*** WE ROLL BACK TRANSACTION (2)\n------------\nTRANSACTIONS\n------------\nTrx id counter 1872\nPurge done for trx's n:o < 1872 undo n:o < 0 state: running but idle\nHistory list length 17\nLIST OF TRANSACTIONS FOR EACH SESSION:\n---TRANSACTION 551330031208016, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031207208, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031205592, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031204784, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031203976, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 1869, ACTIVE 0 sec\n3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 2\nMySQL thread id 22, OS thread handle 269854879035136, query id 223 172.23.0.1 mpcs"
+        }
+      },
+      "victim_connection_id": 23,
+      "survivor_connection_id": 22,
+      "continuation": {
+        "victim_role": "mpcs02-t2",
+        "marker": "rep2-after-deadlock",
+        "session_query": {
+          "requested": {
+            "sql": "SELECT @@autocommit AS autocommit, @@transaction_isolation AS transaction_isolation, CONNECTION_ID() AS connection_id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 1,
+              "rows": [
+                {
+                  "autocommit": "1",
+                  "transaction_isolation": "REPEATABLE-READ",
+                  "connection_id": "23"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "autocommit",
+                  "columnType": 8,
+                  "flags": 128
+                },
+                {
+                  "name": "transaction_isolation",
+                  "columnType": 253,
+                  "flags": 0
+                },
+                {
+                  "name": "connection_id",
+                  "columnType": 8,
+                  "flags": 161
+                }
+              ]
+            }
+          }
+        },
+        "after_session_query": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "60",
+            "PROCESSLIST_ID": "23",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "insert": {
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES (?)",
+            "params": [
+              "rep2-after-deadlock"
+            ]
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 2,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_insert": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "60",
+              "PROCESSLIST_ID": "23",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 2,
+              "name": "rep2-after-deadlock"
+            }
+          ]
+        },
+        "commit": {
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 2,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_commit": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "60",
+              "PROCESSLIST_ID": "23",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 2,
+              "name": "rep2-after-deadlock"
+            }
+          ]
+        }
+      },
+      "survivor_commit": {
+        "requested": {
+          "sql": "COMMIT",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 2,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16386,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 24,
+          "session_at_connect": {
+            "connection_id": "24",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 2,
+            "name": "rep2-after-deadlock"
+          }
+        ]
+      },
+      "dl_after_survivor_commit": [
+        {
+          "id": 1,
+          "v": 1
+        },
+        {
+          "id": 2,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "repetition": 3,
+      "sessions": {
+        "t1": {
+          "connection_id": 25,
+          "connection_errors": []
+        },
+        "t2": {
+          "connection_id": 26,
+          "connection_errors": []
+        }
+      },
+      "start1": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "start2": {
+        "requested": {
+          "sql": "START TRANSACTION",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16387,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "lock2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "before_cross": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "62",
+            "PROCESSLIST_ID": "25",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1878",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1878",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "63",
+            "PROCESSLIST_ID": "26",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1879",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1879",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            }
+          ]
+        }
+      },
+      "t1_entered_lock_wait": {
+        "found": true,
+        "elapsed_ms": 1,
+        "value": {
+          "data_lock_waits": [
+            {
+              "requesting_trx": "1878",
+              "blocking_trx": "1879",
+              "requesting_thread": "62",
+              "blocking_thread": "63"
+            }
+          ]
+        }
+      },
+      "cross1": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 1,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "cross2": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1",
+          "params": null
+        },
+        "driver": {
+          "outcome": "rejected",
+          "elapsed_ms": 0,
+          "error": {
+            "name": "Error",
+            "message": "Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+          }
+        }
+      },
+      "after_deadlock": {
+        "t1": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [
+            {
+              "trx_id": "1878",
+              "trx_state": "RUNNING",
+              "trx_started": "2026-10-19 13:48:39",
+              "trx_requested_lock_id": null,
+              "trx_wait_started": null,
+              "trx_weight": "5",
+              "trx_mysql_thread_id": "25",
+              "trx_query": null,
+              "trx_operation_state": null,
+              "trx_tables_in_use": "0",
+              "trx_tables_locked": "1",
+              "trx_lock_structs": "3",
+              "trx_lock_memory_bytes": "1128",
+              "trx_rows_locked": "2",
+              "trx_rows_modified": "2",
+              "trx_concurrency_tickets": "0",
+              "trx_isolation_level": "REPEATABLE READ",
+              "trx_unique_checks": 1,
+              "trx_foreign_key_checks": 1,
+              "trx_last_foreign_key_error": null,
+              "trx_adaptive_hash_latched": 0,
+              "trx_adaptive_hash_timeout": "0",
+              "trx_is_read_only": 0,
+              "trx_autocommit_non_locking": 0,
+              "trx_schedule_weight": null
+            }
+          ],
+          "thread": {
+            "THREAD_ID": "62",
+            "PROCESSLIST_ID": "25",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ACTIVE",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [],
+          "data_locks": [
+            {
+              "ENGINE_TRANSACTION_ID": "1878",
+              "LOCK_TYPE": "TABLE",
+              "LOCK_MODE": "IX",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": null,
+              "LOCK_DATA": null
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1878",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "2"
+            },
+            {
+              "ENGINE_TRANSACTION_ID": "1878",
+              "LOCK_TYPE": "RECORD",
+              "LOCK_MODE": "X,REC_NOT_GAP",
+              "LOCK_STATUS": "GRANTED",
+              "OBJECT_SCHEMA": "mpcs02",
+              "OBJECT_NAME": "dl",
+              "INDEX_NAME": "PRIMARY",
+              "LOCK_DATA": "1"
+            }
+          ]
+        },
+        "t2": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "63",
+            "PROCESSLIST_ID": "26",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "visible_dl": [
+          {
+            "id": 1,
+            "v": 0
+          },
+          {
+            "id": 2,
+            "v": 0
+          }
+        ],
+        "deadlock_status": {
+          "present": true,
+          "we_roll_back_transaction": 2,
+          "section": "LATEST DETECTED DEADLOCK\n------------------------\n2026-10-19 13:48:39 269854447562496\n*** (1) TRANSACTION:\nTRANSACTION 1878, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 25, OS thread handle 269854880153344, query id 293 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 2\n\n*** (1) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1878 lock_mode X locks rec but not gap\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 000000000756; asc      V;;\n 2: len 7; hex 020000012a0151; asc     * Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (1) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1878 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 000000000757; asc      W;;\n 2: len 7; hex 01000001240151; asc     $ Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) TRANSACTION:\nTRANSACTION 1879, ACTIVE 0 sec starting index read\nmysql tables in use 1, locked 1\nLOCK WAIT 3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1\nMySQL thread id 26, OS thread handle 269854879035136, query id 295 172.23.0.1 mpcs updating\nUPDATE dl SET v = v + 1 WHERE id = 1\n\n*** (2) HOLDS THE LOCK(S):\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1879 lock_mode X locks rec but not gap\nRecord lock, heap no 3 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000002; asc     ;;\n 1: len 6; hex 000000000757; asc      W;;\n 2: len 7; hex 01000001240151; asc     $ Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n\n*** (2) WAITING FOR THIS LOCK TO BE GRANTED:\nRECORD LOCKS space id 6 page no 4 n bits 72 index PRIMARY of table `mpcs02`.`dl` trx id 1879 lock_mode X locks rec but not gap waiting\nRecord lock, heap no 2 PHYSICAL RECORD: n_fields 4; compact format; info bits 0\n 0: len 4; hex 80000001; asc     ;;\n 1: len 6; hex 000000000756; asc      V;;\n 2: len 7; hex 020000012a0151; asc     * Q;;\n 3: len 4; hex 80000001; asc     ;;\n\n*** WE ROLL BACK TRANSACTION (2)\n------------\nTRANSACTIONS\n------------\nTrx id counter 1881\nPurge done for trx's n:o < 1881 undo n:o < 0 state: running but idle\nHistory list length 21\nLIST OF TRANSACTIONS FOR EACH SESSION:\n---TRANSACTION 551330031208016, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031207208, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031205592, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031204784, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 551330031203976, not started\n0 lock struct(s), heap size 1128, 0 row lock(s)\n---TRANSACTION 1878, ACTIVE 0 sec\n3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 2\nMySQL thread id 25, OS thread handle 269854880153344, query id 293 172.23.0.1 mpcs"
+        }
+      },
+      "victim_connection_id": 26,
+      "survivor_connection_id": 25,
+      "continuation": {
+        "victim_role": "mpcs02-t2",
+        "marker": "rep3-after-deadlock",
+        "session_query": {
+          "requested": {
+            "sql": "SELECT @@autocommit AS autocommit, @@transaction_isolation AS transaction_isolation, CONNECTION_ID() AS connection_id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 1,
+              "rows": [
+                {
+                  "autocommit": "1",
+                  "transaction_isolation": "REPEATABLE-READ",
+                  "connection_id": "26"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "autocommit",
+                  "columnType": 8,
+                  "flags": 128
+                },
+                {
+                  "name": "transaction_isolation",
+                  "columnType": 253,
+                  "flags": 0
+                },
+                {
+                  "name": "connection_id",
+                  "columnType": 8,
+                  "flags": 161
+                }
+              ]
+            }
+          }
+        },
+        "after_session_query": {
+          "taken_after_driver_returned": true,
+          "client_knowledge": false,
+          "observer_session": {
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ"
+          },
+          "innodb_trx": [],
+          "thread": {
+            "THREAD_ID": "63",
+            "PROCESSLIST_ID": "26",
+            "PROCESSLIST_USER": "mpcs",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null,
+            "PROCESSLIST_INFO": null
+          },
+          "events_transactions_current": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "events_transactions_history": [
+            {
+              "EVENT_ID": "4",
+              "STATE": "ROLLED BACK",
+              "TRX_ID": null,
+              "GTID": "AUTOMATIC",
+              "ACCESS_MODE": "READ WRITE",
+              "ISOLATION_LEVEL": "REPEATABLE READ",
+              "AUTOCOMMIT": "NO",
+              "NUMBER_OF_SAVEPOINTS": "0",
+              "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+              "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+            }
+          ],
+          "data_locks": []
+        },
+        "insert": {
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES (?)",
+            "params": [
+              "rep3-after-deadlock"
+            ]
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 3,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_insert": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "63",
+              "PROCESSLIST_ID": "26",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 3,
+              "name": "rep3-after-deadlock"
+            }
+          ]
+        },
+        "commit": {
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 2,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        "after_commit": {
+          "observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "63",
+              "PROCESSLIST_ID": "26",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "9",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031208016",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "YES",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "ROLLED BACK",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 3,
+              "name": "rep3-after-deadlock"
+            }
+          ]
+        }
+      },
+      "survivor_commit": {
+        "requested": {
+          "sql": "COMMIT",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 0,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "stateChanges",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 0,
+              "insertId": 0,
+              "info": "",
+              "serverStatus": 16386,
+              "warningStatus": 0,
+              "stateChanges": {
+                "systemVariables": {},
+                "schema": null,
+                "gtids": [],
+                "trackStateChange": null
+              },
+              "changedRows": 0
+            },
+            "fields": null
+          }
+        }
+      },
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 27,
+          "session_at_connect": {
+            "connection_id": "27",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 3,
+            "name": "rep3-after-deadlock"
+          }
+        ]
+      },
+      "dl_after_survivor_commit": [
+        {
+          "id": 1,
+          "v": 1
+        },
+        {
+          "id": 2,
+          "v": 1
+        }
+      ]
+    }
+  ]
+}

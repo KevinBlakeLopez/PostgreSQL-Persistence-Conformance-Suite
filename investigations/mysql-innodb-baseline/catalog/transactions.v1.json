@@ -1,0 +1,176 @@
+{
+  "catalog": "mysql-innodb-transactions/0",
+  "status": "measured-expectations",
+  "runner": null,
+  "not_loaded_by": "harness/lib/catalog.mjs reads only specifications/*.json and refuses a catalog whose catalog field is not ppcs-specifications/1",
+  "server": {
+    "version": "8.4.11",
+    "engine": "InnoDB",
+    "transaction_isolation": "REPEATABLE-READ",
+    "autocommit": "ON",
+    "innodb_rollback_on_timeout_default": "OFF"
+  },
+  "clients_measured": {
+    "mysql2": "3.24.6",
+    "knex": "3.3.0",
+    "lucid": "22.4.2"
+  },
+  "evidence_run": "2026-10-19",
+  "omitted": [],
+  "cases": [
+    {
+      "id": "MX-01.duplicate-key-then-commit",
+      "version": "1",
+      "evidence": ["evidence/mpcs-01.json", "evidence/knex.json", "evidence/lucid.json"],
+      "do_not_score_as": "TX-01A.caught-error-then-commit",
+      "question": "The application inserts a marker, catches a duplicate-key error, and commits. Does the marker remain?",
+      "observed_server": "The duplicate insert fails with errno 1062, ER_DUP_ENTRY, SQLSTATE 23000. The transaction stays ACTIVE. A following statement still runs inside it. COMMIT is an OK packet with serverStatus 16386, and events_transactions_current.STATE becomes COMMITTED. An independent connection then sees the marker and does not see a second copy of the duplicate key.",
+      "client_evidence": "mysql2 rejects the duplicate insert and resolves COMMIT. The OK packet has no command field. Knex 3.3.0 and Lucid 22.4.2, when the callback catches the error and returns, send BEGIN, the inserts, and COMMIT, and the promise resolves.",
+      "expectation": "A commit of the still-open transaction keeps the marker written before the error. An API that reports that commit is reporting the acknowledgement of the COMMIT it sent.",
+      "not_an_expectation": "InnoDB does not abort the transaction, and it does not answer COMMIT with a rollback tag."
+    },
+    {
+      "id": "MX-02.deadlock-victim",
+      "version": "1",
+      "evidence": ["evidence/mpcs-02.json", "evidence/knex.json", "evidence/lucid.json"],
+      "do_not_score_as": null,
+      "question": "The subject's statement is the deadlock victim. What happens to the subject's writes, and what may the API report?",
+      "observed_server": "The victim statement fails with errno 1213, ER_LOCK_DEADLOCK, SQLSTATE 40001. Before the victim's next statement, events_transactions_current.STATE is ROLLED BACK. The victim's marker is absent. The survivor's later commit leaves the locked rows at the survivor's values. InnoDB chooses the lighter transaction: a subject that has done more work than the other session is not the victim. The recorded Knex and Lucid runs make the other session heavier so the subject is the victim.",
+      "client_evidence": "The victim's driver error carries 1213 and 40001, and no fatal flag. Knex and Lucid, when that error escapes the callback, reject with 1213 and send ROLLBACK. The careless mysql2 control catches 1213, sends COMMIT, and that COMMIT resolves with serverStatus 16386 while the victim marker is still absent.",
+      "expectation": "The victim transaction is already rolled back when the 1213 error returns. Its marker does not remain. An API that reports a successful commit of that transaction is wrong. An OK packet from a later COMMIT is not that commit.",
+      "not_an_expectation": "The victim is not defined as whichever session sent the second cross-update. A case that does not control which transaction is lighter does not establish who was rolled back."
+    },
+    {
+      "id": "MX-03.lock-wait-statement-rollback",
+      "version": "1",
+      "evidence": ["evidence/mpcs-03.json"],
+      "do_not_score_as": null,
+      "question": "A lock wait times out on the default server. Does the transaction survive?",
+      "observed_server": "innodb_rollback_on_timeout is OFF. The waited statement fails with errno 1205, ER_LOCK_WAIT_TIMEOUT, SQLSTATE HY000, message \"Lock wait timeout exceeded; try restarting transaction\". The transaction stays ACTIVE. A later insert still has serverStatus 3. COMMIT then keeps both the marker written before the wait and the marker written after it. The waited update does not change the locked row. The same scope was observed at the default 50 second wait (50045 ms) and at a session wait of 2 seconds (2004 ms).",
+      "client_evidence": "mysql2 rejects with 1205 and HY000. The error object does not say that only the statement rolled back. Knex and Lucid were not run.",
+      "expectation": "On the default server, the marker written before the timeout remains if the transaction later commits. An API that treats this error as proof that the whole transaction rolled back is wrong.",
+      "not_an_expectation": "The message \"try restarting transaction\" is not a statement of the rollback scope."
+    },
+    {
+      "id": "MX-03.lock-wait-transaction-rollback",
+      "version": "1",
+      "evidence": ["evidence/mpcs-03.json"],
+      "do_not_score_as": null,
+      "question": "The same lock wait times out on a server started with innodb_rollback_on_timeout ON. Does the transaction survive?",
+      "observed_server": "The driver error is the same 1205, ER_LOCK_WAIT_TIMEOUT, HY000, and the same message. events_transactions_current.STATE is ROLLED BACK before the next statement. The marker written before the wait is absent. An insert after the error has serverStatus 16386 and is visible before an explicit COMMIT.",
+      "client_evidence": "mysql2's error matches MX-03.lock-wait-statement-rollback. The difference was the other connection's view of the transaction, and the next insert's serverStatus. Knex and Lucid were not run. The variable is not dynamic: SET GLOBAL failed with errno 1238.",
+      "expectation": "With innodb_rollback_on_timeout ON, the marker written before the timeout does not remain. An API that assumes the default statement-only rollback is wrong on this server.",
+      "not_an_expectation": "The driver error does not identify which server setting applied."
+    },
+    {
+      "id": "MX-04.savepoint-rollback",
+      "version": "1",
+      "evidence": ["evidence/mpcs-04.json"],
+      "do_not_score_as": "TX-04.nested-failure-contained",
+      "question": "ROLLBACK TO SAVEPOINT, then COMMIT. Which markers remain?",
+      "observed_server": "One ENGINE_TRANSACTION_ID. NUMBER_OF_SAVEPOINTS becomes 1. After ROLLBACK TO SAVEPOINT the same connection sees only the outer marker, and the other connection sees nothing until COMMIT. COMMIT keeps the outer marker and a marker inserted after the rollback. It does not keep the marker inserted inside the savepoint.",
+      "client_evidence": "mysql2 resolved ROLLBACK TO SAVEPOINT and COMMIT. Knex and Lucid were not run.",
+      "expectation": "The committed transaction contains the outer writes and the writes made after the rollback. It does not contain the writes undone by ROLLBACK TO SAVEPOINT.",
+      "not_an_expectation": "There is no second transaction id to use as evidence of the savepoint."
+    },
+    {
+      "id": "MX-04.savepoint-release",
+      "version": "1",
+      "evidence": ["evidence/mpcs-04.json"],
+      "do_not_score_as": null,
+      "question": "RELEASE SAVEPOINT, then COMMIT. Which markers remain?",
+      "observed_server": "RELEASE SAVEPOINT does not make the inner marker visible to another connection. COMMIT keeps both the outer marker and the inner marker.",
+      "client_evidence": "mysql2 resolved RELEASE SAVEPOINT and COMMIT. Knex and Lucid were not run.",
+      "expectation": "Release keeps the inner write in the open transaction. The outer commit keeps it.",
+      "not_an_expectation": "Release is not itself a commit."
+    },
+    {
+      "id": "MX-04.released-then-outer-rollback",
+      "version": "1",
+      "evidence": ["evidence/probes.json"],
+      "do_not_score_as": "TX-04.nested-released-outer-rollback",
+      "question": "RELEASE SAVEPOINT, then roll back the outer transaction. Which markers remain?",
+      "observed_server": "After the outer ROLLBACK, a new connection sees no markers. events_transactions_current.STATE is ROLLED BACK.",
+      "client_evidence": "mysql2 resolved RELEASE SAVEPOINT and ROLLBACK. Knex and Lucid were not run.",
+      "expectation": "A released savepoint's writes belong to the outer transaction. The outer rollback removes them.",
+      "not_an_expectation": "Release does not make the inner write durable on its own."
+    },
+    {
+      "id": "MX-04.missing-savepoint",
+      "version": "1",
+      "evidence": ["evidence/mpcs-04.json"],
+      "do_not_score_as": "TX-02.savepoint-rollback-rejected",
+      "question": "ROLLBACK TO SAVEPOINT or RELEASE SAVEPOINT names a savepoint that does not exist. Is the transaction still usable?",
+      "observed_server": "Both statements fail with errno 1305, ER_SP_DOES_NOT_EXIST, SQLSTATE 42000. The transaction stays ACTIVE. The next insert has serverStatus 3. An existing savepoint can still be rolled back to after the missing ROLLBACK TO. COMMIT then keeps the writes that the real savepoint did not undo.",
+      "client_evidence": "mysql2 rejects with 1305 and 42000. Knex's mysql2 dialect swallows ER_SP_DOES_NOT_EXIST on its own transaction statements. That path was not run.",
+      "expectation": "The error does not end the transaction. Later statements in it still run, and a later COMMIT commits the work that was not rolled back.",
+      "not_an_expectation": "The error is not SQLSTATE 3B001, and COMMIT is not answered with a rollback tag."
+    },
+    {
+      "id": "MX-05.commit-and-rollback-packet",
+      "version": "1",
+      "evidence": ["evidence/mpcs-05.json"],
+      "do_not_score_as": "CTL-01.commit",
+      "question": "What does mysql2 return for a successful COMMIT and a successful ROLLBACK, and what does that tell the client?",
+      "observed_server": "COMMIT of an open transaction leaves events_transactions_current.STATE COMMITTED, and a new connection sees the marker. ROLLBACK leaves STATE ROLLED BACK, and the marker is absent. After the connection closes, events_transactions_history for that thread is empty. gtid_mode is OFF.",
+      "client_evidence": "Both statements resolve to a ResultSetHeader with serverStatus 16386, affectedRows 0, empty info, and no command property. SHOW WARNINGS returns no rows. The client knows which statement it sent. Knex and Lucid were not compared on the packet fields.",
+      "expectation": "A resolved COMMIT is acknowledgement of the COMMIT statement. A resolved ROLLBACK is acknowledgement of the ROLLBACK statement. The packet does not name the command. A row seen by a later connection is not part of what the call returned.",
+      "not_an_expectation": "There is no command tag equivalent to PostgreSQL's COMMIT or ROLLBACK tag. This case does not cover a COMMIT whose OK packet was lost."
+    },
+    {
+      "id": "MX-05.connection-closed-before-commit",
+      "version": "1",
+      "evidence": ["evidence/mpcs-05.json"],
+      "do_not_score_as": "TX-01B.conn-lost-before-commit",
+      "question": "The connection is gone before COMMIT is sent. What may the API report?",
+      "observed_server": "After KILL, the thread is gone before the subject's COMMIT. After connection.destroy(), the thread is gone within 53 ms. In both, a new connection does not see the uncommitted marker.",
+      "client_evidence": "COMMIT rejects with fatal true and message \"Can't add new command when connection is in closed state\". The error has no errno and no SQLSTATE. KILL also emits PROTOCOL_CONNECTION_LOST. destroy() did not emit that event in the recorded run.",
+      "expectation": "The API must not report a successful commit. COMMIT was not sent, and the marker does not remain.",
+      "not_an_expectation": "This is not a completed COMMIT whose reply was discarded. That situation is MX-05.lost-commit-reply."
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "version": "1",
+      "evidence": ["evidence/lost-commit.json"],
+      "do_not_score_as": "TX-01B.commit-reply-discarded",
+      "question": "The server finishes COMMIT and the OK packet is not written to the client. What did the client know when the call returned?",
+      "observed_server": "A proxy forwarded the COMMIT query and read the server's reply before closing the client socket. The dropped packet began with 0x00 and included status bytes 0x4002, which is serverStatus 16386, the same OK packet as an ordinary COMMIT. A new connection, not through the proxy, saw the marker. That read happened after the call returned.",
+      "client_evidence": "mysql2 query('COMMIT') rejected with PROTOCOL_CONNECTION_LOST, fatal true, and no SQLSTATE. Knex 3.3.0 knex.transaction(callback) rejected with the same code. await knex.transaction() followed by await trx.commit() resolved. Lucid 22.4.2 db.transaction resolved. Both resolved calls sent COMMIT;, and both markers were visible. The dropped packet was an OK packet in each case.",
+      "expectation": "The call must not report a successful commit. The client did not receive the OK packet. mysql2 query('COMMIT') and knex.transaction(callback) report the connection loss. A later visible marker does not change what the call returned.",
+      "not_an_expectation": "The server did commit. Reporting failure is not a report that the server rolled back. trx.commit() and Lucid db.transaction both resolve. Lucid is awaiting that Knex promise. The resolution is not an extra report Lucid adds on top of a rejected commit()."
+    },
+    {
+      "id": "MX-06.second-transaction-implicit-commit",
+      "version": "1",
+      "evidence": ["evidence/probes.json", "evidence/knex.json", "evidence/lucid.json"],
+      "do_not_score_as": "TX-03.rollback-not-sent",
+      "question": "A transaction has inserted a marker and ROLLBACK was not sent. The next transaction starts on that connection and then rolls back. Which marker remains?",
+      "observed_server": "The second START TRANSACTION makes the first marker visible before that second transaction rolls back. The second ROLLBACK leaves the first marker in place and does not leave the second marker. Knex and Lucid show the same server outcome when their transaction call sends BEGIN on that connection: the first marker remains.",
+      "client_evidence": "The careless mysql2 control reports rolled_back because the second ROLLBACK was acknowledged. Knex 3.3.0 and Lucid 22.4.2 reject with the second unit's application error, which has no errno. Their query log for the second unit is BEGIN, the second insert, ROLLBACK. A careful mysql2 control that sends ROLLBACK before the next transaction leaves neither marker.",
+      "expectation": "The first unit is committed by the next BEGIN or START TRANSACTION. A later rollback of the second unit does not remove it. An API that reports the first unit rolled back is wrong. An API that reports only the second unit's failure has not reported the first unit's commit.",
+      "not_an_expectation": "The next transaction does not join the open one. The managed Knex and Lucid callbacks do send ROLLBACK when the callback throws; this case is the connection on which that ROLLBACK never ran."
+    },
+    {
+      "id": "MX-07.ddl-implicit-commit",
+      "version": "1",
+      "evidence": ["evidence/probes.json"],
+      "do_not_score_as": "MG-03.failing-reversal",
+      "question": "CREATE TABLE runs inside a transaction that has already inserted a marker. Does ROLLBACK remove the marker or the table?",
+      "observed_server": "CREATE TABLE returns serverStatus 16386. The other connection can already see the marker. The following ROLLBACK returns serverStatus 2. The marker and the new InnoDB table both remain.",
+      "client_evidence": "mysql2 resolved CREATE TABLE and ROLLBACK. Knex and Lucid were not run.",
+      "expectation": "The insert that preceded the CREATE TABLE is committed, and ROLLBACK does not undo the table or that insert. A reversal that runs DDL does not have a single transaction around the marker change and the DDL.",
+      "not_an_expectation": "A DML-only ROLLBACK still removes its own marker. That was observed separately and is not this case."
+    },
+    {
+      "id": "MX-08.isolation-report",
+      "version": "1",
+      "evidence": ["evidence/probes.json"],
+      "do_not_score_as": "TX-05.managed-serializable",
+      "question": "A transaction is started at a requested isolation level. Which observation reports the level InnoDB applied?",
+      "observed_server": "The server default is REPEATABLE-READ. SET TRANSACTION ISOLATION LEVEL, then START TRANSACTION, leaves an ACTIVE transaction whose performance_schema ISOLATION_LEVEL is the requested level, including distinct READ UNCOMMITTED and READ COMMITTED. SELECT @@transaction_isolation on that connection returns REPEATABLE-READ for every requested level. SET SESSION transaction_isolation = 'SERIALIZABLE' makes @@transaction_isolation return SERIALIZABLE inside the transaction, and performance schema agrees. After the insert under that session setting, data_locks shows only a table IX lock. The following plain SELECT adds a record lock X,REC_NOT_GAP. The weaker SET TRANSACTION runs did not show that record lock after the same insert-then-select sequence. SET TRANSACTION inside an already open transaction fails with errno 1568, ER_CANT_CHANGE_TX_CHARACTERISTICS, SQLSTATE 25001.",
+      "client_evidence": "mysql2 resolved SET TRANSACTION and the later SELECT. Knex and Lucid were not run.",
+      "expectation": "The level of the current transaction is the performance_schema ISOLATION_LEVEL of the ACTIVE transaction, read while it is still open. @@transaction_isolation reports that level when the session variable was set. It does not report the level applied by SET TRANSACTION.",
+      "not_an_expectation": "There is no SIReadLock. READ UNCOMMITTED and READ COMMITTED are not the same level. PostgreSQL's isolation ordering is not this server's ordering."
+    }
+  ]
+}

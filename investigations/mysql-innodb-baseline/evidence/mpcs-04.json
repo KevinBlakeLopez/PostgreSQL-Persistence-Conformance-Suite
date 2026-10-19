@@ -1,0 +1,3816 @@
+{
+  "started_at": "2026-10-19T13:49:33.809Z",
+  "finished_at": "2026-10-19T13:49:33.920Z",
+  "ok": true,
+  "experiment": "MPCS-04",
+  "title": "Savepoint create, rollback, release, and a missing savepoint",
+  "schema": "mpcs04",
+  "engines": [
+    {
+      "table_name": "marker",
+      "engine": "InnoDB",
+      "collation": "utf8mb4_0900_ai_ci"
+    }
+  ],
+  "variants": [
+    {
+      "name": "rollback-to-savepoint",
+      "steps": [
+        {
+          "name": "start",
+          "requested": {
+            "sql": "START TRANSACTION",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16387,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "insert-base",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('rollback-base')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 1,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "savepoint",
+          "requested": {
+            "sql": "SAVEPOINT sp1",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "insert-inside",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('rollback-inside')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 2,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "same-connection-read-before-rollback",
+          "requested": {
+            "sql": "SELECT id, name FROM marker ORDER BY id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 2,
+              "rows": [
+                {
+                  "id": 1,
+                  "name": "rollback-base"
+                },
+                {
+                  "id": 2,
+                  "name": "rollback-inside"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "id",
+                  "columnType": 3,
+                  "flags": 16899
+                },
+                {
+                  "name": "name",
+                  "columnType": 253,
+                  "flags": 20485
+                }
+              ]
+            }
+          },
+          "note": "This read uses the transaction connection. It is not an independent observation."
+        },
+        {
+          "name": "rollback-to",
+          "requested": {
+            "sql": "ROLLBACK TO SAVEPOINT sp1",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "supremum pseudo-record"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "marker_name",
+                "LOCK_DATA": "supremum pseudo-record"
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "same-connection-read-after-rollback",
+          "requested": {
+            "sql": "SELECT id, name FROM marker ORDER BY id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 1,
+              "rows": [
+                {
+                  "id": 1,
+                  "name": "rollback-base"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "id",
+                  "columnType": 3,
+                  "flags": 16899
+                },
+                {
+                  "name": "name",
+                  "columnType": 253,
+                  "flags": 20485
+                }
+              ]
+            }
+          },
+          "note": "This read uses the transaction connection. It is not an independent observation."
+        },
+        {
+          "name": "insert-after",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('rollback-after')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 3,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X,GAP",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "3"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "supremum pseudo-record"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "marker_name",
+                "LOCK_DATA": "supremum pseudo-record"
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "release",
+          "requested": {
+            "sql": "RELEASE SAVEPOINT sp1",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X,GAP",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "3"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "supremum pseudo-record"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1949",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "marker_name",
+                "LOCK_DATA": "supremum pseudo-record"
+              }
+            ]
+          },
+          "visible_markers": []
+        },
+        {
+          "name": "commit",
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 62,
+          "session_at_connect": {
+            "connection_id": "62",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "rollback-base"
+          },
+          {
+            "id": 3,
+            "name": "rollback-after"
+          }
+        ]
+      }
+    },
+    {
+      "name": "release-savepoint",
+      "steps": [
+        {
+          "name": "start",
+          "requested": {
+            "sql": "START TRANSACTION",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16387,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        },
+        {
+          "name": "insert-base",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('release-base')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 4,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1952",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        },
+        {
+          "name": "savepoint",
+          "requested": {
+            "sql": "SAVEPOINT sp2",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1952",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        },
+        {
+          "name": "insert-inside",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('release-inside')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 5,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1952",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "requested": {
+            "sql": "RELEASE SAVEPOINT sp2",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1952",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            }
+          ]
+        },
+        {
+          "name": "commit",
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 63,
+          "session_at_connect": {
+            "connection_id": "63",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "rollback-base"
+          },
+          {
+            "id": 3,
+            "name": "rollback-after"
+          },
+          {
+            "id": 4,
+            "name": "release-base"
+          },
+          {
+            "id": 5,
+            "name": "release-inside"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rollback-to-missing-savepoint",
+      "steps": [
+        {
+          "name": "start",
+          "requested": {
+            "sql": "START TRANSACTION",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16387,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "insert-outer",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('missing-outer')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 6,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "savepoint",
+          "requested": {
+            "sql": "SAVEPOINT sp_real",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "insert-after-real",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('missing-after-real')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 7,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "rollback-to-missing",
+          "requested": {
+            "sql": "ROLLBACK TO SAVEPOINT does_not_exist",
+            "params": null
+          },
+          "driver": {
+            "outcome": "rejected",
+            "elapsed_ms": 1,
+            "error": {
+              "name": "Error",
+              "message": "SAVEPOINT does_not_exist does not exist",
+              "code": "ER_SP_DOES_NOT_EXIST",
+              "errno": 1305,
+              "sqlState": "42000",
+              "sqlMessage": "SAVEPOINT does_not_exist does not exist",
+              "sql": "ROLLBACK TO SAVEPOINT does_not_exist"
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "insert-after-error",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('missing-after-error')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 8,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "rollback-to-real",
+          "requested": {
+            "sql": "ROLLBACK TO SAVEPOINT sp_real",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "PRIMARY",
+                "LOCK_DATA": "supremum pseudo-record"
+              },
+              {
+                "ENGINE_TRANSACTION_ID": "1953",
+                "LOCK_TYPE": "RECORD",
+                "LOCK_MODE": "X,GAP",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": "marker_name",
+                "LOCK_DATA": "'missing-outer', 6"
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            }
+          ]
+        },
+        {
+          "name": "commit",
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            }
+          ]
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 64,
+          "session_at_connect": {
+            "connection_id": "64",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "rollback-base"
+          },
+          {
+            "id": 3,
+            "name": "rollback-after"
+          },
+          {
+            "id": 4,
+            "name": "release-base"
+          },
+          {
+            "id": 5,
+            "name": "release-inside"
+          },
+          {
+            "id": 6,
+            "name": "missing-outer"
+          }
+        ]
+      }
+    },
+    {
+      "name": "release-missing-savepoint",
+      "steps": [
+        {
+          "name": "start",
+          "requested": {
+            "sql": "START TRANSACTION",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16387,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            }
+          ]
+        },
+        {
+          "name": "insert-outer",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('release-missing-outer')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 1,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 9,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1954",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            }
+          ]
+        },
+        {
+          "name": "release-missing",
+          "requested": {
+            "sql": "RELEASE SAVEPOINT does_not_exist",
+            "params": null
+          },
+          "driver": {
+            "outcome": "rejected",
+            "elapsed_ms": 1,
+            "error": {
+              "name": "Error",
+              "message": "SAVEPOINT does_not_exist does not exist",
+              "code": "ER_SP_DOES_NOT_EXIST",
+              "errno": 1305,
+              "sqlState": "42000",
+              "sqlMessage": "SAVEPOINT does_not_exist does not exist",
+              "sql": "RELEASE SAVEPOINT does_not_exist"
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1954",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            }
+          ]
+        },
+        {
+          "name": "insert-after-error",
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES ('release-missing-after-error')",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 10,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "ACTIVE",
+                "TRX_ID": null,
+                "GTID": "AUTOMATIC",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": [
+              {
+                "ENGINE_TRANSACTION_ID": "1954",
+                "LOCK_TYPE": "TABLE",
+                "LOCK_MODE": "IX",
+                "LOCK_STATUS": "GRANTED",
+                "OBJECT_SCHEMA": "mpcs04",
+                "OBJECT_NAME": "marker",
+                "INDEX_NAME": null,
+                "LOCK_DATA": null
+              }
+            ]
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            }
+          ]
+        },
+        {
+          "name": "commit",
+          "requested": {
+            "sql": "COMMIT",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "elapsed_ms": 0,
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16386,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          },
+          "independent_observation": {
+            "taken_after_driver_returned": true,
+            "client_knowledge": false,
+            "observer_session": {
+              "autocommit": "1",
+              "transaction_isolation": "REPEATABLE-READ"
+            },
+            "innodb_trx": [],
+            "thread": {
+              "THREAD_ID": "98",
+              "PROCESSLIST_ID": "61",
+              "PROCESSLIST_USER": "mpcs",
+              "PROCESSLIST_COMMAND": "Sleep",
+              "PROCESSLIST_STATE": null,
+              "PROCESSLIST_INFO": null
+            },
+            "events_transactions_current": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "events_transactions_history": [
+              {
+                "EVENT_ID": "33",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "24",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              },
+              {
+                "EVENT_ID": "17",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "6",
+                "STATE": "COMMITTED",
+                "TRX_ID": null,
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "1",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "1",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "1"
+              },
+              {
+                "EVENT_ID": "4",
+                "STATE": "COMMITTED",
+                "TRX_ID": "551330031206400",
+                "GTID": "ANONYMOUS",
+                "ACCESS_MODE": "READ WRITE",
+                "ISOLATION_LEVEL": "REPEATABLE READ",
+                "AUTOCOMMIT": "NO",
+                "NUMBER_OF_SAVEPOINTS": "0",
+                "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+                "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+              }
+            ],
+            "data_locks": []
+          },
+          "visible_markers": [
+            {
+              "id": 1,
+              "name": "rollback-base"
+            },
+            {
+              "id": 3,
+              "name": "rollback-after"
+            },
+            {
+              "id": 4,
+              "name": "release-base"
+            },
+            {
+              "id": 5,
+              "name": "release-inside"
+            },
+            {
+              "id": 6,
+              "name": "missing-outer"
+            },
+            {
+              "id": 9,
+              "name": "release-missing-outer"
+            },
+            {
+              "id": 10,
+              "name": "release-missing-after-error"
+            }
+          ]
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 65,
+          "session_at_connect": {
+            "connection_id": "65",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "rollback-base"
+          },
+          {
+            "id": 3,
+            "name": "rollback-after"
+          },
+          {
+            "id": 4,
+            "name": "release-base"
+          },
+          {
+            "id": 5,
+            "name": "release-inside"
+          },
+          {
+            "id": 6,
+            "name": "missing-outer"
+          },
+          {
+            "id": 9,
+            "name": "release-missing-outer"
+          },
+          {
+            "id": 10,
+            "name": "release-missing-after-error"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+# Disposable MySQL 8.4 servers for the InnoDB transaction baseline.
+#
+# This file is not the PPCS PostgreSQL compose file (compose.yaml at the repository root).
+# The project name is mpcs-baseline. Ports, containers, credentials, and data directories are separate.
+#
+# The image is pinned by the multi-platform index digest of mysql:8.4.11.
+# Each data directory is a tmpfs: nothing outlives the container.
+# Published ports bind to 127.0.0.1 only. Passwords come from scripts/mysql-up.sh.
+name: mpcs-baseline
+
+services:
+  mysql:
+    image: mysql:8.4.11@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+    container_name: mpcs-baseline-mysql
+    labels:
+      purpose: mpcs-baseline-disposable
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MPCS_ROOT_PASSWORD:?start the server with scripts/mysql-up.sh}
+      # The official image otherwise creates root@localhost only. The observer connects from the host,
+      # which Docker publishes as a non-socket client. The port is bound to 127.0.0.1 and the password
+      # is random per start.
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: mpcs
+      MYSQL_USER: mpcs
+      MYSQL_PASSWORD: ${MPCS_PASSWORD:?start the server with scripts/mysql-up.sh}
+    ports:
+      - 127.0.0.1:13306:3306
+    tmpfs:
+      - /var/lib/mysql:size=1g
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 90
+
+  # Same image and initialization, with one server flag changed. innodb_rollback_on_timeout is not left
+  # as a session setting on the default server: this container exists so the default server stays at the
+  # image default (OFF) while the lock-wait experiment can still observe ON.
+  mysql-rollback-on-timeout:
+    image: mysql:8.4.11@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+    container_name: mpcs-baseline-mysql-rb-timeout
+    labels:
+      purpose: mpcs-baseline-disposable
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MPCS_ROOT_PASSWORD:?start the server with scripts/mysql-up.sh}
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: mpcs
+      MYSQL_USER: mpcs
+      MYSQL_PASSWORD: ${MPCS_PASSWORD:?start the server with scripts/mysql-up.sh}
+    command:
+      - --innodb-rollback-on-timeout=ON
+    ports:
+      - 127.0.0.1:13307:3306
+    tmpfs:
+      - /var/lib/mysql:size=1g
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 90

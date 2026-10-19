@@ -1,0 +1,550 @@
+{
+  "finished_at": "2026-10-19T16:17:24.357Z",
+  "not_a_ppcs_adapter": true,
+  "server_version": "8.4.11",
+  "lucid": "22.4.2",
+  "knex": "3.3.0",
+  "mysql2": "3.24.6",
+  "lucid_contract": "Lucid 22.4.2 db.transaction(callback) commits when the callback returns and rolls back, then rethrows, when the callback throws.",
+  "cases": [
+    {
+      "id": "caught-duplicate-then-return",
+      "claimed": "committed",
+      "basis": "db.transaction resolved, which is Lucid committing the callback",
+      "api": {
+        "outcome": "resolved"
+      },
+      "queries": [
+        {
+          "event": "query",
+          "sql": "BEGIN;",
+          "method": null
+        },
+        {
+          "event": "query",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "method": "insert"
+        },
+        {
+          "event": "query-response",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "response": {
+            "kind": "array",
+            "length": 1
+          }
+        },
+        {
+          "event": "query",
+          "sql": "insert into `uniq_row` (`code`) values (?)",
+          "method": "insert"
+        },
+        {
+          "event": "query-error",
+          "sql": "insert into `uniq_row` (`code`) values (?)",
+          "error": {
+            "name": "Error",
+            "message": "insert into `uniq_row` (`code`) values ('taken') - Duplicate entry 'taken' for key 'uniq_row.uniq_code'",
+            "code": "ER_DUP_ENTRY",
+            "errno": 1062,
+            "sqlState": "23000",
+            "sqlMessage": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'",
+            "sql": "insert into `uniq_row` (`code`) values ('taken')"
+          }
+        },
+        {
+          "event": "query",
+          "sql": "COMMIT;",
+          "method": null
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 148,
+          "session_at_connect": {
+            "connection_id": "148",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "lucid-marker"
+          }
+        ]
+      }
+    },
+    {
+      "id": "deadlock",
+      "claimed": "failed",
+      "basis": "db.transaction rejected after the callback threw",
+      "api": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "UPDATE dl SET v = v + 1 WHERE id = 1 - Deadlock found when trying to get lock; try restarting transaction",
+          "code": "ER_LOCK_DEADLOCK",
+          "errno": 1213,
+          "sqlState": "40001",
+          "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+        }
+      },
+      "queries": [
+        {
+          "event": "query",
+          "sql": "BEGIN;",
+          "method": null
+        },
+        {
+          "event": "query",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "method": "insert"
+        },
+        {
+          "event": "query-response",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "response": {
+            "kind": "array",
+            "length": 1
+          }
+        },
+        {
+          "event": "query",
+          "sql": "SELECT CONNECTION_ID() AS connection_id",
+          "method": "raw"
+        },
+        {
+          "event": "query-response",
+          "sql": "SELECT CONNECTION_ID() AS connection_id",
+          "response": {
+            "kind": "array",
+            "length": 2
+          }
+        },
+        {
+          "event": "query",
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = ?",
+          "method": "raw"
+        },
+        {
+          "event": "query-response",
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = ?",
+          "response": {
+            "kind": "array",
+            "length": 2
+          }
+        },
+        {
+          "event": "query",
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = ?",
+          "method": "raw"
+        },
+        {
+          "event": "query-error",
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = ?",
+          "error": {
+            "name": "Error",
+            "message": "UPDATE dl SET v = v + 1 WHERE id = 1 - Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+          }
+        },
+        {
+          "event": "query",
+          "sql": "ROLLBACK",
+          "method": null
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 151,
+          "session_at_connect": {
+            "connection_id": "151",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": []
+      },
+      "subject_connection_id": 150,
+      "fixture_cross": {
+        "requested": {
+          "sql": "UPDATE dl SET v = v + 1 WHERE id = 2",
+          "params": null
+        },
+        "driver": {
+          "outcome": "resolved",
+          "elapsed_ms": 6,
+          "result": {
+            "kind": "ok",
+            "constructor": "ResultSetHeader",
+            "enumerable_keys": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "own_property_names": [
+              "fieldCount",
+              "affectedRows",
+              "insertId",
+              "info",
+              "serverStatus",
+              "warningStatus",
+              "changedRows"
+            ],
+            "header": {
+              "fieldCount": 0,
+              "affectedRows": 1,
+              "insertId": 0,
+              "info": "Rows matched: 1  Changed: 1  Warnings: 0",
+              "serverStatus": 3,
+              "warningStatus": 0,
+              "changedRows": 1
+            },
+            "fields": null
+          }
+        }
+      },
+      "dl": [
+        {
+          "id": 1,
+          "v": 1
+        },
+        {
+          "id": 2,
+          "v": 1
+        }
+      ],
+      "after": {
+        "taken_after_driver_returned": true,
+        "client_knowledge": false,
+        "observer_session": {
+          "autocommit": "1",
+          "transaction_isolation": "REPEATABLE-READ"
+        },
+        "innodb_trx": [],
+        "thread": {
+          "THREAD_ID": "187",
+          "PROCESSLIST_ID": "150",
+          "PROCESSLIST_USER": "mpcs",
+          "PROCESSLIST_COMMAND": "Sleep",
+          "PROCESSLIST_STATE": null,
+          "PROCESSLIST_INFO": null
+        },
+        "events_transactions_current": [
+          {
+            "EVENT_ID": "2",
+            "STATE": "ROLLED BACK",
+            "TRX_ID": null,
+            "GTID": "AUTOMATIC",
+            "ACCESS_MODE": "READ WRITE",
+            "ISOLATION_LEVEL": "REPEATABLE READ",
+            "AUTOCOMMIT": "NO",
+            "NUMBER_OF_SAVEPOINTS": "0",
+            "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+            "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+          }
+        ],
+        "events_transactions_history": [
+          {
+            "EVENT_ID": "2",
+            "STATE": "ROLLED BACK",
+            "TRX_ID": null,
+            "GTID": "AUTOMATIC",
+            "ACCESS_MODE": "READ WRITE",
+            "ISOLATION_LEVEL": "REPEATABLE READ",
+            "AUTOCOMMIT": "NO",
+            "NUMBER_OF_SAVEPOINTS": "0",
+            "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+            "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+          }
+        ],
+        "data_locks": []
+      }
+    },
+    {
+      "id": "rollback-not-sent",
+      "claimed": "failed",
+      "basis": "db.transaction rejected",
+      "api": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "second unit fails"
+        }
+      },
+      "queries": [
+        {
+          "event": "query",
+          "sql": "BEGIN;",
+          "method": null
+        },
+        {
+          "event": "query",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "method": "insert"
+        },
+        {
+          "event": "query-response",
+          "sql": "insert into `marker` (`name`) values (?)",
+          "response": {
+            "kind": "array",
+            "length": 1
+          }
+        },
+        {
+          "event": "query",
+          "sql": "ROLLBACK",
+          "method": null
+        }
+      ],
+      "fresh_reader": {
+        "opened_after_driver_returned": true,
+        "client_knowledge": false,
+        "reader": {
+          "connection_id": 153,
+          "session_at_connect": {
+            "connection_id": "153",
+            "autocommit": "1",
+            "transaction_isolation": "REPEATABLE-READ",
+            "innodb_lock_wait_timeout": "50"
+          }
+        },
+        "rows": [
+          {
+            "id": 1,
+            "name": "lucid-doomed"
+          }
+        ]
+      },
+      "note": "The first unit is BEGIN plus an insert on a Lucid pool connection, with no ROLLBACK. The second unit is db.transaction on that same connection. Lucid asks Knex to begin it.",
+      "setup_steps": [
+        {
+          "requested": {
+            "sql": "BEGIN",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "stateChanges",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 0,
+                "insertId": 0,
+                "info": "",
+                "serverStatus": 16387,
+                "warningStatus": 0,
+                "stateChanges": {
+                  "systemVariables": {},
+                  "schema": null,
+                  "gtids": [],
+                  "trackStateChange": null
+                },
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        {
+          "requested": {
+            "sql": "INSERT INTO marker (name) VALUES (?)",
+            "params": [
+              "lucid-doomed"
+            ]
+          },
+          "driver": {
+            "outcome": "resolved",
+            "result": {
+              "kind": "ok",
+              "constructor": "ResultSetHeader",
+              "enumerable_keys": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "own_property_names": [
+                "fieldCount",
+                "affectedRows",
+                "insertId",
+                "info",
+                "serverStatus",
+                "warningStatus",
+                "changedRows"
+              ],
+              "header": {
+                "fieldCount": 0,
+                "affectedRows": 1,
+                "insertId": 1,
+                "info": "",
+                "serverStatus": 3,
+                "warningStatus": 0,
+                "changedRows": 0
+              },
+              "fields": null
+            }
+          }
+        },
+        {
+          "requested": {
+            "sql": "SELECT CONNECTION_ID() AS connection_id",
+            "params": null
+          },
+          "driver": {
+            "outcome": "resolved",
+            "result": {
+              "kind": "rows",
+              "constructor": "Object",
+              "row_count": 1,
+              "rows": [
+                {
+                  "connection_id": "152"
+                }
+              ],
+              "fields": [
+                {
+                  "name": "connection_id",
+                  "columnType": 8,
+                  "flags": 161
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "after": {
+        "taken_after_driver_returned": true,
+        "client_knowledge": false,
+        "observer_session": {
+          "autocommit": "1",
+          "transaction_isolation": "REPEATABLE-READ"
+        },
+        "innodb_trx": [],
+        "thread": {
+          "THREAD_ID": "189",
+          "PROCESSLIST_ID": "152",
+          "PROCESSLIST_USER": "mpcs",
+          "PROCESSLIST_COMMAND": "Sleep",
+          "PROCESSLIST_STATE": null,
+          "PROCESSLIST_INFO": null
+        },
+        "events_transactions_current": [
+          {
+            "EVENT_ID": "6",
+            "STATE": "ROLLED BACK",
+            "TRX_ID": null,
+            "GTID": "AUTOMATIC",
+            "ACCESS_MODE": "READ WRITE",
+            "ISOLATION_LEVEL": "REPEATABLE READ",
+            "AUTOCOMMIT": "NO",
+            "NUMBER_OF_SAVEPOINTS": "0",
+            "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+            "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+          }
+        ],
+        "events_transactions_history": [
+          {
+            "EVENT_ID": "6",
+            "STATE": "ROLLED BACK",
+            "TRX_ID": null,
+            "GTID": "AUTOMATIC",
+            "ACCESS_MODE": "READ WRITE",
+            "ISOLATION_LEVEL": "REPEATABLE READ",
+            "AUTOCOMMIT": "NO",
+            "NUMBER_OF_SAVEPOINTS": "0",
+            "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+            "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+          },
+          {
+            "EVENT_ID": "2",
+            "STATE": "COMMITTED",
+            "TRX_ID": null,
+            "GTID": "ANONYMOUS",
+            "ACCESS_MODE": "READ WRITE",
+            "ISOLATION_LEVEL": "REPEATABLE READ",
+            "AUTOCOMMIT": "NO",
+            "NUMBER_OF_SAVEPOINTS": "0",
+            "NUMBER_OF_ROLLBACK_TO_SAVEPOINT": "0",
+            "NUMBER_OF_RELEASE_SAVEPOINT": "0"
+          }
+        ],
+        "data_locks": []
+      },
+      "visible_after_api": [
+        {
+          "id": 1,
+          "name": "lucid-doomed"
+        }
+      ]
+    }
+  ],
+  "comparison_with_knex": [
+    {
+      "id": "caught-duplicate-then-return",
+      "lucid_claimed": "committed",
+      "knex_claimed": "committed",
+      "claims_match": true,
+      "lucid_marker_count": 1,
+      "knex_marker_count": 1,
+      "marker_counts_match": true
+    },
+    {
+      "id": "deadlock",
+      "lucid_claimed": "failed",
+      "knex_claimed": "failed",
+      "claims_match": true,
+      "lucid_marker_count": 0,
+      "knex_marker_count": 0,
+      "marker_counts_match": true
+    },
+    {
+      "id": "rollback-not-sent",
+      "lucid_claimed": "failed",
+      "knex_claimed": "failed",
+      "claims_match": true,
+      "lucid_marker_count": 1,
+      "knex_marker_count": 1,
+      "marker_counts_match": true
+    }
+  ]
+}
