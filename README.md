@@ -31,7 +31,7 @@ A framework's report of a transaction outcome is a claim. A framework's own test
 Requirements: Docker (with Compose), Node.js 24, pnpm 12.
 
 ```sh
-pnpm run setup     # frozen-lockfile install of the harness and every adapter
+pnpm run setup     # frozen-lockfile install of the harness and the JavaScript adapters
 pnpm run pg:up     # disposable PostgreSQL 18.6 on 127.0.0.1:55435 (pinned image digest, tmpfs, random password)
 pnpm run ppcs      # every case on every adapter; writes results/<run id>/summary.md and JSON evidence
 pnpm run pg:down   # removes the container
@@ -42,11 +42,11 @@ pnpm run pg:down   # removes the container
 - **Regression check:** `--expect=<earlier run.json>` exits 1 if any classification changed. It refuses (exit 2) an earlier run made with a different harness or catalog.
 - **Self-tests:** `pnpm run test` for the classification rules, with no database; `pnpm run test:methodology` for the controls through the real runner.
 
-A full run takes about six minutes. The runner refuses any server that is not the disposable instance, or whose settings differ from the profile the cases assume. It never touches another database (`docs/methodology.md`).
+A full run of the JavaScript adapters takes about six minutes. Django and SQLAlchemy are separate Python programs. `pnpm run setup` does not create their virtualenvs. Each adapter README has the install. The runner refuses any server that is not the disposable instance, or whose settings differ from the profile the cases assume. It never touches another database (`docs/methodology.md`).
 
 ## What is implemented
 
-**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. The recorded run below includes them.
+**Specifications** (`specifications/`, described in `docs/specifications.md`): 9 families, 23 cases. Lucid and `pg-control` execute MG-02 and MG-03. Django and SQLAlchemy do not implement the migration cases, TX-04, or TX-05.
 
 | Family | Question | Cases |
 | --- | --- | --- |
@@ -68,50 +68,56 @@ A full run takes about six minutes. The runner refuses any server that is not th
 | `mikroorm` | `@mikro-orm/postgresql` 7.2.5, kysely 0.29.6, pg 8.23.1 | `native`; `clear-forks` (configured) |
 | `typeorm` | `typeorm` 1.1.2, pg 8.23.1 | `native` |
 | `pg-control` | node-postgres 8.23.1, no framework | `correct` (positive control); `unsafe` (negative control) |
+| `django` | Django 6.1.2, psycopg 3.3.6 | `native` (`CONN_MAX_AGE` 0); `persistent` (`CONN_MAX_AGE` null, TX-03 only) |
+| `sqlalchemy` | SQLAlchemy 2.1.5, psycopg 3.3.6 | `native` |
 
-These are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`).
+The first four rows are the stacks and versions of the experiments PPCS was extracted from (`docs/provenance.md`). Django and SQLAlchemy are later adapters, written as separate programs. They are not part of that extraction, and they are not general ORM runners. An adapter does not have to be written in JavaScript. Their install and runner commands are in [`adapters/django`](adapters/django/README.md) and [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md).
 
-An adapter is a separate program. It does not have to be written in JavaScript. [`adapters/sqlalchemy`](adapters/sqlalchemy/README.md) is a Python adapter for SQLAlchemy 2.1 `Session.begin()` and `Session.begin_nested()`, using psycopg 3. It implements `CTL-01.commit`, `CTL-01.rollback`, and `TX-02.savepoint-rollback-not-sent`. Every other case is NOT_RUN. It is not a general Python ORM runner. The recorded-run table below does not include it. That table is the Node run from PPCS 0.3.0. `pnpm run setup` does not install the Python virtualenv. The adapter README has the install and the runner command.
+## Results
 
-## Results of the recorded run
+Three recorded runs, all on PostgreSQL 18.6 and the same catalog. They are not one execution. The Lucid, MikroORM, and TypeORM columns are the Node run. The Django and SQLAlchemy columns are the later Python runs.
 
-The recorded run is [`reports/examples/2026-10-18T00-11-46Z-95887b/`](reports/examples/2026-10-18T00-11-46Z-95887b/summary.md), PPCS 0.3.0 on PostgreSQL 18.6. It produced 122 results: 64 PASS, 40 FAIL, 3 UNSUPPORTED (all three not applicable by design), 1 INCONCLUSIVE, 14 NOT_RUN. Each executed case ran three times, and every repetition agreed. The 87 classifications from the previous recording are unchanged. The 35 new results are MG-02 and MG-03: Lucid and both `pg-control` modes, plus NOT_RUN for MikroORM and TypeORM, which do not implement those cases. A second full run on the same machine reproduced all 122 classifications.
+The Node run is [`reports/examples/2026-10-18T00-11-46Z-95887b/`](reports/examples/2026-10-18T00-11-46Z-95887b/summary.md), PPCS 0.3.0. It produced 122 results: 64 PASS, 40 FAIL, 3 UNSUPPORTED (all three not applicable by design), 1 INCONCLUSIVE, 14 NOT_RUN. Each executed case ran three times, and every repetition agreed. The 87 classifications from the previous recording are unchanged. The 35 new results are MG-02 and MG-03: Lucid and both `pg-control` modes, plus NOT_RUN for MikroORM and TypeORM, which do not implement those cases. A second full run on the same machine reproduced all 122 classifications.
 
-| Case | Fault | Lucid | MikroORM | TypeORM |
-| --- | --- | --- | --- | --- |
-| `CTL-01.commit` | none | PASS | PASS | PASS |
-| `CTL-01.rollback` | none | PASS | PASS | PASS |
-| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL |
-| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS |
-| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) |
-| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL |
-| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL |
-| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS |
-| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL |
-| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL |
-| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS |
-| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS |
-| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS |
-| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) |
-| `TX-05.managed-serializable` | none | PASS | PASS | PASS |
-| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS |
-| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN |
-| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN |
-| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN |
-| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN |
-| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN |
-| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN |
-| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN |
+Django 6.1.2 is [`reports/examples/2026-10-18T13-08-22Z-6d8443/`](reports/examples/2026-10-18T13-08-22Z-6d8443/summary.md). The per-case report is [`adapters/django/FINDINGS.md`](adapters/django/FINDINGS.md). SQLAlchemy 2.1.5 is [`reports/examples/2026-10-19T00-49-25Z-3673a3/`](reports/examples/2026-10-19T00-49-25Z-3673a3/summary.md). The per-case report is [`adapters/sqlalchemy/FINDINGS.md`](adapters/sqlalchemy/FINDINGS.md). In both, three repetitions agreed, and CTL-01 and `pg-control` held their gates.
+
+| Case | Fault | Lucid | MikroORM | TypeORM | Django | SQLAlchemy |
+| --- | --- | --- | --- | --- | --- | --- |
+| `CTL-01.commit` | none | PASS | PASS | PASS | PASS | PASS |
+| `CTL-01.rollback` | none | PASS | PASS | PASS | PASS | PASS |
+| `TX-01A.caught-error-then-commit` | A | FAIL (hardened `pre-commit-probe`: PASS, mechanism not exercised) | FAIL | FAIL | PASS (mechanism not exercised) | INCONCLUSIVE |
+| `TX-01B.conn-lost-before-commit` | B | FAIL | PASS | PASS | PASS | PASS |
+| `TX-01B.commit-reply-discarded` | D | FAIL (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | PASS (TX-01B.2 not exercised) | NOT_RUN | NOT_RUN |
+| `TX-02.savepoint-rollback-not-sent` | C | FAIL | FAIL | FAIL | FAIL | FAIL |
+| `TX-02.savepoint-rollback-rejected` | C | FAIL | FAIL | FAIL | PASS | FAIL |
+| `TX-02.conn-lost-before-savepoint-rollback` | B | FAIL | PASS | PASS | PASS | PASS |
+| `TX-03.rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS |
+| `TX-03.statement-error-rollback-not-sent` | C | FAIL | FAIL | FAIL | PASS (persistent) | PASS |
+| `TX-03.conn-lost-in-transaction` | B | PASS | FAIL | PASS | PASS (persistent) | PASS |
+| `TX-04.nested-failure-contained` | none | PASS | FAIL (configured `clear-forks`: PASS) | PASS | NOT_RUN | NOT_RUN |
+| `TX-04.nested-released-outer-rollback` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN |
+| `TX-04.independent-inner` | none | UNSUPPORTED (not applicable by design) | FAIL (configured `clear-forks`: PASS) | UNSUPPORTED (not applicable by design) | NOT_RUN | NOT_RUN |
+| `TX-05.managed-serializable` | none | PASS | PASS | PASS | NOT_RUN | NOT_RUN |
+| `TX-05.explicit-serializable` | none | FAIL | PASS | PASS | NOT_RUN | NOT_RUN |
+| `MG-02.held` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.first-deployment` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.session-loss` | B | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-02.idle-session-timeout` | none | INCONCLUSIVE | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.valid-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.no-reversal` | none | FAIL | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
+| `MG-03.failing-reversal` | none | PASS | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN |
 
 **How to read the matrix:**
 
 - **Fault categories:** A is an error PostgreSQL generated, B a backend terminated by the runner, C an error injected in the client, D a client-side simulation (`docs/methodology.md`).
-- **The 23 framework FAILs:** 10 need no client-side injection, and 13 depend on one. The new one is Lucid's `MG-03.no-reversal`.
+- **The Node columns.** Those 23 framework FAILs are 10 that need no client-side injection, and 13 that depend on one. The one added in the 0.3.0 recording is Lucid's `MG-03.no-reversal`.
+- **Django.** One framework FAIL: `TX-02.savepoint-rollback-not-sent`. A plain exception withheld before send, and Django commits both markers. PostgreSQL's `3B001` on the same statement is a PASS. TX-01A passes with the mechanism not exercised: Django rolls back, so COMMIT is never answered with ROLLBACK. Native TX-03 is not run. `CONN_MAX_AGE` 0 closes the connection at the end of each request. The persistent rows are `CONN_MAX_AGE` null, and they pass.
+- **SQLAlchemy.** Two framework FAILs, both TX-02. The withheld savepoint rollback is the same ending as Lucid, MikroORM, Django, and `pg-control` unsafe: the API reports a commit, PostgreSQL commits, and both markers are visible. The rejected savepoint rollback is a different ending: the API reports a commit, the session is idle, the last statement is `COMMIT`, and PostgreSQL aborted the transaction, so neither marker remains. TX-02.2 holds. TX-01A is INCONCLUSIVE: `Session._flush` rolls the transaction back before `before-end`, so the session is already idle there. `TX-01B.commit-reply-discarded` is NOT_RUN for both Python adapters. psycopg does not return from `commit()` until the command finishes.
 - **Qualifiers:**
-  - **"Mechanism not exercised":** Lucid's `pre-commit-probe` passes TX-01A by failing before COMMIT. That makes it a valid mitigation, not evidence that Lucid reads the reply to COMMIT.
+  - **"Mechanism not exercised":** Lucid's `pre-commit-probe` passes TX-01A by failing before COMMIT. Django's native TX-01A passes the same way in substance: it rolls back inside the block, and COMMIT is not the statement that ends the transaction. Neither is evidence that the framework reads a ROLLBACK command tag on COMMIT.
   - **"TX-01B.2 not exercised":** the framework adapters observe no channel through which a framework could claim a rollback, so TX-01B.2 was not tested for them.
-- **Report time:** where a transaction was still open when the API returned, each FAIL says so, and says whether teardown or later work decided its fate. In TypeORM's TX-02 cases, for example, the transaction was open at report time and rolled back at teardown.
-- **Controls:** the positive control passes every case it implements. The negative control fails the 17 cases it is built to fail, so the runner detects a known-bad implementation. That includes unsafe connection reuse, which the observer sees server-side: the next unit of work runs inside the failed transaction's own ID. It also includes a write lost with a failed nested scope, a requested isolation level dropped by a plain `BEGIN`, a migration applied twice, and a reversal that leaves history and the database disagreeing. Every control expectation held in this run, so no result was gated.
+- **Report time:** where a transaction was still open when the API returned, each FAIL says so, and says whether teardown or later work decided its fate. In TypeORM's TX-02 cases, for example, the transaction was open at report time and rolled back at teardown. SQLAlchemy's rejected-savepoint FAIL is not that ending. The session was idle when the API returned.
+- **Controls:** the positive control passes every case it implements. The negative control fails the 17 cases it is built to fail, so the runner detects a known-bad implementation. That includes unsafe connection reuse, which the observer sees server-side: the next unit of work runs inside the failed transaction's own ID. It also includes a write lost with a failed nested scope, a requested isolation level dropped by a plain `BEGIN`, a migration applied twice, and a reversal that leaves history and the database disagreeing. Every control expectation held in each of these runs, so no result was gated.
 - **Detail:** each FAIL in `reports/examples/*/summary.md` gives what the API reported, what PostgreSQL did at report time and at the end, what the application could know, the violated invariant, the framework's contract, and a reproduction command.
 
 ## Classifications
@@ -133,7 +139,7 @@ The recorded run is [`reports/examples/2026-10-18T00-11-46Z-95887b/`](reports/ex
 | `adapters/` | One project per adapter, each with its own lockfile. `node-kit/` is shared by the JavaScript adapters only. |
 | `schema/` | JSON Schemas for a case result and for a run manifest |
 | `docs/` | Methodology, specifications, the adapter protocol and provenance |
-| `reports/examples/` | A complete recorded run: `summary.md`, `run.json` and one JSON file per case |
+| `reports/examples/` | Recorded runs: `summary.md`, `run.json` and one JSON file per case |
 | `compose.yaml`, `scripts/` | The disposable server; setup |
 
 ## Documentation

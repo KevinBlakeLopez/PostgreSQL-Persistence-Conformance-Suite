@@ -1,0 +1,447 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-18T13-08-22Z-6d8443",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-02.conn-lost-before-savepoint-rollback",
+    "version": "1.1",
+    "family": "TX-02",
+    "family_title": "Failed savepoint rollback",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The connection is terminated inside a nested scope that then fails",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `outer`, and make sure the write was sent.",
+      "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure the write was sent.",
+      "Checkpoint `inner-after-write`: report the backend PID. The runner sees the savepoint's subtransaction lock. The runner then terminates the backend, and waits until it has gone.",
+      "Wait settle_ms, then raise an application error in the nested scope; its ROLLBACK TO SAVEPOINT fails on the closed connection.",
+      "The outer scope catches the nested scope's error.",
+      "The outer scope ends normally.",
+      "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes."
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "django",
+      "version": "0.1.0",
+      "source_sha256": "48f807b656fa7d8ab81eecc09f1d40c01eb5c5b82f31bc25bbeed3d5405e9104"
+    },
+    "framework": {
+      "name": "django",
+      "version": "6.1.2"
+    },
+    "driver": {
+      "name": "psycopg",
+      "version": "3.3.6"
+    },
+    "components": {},
+    "runtime": {
+      "name": "python",
+      "version": "3.13.11"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Django's documented default: transaction.atomic() for the outer transaction and a nested transaction.atomic() for the savepoint, PostgreSQL backend, psycopg 3, CONN_MAX_AGE 0, no connection pool. TX-03 is not run in this mode. The default closes the database connection at the end of each request (not-applicable-by-design for handing a transactionally active connection to later work). https://docs.djangoproject.com/en/6.1/ref/databases/#persistent-connections",
+    "configuration": {
+      "CONN_MAX_AGE": 0,
+      "pool": false,
+      "request_boundary": null
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside the nested scope, after its write, before the framework's savepoint rollback.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and the whole transaction is rolled back.",
+    "expected_client": "Connection errors for the savepoint rollback and for anything after it.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework sees its connection fail during the savepoint rollback.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "atomic() returned without raising; rollback() raised and Atomic.__exit__ dropped the connection",
+    "contract": "Django documents transaction.atomic() as: \"If the block of code is successfully completed, the changes are committed to the database. If there is an exception, the changes are rolled back.\" Atomic.__exit__ commits only when exc_type is None and needs_rollback is false; otherwise it rolls back (django/db/transaction.py). A savepoint rollback that raises django.db.Error sets needs_rollback and does not replace the original exception. A root rollback that raises django.db.Error is swallowed and connection.close() is called. An exception that is not django.db.Error is not caught, so needs_rollback stays false. The DatabaseError admonition says: \"After such an error, the transaction is broken and Django will perform a rollback at the end of the atomic block.\" Model.save uses mark_for_rollback_on_error, which sets needs_rollback when a database error is raised inside an atomic block.",
+    "error": {
+      "class": "OperationalError",
+      "code": null,
+      "message": "the connection is lost"
+    },
+    "steps": {
+      "nested": {
+        "caught": true,
+        "error": {
+          "class": "AppError",
+          "code": null,
+          "message": "application error: the nested scope fails"
+        }
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "outer-after-write": {
+        "reported": {
+          "pid": 4128,
+          "xid": "868"
+        },
+        "session": {
+          "pid": 4128,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "868",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-18 13:08:32.096131+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "868"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 4128,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "868",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-18 13:08:32.096131+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "inner-after-write": {
+        "reported": {
+          "pid": 4128,
+          "xid": null
+        },
+        "session": {
+          "pid": 4128,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "868",
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-18 13:08:32.096131+00",
+          "query": "INSERT INTO \"item\" (\"name\", \"qty\") VALUES ('inner-4425de', 0) RETURNING \"item\".\"",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "868",
+            "869"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 4128,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "868",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-18 13:08:32.096131+00",
+              "query": "INSERT INTO \"item\" (\"name\", \"qty\") VALUES ('inner-4425de', 0) RETURNING \"item\".\"",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 4128,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-outer": {
+        "reported": {
+          "pid": 4128,
+          "xid": null
+        },
+        "session": {
+          "pid": 4128,
+          "present": false
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 4128,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 4128,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "868",
+        "pid": 4128,
+        "captured_at": "outer-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-18 13:08:32.096131+00"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-02.1 held: the API reported: failed; xid 868 rolled back at report time (`after-outer`); outer visible: false; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: closed",
+    "preconditions": [
+      {
+        "description": "the write of marker \"outer\" had reached PostgreSQL at `outer-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `outer-after-write`: item locked; transactionid [868]"
+      },
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [868, 869]"
+      },
+      {
+        "description": "the runner terminated the backend at `inner-after-write`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised AppError"
+      },
+      {
+        "description": "the runner observed the transaction's session after the outer API returned",
+        "met": true,
+        "detail": "session: closed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: failed; xid 868 rolled back at report time (`after-outer`); outer visible: false; inner (failed scope) visible: false"
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction.",
+        "holds": true,
+        "detail": "the session after the outer API returned: closed"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for django (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=django --mode=native --case=TX-02.conn-lost-before-savepoint-rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "INSERT INTO \"item\" (\"name\", \"qty\") VALUES (%s, %s) RETURNING \"item\".\"id\"",
+        "select pg_current_xact_id()::text, pg_backend_pid()",
+        "SAVEPOINT \"s8398037376_x1\"",
+        "INSERT INTO \"item\" (\"name\", \"qty\") VALUES (%s, %s) RETURNING \"item\".\"id\"",
+        "ROLLBACK TO SAVEPOINT \"s8398037376_x1\""
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "commit_calls": 0,
+      "rollback_calls": 1,
+      "django": {
+        "needs_rollback": false,
+        "in_atomic_block": false,
+        "closed_in_transaction": false,
+        "autocommit": true,
+        "backend_pid": 4150
+      },
+      "trace_sees_framework_statements": true
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-18T13:08:31.874Z",
+    "finished_at": "2026-10-18T13:08:33.622Z",
+    "duration_ms": 1748
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: failed; xid 868 rolled back at report time (`after-outer`); outer visible: false; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 556
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: failed; xid 873 rolled back at report time (`after-outer`); outer visible: false; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 619
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: failed; xid 879 rolled back at report time (`after-outer`); outer visible: false; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 573
+      }
+    ]
+  }
+}

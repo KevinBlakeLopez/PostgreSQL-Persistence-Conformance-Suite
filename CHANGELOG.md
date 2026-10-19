@@ -4,6 +4,7 @@ Results from different versions are not comparable: each version can change what
 
 ## Unreleased
 
+- **Django and SQLAlchemy run the transaction-failure cases.** Django 6.1.2 `transaction.atomic()` is recorded in `reports/examples/2026-10-18T13-08-22Z-6d8443`. Its one framework FAIL is `TX-02.savepoint-rollback-not-sent`. SQLAlchemy 2.1.5 `Session.begin()` is recorded in `reports/examples/2026-10-19T00-49-25Z-3673a3`. It fails both TX-02 cases. The withheld-savepoint ending matches the Node adapters that commit both markers. The rejected-savepoint ending is different: the API reports a commit, the session is idle, and PostgreSQL aborted the transaction. `TX-01B.commit-reply-discarded` is NOT_RUN for both. The per-case reports are `adapters/django/FINDINGS.md` and `adapters/sqlalchemy/FINDINGS.md`.
 - **MG-02 and MG-03 run on Lucid and `pg-control`.** Seven cases: a held migration, a first deployment, a lost session, an idle-session timeout, a valid reversal, a migration with no reversal, and a reversal that fails. Each role is its own process, named `ppcs-A`, `ppcs-B` or `ppcs-C`. The harness's own sessions stay excluded by backend PID together with `ppcs-observer`. On Lucid 22.4.2 the idle-session timeout is inconclusive, because the session inside the migration is not idle, and a migration with no reversal is reported reverted while its marker remains. The recorded run is `reports/examples/2026-10-18T00-11-46Z-95887b`.
 
 ## 0.3.0 (unreleased)

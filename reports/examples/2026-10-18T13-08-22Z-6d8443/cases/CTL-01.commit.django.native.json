@@ -1,0 +1,310 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-18T13-08-22Z-6d8443",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "CTL-01.commit",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and commits",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` through the framework's ordinary write API.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "End the transaction normally, so that the framework commits it.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "django",
+      "version": "0.1.0",
+      "source_sha256": "48f807b656fa7d8ab81eecc09f1d40c01eb5c5b82f31bc25bbeed3d5405e9104"
+    },
+    "framework": {
+      "name": "django",
+      "version": "6.1.2"
+    },
+    "driver": {
+      "name": "psycopg",
+      "version": "3.3.6"
+    },
+    "components": {},
+    "runtime": {
+      "name": "python",
+      "version": "3.13.11"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Django's documented default: transaction.atomic() for the outer transaction and a nested transaction.atomic() for the savepoint, PostgreSQL backend, psycopg 3, CONN_MAX_AGE 0, no connection pool. TX-03 is not run in this mode. The default closes the database connection at the end of each request (not-applicable-by-design for handing a transactionally active connection to later work). https://docs.djangoproject.com/en/6.1/ref/databases/#persistent-connections",
+    "configuration": {
+      "CONN_MAX_AGE": 0,
+      "pool": false,
+      "request_boundary": null
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "atomic() returned without raising; Atomic.__exit__ called commit()",
+    "contract": "Django documents transaction.atomic() as: \"If the block of code is successfully completed, the changes are committed to the database. If there is an exception, the changes are rolled back.\" Atomic.__exit__ commits only when exc_type is None and needs_rollback is false; otherwise it rolls back (django/db/transaction.py). A savepoint rollback that raises django.db.Error sets needs_rollback and does not replace the original exception. A root rollback that raises django.db.Error is swallowed and connection.close() is called. An exception that is not django.db.Error is not caught, so needs_rollback stays false. The DatabaseError admonition says: \"After such an error, the transaction is broken and Django will perform a rollback at the end of the atomic block.\" Model.save uses mark_for_rollback_on_error, which sets needs_rollback when a database error is raised inside an atomic block.",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 3438,
+          "xid": "766"
+        },
+        "session": {
+          "pid": 3438,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "766",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-18 13:08:22.58288+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "766"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 3438,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "766",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-18 13:08:22.58288+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 3438,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-18 13:08:22.58288+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "766",
+        "pid": 3438,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-18 13:08:22.58288+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "766"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.1 held: xid 766 committed at report time (`after-end`); marker visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [766]"
+      },
+      {
+        "description": "the API reported \"committed\"",
+        "met": true,
+        "detail": "reported: committed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker.",
+        "holds": true,
+        "detail": "xid 766 committed at report time (`after-end`); marker visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=django --mode=native --case=CTL-01.commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "INSERT INTO \"item\" (\"name\", \"qty\") VALUES (%s, %s) RETURNING \"item\".\"id\"",
+        "select pg_current_xact_id()::text, pg_backend_pid()"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "commit_calls": 1,
+      "rollback_calls": 0,
+      "django": {
+        "needs_rollback": false,
+        "in_atomic_block": false,
+        "closed_in_transaction": false,
+        "autocommit": true,
+        "backend_pid": 3438
+      },
+      "trace_sees_framework_statements": true
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-18T13:08:22.177Z",
+    "finished_at": "2026-10-18T13:08:23.627Z",
+    "duration_ms": 1450
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 766 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 617
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 770 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 449
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 774 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 384
+      }
+    ]
+  }
+}

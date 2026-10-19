@@ -1,0 +1,376 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T00-49-25Z-3673a3",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "3c41c362e9c3c67be300fa822ab6180189b99bfeee38672bf2e3c07b0b1cd59d"
+  },
+  "specification": {
+    "id": "TX-01A.caught-error-then-commit",
+    "version": "1.1",
+    "family": "TX-01A",
+    "family_title": "Commit of an aborted transaction",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A unique violation is caught inside the transaction, which then ends normally",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`, and make sure the write was sent to PostgreSQL.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "Insert the value 'taken' into uniq through the framework's ordinary write API. It fails with unique_violation (23505). Catch the error and continue. After catching the error, the callback sends nothing else and returns.",
+      "Checkpoint `before-end`: report the same backend PID. The transaction is aborted, so it cannot run queries; the runner confirms the aborted state server-side.",
+      "End the transaction normally, so that the framework sends COMMIT.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01A.1",
+        "statement": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "sqlalchemy",
+      "version": "0.1.0",
+      "source_sha256": "d55b31b099850c9eb7ff78b0437d6021e7611425e543753d9da4480dd5faf327"
+    },
+    "framework": {
+      "name": "sqlalchemy",
+      "version": "2.1.5"
+    },
+    "driver": {
+      "name": "psycopg",
+      "version": "3.3.6"
+    },
+    "components": {},
+    "runtime": {
+      "name": "python",
+      "version": "3.13.11"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "SQLAlchemy's Session.begin() context manager, with Session.begin_nested() for a savepoint. pool_size 1, max_overflow 0. TX-03's next unit of work is a second Session on that same engine. The engine is not disposed between the units, and pool_pre_ping is off.",
+    "configuration": {
+      "pool_size": 1,
+      "max_overflow": 0
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application.",
+    "injection_point": "After the first write, before the transaction ends.",
+    "preconditions": "The row 'taken' already exists in uniq (fixture).",
+    "expected_server": "The failed statement aborts the transaction. PostgreSQL answers the later COMMIT with the command tag ROLLBACK, without an error, and commits nothing.",
+    "expected_client": "The driver receives the command tag ROLLBACK as the reply to COMMIT.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The outcome reaches the client: PostgreSQL's reply to COMMIT carries the command tag ROLLBACK.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "Session.begin() exited without an exception, so it committed",
+    "contract": "Session.begin() as a context manager commits when the block exits without an exception and rolls back when the block exits with one. Session.begin_nested() is a SAVEPOINT; an exception there rolls back to the savepoint, and a failure of that rollback propagates. If commit() raises on the way out, TransactionalContext.__exit__ calls rollback() when it can and propagates the error from that exit.",
+    "error": null,
+    "steps": {
+      "violation": {
+        "class": "IntegrityError",
+        "code": "23505",
+        "message": "(psycopg.errors.UniqueViolation) duplicate key value violates unique constraint \"uniq_code_key\" DETAIL: Key (code)=(taken) already exists. [SQL: INSERT INTO uniq (code) VALUES (%(code)s::VARCHAR) RETURNING uniq.id] [parameters: {'code': 'taken'}] (Background on this error at: https://sqlalche.me/e/21/gkpj)"
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 34249,
+          "xid": "1384"
+        },
+        "session": {
+          "pid": 34249,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "1384",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 00:49:47.221148+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "1384"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 34249,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "1384",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 00:49:47.221148+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "before-end": {
+        "reported": {
+          "pid": 34249,
+          "xid": null
+        },
+        "session": {
+          "pid": 34249,
+          "present": true,
+          "state": "idle",
+          "in_transaction": false,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 00:49:47.221148+00",
+          "query": "ROLLBACK",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 34249,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 00:49:47.221148+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 34249,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 00:49:47.221148+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "1384",
+        "pid": 34249,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 00:49:47.221148+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [1384]"
+      },
+      {
+        "description": "the duplicate insert failed with unique_violation (23505), as reported by the adapter",
+        "met": true,
+        "detail": "caught: 23505"
+      },
+      {
+        "description": "the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted",
+        "met": false,
+        "detail": "state: \"idle\"; pg_xact_status: aborted"
+      },
+      {
+        "description": "PostgreSQL did not commit the transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": false,
+    "inconclusive_reason": null,
+    "mechanism_detail": "after the API returned, the session was \"idle\", and its last statement was \"ROLLBACK\"",
+    "classification": "INCONCLUSIVE",
+    "reason": "precondition not established: the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted (state: \"idle\"; pg_xact_status: aborted)",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for sqlalchemy (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=sqlalchemy --mode=native --case=TX-01A.caught-error-then-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "ROLLBACK (INTRANS)",
+        "INSERT INTO item (name, qty) VALUES (%(name)s::VARCHAR, %(qty)s::INTEGER) RETURNING item.id",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "INSERT INTO uniq (code) VALUES (%(code)s::VARCHAR) RETURNING uniq.id",
+        "ROLLBACK (INERROR)",
+        "ROLLBACK (IDLE)"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "commit_calls": 0,
+      "rollback_calls": 3,
+      "trace_sees_framework_statements": true
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T00:49:46.244Z",
+    "finished_at": "2026-10-19T00:49:47.427Z",
+    "duration_ms": 1183
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "precondition not established: the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted (state: \"idle\"; pg_xact_status: aborted)",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 394
+      },
+      {
+        "repetition": 2,
+        "classification": "INCONCLUSIVE",
+        "reason": "precondition not established: the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted (state: \"idle\"; pg_xact_status: aborted)",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 385
+      },
+      {
+        "repetition": 3,
+        "classification": "INCONCLUSIVE",
+        "reason": "precondition not established: the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted (state: \"idle\"; pg_xact_status: aborted)",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 404
+      }
+    ]
+  }
+}

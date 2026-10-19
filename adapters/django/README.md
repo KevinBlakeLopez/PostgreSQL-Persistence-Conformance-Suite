@@ -33,4 +33,4 @@ node harness/run.mjs --adapter=django --case=CTL-01,TX-01A,TX-01B,TX-02,TX-03 --
 
 `TX-01B.commit-reply-discarded` is selected by the `TX-01B` prefix and recorded as NOT_RUN. The controls that gate these cases, including `pg-control`, run in the same command.
 
-The run `results/2026-10-18T13-08-22Z-6d8443` is the recording. `adapters/django/FINDINGS.md` is the per-case report.
+The run [`reports/examples/2026-10-18T13-08-22Z-6d8443`](../../reports/examples/2026-10-18T13-08-22Z-6d8443/summary.md) is the recording. `adapters/django/FINDINGS.md` is the per-case report.
