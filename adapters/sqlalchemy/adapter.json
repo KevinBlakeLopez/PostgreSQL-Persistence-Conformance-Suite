@@ -2,7 +2,7 @@
   "manifest": "ppcs-adapter/1",
   "name": "sqlalchemy",
   "framework": "sqlalchemy",
-  "description": "SQLAlchemy 2.1 Session.begin() and Session.begin_nested() through psycopg 3. Category C faults are withheld in this process, before psycopg sends the statement.",
+  "description": "SQLAlchemy 2.1 Session.begin() and Session.begin_nested() through psycopg 3. Category C faults are injected in this process, once, before the framework sees the error. A top-level ROLLBACK is withheld on psycopg.Connection.rollback; ROLLBACK TO SAVEPOINT is withheld or rewritten in before_cursor_execute. TX-03's next unit of work is a second Session on the same engine (pool_size 1, max_overflow 0).",
   "command": [
     "./.venv/bin/python",
     "main.py"
@@ -11,13 +11,20 @@
     {
       "id": "native",
       "kind": "native",
-      "description": "SQLAlchemy's Session.begin() context manager, with Session.begin_nested() for a savepoint. pool_size 1, max_overflow 0."
+      "description": "SQLAlchemy's Session.begin() context manager, with Session.begin_nested() for a savepoint. pool_size 1, max_overflow 0. TX-03's next unit of work is a second Session on that same engine. The engine is not disposed between the units, and pool_pre_ping is off."
     }
   ],
   "implements": [
     "CTL-01.commit",
     "CTL-01.rollback",
-    "TX-02.savepoint-rollback-not-sent"
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction"
   ],
   "rollback_claim_channels": [],
   "unsupported": {}
