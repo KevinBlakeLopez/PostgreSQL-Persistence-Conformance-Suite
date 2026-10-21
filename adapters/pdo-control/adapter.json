@@ -1,0 +1,102 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "pdo-control",
+  "framework": "pdo_pgsql",
+  "description": "PDO PostgreSQL control on PHP's pdo_pgsql. No Laravel and no pool. correct rolls back after a caught statement error because PDO exposes no transaction status and no command tag. unsafe treats a true PDO::commit() as success and keeps the handle when PDO::rollBack() throws. persistent is the correct policy with PDO::ATTR_PERSISTENT. Category C faults withhold PDO::rollBack() once, before pdo_pgsql sends. TX-01B.commit-reply-discarded is not implemented: pdo_pgsql consumes the COMMIT reply inside commit().",
+  "command": ["php", "main.php"],
+  "shared": ["../php/src", "../php/composer.json", "../php/composer.lock"],
+  "modes": [
+    {
+      "id": "correct",
+      "kind": "native",
+      "description": "Positive control. PDO::beginTransaction, prepared inserts, then PDO::commit or PDO::rollBack. A caught statement error calls rollBack() and does not call commit(). A thrown rollBack() or commit() drops the handle and is reported as failed, not as a confirmed rollback. ATTR_PERSISTENT is false. One connection, not a pool. The command tag is not read."
+    },
+    {
+      "id": "unsafe",
+      "kind": "configured",
+      "description": "Negative control. PDO::commit() returning true is reported as committed, including after a caught unique violation. A thrown commit() is reported as rolled_back. A thrown rollBack() keeps the handle. The next unit continues on that handle when beginTransaction reports an active transaction. ATTR_PERSISTENT is false."
+    },
+    {
+      "id": "persistent",
+      "kind": "configured",
+      "description": "The correct completion policy with PDO::ATTR_PERSISTENT true. TX-03 only, plus the observation controls. Dropping the PHP handle may still return the same backend on the next connect.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction"
+  ],
+  "rollback_claim_channels": ["result"],
+  "unsupported": {
+    "TX-02.savepoint-rollback-not-sent": {
+      "class": "capability-absent",
+      "reason": "PDO has no savepoint or nested-transaction API. PDO::beginTransaction, commit, and rollBack are the transaction API. Issuing SAVEPOINT SQL from this control would be application SQL, not a PDO nested transaction."
+    },
+    "TX-02.savepoint-rollback-rejected": {
+      "class": "capability-absent",
+      "reason": "PDO has no savepoint or nested-transaction API. PDO::beginTransaction, commit, and rollBack are the transaction API. Issuing SAVEPOINT SQL from this control would be application SQL, not a PDO nested transaction."
+    },
+    "TX-02.conn-lost-before-savepoint-rollback": {
+      "class": "capability-absent",
+      "reason": "PDO has no savepoint or nested-transaction API. PDO::beginTransaction, commit, and rollBack are the transaction API. Issuing SAVEPOINT SQL from this control would be application SQL, not a PDO nested transaction."
+    },
+    "TX-04.nested-failure-contained": {
+      "class": "capability-absent",
+      "reason": "PDO has no nested-transaction or savepoint API. A nested scope cannot be started through PDO."
+    },
+    "TX-04.nested-released-outer-rollback": {
+      "class": "capability-absent",
+      "reason": "PDO has no nested-transaction or savepoint API. A nested scope cannot be started through PDO."
+    },
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "PDO has no propagation mode and no API that commits an inner transaction while an outer transaction stays open. There are no deferred writes. The hazard TX-04.3 targets cannot arise through PDO's transaction API."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "PDO::beginTransaction() takes no isolation level. The Pdo\\Pgsql::TRANSACTION_* constants are deprecated in PHP 8.5 and have no effect. There is no PDO method that requests SERIALIZABLE. Sending SET TRANSACTION from this control would be PostgreSQL SQL, not a PDO API."
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "PDO has no transaction handle distinct from the PDO object, and PDO::beginTransaction() takes no isolation level. The same absence as the managed case."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner or reversible migration history. This adapter does not add one."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner or reversible migration history. This adapter does not add one."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "PDO has no migration runner or reversible migration history. This adapter does not add one."
+    }
+  }
+}

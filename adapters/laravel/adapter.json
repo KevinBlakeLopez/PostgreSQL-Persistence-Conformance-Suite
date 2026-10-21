@@ -1,0 +1,79 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "laravel",
+  "framework": "illuminate/database",
+  "description": "Laravel Illuminate database 13.38.0 through Capsule, without a full application. Writes use Eloquent. managed calls Connection::transaction(). explicit calls beginTransaction(), commit(), and rollBack(). Nested calls are savepoints. persistent is the managed API with PDO::ATTR_PERSISTENT, for TX-03. Category C faults withhold or rewrite statements on the PDO Laravel uses, once, before Laravel sees the error. The command tag is not visible through PDO.",
+  "command": ["php", "main.php"],
+  "shared": ["../php/src", "../php/composer.json", "../php/composer.lock"],
+  "modes": [
+    {
+      "id": "managed",
+      "kind": "native",
+      "description": "Connection::transaction(Closure) on one Capsule connection. Nested transaction() is a savepoint named transN. Eloquent creates write the markers. DatabaseTransactionsManager is not set. PDO::ATTR_PERSISTENT is false. There is no pool.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.managed-serializable"
+      ]
+    },
+    {
+      "id": "explicit",
+      "kind": "native",
+      "description": "Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() on the same Capsule connection. A nested beginTransaction() is a savepoint. commit() at a level above 1 decrements Laravel's counter and does not send RELEASE SAVEPOINT. Eloquent creates write the markers. PDO::ATTR_PERSISTENT is false.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.explicit-serializable"
+      ]
+    },
+    {
+      "id": "persistent",
+      "kind": "configured",
+      "description": "The managed Connection::transaction() API with PDO::ATTR_PERSISTENT true. TX-03 only, plus the observation controls. Capsule still holds one connection object. Persistent is not Laravel's default.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Laravel has no propagation mode that commits an inner transaction while an outer transaction stays open. A nested Connection::transaction() or beginTransaction() is a SAVEPOINT on the same PDO and the same transaction. Eloquent create sends the insert when it is called, so there are no deferred outer writes for an inner transaction to commit. The hazard TX-04.3 targets cannot arise."
+    }
+  }
+}

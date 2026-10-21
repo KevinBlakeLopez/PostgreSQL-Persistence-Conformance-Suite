@@ -1,0 +1,135 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T16-24-17Z-231161",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "TX-04.nested-released-outer-rollback",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope completes; then the outer transaction rolls back",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "End the nested scope normally, so that its savepoint is released.",
+      "Raise an application error in the outer scope, so that the framework rolls the outer transaction back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.2",
+        "statement": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pdo-control",
+      "version": "UNKNOWN",
+      "source_sha256": "d78b869c6df4710a239c56f16fe0a6ef5e65a243c1fc13c56b9c97e7c4478613"
+    },
+    "framework": {
+      "name": "pdo_pgsql",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "native",
+    "description": "Positive control. PDO::beginTransaction, prepared inserts, then PDO::commit or PDO::rollBack. A caught statement error calls rollBack() and does not call commit(). A thrown rollBack() or commit() drops the handle and is reported as failed, not as a confirmed rollback. ATTR_PERSISTENT is false. One connection, not a pool. The command tag is not read.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope completed, and that the outer transaction rolled back.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "PDO has no nested-transaction or savepoint API. A nested scope cannot be started through PDO.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pdo-control --mode=correct --case=TX-04.nested-released-outer-rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T16:25:00.018Z",
+    "finished_at": "2026-10-21T16:25:00.018Z",
+    "duration_ms": 0
+  }
+}

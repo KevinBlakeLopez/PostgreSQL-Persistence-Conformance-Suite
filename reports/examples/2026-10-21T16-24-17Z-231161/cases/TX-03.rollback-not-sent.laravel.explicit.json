@@ -1,0 +1,582 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T16-24-17Z-231161",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "TX-03.rollback-not-sent",
+    "version": "1.1",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The top-level ROLLBACK of a failed transaction fails on the client; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK, which fails, so the connection keeps its open transaction.",
+      "When the fault fires, before the framework sees its error, the adapter's driver layer reports checkpoint `after-fault` (the backend PID): the runner records the fault's effect on the server.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "laravel",
+      "version": "0.1.0",
+      "source_sha256": "ea78fd5be9ec92edba76b109084ab5d899d04e83ecdc5c973d2d03b6cefccb27"
+    },
+    "framework": {
+      "name": "illuminate/database",
+      "version": "v13.38.0"
+    },
+    "driver": {
+      "name": "pdo_pgsql",
+      "version": "8.5.6"
+    },
+    "components": {
+      "illuminate/database": "v13.38.0",
+      "pdo_pgsql": "8.5.6",
+      "libpq": "18.3",
+      "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)"
+    },
+    "runtime": {
+      "name": "php",
+      "version": "8.5.6"
+    }
+  },
+  "execution": {
+    "mode": "explicit",
+    "kind": "native",
+    "description": "Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() on the same Capsule connection. A nested beginTransaction() is a savepoint. commit() at a level above 1 decrements Laravel's counter and does not send RELEASE SAVEPOINT. Eloquent creates write the markers. PDO::ATTR_PERSISTENT is false.",
+    "configuration": {
+      "api": "beginTransaction/commit/rollBack",
+      "writes": "Eloquent Item::query()->create and Uniq::query()->create",
+      "nested": "savepoint transN on the same connection",
+      "transactions_manager": "not set; Capsule does not install DatabaseTransactionsManager",
+      "persistent": "PDO::ATTR_PERSISTENT false",
+      "pool": "none; one connection on the Capsule manager",
+      "isolation": "connection config isolation_level, applied by PostgresConnector when set; transaction() takes no isolation argument",
+      "command_tag": "not read; PDO::commit() does not expose one"
+    },
+    "form": "Explicit Connection::beginTransaction(), the work, Connection::commit() or Connection::rollBack(). Nested beginTransaction() is a savepoint. Writes are Eloquent creates."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "mechanism": "A client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+    "injection_point": "The framework's ROLLBACK of unit 1.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "Unit 1's transaction stays open on its connection (\"idle in transaction\"), holding the doomed write.",
+    "expected_client": "An error from the framework's rollback; what the framework then does with the connection is under test.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework knows that its ROLLBACK failed, so it knows that the connection's transaction state is unknown.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "the explicit transaction failed and Connection::rollBack() threw",
+    "contract": "Laravel 13.38.0 Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() are the explicit API. The adapter calls beginTransaction(), runs the work, calls commit() when the work returns, and on a thrown error calls rollBack() and reports that error. commit() calls getPdo()->commit() only when transactionLevel() === 1, then decrements the counter and fires the committed event. It does not read a command tag. A nested beginTransaction() is SAVEPOINT transN. A nested rollBack() is ROLLBACK TO SAVEPOINT transN. A nested commit() does not send RELEASE SAVEPOINT. executeBeginTransactionStatement() does not take an isolation level. Session isolation, when requested, is PostgresConnector::configureIsolationLevel at connect time.",
+    "error": {
+      "class": "PDOException",
+      "code": null,
+      "message": "injected client-side failure: ROLLBACK was not sent"
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "reported": "committed",
+        "elapsed_ms": 33
+      },
+      "reuse": {
+        "unit1_pid": 1269931,
+        "unit2_pid": 1269931,
+        "same_backend": true,
+        "transaction_level_after_unit1": 1,
+        "persistent": false
+      },
+      "fault": {
+        "mode": "client-reject",
+        "fired": 1,
+        "withheld": [
+          "ROLLBACK"
+        ]
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 1269931,
+          "xid": "17903"
+        },
+        "session": {
+          "pid": 1269931,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "17903",
+          "xid_matches": true,
+          "backend_xmin": "17903",
+          "backend_start": "2026-10-21 16:24:33.417036+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "17903"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-fault": {
+        "reported": {
+          "pid": 1269931,
+          "xid": null
+        },
+        "session": {
+          "pid": 1269931,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "17903",
+          "xid_matches": null,
+          "backend_xmin": "17903",
+          "backend_start": "2026-10-21 16:24:33.417036+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "17903"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 1269931,
+          "xid": null
+        },
+        "session": {
+          "pid": 1269931,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "17903",
+          "xid_matches": null,
+          "backend_xmin": "17903",
+          "backend_start": "2026-10-21 16:24:33.417036+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "17903"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 1269931,
+          "xid": "17903"
+        },
+        "session": {
+          "pid": 1269931,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "17903",
+          "xid_matches": true,
+          "backend_xmin": "17903",
+          "backend_start": "2026-10-21 16:24:33.417036+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "17903",
+            "17904"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "unit2": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "unit2": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1269931,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "17903",
+              "xid_matches": null,
+              "backend_xmin": "17903",
+              "backend_start": "2026-10-21 16:24:33.417036+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "17903",
+        "pid": 1269931,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-21 16:24:33.417036+00"
+      },
+      "unit2": {
+        "xid": "17903",
+        "pid": 1269931,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-21 16:24:33.417036+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": false
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "FAIL",
+    "reason": "TX-03.1 violated: failed transaction: open at report time (`after-unit1`: xid 17903 in progress); rolled back at teardown, so decided after the API returned, not by the reported operation; doomed visible: false; next unit's transaction: 17903 (the failed transaction itself); TX-03.2 violated: next unit: completed, reported committed after 33 ms; its transaction: 17903 aborted; next visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"doomed\" had reached PostgreSQL at `unit1-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit1-after-write`: item locked; transactionid [17903]"
+      },
+      {
+        "description": "the write of marker \"next\" had reached PostgreSQL at `unit2-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit2-after-write`: item locked; transactionid [17903, 17904]"
+      },
+      {
+        "description": "the client-side fault (client-reject) fired exactly once",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      },
+      {
+        "description": "the withheld ROLLBACK left unit 1's transaction open: its session was in a transaction holding unit 1's ID",
+        "met": true,
+        "detail": "at `after-fault`: session \"idle in transaction\", backend_xid 17903; transactionid locks [17903]"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": false,
+        "detail": "failed transaction: open at report time (`after-unit1`: xid 17903 in progress); rolled back at teardown, so decided after the API returned, not by the reported operation; doomed visible: false; next unit's transaction: 17903 (the failed transaction itself)"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": false,
+        "detail": "next unit: completed, reported committed after 33 ms; its transaction: 17903 aborted; next visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": {
+      "invariants": [
+        "TX-03.1: Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "TX-03.2: After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      ],
+      "framework": "Laravel 13.38.0 Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() are the explicit API. The adapter calls beginTransaction(), runs the work, calls commit() when the work returns, and on a thrown error calls rollBack() and reports that error. commit() calls getPdo()->commit() only when transactionLevel() === 1, then decrements the counter and fires the committed event. It does not read a command tag. A nested beginTransaction() is SAVEPOINT transN. A nested rollBack() is ROLLBACK TO SAVEPOINT transN. A nested commit() does not send RELEASE SAVEPOINT. executeBeginTransactionStatement() does not take an isolation level. Session isolation, when requested, is PostgresConnector::configureIsolationLevel at connect time."
+    },
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for laravel (explicit)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=laravel --mode=explicit --case=TX-03.rollback-not-sent",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "write_api": "eloquent",
+      "call_path": "Item::query()->create -> Eloquent Builder -> Connection::insert -> PDOStatement::execute; transaction via Connection::transaction or beginTransaction/commit/rollBack -> PDO::beginTransaction/commit/rollBack or exec(SAVEPOINT)",
+      "transaction_level_after": 1,
+      "pdo_class": "Ppcs\\FaultingPdo",
+      "persistent": false,
+      "transactions_manager": false,
+      "commit": {
+        "commit_calls": 0,
+        "commit_return": null,
+        "commit_sqlstate": null,
+        "in_transaction_before_commit": null,
+        "in_transaction_after_commit": null,
+        "command_tag_visible": false
+      },
+      "fault_trace": [
+        "set search_path to \"public\"",
+        "BEGIN via PDO::beginTransaction",
+        "insert into \"item\" (\"name\", \"qty\") values (?, ?) returning \"id\"",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "ROLLBACK -- WITHHELD on PDO::rollBack before send",
+        "SAVEPOINT trans2",
+        "insert into \"item\" (\"name\", \"qty\") values (?, ?) returning \"id\"",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid"
+      ],
+      "command_tag": null
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T16:24:33.239Z",
+    "finished_at": "2026-10-21T16:24:34.162Z",
+    "duration_ms": 923
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "FAIL",
+        "reason": "TX-03.1 violated: failed transaction: open at report time (`after-unit1`: xid 17903 in progress); rolled back at teardown, so decided after the API returned, not by the reported operation; doomed visible: false; next unit's transaction: 17903 (the failed transaction itself); TX-03.2 violated: next unit: completed, reported committed after 33 ms; its transaction: 17903 aborted; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 316
+      },
+      {
+        "repetition": 2,
+        "classification": "FAIL",
+        "reason": "TX-03.1 violated: failed transaction: open at report time (`after-unit1`: xid 17908 in progress); rolled back at teardown, so decided after the API returned, not by the reported operation; doomed visible: false; next unit's transaction: 17908 (the failed transaction itself); TX-03.2 violated: next unit: completed, reported committed after 35 ms; its transaction: 17908 aborted; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 297
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "TX-03.1 violated: failed transaction: open at report time (`after-unit1`: xid 17913 in progress); rolled back at teardown, so decided after the API returned, not by the reported operation; doomed visible: false; next unit's transaction: 17913 (the failed transaction itself); TX-03.2 violated: next unit: completed, reported committed after 35 ms; its transaction: 17913 aborted; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 310
+      }
+    ]
+  }
+}
