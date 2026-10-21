@@ -1,0 +1,591 @@
+{
+  "finished_at": "2026-10-19T20:59:44.410Z",
+  "not_the_ppcs_harness": true,
+  "catalog": "mysql-innodb-transactions/0",
+  "server_version": "8.4.11",
+  "knex": "3.3.0",
+  "lucid": "22.4.2",
+  "missing_cases": [],
+  "scores": [
+    {
+      "id": "MX-01.duplicate-key-then-commit",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "COMMIT kept the marker after 1062",
+      "observed": {
+        "errno": 1062,
+        "sqlState": "23000",
+        "serverStatus": 16386,
+        "visible": true
+      }
+    },
+    {
+      "id": "MX-01.duplicate-key-then-commit",
+      "client": "knex",
+      "score": "pass",
+      "reason": "callback returned and the marker committed",
+      "observed": {
+        "api": "resolved",
+        "visible": true,
+        "sawDup": true,
+        "sawCommit": true
+      }
+    },
+    {
+      "id": "MX-01.duplicate-key-then-commit",
+      "client": "lucid",
+      "score": "pass",
+      "reason": "callback returned and the marker committed",
+      "observed": {
+        "api": "resolved",
+        "visible": true,
+        "sawDup": true,
+        "sawCommit": true
+      }
+    },
+    {
+      "id": "MX-02.deadlock-victim",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "1213 rolled back the victim and COMMIT was not sent",
+      "observed": {
+        "errno": 1213,
+        "sqlState": "40001",
+        "visible": false,
+        "commitStatus": null
+      }
+    },
+    {
+      "id": "MX-02.deadlock-victim",
+      "client": "mysql2-unsafe",
+      "score": "fail",
+      "reason": "COMMIT after 1213 was acknowledged and the victim marker is absent",
+      "observed": {
+        "errno": 1213,
+        "sqlState": "40001",
+        "visible": false,
+        "commitStatus": 16386
+      }
+    },
+    {
+      "id": "MX-02.deadlock-victim",
+      "client": "knex",
+      "score": "pass",
+      "reason": "callback rejection carried 1213 and the victim marker is absent",
+      "observed": {
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "update `dl` set `v` = v + 1 where `id` = 1 - Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "update `dl` set `v` = v + 1 where `id` = 1"
+          }
+        },
+        "visible": false
+      }
+    },
+    {
+      "id": "MX-02.deadlock-victim",
+      "client": "lucid",
+      "score": "pass",
+      "reason": "callback rejection carried 1213 and the victim marker is absent",
+      "observed": {
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "UPDATE dl SET v = v + 1 WHERE id = 1 - Deadlock found when trying to get lock; try restarting transaction",
+            "code": "ER_LOCK_DEADLOCK",
+            "errno": 1213,
+            "sqlState": "40001",
+            "sqlMessage": "Deadlock found when trying to get lock; try restarting transaction",
+            "sql": "UPDATE dl SET v = v + 1 WHERE id = 1"
+          }
+        },
+        "visible": false
+      }
+    },
+    {
+      "id": "MX-03.lock-wait-statement-rollback",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "1205 left the transaction open and the earlier marker committed",
+      "observed": {
+        "errno": 1205,
+        "sqlState": "HY000",
+        "afterStatus": 3,
+        "names": [
+          "before",
+          "after"
+        ],
+        "commit": "resolved"
+      }
+    },
+    {
+      "id": "MX-03.lock-wait-statement-rollback",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "the expectation is the server rollback scope, measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-03.lock-wait-statement-rollback",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "the expectation is the server rollback scope, measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-03.lock-wait-transaction-rollback",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "1205 rolled back the whole transaction",
+      "observed": {
+        "errno": 1205,
+        "sqlState": "HY000",
+        "afterStatus": 16386,
+        "names": [
+          "after"
+        ],
+        "commit": "resolved"
+      }
+    },
+    {
+      "id": "MX-03.lock-wait-transaction-rollback",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "the expectation is the server rollback scope, measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-03.lock-wait-transaction-rollback",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "the expectation is the server rollback scope, measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.savepoint-rollback",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "commit kept the outer write and the write after rollback-to",
+      "observed": {
+        "names": [
+          "outer",
+          "after"
+        ]
+      }
+    },
+    {
+      "id": "MX-04.savepoint-release",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "release did not commit; the outer commit kept both markers",
+      "observed": {
+        "names": [
+          "outer",
+          "inside"
+        ]
+      }
+    },
+    {
+      "id": "MX-04.released-then-outer-rollback",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "outer rollback removed the released savepoint write",
+      "observed": {
+        "names": []
+      }
+    },
+    {
+      "id": "MX-04.missing-savepoint",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "1305 left the transaction usable and the real savepoint still rolled back",
+      "observed": {
+        "errno": 1305,
+        "sqlState": "42000",
+        "names": [
+          "outer"
+        ]
+      }
+    },
+    {
+      "id": "MX-04.savepoint-rollback",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2; Knex was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.savepoint-rollback",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2; Lucid was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.savepoint-release",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2; Knex was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.savepoint-release",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2; Lucid was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.released-then-outer-rollback",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2; Knex was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.released-then-outer-rollback",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2; Lucid was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.missing-savepoint",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2; Knex was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-04.missing-savepoint",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2; Lucid was not part of this expectation",
+      "observed": {}
+    },
+    {
+      "id": "MX-05.commit-and-rollback-packet",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "COMMIT and ROLLBACK were both OK packets at 16386 with no command tag",
+      "observed": {
+        "commitStatus": 16386,
+        "rollbackStatus": 16386,
+        "names": [
+          "kept"
+        ]
+      }
+    },
+    {
+      "id": "MX-05.commit-and-rollback-packet",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "the packet shape is a mysql2 result",
+      "observed": {}
+    },
+    {
+      "id": "MX-05.commit-and-rollback-packet",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "the packet shape is a mysql2 result",
+      "observed": {}
+    },
+    {
+      "id": "MX-05.connection-closed-before-commit",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "COMMIT was not acknowledged and the marker is absent",
+      "observed": {
+        "message": "Can't add new command when connection is in closed state",
+        "fatal": true,
+        "names": []
+      }
+    },
+    {
+      "id": "MX-05.connection-closed-before-commit",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-05.connection-closed-before-commit",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "COMMIT was not acknowledged; the marker is visible afterward",
+      "observed": {
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "Connection lost: The server closed the connection.",
+            "code": "PROTOCOL_CONNECTION_LOST",
+            "fatal": true
+          }
+        },
+        "visible": true,
+        "dropped": {
+          "payload_length": 20,
+          "first_byte": 0,
+          "looks_like_ok": true,
+          "looks_like_err": false,
+          "hex_prefix": "00000002400000000b0509085f5f5f5f"
+        }
+      }
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "client": "knex",
+      "score": "pass",
+      "reason": "knex.transaction rejected the lost COMMIT reply",
+      "observed": {
+        "kind": "callback",
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "COMMIT; - Connection lost: The server closed the connection.",
+            "code": "PROTOCOL_CONNECTION_LOST",
+            "fatal": true
+          }
+        },
+        "visible": true,
+        "dropped": {
+          "payload_length": 20,
+          "first_byte": 0,
+          "looks_like_ok": true,
+          "looks_like_err": false,
+          "hex_prefix": "00000002400000000b0509085f5f5f5f"
+        },
+        "queries": [
+          {
+            "sql": "BEGIN;"
+          },
+          {
+            "sql": "insert into `marker` (`name`) values (?)"
+          },
+          {
+            "sql": "COMMIT;"
+          },
+          {
+            "sql": "COMMIT;",
+            "error": {
+              "name": "Error",
+              "message": "COMMIT; - Connection lost: The server closed the connection.",
+              "code": "PROTOCOL_CONNECTION_LOST",
+              "fatal": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "client": "knex-commit",
+      "score": "fail",
+      "reason": "trx.commit() resolved without the OK packet",
+      "observed": {
+        "api": {
+          "outcome": "resolved"
+        },
+        "visible": true,
+        "dropped": {
+          "payload_length": 20,
+          "first_byte": 0,
+          "looks_like_ok": true,
+          "looks_like_err": false,
+          "hex_prefix": "00000002400000000b0509085f5f5f5f"
+        },
+        "queries": [
+          {
+            "sql": "BEGIN;"
+          },
+          {
+            "sql": "insert into `marker` (`name`) values (?)"
+          },
+          {
+            "sql": "COMMIT;"
+          },
+          {
+            "sql": "COMMIT;",
+            "error": {
+              "name": "Error",
+              "message": "COMMIT; - Connection lost: The server closed the connection.",
+              "code": "PROTOCOL_CONNECTION_LOST",
+              "fatal": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MX-05.lost-commit-reply",
+      "client": "lucid",
+      "score": "fail",
+      "reason": "db.transaction resolved without the OK packet",
+      "observed": {
+        "kind": "callback",
+        "api": {
+          "outcome": "resolved"
+        },
+        "visible": true,
+        "dropped": {
+          "payload_length": 20,
+          "first_byte": 0,
+          "looks_like_ok": true,
+          "looks_like_err": false,
+          "hex_prefix": "00000002400000000b0509085f5f5f5f"
+        },
+        "queries": [
+          {
+            "sql": "BEGIN;"
+          },
+          {
+            "sql": "insert into `marker` (`name`) values (?)"
+          },
+          {
+            "sql": "COMMIT;"
+          },
+          {
+            "sql": "COMMIT;",
+            "error": {
+              "name": "Error",
+              "message": "COMMIT; - Connection lost: The server closed the connection.",
+              "code": "PROTOCOL_CONNECTION_LOST",
+              "fatal": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MX-06.second-transaction-implicit-commit",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "ROLLBACK before the next transaction left neither marker",
+      "observed": {
+        "names": []
+      }
+    },
+    {
+      "id": "MX-06.second-transaction-implicit-commit",
+      "client": "mysql2-unsafe",
+      "score": "fail",
+      "reason": "the second ROLLBACK was acknowledged and the first marker remains",
+      "observed": {
+        "midway": [
+          "doomed"
+        ],
+        "names": [
+          "doomed"
+        ]
+      }
+    },
+    {
+      "id": "MX-06.second-transaction-implicit-commit",
+      "client": "knex",
+      "score": "fail",
+      "reason": "the second unit failed and the first marker stayed committed",
+      "observed": {
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "second unit fails"
+          }
+        },
+        "names": [
+          "doomed"
+        ]
+      }
+    },
+    {
+      "id": "MX-06.second-transaction-implicit-commit",
+      "client": "lucid",
+      "score": "fail",
+      "reason": "the second unit failed and the first marker stayed committed",
+      "observed": {
+        "api": {
+          "outcome": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "second unit fails"
+          }
+        },
+        "names": [
+          "doomed"
+        ]
+      }
+    },
+    {
+      "id": "MX-07.ddl-implicit-commit",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "CREATE TABLE committed the insert and ROLLBACK removed neither",
+      "observed": {
+        "afterCreate": [
+          "ddl-marker"
+        ],
+        "afterRollback": [
+          "ddl-marker"
+        ],
+        "tables": 1
+      }
+    },
+    {
+      "id": "MX-07.ddl-implicit-commit",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-07.ddl-implicit-commit",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-08.isolation-report",
+      "client": "mysql2",
+      "score": "pass",
+      "reason": "performance schema reported the SET TRANSACTION level and @@transaction_isolation did not",
+      "observed": {
+        "ps": "SERIALIZABLE",
+        "sessionVariable": "REPEATABLE-READ",
+        "sessionLevel": "SERIALIZABLE",
+        "sessionPs": "SERIALIZABLE",
+        "insideErrno": 1568
+      }
+    },
+    {
+      "id": "MX-08.isolation-report",
+      "client": "knex",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    },
+    {
+      "id": "MX-08.isolation-report",
+      "client": "lucid",
+      "score": "not_run",
+      "reason": "measured with mysql2",
+      "observed": {}
+    }
+  ]
+}

@@ -47,6 +47,6 @@ Initialization is the official image entrypoint on an empty tmpfs: `MYSQL_DATABA
 | `src/run-lucid.mjs` | Lucid 22.4.2 `db.transaction(callback)` on the same three cases |
 | `src/run-lost-commit.mjs` | Drops the server's COMMIT OK packet after the server has sent it |
 
-`node src/run-knex.mjs` writes `evidence/knex.json`. `node src/run-lucid.mjs` writes `evidence/lucid.json` and compares it with the Knex file. Neither is a PPCS adapter. Both need `mysql-up.sh` first.
+`node src/run-knex.mjs` writes `evidence/knex.json`. `node src/run-lucid.mjs` writes `evidence/lucid.json` and compares it with the Knex file. `node src/run-suite.mjs` executes the case list and writes `evidence/suite.json`. None of these is the PostgreSQL harness. They need `mysql-up.sh` first.
 
 Each step stores the SQL that was sent, the `mysql2` result or error, and a snapshot from a different connection. The snapshot is not treated as something the client knew when `mysql2` returned.
