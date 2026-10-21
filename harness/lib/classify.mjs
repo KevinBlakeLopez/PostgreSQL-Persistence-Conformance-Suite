@@ -174,6 +174,33 @@ const FAMILIES = {
     }
   },
 
+  // Production-reachability observations. A PASS here means the independent evidence is complete
+  // and consistent. It does not mean the framework's report was a correct commit. The research
+  // report classifies the contract separately. See research/production-reachability/README.md.
+  'PR-01': (ev, statements) => {
+    const violation = ev.steps?.violation ?? ev.steps?.savepoint?.violation
+    const saw23505 = violation?.code === '23505' || ev.apiError?.code === '23505'
+    const t = ev.observed.transactions.tx
+    const visible = ev.observed.markers?.tx
+    const consistent = (t?.fate === 'committed' && visible === true) || (t?.fate === 'aborted' && visible === false)
+    const after = checkpoint(ev, 'after-api')?.session
+    const before = checkpoint(ev, 'before-end')?.session
+    const mechanismExercised = after?.present ? (!after.in_transaction && /^\s*(commit|end)\b/i.test(after.query ?? '')) : null
+    const afterText = after?.present ? `at after-api the session was "${after.state}" and its last statement was "${after.query}"` : 'at after-api the session had closed'
+    const beforeText = before ? `at before-end the session was ${sessionText(before)}` : 'before-end was not recorded'
+    return {
+      preconditions: [
+        check('a unique_violation (23505) was observed on the failing statement', saw23505, `violation: ${violation?.code ?? 'none'}; api_error: ${ev.apiError?.code ?? 'none'}`),
+        check('the marker visibility agrees with pg_xact_status() for the captured transaction', consistent, `pg_xact_status: ${t?.fate ?? 'not observed'}; marker visible: ${visible}`),
+      ],
+      invariants: evaluateDeclared(ev, statements, {
+        'PR-01.1': (s) => invariant('PR-01.1', s, true, `the API reported ${ev.reported}; ${beforeText}; ${afterText}`),
+      }),
+      mechanismExercised,
+      mechanismDetail: `${beforeText}; ${afterText}`,
+    }
+  },
+
   'TX-01B': (ev, statements) => {
     const t = ev.observed.transactions.tx
     const atReport = fateAt(ev, REPORT_POINT, 'tx')

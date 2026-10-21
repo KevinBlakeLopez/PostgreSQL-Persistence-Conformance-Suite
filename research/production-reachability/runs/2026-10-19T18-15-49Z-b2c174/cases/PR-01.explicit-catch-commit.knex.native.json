@@ -1,0 +1,534 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T18-15-49Z-b2c174",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "PR-01.explicit-catch-commit",
+    "version": "1.0",
+    "family": "PR-01",
+    "family_title": "Production-reachable caught constraint violation",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Explicit transaction: catch a unique violation, then commit",
+    "steps": [
+      "Begin a transaction with the framework's explicit transaction API.",
+      "Write the marker `tx` and make sure the write was sent.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Insert the duplicate value 'taken' into uniq. Catch the unique violation. Send nothing else.",
+      "Checkpoint `before-end`: report the same backend PID. Send no query.",
+      "Call the framework's explicit commit.",
+      "Checkpoint `after-api` as soon as that call has returned, before any reuse.",
+      "Run one new transaction that writes `reuse`. Checkpoint `reuse-after-write` if it starts.",
+      "Checkpoint `after-end`, as soon as the case function has returned."
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "knex",
+      "version": "0.1.0",
+      "source_sha256": "9ba000b3a6ef5d270690e6359b443b362d83b6c68560ee8bc528bad9baf101f3"
+    },
+    "framework": {
+      "name": "knex",
+      "version": "3.3.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "knex": "3.3.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "knex.transaction(callback) and the promise returned by knex.transaction() without a callback.",
+    "configuration": {
+      "transaction": "knex.transaction(callback) and knex.transaction()"
+    },
+    "form": "const trx = await knex.transaction(); catch 23505; await trx.commit()."
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application. The application then calls the explicit commit API.",
+    "injection_point": "After the first write, before the explicit commit.",
+    "expected_server": "The failed statement aborts the transaction. No savepoint is created.",
+    "expected_client": "The application catches 23505 and calls commit.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The application caught the unique violation and then called the framework's commit method.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "trx.commit() resolved",
+    "contract": "Knex 3.3.0 knex.transaction() with no callback returns a transaction promise's transactor. trx.commit() runs the same COMMIT query and resolves when that query resolves. trx.rollback() sends ROLLBACK.",
+    "error": null,
+    "steps": {
+      "variant": "explicit",
+      "violation": {
+        "class": "DatabaseError",
+        "code": "23505",
+        "message": "insert into \"uniq\" (\"code\") values ($1) - duplicate key value violates unique constraint \"uniq_code_key\""
+      },
+      "probe": {
+        "supported": true,
+        "ok": true,
+        "error": null
+      },
+      "hooks": {
+        "supported": false,
+        "reason": "Knex emits query, query-response, query-error, and start. It does not emit a commit or rollback hook.",
+        "events_seen": [
+          "query",
+          "query",
+          "query",
+          "query",
+          "query",
+          "query"
+        ]
+      },
+      "command_tag": [],
+      "driver": {
+        "statements": [
+          "BEGIN;",
+          "insert into \"item\" (\"name\", \"qty\") values ($1, $2)",
+          "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "insert into \"uniq\" (\"code\") values ($1)",
+          "COMMIT;",
+          "select 1 as ok"
+        ]
+      },
+      "reuse": {
+        "attempted": true,
+        "elapsed_ms": 50,
+        "reported": "committed",
+        "error": null,
+        "pid": 344446,
+        "same_backend": true
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 344446,
+          "xid": "9974"
+        },
+        "session": {
+          "pid": 344446,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9974",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:15:51.918989+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9974"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9974",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "before-end": {
+        "reported": {
+          "pid": 344446,
+          "xid": null
+        },
+        "session": {
+          "pid": 344446,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:15:51.918989+00",
+          "query": "insert into \"uniq\" (\"code\") values ($1)",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "insert into \"uniq\" (\"code\") values ($1)",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-api": {
+        "reported": {
+          "pid": 344446,
+          "xid": null
+        },
+        "session": {
+          "pid": 344446,
+          "present": true,
+          "state": "idle",
+          "in_transaction": false,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:15:51.918989+00",
+          "query": "COMMIT;",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "COMMIT;",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "reuse-after-write": {
+        "reported": {
+          "pid": 344446,
+          "xid": "9975"
+        },
+        "session": {
+          "pid": 344446,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9975",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:15:51.918989+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9975"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9975",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "in progress",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9975",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "COMMIT;",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "committed",
+            "session": {
+              "pid": 344446,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:15:51.918989+00",
+              "query": "COMMIT;",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "9974",
+        "pid": 344446,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 18:15:51.918989+00"
+      },
+      "reuse": {
+        "xid": "9975",
+        "pid": 344446,
+        "captured_at": "reuse-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-19 18:15:51.918989+00"
+      }
+    },
+    "markers": {
+      "tx": false,
+      "reuse": true
+    },
+    "marker_xmin": {
+      "tx": null,
+      "reuse": "9975"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": true,
+    "mechanism_detail": "at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\"",
+    "classification": "PASS",
+    "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\"",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [9974]"
+      },
+      {
+        "description": "a unique_violation (23505) was observed on the failing statement",
+        "met": true,
+        "detail": "violation: 23505; api_error: none"
+      },
+      {
+        "description": "the marker visibility agrees with pg_xact_status() for the captured transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary.",
+        "holds": true,
+        "detail": "the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\""
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for knex (native)"
+      },
+      "case_controls": {
+        "held": null,
+        "detail": "no control adapter states an expectation for this case"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=knex --mode=native --case=PR-01.explicit-catch-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {},
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T18:15:51.736Z",
+    "finished_at": "2026-10-19T18:15:52.724Z",
+    "duration_ms": 988
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 354
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 319
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session was \"idle\" and its last statement was \"COMMIT;\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 315
+      }
+    ]
+  }
+}

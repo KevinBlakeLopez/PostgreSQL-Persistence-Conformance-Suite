@@ -1,0 +1,517 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T18-15-49Z-b2c174",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "PR-01.managed-catch-commit",
+    "version": "1.0",
+    "family": "PR-01",
+    "family_title": "Production-reachable caught constraint violation",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Managed transaction: catch a unique violation, then return normally",
+    "steps": [
+      "Start a transaction with the framework's ordinary callback or context-manager API.",
+      "Write the marker `tx` and make sure the write was sent.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Insert the duplicate value 'taken' into uniq. Catch the unique violation at the application layer. Send nothing else.",
+      "Checkpoint `before-end`: report the same backend PID. Send no query.",
+      "Allow the callback or context manager to finish normally, so the framework uses its ordinary completion path.",
+      "Checkpoint `after-api`: report the same backend PID as soon as that API has returned, before any reuse.",
+      "On the same pool or connection, run one new transaction that writes the marker `reuse` and commits. Checkpoint `reuse-after-write` if that transaction starts.",
+      "Checkpoint `after-end`, as soon as the case function has returned."
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "spring-tx",
+      "version": "0.1.0",
+      "source_sha256": "6f5f7e6cb60b1ebdceb717b225aa48f547c1473d7cfc51ddf418cdf3f498c820"
+    },
+    "framework": {
+      "name": "spring-framework",
+      "version": "7.0.9"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "spring-tx": "7.0.9",
+      "spring-jdbc": "7.0.9",
+      "spring-aop": "7.0.9",
+      "spring-context": "7.0.9",
+      "postgresql": "42.7.14"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "27"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Programmatic TransactionTemplate on DataSourceTransactionManager over DriverManagerDataSource. No pool. The outer template uses the default PROPAGATION_REQUIRED. A nested scope uses PROPAGATION_NESTED. An independent inner transaction uses PROPAGATION_REQUIRES_NEW, which opens a second physical connection. The explicit isolation case uses PlatformTransactionManager.getTransaction and commit. TX-03 is not run in this mode: DataSourceTransactionManager.doCleanupAfterCompletion releases the connection, and DriverManagerDataSource closes it, so a later unit cannot be handed that connection.",
+    "configuration": {
+      "dataSource": "org.springframework.jdbc.datasource.DriverManagerDataSource",
+      "pool": false,
+      "transactionManager": "DataSourceTransactionManager",
+      "nestedTransactionAllowed": true,
+      "rollbackOnCommitFailure": false,
+      "globalRollbackOnParticipationFailure": true,
+      "failEarlyOnGlobalRollbackOnly": false,
+      "transactionSynchronization": "SYNCHRONIZATION_ALWAYS",
+      "invocation": "TransactionTemplate",
+      "connectionAccess": "DataSourceUtils.getConnection",
+      "writes": "PreparedStatement",
+      "rollbackRule": "TransactionTemplate default: RuntimeException and Error. A checked SQLException is rethrown as SqlUnchecked where the case needs it to leave the callback."
+    },
+    "form": "TransactionTemplate.execute. The callback catches SQLException and returns."
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application. No statement is withheld or rewritten.",
+    "injection_point": "After the first write, before the transaction API finishes.",
+    "expected_server": "The failed statement aborts the transaction unless the application has recovered through a savepoint. This variant does not create a savepoint.",
+    "expected_client": "The application catches 23505. The framework then finishes the transaction through its ordinary API.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The application caught the unique violation. Whether PostgreSQL's later reply is visible depends on the driver and the framework.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "TransactionTemplate.execute returned normally, so the template committed",
+    "contract": "Spring Framework 7.0.9 TransactionTemplate.execute (org.springframework.transaction.support.TransactionTemplate) obtains a transaction, runs the callback, and calls PlatformTransactionManager.commit only when the callback returns. On a RuntimeException or Error it rolls the transaction back and rethrows that same throwable. On any other throwable it rolls back and throws java.lang.reflect.UndeclaredThrowableException. If rollback throws TransactionSystemException, rollbackOnException stores the callback throwable with initApplicationException and throws the TransactionSystemException instead. DataSourceTransactionManager.doCommit calls Connection.commit and translateException wraps a SQLException as TransactionSystemException(\"JDBC commit failed\", ex). Connection.commit is void and does not return a command tag. A normal return from execute is reported as committed. The callback's own throwable leaving execute is reported as rolled_back. Any other throwable leaving execute is reported as failed. Propagation.NESTED, Spring Framework 7.0.9: \"Execute within a nested transaction if a current transaction exists, behave like REQUIRED otherwise.\" Its note says actual nested transactions work on DataSourceTransactionManager. DataSourceTransactionManager's class javadoc says nestedTransactionAllowed defaults to true and nested transactions use JDBC savepoints. Propagation.REQUIRES_NEW: \"Create a new transaction, and suspend the current transaction if one exists.\" No custom rollback rule is installed on the template. TransactionCallback cannot throw a checked SQLException. Where a case needs that error to leave the callback, the callback rethrows it as SqlUnchecked, a RuntimeException, so the template's RuntimeException rule sees it. That wrap is application code. It is not JdbcTemplate's exception translation.",
+    "error": null,
+    "steps": {
+      "variant": "managed",
+      "violation": {
+        "class": "PSQLException",
+        "code": "23505",
+        "message": "ERROR: duplicate key value violates unique constraint \"uniq_code_key\" Detail: Key (code)=(taken) already exists."
+      },
+      "hooks": {
+        "supported": true,
+        "after_commit": 1,
+        "after_completion": "committed"
+      },
+      "probe": {
+        "supported": false,
+        "reason": "the next transaction is the reuse probe; DriverManagerDataSource closes the connection when Spring releases it"
+      },
+      "reuse": {
+        "attempted": true,
+        "elapsed_ms": 54,
+        "reported": "committed",
+        "error": null,
+        "pid": 350523,
+        "same_backend": false
+      },
+      "command_tag": null
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 350507,
+          "xid": "10790"
+        },
+        "session": {
+          "pid": 350507,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "10790",
+          "xid_matches": true,
+          "backend_xmin": "10790",
+          "backend_start": "2026-10-19 18:17:01.311363+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "10790"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 350507,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "10790",
+              "xid_matches": null,
+              "backend_xmin": "10790",
+              "backend_start": "2026-10-19 18:17:01.311363+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "before-end": {
+        "reported": {
+          "pid": 350507,
+          "xid": null
+        },
+        "session": {
+          "pid": 350507,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:17:01.311363+00",
+          "query": "insert into uniq (code) values ($1)",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 350507,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:01.311363+00",
+              "query": "insert into uniq (code) values ($1)",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-api": {
+        "reported": {
+          "pid": 350507,
+          "xid": null
+        },
+        "session": {
+          "pid": 350507,
+          "present": false
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 350507,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      },
+      "reuse-after-write": {
+        "reported": {
+          "pid": 350523,
+          "xid": "10791"
+        },
+        "session": {
+          "pid": 350523,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "10791",
+          "xid_matches": true,
+          "backend_xmin": "10791",
+          "backend_start": "2026-10-19 18:17:01.526451+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "10791"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 350507,
+              "present": false
+            }
+          },
+          "reuse": {
+            "fate": "in progress",
+            "session": {
+              "pid": 350523,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "10791",
+              "xid_matches": null,
+              "backend_xmin": "10791",
+              "backend_start": "2026-10-19 18:17:01.526451+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 350507,
+              "present": false
+            }
+          },
+          "reuse": {
+            "fate": "committed",
+            "session": {
+              "pid": 350523,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "10790",
+        "pid": 350507,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 18:17:01.311363+00"
+      },
+      "reuse": {
+        "xid": "10791",
+        "pid": 350523,
+        "captured_at": "reuse-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-19 18:17:01.526451+00"
+      }
+    },
+    "markers": {
+      "tx": false,
+      "reuse": true
+    },
+    "marker_xmin": {
+      "tx": null,
+      "reuse": "10791"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "mechanism_detail": "at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed",
+    "classification": "PASS",
+    "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [10790]"
+      },
+      {
+        "description": "a unique_violation (23505) was observed on the failing statement",
+        "met": true,
+        "detail": "violation: 23505; api_error: none"
+      },
+      {
+        "description": "the marker visibility agrees with pg_xact_status() for the captured transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary.",
+        "holds": true,
+        "detail": "the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for spring-tx (native)"
+      },
+      "case_controls": {
+        "held": null,
+        "detail": "no control adapter states an expectation for this case"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=spring-tx --mode=native --case=PR-01.managed-catch-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()",
+        "insert into uniq (code) values (?)",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text, pg_backend_pid()"
+      ],
+      "fault_trace": [
+        "Connection.setAutoCommit(false)",
+        "Connection.commit",
+        "Connection.setAutoCommit(true)",
+        "Connection.setAutoCommit(false)",
+        "Connection.commit",
+        "Connection.setAutoCommit(true)"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "injection": null,
+      "interceptor_invocations": 0,
+      "cleanup": {
+        "thread_bound": false,
+        "synchronization_active": false,
+        "actual_transaction_active": false
+      }
+    },
+    "stderr": "SLF4J(W): No SLF4J providers were found.\nSLF4J(W): Defaulting to no-operation (NOP) logger implementation\nSLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T18:17:01.101Z",
+    "finished_at": "2026-10-19T18:17:02.497Z",
+    "duration_ms": 1396
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 486
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 466
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction (aborted)\"; at after-api the session had closed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 444
+      }
+    ]
+  }
+}

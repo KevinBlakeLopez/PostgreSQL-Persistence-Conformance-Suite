@@ -13,6 +13,11 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "research" / "production-reachability" / "py"))
+from pr01 import run_pr  # noqa: E402
 import re
 import sys
 import threading
@@ -554,10 +559,181 @@ def case_reuse(engine: Engine, message: dict[str, Any], fault: Fault, kind: str)
     return outcome
 
 
+EXPLICIT_CONTRACT = (
+    "Session.begin() returns a SessionTransaction. Transaction.commit() commits it "
+    "and Transaction.rollback() rolls it back. Session.begin_nested() begins a SAVEPOINT. "
+    "A returned commit() is the ORM's report that the transaction committed. "
+    "psycopg Connection.commit executes COMMIT and does not read the command tag."
+)
+
+
+def _is_protocol(exc: BaseException) -> bool:
+    try:
+        raise_if_protocol(exc)
+    except ProtocolError:
+        return True
+    return False
+
+
+def _listen_session(session: Session, hooks: dict[str, int]) -> None:
+    event.listen(session, "after_commit", lambda _s: hooks.__setitem__("after_commit", hooks["after_commit"] + 1))
+    event.listen(session, "after_rollback", lambda _s: hooks.__setitem__("after_rollback", hooks["after_rollback"] + 1))
+
+
+def _orm_insert_taken(session: Session) -> None:
+    session.add(Uniq(code="taken"))
+    session.flush()
+
+
+def _orm_pr(kind: str, engine: Engine, message: dict[str, Any]) -> dict[str, Any]:
+    hooks = {"after_commit": 0, "after_rollback": 0}
+    seen: dict[str, int] = {}
+
+    def savepoint(session: Session) -> dict[str, Any]:
+        try:
+            with session.begin_nested():
+                _orm_insert_taken(session)
+        except IntegrityError as exc:
+            return {"recovered": True, "violation": err_info(exc)}
+        raise RuntimeError("the duplicate insert did not raise")
+
+    def managed(work: Callable[[Session], None]) -> dict[str, Any]:
+        session = Session(engine)
+        _listen_session(session, hooks)
+        thrown: BaseException | None = None
+        try:
+            with session.begin():
+                try:
+                    work(session)
+                except Exception as exc:
+                    raise_if_protocol(exc)
+                    thrown = exc
+                    raise
+            return map_begin_exit(None, None)
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            return map_begin_exit(thrown, exc)
+        finally:
+            seen.update(hooks)
+            session.close()
+
+    def explicit(work: Callable[[Session], None]) -> dict[str, Any]:
+        session = Session(engine)
+        _listen_session(session, hooks)
+        trans = session.begin()
+        thrown: BaseException | None = None
+        try:
+            try:
+                work(session)
+            except Exception as exc:
+                raise_if_protocol(exc)
+                thrown = exc
+                raise
+            trans.commit()
+            return {
+                "reported": "committed",
+                "basis": "SessionTransaction.commit() returned",
+                "contract": EXPLICIT_CONTRACT,
+            }
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            if thrown is not None and exc is thrown:
+                try:
+                    trans.rollback()
+                except Exception:
+                    pass
+                return {
+                    "reported": "rolled_back",
+                    "basis": "the body threw and SessionTransaction.rollback() was called",
+                    "contract": EXPLICIT_CONTRACT,
+                    "api_error": err_info(thrown),
+                }
+            return {
+                "reported": "failed",
+                "basis": "SessionTransaction.commit() raised",
+                "contract": EXPLICIT_CONTRACT,
+                "api_error": err_info(exc),
+            }
+        finally:
+            seen.update(hooks)
+            session.close()
+
+    def probe() -> dict[str, Any]:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("select 1"))
+            return {"supported": True, "ok": True, "error": None}
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {"supported": True, "ok": False, "error": err_info(exc)}
+
+    def reuse(name: str, cp: Callable[..., Any]) -> dict[str, Any]:
+        started = time.monotonic()
+        box: dict[str, int | None] = {"pid": None}
+
+        def body(session: Session) -> None:
+            write_marker(session, name)
+            ident = identify(session)
+            box["pid"] = ident["pid"]
+            cp("reuse-after-write", ident)
+
+        try:
+            outcome = run_begin(engine, body)
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": outcome["reported"],
+                "error": outcome.get("api_error"),
+                "pid": box["pid"],
+            }
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": "failed",
+                "error": err_info(exc),
+                "pid": box["pid"],
+            }
+
+    forms = {
+        "managed": "with session.begin(): catch IntegrityError from flush of the duplicate, then leave the block. The duplicate is flushed in this Session, not in a nested transaction.",
+        "explicit": "trans = session.begin(); catch IntegrityError; trans.commit().",
+        "control": "with session.begin(): the IntegrityError leaves the block.",
+        "savepoint": "with session.begin(): with session.begin_nested() around the duplicate flush. The nested error is caught and the outer block returns.",
+    }
+    return run_pr(
+        kind,
+        message,
+        checkpoint,
+        boundary=explicit if kind == "explicit" else managed,
+        write=write_marker,
+        insert_taken=_orm_insert_taken,
+        identify=identify,
+        reuse=reuse,
+        err_info=err_info,
+        is_protocol=_is_protocol,
+        savepoint=savepoint,
+        probe=probe,
+        hooks=lambda: {"supported": True, **seen},
+        form=forms[kind],
+    )
+
+
 CASES = {
     "CTL-01.commit": case_commit,
     "CTL-01.rollback": case_rollback,
     "TX-01A.caught-error-then-commit": case_caught_error,
+    "PR-01.managed-catch-commit": lambda engine, message, fault: _orm_pr("managed", engine, message),
+    "PR-01.explicit-catch-commit": lambda engine, message, fault: _orm_pr("explicit", engine, message),
+    "PR-01.uncaught-control": lambda engine, message, fault: _orm_pr("control", engine, message),
+    "PR-01.savepoint-recovery": lambda engine, message, fault: _orm_pr("savepoint", engine, message),
     "TX-01B.conn-lost-before-commit": case_conn_lost_before_commit,
     "TX-02.savepoint-rollback-not-sent": lambda engine, message, fault: case_savepoint(engine, message, fault, "not-sent"),
     "TX-02.savepoint-rollback-rejected": lambda engine, message, fault: case_savepoint(engine, message, fault, "rejected"),

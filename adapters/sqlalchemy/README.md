@@ -14,7 +14,7 @@ The SQLAlchemy FAIL on that case is the same ending as Lucid, MikroORM, and `pg-
 
 TypeORM's FAIL on this case is a different ending. After the same withheld rollback it sends `RELEASE SAVEPOINT`, reports a commit, and leaves the session `idle in transaction`. Teardown then aborts the transaction, so neither row remains. TX-02.1 and TX-02.2 both fail. In the PPCS 0.3.0 recording that transaction is xid 2279. Do not describe TypeORM as having committed the inner write.
 
-`TX-02.savepoint-rollback-rejected` in the 2026-10-19 run is also a different ending from that withheld-savepoint result. `Session.begin()` reports a commit, the session is idle, the last statement is `COMMIT`, and neither marker remains, because PostgreSQL aborted the transaction. `adapters/sqlalchemy/FINDINGS.md` is the per-case report.
+`TX-02.savepoint-rollback-rejected` in the 2026-10-19 run is also a different ending from that withheld-savepoint result. `Session.begin()` reports a commit, the session is idle, the last statement is `COMMIT`, and neither marker remains, because PostgreSQL aborted the transaction. That report is psycopg `Connection.commit()` returning `None` after the connection was `INERROR`. On PostgreSQL 18.6 the completion is `COMMAND_OK` with command tag `ROLLBACK`. `adapters/sqlalchemy/FINDINGS.md` is the per-case report.
 
 `pg-control` correct sends `ROLLBACK` after the same withheld statement and passes.
 

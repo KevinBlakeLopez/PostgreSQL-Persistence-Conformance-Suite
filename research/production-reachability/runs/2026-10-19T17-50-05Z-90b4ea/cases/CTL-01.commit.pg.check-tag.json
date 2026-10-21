@@ -1,0 +1,158 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T17-50-05Z-90b4ea",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "CTL-01.commit",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and commits",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` through the framework's ordinary write API.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "End the transaction normally, so that the framework commits it.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg",
+      "version": "UNKNOWN",
+      "source_sha256": "e8b3912f79eb5b734d06581a78f98ac76785063bf367a42d04cefea61f82872d"
+    },
+    "framework": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "check-tag",
+    "kind": "native",
+    "description": "Reports rolled_back when Client.query('COMMIT') resolves with a command tag other than COMMIT.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "preconditions": [],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the adapter sent no hello message; the adapter exited without a result (exit code 1, signal none)",
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg --mode=check-tag --case=CTL-01.commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": "node:internal/modules/cjs/loader:1456\n  const err = new Error(message);\n              ^\n\nError: Cannot find module 'pg'\nRequire stack:\n- /Users/kevinlopez/code/package.json\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)\n    at Module._load (node:internal/modules/cjs/loader:1242:25)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1556:12)\n    at require (node:internal/modules/helpers:152:16)\n    at file:///Users/kevinlopez/code/postgres-persistence-conformance/research/production-reachability/drivers/pg/main.mjs:7:12\n    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [ '/Users/kevinlopez/code/package.json' ]\n}\n\nNode.js v24.14.1\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T17:50:07.415Z",
+    "finished_at": "2026-10-19T17:50:07.515Z",
+    "duration_ms": 100
+  },
+  "repetitions": {
+    "count": 1,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter sent no hello message; the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {},
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 100
+      }
+    ]
+  }
+}

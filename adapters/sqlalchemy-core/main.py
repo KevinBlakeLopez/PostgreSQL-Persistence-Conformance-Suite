@@ -16,6 +16,11 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "research" / "production-reachability" / "py"))
+from pr01 import run_pr  # noqa: E402
 import re
 import sys
 import threading
@@ -803,10 +808,179 @@ def _requested_level(
     return outcome
 
 
+EXPLICIT_CONTRACT = (
+    "Connection.begin() returns a RootTransaction. Transaction.commit() commits it "
+    "and Transaction.rollback() rolls it back (sqlalchemy/engine/base.py). "
+    "A returned commit() is Core's report that the transaction committed. "
+    "psycopg Connection.commit executes COMMIT and does not read the command tag."
+)
+
+
+def _is_protocol(exc: BaseException) -> bool:
+    try:
+        raise_if_protocol(exc)
+    except ProtocolError:
+        return True
+    return False
+
+
+def _listen_connection(conn: Connection, hooks: dict[str, int]) -> None:
+    event.listen(conn, "commit", lambda _c: hooks.__setitem__("commit", hooks["commit"] + 1))
+    event.listen(conn, "rollback", lambda _c: hooks.__setitem__("rollback", hooks["rollback"] + 1))
+
+
+def _core_pr(kind: str, engine: Engine, message: dict[str, Any]) -> dict[str, Any]:
+    hooks = {"commit": 0, "rollback": 0}
+    seen: dict[str, int] = {}
+
+    def insert_taken(conn: Connection) -> None:
+        conn.execute(insert(UNIQ).values(code="taken"))
+
+    def savepoint(conn: Connection) -> dict[str, Any]:
+        try:
+            with conn.begin_nested():
+                insert_taken(conn)
+        except IntegrityError as exc:
+            return {"recovered": True, "violation": err_info(exc)}
+        raise RuntimeError("the duplicate insert did not raise")
+
+    def managed(work: Callable[[Connection], None]) -> dict[str, Any]:
+        conn = engine.connect()
+        _listen_connection(conn, hooks)
+        thrown: BaseException | None = None
+        try:
+            with conn.begin():
+                try:
+                    work(conn)
+                except Exception as exc:
+                    raise_if_protocol(exc)
+                    thrown = exc
+                    raise
+            return map_begin_exit(None, None)
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            return map_begin_exit(thrown, exc)
+        finally:
+            seen.update(hooks)
+            conn.close()
+
+    def explicit(work: Callable[[Connection], None]) -> dict[str, Any]:
+        conn = engine.connect()
+        _listen_connection(conn, hooks)
+        trans = conn.begin()
+        thrown: BaseException | None = None
+        try:
+            try:
+                work(conn)
+            except Exception as exc:
+                raise_if_protocol(exc)
+                thrown = exc
+                raise
+            trans.commit()
+            return {
+                "reported": "committed",
+                "basis": "Transaction.commit() returned",
+                "contract": EXPLICIT_CONTRACT,
+            }
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            if thrown is not None and exc is thrown:
+                try:
+                    trans.rollback()
+                except Exception:
+                    pass
+                return {
+                    "reported": "rolled_back",
+                    "basis": "the body threw and Transaction.rollback() was called",
+                    "contract": EXPLICIT_CONTRACT,
+                    "api_error": err_info(thrown),
+                }
+            return {
+                "reported": "failed",
+                "basis": "Transaction.commit() raised",
+                "contract": EXPLICIT_CONTRACT,
+                "api_error": err_info(exc),
+            }
+        finally:
+            seen.update(hooks)
+            conn.close()
+
+    def probe() -> dict[str, Any]:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("select 1"))
+            return {"supported": True, "ok": True, "error": None}
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {"supported": True, "ok": False, "error": err_info(exc)}
+
+    def reuse(name: str, cp: Callable[..., Any]) -> dict[str, Any]:
+        started = time.monotonic()
+        box: dict[str, int | None] = {"pid": None}
+
+        def body(conn: Connection) -> None:
+            write_marker(conn, name)
+            ident = identify(conn)
+            box["pid"] = ident["pid"]
+            cp("reuse-after-write", ident)
+
+        try:
+            outcome = run_begin(engine, body)
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": outcome["reported"],
+                "error": outcome.get("api_error"),
+                "pid": box["pid"],
+            }
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": "failed",
+                "error": err_info(exc),
+                "pid": box["pid"],
+            }
+
+    forms = {
+        "managed": "with conn.begin(): catch IntegrityError from the duplicate insert, then leave the block.",
+        "explicit": "trans = conn.begin(); catch IntegrityError; trans.commit().",
+        "control": "with conn.begin(): the IntegrityError leaves the block.",
+        "savepoint": "with conn.begin(): with conn.begin_nested() around the duplicate. The nested error is caught and the outer block returns.",
+    }
+    return run_pr(
+        kind,
+        message,
+        checkpoint,
+        boundary=explicit if kind == "explicit" else managed,
+        write=write_marker,
+        insert_taken=insert_taken,
+        identify=identify,
+        reuse=reuse,
+        err_info=err_info,
+        is_protocol=_is_protocol,
+        savepoint=savepoint,
+        probe=probe,
+        hooks=lambda: {"supported": True, **seen},
+        form=forms[kind],
+    )
+
+
 CASES = {
     "CTL-01.commit": case_commit,
     "CTL-01.rollback": case_rollback,
     "TX-01A.caught-error-then-commit": case_caught_error,
+    "PR-01.managed-catch-commit": lambda engine, message, fault: _core_pr("managed", engine, message),
+    "PR-01.explicit-catch-commit": lambda engine, message, fault: _core_pr("explicit", engine, message),
+    "PR-01.uncaught-control": lambda engine, message, fault: _core_pr("control", engine, message),
+    "PR-01.savepoint-recovery": lambda engine, message, fault: _core_pr("savepoint", engine, message),
     "TX-01B.conn-lost-before-commit": case_conn_lost_before_commit,
     "TX-02.savepoint-rollback-not-sent": lambda engine, message, fault: case_savepoint(engine, message, fault, "not-sent"),
     "TX-02.savepoint-rollback-rejected": lambda engine, message, fault: case_savepoint(engine, message, fault, "rejected"),

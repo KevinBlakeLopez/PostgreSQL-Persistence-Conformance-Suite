@@ -6,6 +6,11 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "research" / "production-reachability" / "py"))
+from pr01 import run_pr  # noqa: E402
 import re
 import sys
 import time
@@ -604,10 +609,164 @@ def case_reuse(message: dict[str, Any], kind: str) -> dict[str, Any]:
     return outcome
 
 
+DJANGO_EXPLICIT = (
+    "Django documents manual transaction management beside atomic(): set_autocommit(False), "
+    "then commit() or rollback(), then set_autocommit(True) "
+    "(docs/topics/db/transactions.txt, Controlling transactions explicitly). "
+    "commit() is Django's report that it asked the database to commit."
+)
+
+
+def _is_protocol(exc: BaseException) -> bool:
+    try:
+        raise_if_protocol(exc)
+    except ProtocolError:
+        return True
+    return False
+
+
+def _django_pr(kind: str, message: dict[str, Any]) -> dict[str, Any]:
+    from django.db import IntegrityError, connection, transaction
+
+    from djapp.models import Item, Uniq
+
+    hooks = {"on_commit": 0}
+
+    def on_start(_handle: Any) -> None:
+        transaction.on_commit(lambda: hooks.__setitem__("on_commit", hooks["on_commit"] + 1))
+
+    def write(_handle: Any, name: str) -> None:
+        Item.objects.create(name=name, qty=0)
+
+    def insert_taken(_handle: Any) -> None:
+        Uniq.objects.create(code="taken")
+
+    def savepoint(_handle: Any) -> dict[str, Any]:
+        try:
+            with transaction.atomic():
+                Uniq.objects.create(code="taken")
+        except IntegrityError as exc:
+            return {"recovered": True, "violation": err_info(exc)}
+        raise RuntimeError("the duplicate insert did not raise")
+
+    def managed(work: Callable[[Any], None]) -> dict[str, Any]:
+        return run_atomic(lambda: work(None))
+
+    def explicit(work: Callable[[Any], None]) -> dict[str, Any]:
+        transaction.set_autocommit(False)
+        thrown: BaseException | None = None
+        try:
+            try:
+                work(None)
+            except Exception as exc:
+                raise_if_protocol(exc)
+                thrown = exc
+                raise
+            transaction.commit()
+            return {"reported": "committed", "basis": "transaction.commit() returned", "contract": DJANGO_EXPLICIT}
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            try:
+                transaction.rollback()
+            except Exception:
+                pass
+            if thrown is not None and exc is thrown:
+                return {
+                    "reported": "rolled_back",
+                    "basis": "the body threw and transaction.rollback() was called",
+                    "contract": DJANGO_EXPLICIT,
+                    "api_error": err_info(thrown),
+                }
+            return {
+                "reported": "failed",
+                "basis": "transaction.commit() raised",
+                "contract": DJANGO_EXPLICIT,
+                "api_error": err_info(exc),
+            }
+        finally:
+            transaction.set_autocommit(True)
+
+    def probe() -> dict[str, Any]:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("select 1")
+            return {
+                "supported": True,
+                "ok": True,
+                "error": None,
+                "needs_rollback": connection.needs_rollback,
+                "backend_pid": backend_pid(),
+            }
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {"supported": True, "ok": False, "error": err_info(exc), "needs_rollback": connection.needs_rollback}
+
+    def reuse(name: str, cp: Callable[..., Any]) -> dict[str, Any]:
+        started = time.monotonic()
+        box: dict[str, int | None] = {"pid": None}
+
+        def body() -> None:
+            Item.objects.create(name=name, qty=0)
+            ident = identify()
+            box["pid"] = ident["pid"]
+            cp("reuse-after-write", ident)
+
+        try:
+            outcome = run_atomic(body)
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": outcome["reported"],
+                "error": outcome.get("api_error"),
+                "pid": box["pid"],
+            }
+        except Exception as exc:
+            if _is_protocol(exc):
+                raise
+            return {
+                "attempted": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "reported": "failed",
+                "error": err_info(exc),
+                "pid": box["pid"],
+            }
+
+    forms = {
+        "managed": "with transaction.atomic(): catch IntegrityError, then leave the block.",
+        "explicit": "set_autocommit(False), catch IntegrityError, transaction.commit(), set_autocommit(True).",
+        "control": "with transaction.atomic(): IntegrityError leaves the block.",
+        "savepoint": "with transaction.atomic(): a nested atomic() around the duplicate. The nested IntegrityError is caught and the outer block returns.",
+    }
+    return run_pr(
+        kind,
+        message,
+        checkpoint,
+        boundary=explicit if kind == "explicit" else managed,
+        write=write,
+        insert_taken=insert_taken,
+        identify=lambda _handle: identify(),
+        reuse=reuse,
+        err_info=err_info,
+        is_protocol=_is_protocol,
+        savepoint=savepoint,
+        probe=probe,
+        hooks=lambda: {"supported": True, "on_commit": hooks["on_commit"], "needs_rollback": connection.needs_rollback},
+        on_start=None if kind == "explicit" else on_start,
+        form=forms[kind],
+    )
+
+
 CASES = {
     "CTL-01.commit": case_commit,
     "CTL-01.rollback": case_rollback,
     "TX-01A.caught-error-then-commit": case_caught_error,
+    "PR-01.managed-catch-commit": lambda message: _django_pr("managed", message),
+    "PR-01.explicit-catch-commit": lambda message: _django_pr("explicit", message),
+    "PR-01.uncaught-control": lambda message: _django_pr("control", message),
+    "PR-01.savepoint-recovery": lambda message: _django_pr("savepoint", message),
     "TX-01B.conn-lost-before-commit": case_conn_lost_before_commit,
     "TX-02.savepoint-rollback-not-sent": lambda message: case_savepoint(message, "not-sent"),
     "TX-02.savepoint-rollback-rejected": lambda message: case_savepoint(message, "rejected"),

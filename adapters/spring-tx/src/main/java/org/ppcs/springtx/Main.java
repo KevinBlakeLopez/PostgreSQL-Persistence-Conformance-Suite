@@ -23,6 +23,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -70,6 +71,11 @@ public final class Main {
             result.put("status", "completed");
             result.putAll(outcome);
             result.put("diagnostics", session.diagnostics());
+        } catch (NotImplemented ex) {
+            if (!helloSent) protocol.send(fallbackHello(mode));
+            result.put("status", "not_implemented");
+            result.put("reason", ex.getMessage());
+            if (session != null) result.put("diagnostics", session.diagnostics());
         } catch (Throwable ex) {
             if (!helloSent) protocol.send(fallbackHello(mode));
             result.put("status", "error");
@@ -181,6 +187,10 @@ public final class Main {
             case "CTL-01.commit" -> top(session, markers, false);
             case "CTL-01.rollback" -> top(session, markers, true);
             case "TX-01A.caught-error-then-commit" -> caughtError(session, markers);
+            case "PR-01.managed-catch-commit" -> pr(session, markers, "managed");
+            case "PR-01.explicit-catch-commit" -> pr(session, markers, "explicit");
+            case "PR-01.uncaught-control" -> pr(session, markers, "control");
+            case "PR-01.savepoint-recovery" -> pr(session, markers, "savepoint");
             case "TX-01B.conn-lost-before-commit" -> connLost(session, markers, settings);
             case "TX-02.savepoint-rollback-not-sent" -> savepoint(session, markers, settings, "not-sent");
             case "TX-02.savepoint-rollback-rejected" -> savepoint(session, markers, settings, "rejected");
@@ -564,6 +574,114 @@ public final class Main {
             // The pin in pom.xml is the fallback the caller sees as a startup failure.
         }
         throw new IllegalStateException(type.getName() + " has no Implementation-Version or Bundle-Version");
+    }
+
+    static final class NotImplemented extends RuntimeException {
+        NotImplemented(String message) { super(message); }
+    }
+
+    private Map<String, Object> pr(Session session, Map<String, Object> markers, String kind) {
+        if (kind.equals("explicit") && session.declarative) {
+            throw new NotImplemented("@Transactional does not return a TransactionStatus. Declarative mode has no explicit commit handle.");
+        }
+        Map<String, Object>[] violation = new Map[1];
+        Integer[] pid = new Integer[1];
+        int[] afterCommit = {0};
+        int[] completion = {-1};
+        Map<String, Object>[] nested = new Map[1];
+        Work work = () -> {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { afterCommit[0]++; }
+                @Override public void afterCompletion(int status) { completion[0] = status; }
+            });
+            session.sql.insertItem(Json.text(markers, "tx"));
+            Sql.Ident ident = session.sql.identify(false);
+            pid[0] = ident.pid();
+            session.protocol.checkpoint("after-write", ident.xid(), ident.pid());
+            if (kind.equals("savepoint")) {
+                nested[0] = session.boundaries.call(Boundaries.Kind.NESTED, () -> session.sql.insertTaken());
+                if (nested[0].get("api_error") instanceof Map<?, ?> error) violation[0] = castError(error);
+                session.protocol.checkpoint("before-end", null, ident.pid());
+                return;
+            }
+            try {
+                session.sql.insertTaken();
+            } catch (java.sql.SQLException ex) {
+                violation[0] = Boundaries.errInfo(ex);
+                if (kind.equals("control")) throw ex;
+                session.protocol.checkpoint("before-end", null, ident.pid());
+                return;
+            }
+            throw new IllegalStateException("the duplicate insert did not raise");
+        };
+        Map<String, Object> outcome = kind.equals("explicit")
+                ? session.boundaries.explicit(false, work).outcome()
+                : session.boundaries.call(Boundaries.Kind.REQUIRED, work);
+        session.protocol.checkpoint("after-api", null, pid[0]);
+        Map<String, Object> steps = new LinkedHashMap<>();
+        steps.put("variant", kind);
+        if (violation[0] != null) steps.put("violation", violation[0]);
+        if (nested[0] != null) {
+            Map<String, Object> savepoint = new LinkedHashMap<>();
+            savepoint.put("recovered", "rolled_back".equals(nested[0].get("reported")) || "failed".equals(nested[0].get("reported")));
+            savepoint.put("nested", nested[0]);
+            steps.put("savepoint", savepoint);
+        }
+        steps.put("hooks", hookReport(afterCommit[0], completion[0]));
+        steps.put("probe", Map.of("supported", false, "reason", "the next transaction is the reuse probe; DriverManagerDataSource closes the connection when Spring releases it"));
+        steps.put("reuse", reuseUnit(session, Json.text(markers, "reuse"), pid[0]));
+        steps.put("command_tag", null);
+        outcome.put("steps", steps);
+        outcome.put("form", prForm(session, kind));
+        return outcome;
+    }
+
+    private Map<String, Object> reuseUnit(Session session, String name, Integer firstPid) {
+        long started = System.nanoTime();
+        Integer[] pid = new Integer[1];
+        Map<String, Object> outcome = session.boundaries.call(Boundaries.Kind.REQUIRED, () -> {
+            session.sql.insertItem(name);
+            Sql.Ident ident = session.sql.identify(false);
+            pid[0] = ident.pid();
+            session.protocol.checkpoint("reuse-after-write", ident.xid(), ident.pid());
+        });
+        Map<String, Object> reuse = new LinkedHashMap<>();
+        reuse.put("attempted", true);
+        reuse.put("elapsed_ms", (System.nanoTime() - started) / 1_000_000L);
+        reuse.put("reported", outcome.get("reported"));
+        reuse.put("error", outcome.get("api_error"));
+        reuse.put("pid", pid[0]);
+        reuse.put("same_backend", firstPid != null && firstPid.equals(pid[0]));
+        return reuse;
+    }
+
+    private static Map<String, Object> hookReport(int afterCommit, int completion) {
+        String status = switch (completion) {
+            case TransactionSynchronization.STATUS_COMMITTED -> "committed";
+            case TransactionSynchronization.STATUS_ROLLED_BACK -> "rolled_back";
+            case TransactionSynchronization.STATUS_UNKNOWN -> "unknown";
+            default -> "not_invoked";
+        };
+        Map<String, Object> hooks = new LinkedHashMap<>();
+        hooks.put("supported", true);
+        hooks.put("after_commit", afterCommit);
+        hooks.put("after_completion", status);
+        return hooks;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castError(Map<?, ?> error) {
+        return (Map<String, Object>) error;
+    }
+
+    private static String prForm(Session session, String kind) {
+        String api = session.declarative ? "@Transactional" : "TransactionTemplate.execute";
+        return switch (kind) {
+            case "explicit" -> "PlatformTransactionManager.getTransaction, catch SQLException, manager.commit.";
+            case "control" -> api + ". The SQLException leaves the callback.";
+            case "savepoint" -> api + " with PROPAGATION_NESTED around the duplicate. The nested error is contained and the outer callback returns.";
+            default -> api + ". The callback catches SQLException and returns.";
+        };
     }
 
     static final class AppException extends RuntimeException {

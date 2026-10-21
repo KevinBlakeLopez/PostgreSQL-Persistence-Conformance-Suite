@@ -1,0 +1,180 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T17-50-45Z-a66571",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "PR-01.managed-catch-commit",
+    "version": "1.0",
+    "family": "PR-01",
+    "family_title": "Production-reachable caught constraint violation",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Managed transaction: catch a unique violation, then return normally",
+    "steps": [
+      "Start a transaction with the framework's ordinary callback or context-manager API.",
+      "Write the marker `tx` and make sure the write was sent.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Insert the duplicate value 'taken' into uniq. Catch the unique violation at the application layer. Send nothing else.",
+      "Checkpoint `before-end`: report the same backend PID. Send no query.",
+      "Allow the callback or context manager to finish normally, so the framework uses its ordinary completion path.",
+      "Checkpoint `after-api`: report the same backend PID as soon as that API has returned, before any reuse.",
+      "On the same pool or connection, run one new transaction that writes the marker `reuse` and commits. Checkpoint `reuse-after-write` if that transaction starts.",
+      "Checkpoint `after-end`, as soon as the case function has returned."
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "kysely",
+      "version": "UNKNOWN",
+      "source_sha256": "954a7d754cf113b5111d180f0d3a4b35c6c16a62fe47c39c8bfbd9c21c19205a"
+    },
+    "framework": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "db.transaction().execute(callback) and db.startTransaction().execute().",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application. No statement is withheld or rewritten.",
+    "injection_point": "After the first write, before the transaction API finishes.",
+    "expected_server": "The failed statement aborts the transaction unless the application has recovered through a savepoint. This variant does not create a savepoint.",
+    "expected_client": "The application catches 23505. The framework then finishes the transaction through its ordinary API.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The application caught the unique violation. Whether PostgreSQL's later reply is visible depends on the driver and the framework.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": {
+      "tx": false,
+      "reuse": false
+    },
+    "marker_xmin": {
+      "tx": null,
+      "reuse": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "preconditions": [],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the adapter sent no hello message; the adapter exited without a result (exit code 1, signal none)",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": false,
+        "detail": "CTL-01.commit INCONCLUSIVE, CTL-01.rollback INCONCLUSIVE"
+      },
+      "case_controls": {
+        "held": null,
+        "detail": "no control adapter states an expectation for this case"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=kysely --mode=native --case=PR-01.managed-catch-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": "node:internal/modules/cjs/loader:1456\n  const err = new Error(message);\n              ^\n\nError: Cannot find module 'kysely'\nRequire stack:\n- /Users/kevinlopez/code/postgres-persistence-conformance/adapters/mikroorm/node_modules/@mikro-orm/postgresql/package.json\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)\n    at require.resolve (node:internal/modules/helpers:163:19)\n    at file:///Users/kevinlopez/code/postgres-persistence-conformance/research/production-reachability/drivers/kysely/main.mjs:10:68\n    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/Users/kevinlopez/code/postgres-persistence-conformance/adapters/mikroorm/node_modules/@mikro-orm/postgresql/package.json'\n  ]\n}\n\nNode.js v24.14.1\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T17:50:47.070Z",
+    "finished_at": "2026-10-19T17:50:47.199Z",
+    "duration_ms": 129
+  },
+  "repetitions": {
+    "count": 1,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter sent no hello message; the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {},
+        "markers": {
+          "tx": false,
+          "reuse": false
+        },
+        "duration_ms": 129
+      }
+    ]
+  }
+}

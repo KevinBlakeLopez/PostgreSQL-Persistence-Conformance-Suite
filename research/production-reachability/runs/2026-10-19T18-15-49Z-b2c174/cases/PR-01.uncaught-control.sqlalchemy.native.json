@@ -1,0 +1,496 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-19T18-15-49Z-b2c174",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "PR-01.uncaught-control",
+    "version": "1.0",
+    "family": "PR-01",
+    "family_title": "Production-reachable caught constraint violation",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Control: do not catch the unique violation",
+    "steps": [
+      "Start a transaction with the framework's ordinary callback or context-manager API.",
+      "Write the marker `tx` and make sure the write was sent.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Insert the duplicate value 'taken' into uniq and do not catch the error.",
+      "Checkpoint `after-api` as soon as the transaction API has returned, before any reuse.",
+      "Run one new transaction that writes `reuse`. Checkpoint `reuse-after-write` if it starts.",
+      "Checkpoint `after-end`, as soon as the case function has returned."
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "sqlalchemy",
+      "version": "0.1.0",
+      "source_sha256": "a93ca31bde417d654d46199456b338969f81d1f5a3125b3159f7d49b1f400c8a"
+    },
+    "framework": {
+      "name": "sqlalchemy",
+      "version": "2.1.5"
+    },
+    "driver": {
+      "name": "psycopg",
+      "version": "3.3.6"
+    },
+    "components": {},
+    "runtime": {
+      "name": "python",
+      "version": "3.13.11"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "SQLAlchemy's Session.begin() context manager, with Session.begin_nested() for a savepoint. pool_size 1, max_overflow 0. TX-03's next unit of work is a second Session on that same engine. The engine is not disposed between the units, and pool_pre_ping is off.",
+    "configuration": {
+      "pool_size": 2,
+      "max_overflow": 0
+    },
+    "form": "with session.begin(): the IntegrityError leaves the block."
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL and allowed to leave the transaction callback.",
+    "injection_point": "After the first write, inside the transaction callback.",
+    "expected_server": "The failed statement aborts the transaction. The framework's ordinary error path ends it.",
+    "expected_client": "The unique violation leaves the transaction API.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The application did not catch the database error. This is the framework's ordinary failure path.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "Session.begin() exited with the exception raised inside it, so it rolled back",
+    "contract": "Session.begin() as a context manager commits when the block exits without an exception and rolls back when the block exits with one. Session.begin_nested() is a SAVEPOINT; an exception there rolls back to the savepoint, and a failure of that rollback propagates. If commit() raises on the way out, TransactionalContext.__exit__ calls rollback() when it can and propagates the error from that exit.",
+    "error": {
+      "class": "IntegrityError",
+      "code": "23505",
+      "message": "(psycopg.errors.UniqueViolation) duplicate key value violates unique constraint \"uniq_code_key\" DETAIL: Key (code)=(taken) already exists. [SQL: INSERT INTO uniq (code) VALUES (%(code)s::VARCHAR) RETURNING uniq.id] [parameters: {'code': 'taken'}] (Background on this error at: https://sqlalche.me/e/21/gkpj)"
+    },
+    "steps": {
+      "variant": "control",
+      "violation": {
+        "class": "IntegrityError",
+        "code": "23505",
+        "message": "(psycopg.errors.UniqueViolation) duplicate key value violates unique constraint \"uniq_code_key\" DETAIL: Key (code)=(taken) already exists. [SQL: INSERT INTO uniq (code) VALUES (%(code)s::VARCHAR) RETURNING uniq.id] [parameters: {'code': 'taken'}] (Background on this error at: https://sqlalche.me/e/21/gkpj)"
+      },
+      "probe": {
+        "supported": true,
+        "ok": true,
+        "error": null
+      },
+      "hooks": {
+        "supported": true,
+        "after_commit": 0,
+        "after_rollback": 1
+      },
+      "reuse": {
+        "attempted": true,
+        "elapsed_ms": 41,
+        "reported": "committed",
+        "error": null,
+        "pid": 352402,
+        "same_backend": true
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 352402,
+          "xid": "11029"
+        },
+        "session": {
+          "pid": 352402,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11029",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:17:22.399209+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11029"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11029",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-api": {
+        "reported": {
+          "pid": 352402,
+          "xid": null
+        },
+        "session": {
+          "pid": 352402,
+          "present": true,
+          "state": "idle",
+          "in_transaction": false,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:17:22.399209+00",
+          "query": "ROLLBACK",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "reuse-after-write": {
+        "reported": {
+          "pid": 352402,
+          "xid": "11030"
+        },
+        "session": {
+          "pid": 352402,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11030",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-19 18:17:22.399209+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11030"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11030",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "in progress",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11030",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "committed",
+            "session": {
+              "pid": 352402,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-19 18:17:22.399209+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "11029",
+        "pid": 352402,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-19 18:17:22.399209+00"
+      },
+      "reuse": {
+        "xid": "11030",
+        "pid": 352402,
+        "captured_at": "reuse-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-19 18:17:22.399209+00"
+      }
+    },
+    "markers": {
+      "tx": false,
+      "reuse": true
+    },
+    "marker_xmin": {
+      "tx": null,
+      "reuse": "11030"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": false,
+    "mechanism_detail": "before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\"",
+    "classification": "PASS",
+    "reason": "PR-01.1 held: the API reported rolled_back; before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\"",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [11029]"
+      },
+      {
+        "description": "a unique_violation (23505) was observed on the failing statement",
+        "met": true,
+        "detail": "violation: 23505; api_error: 23505"
+      },
+      {
+        "description": "the marker visibility agrees with pg_xact_status() for the captured transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary.",
+        "holds": true,
+        "detail": "the API reported rolled_back; before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\""
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for sqlalchemy (native)"
+      },
+      "case_controls": {
+        "held": null,
+        "detail": "no control adapter states an expectation for this case"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=sqlalchemy --mode=native --case=PR-01.uncaught-control",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "ROLLBACK (INTRANS)",
+        "INSERT INTO item (name, qty) VALUES (%(name)s::VARCHAR, %(qty)s::INTEGER) RETURNING item.id",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "INSERT INTO uniq (code) VALUES (%(code)s::VARCHAR) RETURNING uniq.id",
+        "ROLLBACK (INERROR)",
+        "ROLLBACK (IDLE)",
+        "select 1",
+        "ROLLBACK (INTRANS)",
+        "INSERT INTO item (name, qty) VALUES (%(name)s::VARCHAR, %(qty)s::INTEGER) RETURNING item.id",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "COMMIT (INTRANS -> IDLE)",
+        "ROLLBACK (IDLE)"
+      ],
+      "withheld": [],
+      "rewritten": [],
+      "reply_codes": [],
+      "commit_calls": 1,
+      "rollback_calls": 5,
+      "trace_sees_framework_statements": true
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-19T18:17:22.114Z",
+    "finished_at": "2026-10-19T18:17:23.458Z",
+    "duration_ms": 1344
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported rolled_back; before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\"",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 453
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported rolled_back; before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\"",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 445
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported rolled_back; before-end was not recorded; at after-api the session was \"idle\" and its last statement was \"ROLLBACK\"",
+        "mechanism_exercised": false,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": false,
+          "reuse": true
+        },
+        "duration_ms": 446
+      }
+    ]
+  }
+}

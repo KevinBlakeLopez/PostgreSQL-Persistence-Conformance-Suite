@@ -9,6 +9,7 @@ import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requ
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Item, Uniq, inRequest, openOrm } from './orm.mjs'
+import { mikroPrCases } from './pr01.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const MIKRO_PG = packageDir(HERE, '@mikro-orm/postgresql')
@@ -253,6 +254,7 @@ const cases = {
     ),
     form: TX05_EXPLICIT_FORM,
   }),
+  ...mikroPrCases(),
 }
 
 await main({

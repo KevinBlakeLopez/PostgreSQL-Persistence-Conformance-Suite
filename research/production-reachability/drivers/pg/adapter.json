@@ -1,0 +1,29 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "pg",
+  "framework": "pg",
+  "description": "Direct node-postgres. check-tag reads Result.command. ignore-tag treats a resolved COMMIT as success. No query method is patched.",
+  "command": ["node", "main.mjs"],
+  "modes": [
+    {
+      "id": "check-tag",
+      "kind": "native",
+      "description": "Reports rolled_back when Client.query('COMMIT') resolves with a command tag other than COMMIT."
+    },
+    {
+      "id": "ignore-tag",
+      "kind": "configured",
+      "description": "Reports committed when Client.query('COMMIT') resolves, without reading Result.command."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "PR-01.managed-catch-commit",
+    "PR-01.explicit-catch-commit",
+    "PR-01.uncaught-control",
+    "PR-01.savepoint-recovery"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {}
+}

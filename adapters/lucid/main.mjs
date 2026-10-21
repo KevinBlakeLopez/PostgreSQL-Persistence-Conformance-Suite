@@ -9,6 +9,7 @@ import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { migrationCases } from './migration.mjs'
 import { Item, Uniq, openDatabase } from './lucid.mjs'
+import { lucidPrCases } from './pr01.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const LUCID = packageDir(HERE, '@adonisjs/lucid')
@@ -209,6 +210,7 @@ const cases = {
   }),
 
   ...migrationCases,
+  ...lucidPrCases(),
 }
 
 await main({

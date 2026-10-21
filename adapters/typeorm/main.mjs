@@ -8,6 +8,7 @@ import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requ
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Item, Uniq, openDataSource } from './orm.mjs'
+import { typeormPrCases } from './pr01.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const TYPEORM = packageDir(HERE, 'typeorm')
@@ -217,6 +218,7 @@ const cases = {
     ),
     form: TX05_EXPLICIT_FORM,
   }),
+  ...typeormPrCases(),
 }
 
 await main({
