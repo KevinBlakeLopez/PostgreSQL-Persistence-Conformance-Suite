@@ -1,0 +1,23 @@
+// The runner creates these tables. This schema exists so Prisma Client can be generated.
+// The adapter writes with $executeRaw and $queryRaw. It does not migrate.
+
+generator client {
+  provider      = "prisma-client"
+  output        = "./generated/prisma"
+  compilerBuild = "fast"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model item {
+  id   Int    @id @default(autoincrement())
+  name String
+  qty  Int    @default(0)
+}
+
+model uniq {
+  id   Int    @id @default(autoincrement())
+  code String @unique
+}

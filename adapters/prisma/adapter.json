@@ -1,0 +1,47 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "prisma",
+  "framework": "@prisma/client",
+  "description": "Prisma Client 7.10.1 with the TypeScript query compiler and @prisma/adapter-pg, through prisma.$transaction() on a pg.Pool.",
+  "command": [
+    "node",
+    "main.mjs"
+  ],
+  "shared": [
+    "../node-kit"
+  ],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "PrismaClient with a PrismaPg adapter around a pg.Pool. The pool max is the case's pool_max. Interactive transactions use prisma.$transaction(async (tx) => ...), and a nested tx.$transaction() where the case asks for a nested scope. Isolation is the documented isolationLevel option. Prisma's default interactive-transaction timeout (5000 ms) and maxWait (2000 ms) are left in place. No command-tag check, no connection discard, and no extra rollback."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Prisma has no propagation mode that promises an independent transaction. A nested tx.$transaction() is a savepoint on the open transaction (SAVEPOINT prisma_sp_N in @prisma/adapter-pg). $executeRaw sends the write when it is awaited, so there are no deferred outer writes for an inner transaction to commit. A separate prisma.$transaction() on the root client is another pooled connection and shares no pending writes with the outer one. The hazard TX-04.3 targets cannot arise."
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "Prisma Client 7.10.1's documented transaction API is prisma.$transaction(callback, options) or prisma.$transaction([queries]). Neither returns a handle the application commits with a separate call. The callback form commits when the callback returns. The array form runs the queries and commits inside the one call. Sending BEGIN and COMMIT through $executeRaw would bypass $transaction, so it is not that API."
+    }
+  }
+}

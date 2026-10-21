@@ -9,5 +9,16 @@ DIR=$(cd "$(dirname "$0")/.." && pwd)
 for project in "$DIR" "$DIR"/adapters/*; do
   [ -f "$project/package.json" ] || continue
   echo "== ${project#"$DIR"}/"
-  (cd "$project" && pnpm install --frozen-lockfile --ignore-workspace)
+  # --ignore-workspace keeps an adapter out of a parent workspace. pnpm 12 reads allowBuilds only from
+  # pnpm-workspace.yaml, and that flag drops the file, so an adapter that denies dependency builds
+  # installs without it.
+  if [ -f "$project/pnpm-workspace.yaml" ]; then
+    (cd "$project" && pnpm install --frozen-lockfile)
+  else
+    (cd "$project" && pnpm install --frozen-lockfile --ignore-workspace)
+  fi
+  if [ -f "$project/schema.prisma" ]; then
+    echo "== ${project#"$DIR"}/ prisma generate"
+    (cd "$project" && pnpm exec prisma generate)
+  fi
 done
