@@ -1,0 +1,102 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "hibernate",
+  "framework": "hibernate-orm",
+  "description": "Hibernate ORM 7.4.13.Final native Session and Transaction APIs on PostgreSQL JDBC 42.7.14. No Spring, no JPA bootstrap, no schema migration tool. Category C faults are a client-side injection in this process, fired once, before pgjdbc sends. Native mode uses a DriverManager DataSource and no pool. TX-03 runs only in the pooled mode (HikariCP 7.1.0, maximumPoolSize 1).",
+  "command": ["./run"],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "Session.openSession and Transaction.begin on a DataSource that calls DriverManager.getConnection for every checkout and closes that connection on close. No pool. hibernate.dialect is not set; Hibernate selects the dialect from the connection. Flush mode is the Session default AUTO. hibernate.hbm2ddl.auto is none and jakarta.persistence.schema-generation.database.action is none. hibernate.jpa.compliance.transaction is false, the 7.4.13 default. The transaction coordinator is jdbc. Connection handling is DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION. TX-03 is not run in this mode: each Session checks out a new physical connection and session.close closes it, so a later unit cannot be handed that connection.",
+      "cases": [
+        "CTL-01.commit",
+        "CTL-01.rollback",
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit"
+      ]
+    },
+    {
+      "id": "pooled",
+      "kind": "configured",
+      "description": "The same Session and Transaction calls. HikariCP 7.1.0 with maximumPoolSize 1. No other pool setting is changed. Between the two units the Session is closed through the same finally path, which releases the connection. The pool is not closed, the connection is not evicted by the adapter, and no validation query is issued between them. TX-03 runs only in this mode.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-02.savepoint-rollback-not-sent": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM 7.4.13 Transaction and Session have no nested-transaction or savepoint operation. Transaction's javadoc says there is at most one uncommitted transaction for a Session. Session.beginTransaction returns the active transaction when one exists; it does not create a savepoint. JDBC savepoints through Session.doWork are not Hibernate's transaction API and are not used here."
+    },
+    "TX-02.savepoint-rollback-rejected": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM 7.4.13 Transaction and Session have no nested-transaction or savepoint operation. Transaction's javadoc says there is at most one uncommitted transaction for a Session. Session.beginTransaction returns the active transaction when one exists; it does not create a savepoint. JDBC savepoints through Session.doWork are not Hibernate's transaction API and are not used here."
+    },
+    "TX-02.conn-lost-before-savepoint-rollback": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM 7.4.13 Transaction and Session have no nested-transaction or savepoint operation. Transaction's javadoc says there is at most one uncommitted transaction for a Session. Session.beginTransaction returns the active transaction when one exists; it does not create a savepoint. JDBC savepoints through Session.doWork are not Hibernate's transaction API and are not used here."
+    },
+    "TX-04.nested-failure-contained": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM 7.4.13 has no nested-transaction or savepoint API that would contain a failed inner scope inside an outer transaction. Session.beginTransaction does not start a savepoint. A second Session is a separate physical transaction, which is not the savepoint this case tests."
+    },
+    "TX-04.nested-released-outer-rollback": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM 7.4.13 has no nested-transaction or savepoint API whose release would leave the inner writes in the outer transaction. Session.beginTransaction does not release a savepoint. A second Session is a separate physical transaction, which is not the savepoint this case tests."
+    },
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Hibernate ORM 7.4.13 has no propagation mode that promises an independent transaction while an outer transaction stays open. There is at most one uncommitted transaction per Session. Opening a second Session is application code coordinating two physical transactions, not a framework propagation mode, so the hazard of an inner transaction committing the outer transaction's still-pending writes cannot arise through a supported API. This adapter does not manufacture that mode."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "Session.inTransaction and SessionFactory.inTransaction accept a callback and no isolation level. Transaction has no isolation method. hibernate.connection.isolation is a connection-provider setting, and JdbcSettings says DataSourceConnectionProvider does not apply it. This adapter uses a DataSource. The setting is not a per-transaction API and is not used to manufacture a level."
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "Session.beginTransaction and Transaction.commit accept no isolation level. hibernate.connection.isolation is a connection-provider setting, and JdbcSettings says DataSourceConnectionProvider does not apply it. This adapter uses a DataSource. The setting is not a per-transaction API and is not used to manufacture a level."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner. It has no migration history and no multi-process advisory-lock protocol. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner. It has no migration history and no multi-process advisory-lock protocol. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner. It has no migration history and no multi-process advisory-lock protocol. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner. It has no migration history and no multi-process advisory-lock protocol. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner and has no reversible migration history. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner and has no reversible migration history. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "Hibernate ORM is not a migration runner and has no reversible migration history. Schema export is disabled. This adapter does not add Flyway or Liquibase."
+    }
+  }
+}

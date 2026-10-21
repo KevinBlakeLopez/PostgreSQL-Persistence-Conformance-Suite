@@ -1,0 +1,304 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T15-45-57Z-c3c03b",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "MG-03.no-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A migration that provides no reversal is reverted",
+    "steps": [
+      "Runner A applies { m1 }. m1 inserts marker m1 and provides no reversal.",
+      "Revert with the framework's default selection.",
+      "Apply { m1 } again.",
+      "Checkpoint `after-end`, as soon as the revert has returned and the reapply has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent."
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "aaec0b36482fc32c12766845147d7dde66116dbffe7072199ea9f7874d8befc0"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "control",
+    "description": "Positive control: reads the command tag of PostgreSQL's reply to COMMIT, reports a COMMIT error as a failure, and discards a connection whose ROLLBACK failed. It starts a transaction at the isolation level requested of it.",
+    "configuration": {
+      "commit_reply": "checked",
+      "commit_error": "reported as a failure",
+      "failed_savepoint_rollback": "transaction ended with ROLLBACK",
+      "failed_rollback": "connection discarded",
+      "write_before_nested_scope": "sent at once",
+      "isolation_level": "sent with BEGIN"
+    },
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "none"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller of revert learns only what the operation reports. If that report says the migration was reverted, the caller treats its effects as gone.",
+  "api_outcome": {
+    "reported": "refused",
+    "basis": "the migration has no reversal, so the control refused",
+    "contract": "The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "the migration has no reversal"
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "refused",
+          "exit_code": 1,
+          "api_error": {
+            "class": "Error",
+            "code": null,
+            "message": "the migration has no reversal"
+          },
+          "basis": "the migration has no reversal, so the control refused",
+          "contract": "The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 1
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported refused"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 1"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent.",
+        "holds": true,
+        "detail": "revert reported refused; marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent.",
+        "holds": true,
+        "detail": "revert reported refused; marker count 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for pg-control (correct)"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=correct --case=MG-03.no-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1240974): select 1",
+        "c2(pid 1240975): BEGIN",
+        "c2(pid 1240975): -> command tag BEGIN for: BEGIN",
+        "c2(pid 1240975): select pg_advisory_xact_lock($1)",
+        "c2(pid 1240975): select 1 from ppcs_history where name = $1",
+        "c2(pid 1240975): insert into item (name) values ($1)",
+        "c2(pid 1240975): insert into ppcs_history (name) values ($1)",
+        "c2(pid 1240975): COMMIT",
+        "c2(pid 1240975): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T15:48:03.202Z",
+    "finished_at": "2026-10-21T15:48:04.145Z",
+    "duration_ms": 943
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 254
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 365
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 324
+      }
+    ]
+  }
+}
