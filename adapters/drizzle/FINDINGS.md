@@ -43,7 +43,7 @@ The adapter's `pool.on('error')` covers idle clients only. It does not see the c
 
 The xids and pids above are the repetition stored in each case file. The other two repetitions agreed on the classification and its qualifiers.
 
-`TX-04.independent-inner` is UNSUPPORTED, not applicable by design. `TX-05.explicit-serializable` is UNSUPPORTED, capability absent. MG-02 and MG-03 are NOT_RUN.
+`TX-04.independent-inner` is UNSUPPORTED, not applicable by design. `TX-05.explicit-serializable` is UNSUPPORTED, capability absent. MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples/2026-10-21T20-00-04Z-178fa4/summary.md). `migrate()` takes no advisory lock. `MG-02.held`, `MG-02.session-loss`, and `MG-02.idle-session-timeout` fail. `MG-02.first-deployment` is INCONCLUSIVE because the repetitions disagree. MG-03 is UNSUPPORTED, capability absent: there is no down migration.
 
 ## Findings
 
@@ -119,11 +119,11 @@ The suite's TX-05 case requests `serializable` only. The probe also read `curren
 
 These are one observation each, not three suite repetitions. They match the SQL `getTransactionConfigSQL` builds. They are not a concurrency test.
 
-## Migration tooling, not run
+## Migration tooling
 
-`drizzle-orm` 0.45.4 `PgDialect.migrate` (`pg-core/dialect.js`, lines 44–71) creates the `drizzle` schema and `__drizzle_migrations` outside a transaction, reads the latest `created_at`, then runs every pending migration's statements and the history insert inside one `session.transaction`. There is no advisory lock and no down migration. `drizzle-kit` was not installed and was not run. It is the generator of the SQL files that `migrate()` reads.
+`drizzle-orm` 0.45.4 `PgDialect.migrate` (`pg-core/dialect.js`, lines 44–71) creates the history table, reads the latest `created_at` outside a transaction, then runs every pending migration's statements and the history insert inside one `session.transaction`. There is no advisory lock and no down migration. The recorded run sets `migrationsSchema` to `public` and `migrationsTable` to `drizzle_migrations` so the runner can count that identifier. The library default schema is `drizzle`. `drizzle-kit` was not installed and was not run.
 
-MG-02 can be applied later: two migrators can both observe the same last row and both enter the transaction. MG-03 needs a reversal API this runtime does not have. Those cases stay NOT_RUN. They are not declared unsupported.
+MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples/2026-10-21T20-00-04Z-178fa4/summary.md). Two migrators can both observe the same last row and both enter the transaction. `MG-02.held`, `MG-02.session-loss`, and `MG-02.idle-session-timeout` fail. `MG-02.first-deployment` is INCONCLUSIVE because the repetitions disagree. MG-03 is declared unsupported: this runtime has no reversal API.
 
 ## Architectural assessment
 

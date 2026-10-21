@@ -6,7 +6,9 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "research" / "production-reachability" / "py"))
@@ -257,6 +259,84 @@ def cursor_gate(execute: Callable[..., Any], sql: Any, params: Any, many: bool, 
     return execute(sql, params, many, context)
 
 
+_migration_root: str | None = None
+
+MIGRATION_CONTRACT = (
+    "Django 6.1 MigrationExecutor.migrate applies or unapplies the plan. On PostgreSQL the migration "
+    "runs inside schema_editor(atomic=True) (django/db/migrations/executor.py). record_applied runs in "
+    "that transaction when the migration has no deferred SQL. record_unapplied runs after the backwards "
+    "transaction commits. The executor takes no advisory lock. RunPython without a reverse callable is not reversible: "
+    "unapply raises IrreversibleError and does not record the migration as unapplied."
+)
+MIGRATION_FORM = (
+    "MigrationExecutor.migrate on a generated ppcs_mg.0001_m1 RunPython migration. "
+    "forwards inserts the marker and, when the case holds the gate, waits on pg_advisory_xact_lock in that transaction."
+)
+
+
+def migration_source(marker: str, gate: int, hold: bool, reversal: str) -> str:
+    reverse = ""
+    if reversal == "valid":
+        reverse = """
+
+def backwards(apps, schema_editor):
+    schema_editor.execute("DELETE FROM item WHERE name = %s", [MARKER])
+    schema_editor.execute("INSERT INTO ppcs_undo (name) VALUES (%s)", [MARKER])
+"""
+        operation = "migrations.RunPython(forwards, backwards)"
+    elif reversal == "partial-then-error":
+        reverse = """
+
+def backwards(apps, schema_editor):
+    schema_editor.execute("DELETE FROM item WHERE name = %s", [MARKER])
+    schema_editor.execute("INSERT INTO ppcs_undo (name) VALUES (%s)", [MARKER])
+    raise RuntimeError("the reversal failed on purpose after deleting the marker")
+"""
+        operation = "migrations.RunPython(forwards, backwards)"
+    else:
+        operation = "migrations.RunPython(forwards)"
+    return f"""from django.db import migrations
+
+MARKER = {json.dumps(marker)}
+GATE = {gate}
+HOLD = {hold!r}
+
+def forwards(apps, schema_editor):
+    schema_editor.execute("INSERT INTO item (name) VALUES (%s)", [MARKER])
+    if HOLD:
+        schema_editor.execute("SELECT pg_advisory_xact_lock(%s)", [GATE])
+{reverse}
+class Migration(migrations.Migration):
+    initial = True
+    dependencies = []
+    operations = [
+        {operation},
+    ]
+"""
+
+
+def prepare_migration_app(message: dict[str, Any]) -> list[str]:
+    global _migration_root
+    mig = message.get("migration") or {}
+    root = tempfile.mkdtemp(prefix="ppcs-django-mg-")
+    _migration_root = root
+    package = Path(root) / "ppcs_mg"
+    migrations = package / "migrations"
+    migrations.mkdir(parents=True)
+    (package / "__init__.py").write_text("")
+    (migrations / "__init__.py").write_text("")
+    (migrations / "0001_m1.py").write_text(
+        migration_source(
+            message["markers"]["m1"],
+            int(mig.get("gate") or 0),
+            mig.get("hold") is True,
+            mig.get("reversal") or "valid",
+        )
+    )
+    sys.path.insert(0, root)
+    return ["ppcs_mg"]
+
+
 def configure(message: dict[str, Any]) -> None:
     import django
     from django.conf import settings
@@ -266,12 +346,18 @@ def configure(message: dict[str, Any]) -> None:
         raise RuntimeError(f'unknown mode "{mode}"')
     conn = message["connection"]
     if not settings.configured:
+        options: dict[str, Any] = {"application_name": conn["application_name"]}
+        if conn.get("options"):
+            options["options"] = conn["options"]
+        apps = ["djapp"]
+        if str(message.get("case", {}).get("family", "")).startswith("MG-"):
+            apps = prepare_migration_app(message)
         settings.configure(
             SECRET_KEY="ppcs-django-adapter",
             DEBUG=False,
             USE_TZ=False,
             DEFAULT_AUTO_FIELD="django.db.models.AutoField",
-            INSTALLED_APPS=["djapp"],
+            INSTALLED_APPS=apps,
             DATABASES={
                 "default": {
                     "ENGINE": "django.db.backends.postgresql",
@@ -283,7 +369,7 @@ def configure(message: dict[str, Any]) -> None:
                     "CONN_MAX_AGE": None if mode == "persistent" else 0,
                     "CONN_HEALTH_CHECKS": False,
                     "AUTOCOMMIT": True,
-                    "OPTIONS": {"application_name": conn["application_name"]},
+                    "OPTIONS": options,
                 }
             },
         )
@@ -1009,7 +1095,49 @@ CASES = {
     "TX-04.nested-released-outer-rollback": lambda message: case_nested(message, "outer-fails"),
     "TX-05.managed-serializable": case_managed_serializable,
     "TX-05.explicit-serializable": case_explicit_serializable,
+    "MG-02.held": lambda message: case_migrate(message),
+    "MG-02.first-deployment": lambda message: case_migrate(message),
+    "MG-02.session-loss": lambda message: case_migrate(message),
+    "MG-02.idle-session-timeout": lambda message: case_migrate(message),
+    "MG-03.valid-reversal": lambda message: case_migrate(message),
+    "MG-03.no-reversal": lambda message: case_migrate(message),
+    "MG-03.failing-reversal": lambda message: case_migrate(message),
 }
+
+
+def case_migrate(message: dict[str, Any]) -> dict[str, Any]:
+    from django.db import connections
+    from django.db.migrations.executor import MigrationExecutor
+
+    operation = (message.get("migration") or {}).get("operation")
+    executor = MigrationExecutor(connections["default"])
+    target = [("ppcs_mg", None)] if operation == "revert" else [("ppcs_mg", "0001_m1")]
+    try:
+        plan = executor.migration_plan(target)
+        if not plan:
+            reported = "nothing_to_do"
+            basis = "MigrationExecutor.migration_plan was empty"
+        else:
+            executor.migrate(target)
+            reported = "reverted" if operation == "revert" else "applied"
+            basis = "MigrationExecutor.migrate returned"
+        return {
+            "reported": reported,
+            "exit_code": 0,
+            "basis": basis,
+            "contract": MIGRATION_CONTRACT,
+            "form": MIGRATION_FORM,
+        }
+    except Exception as exc:
+        raise_if_protocol(exc)
+        return {
+            "reported": "failed",
+            "exit_code": 1,
+            "basis": "MigrationExecutor.migrate raised",
+            "contract": MIGRATION_CONTRACT,
+            "form": MIGRATION_FORM,
+            "api_error": err_info(exc),
+        }
 
 
 def diagnostics() -> dict[str, Any]:
@@ -1109,6 +1237,8 @@ def run() -> None:
         connections.close_all()
     except Exception:
         pass
+    if _migration_root is not None:
+        shutil.rmtree(_migration_root, ignore_errors=True)
     send({"type": "result", **result})
 
 

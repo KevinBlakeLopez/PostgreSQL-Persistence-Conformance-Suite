@@ -9,6 +9,7 @@ import pg from 'pg'
 import { ProtocolError, boundedUnit, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { runDrizzleMigration } from './migration.mjs'
 import { item, uniq } from './schema.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
@@ -195,6 +196,8 @@ const cases = {
     ),
     form: TX05_MANAGED_FORM,
   }),
+
+  ...Object.fromEntries(['MG-02.held', 'MG-02.first-deployment', 'MG-02.session-loss', 'MG-02.idle-session-timeout'].map((id) => [id, (ctx, tools) => runDrizzleMigration(ctx.connection, tools)])),
 }
 
 await main({
@@ -216,7 +219,7 @@ await main({
     pool.on('error', () => {})
     const db = drizzle(pool, { schema: { item, uniq } })
     return {
-      context: { db, pool },
+      context: { db, pool, connection: message.connection },
       close: () => pool.end(),
       diagnostics: () => ({ trace: pgTrace.trace(), commit_replies: pgTrace.commitReplies(), trace_sees_framework_pg: samePg }),
     }

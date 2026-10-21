@@ -31,8 +31,13 @@
     "TX-02.conn-lost-before-savepoint-rollback",
     "TX-04.nested-failure-contained",
     "TX-04.nested-released-outer-rollback",
-    "TX-05.managed-serializable"
+    "TX-05.managed-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout"
   ],
+  "history": { "table": "_prisma_migrations", "column": "migration_name" },
   "rollback_claim_channels": [],
   "unsupported": {
     "TX-04.independent-inner": {
@@ -42,6 +47,18 @@
     "TX-05.explicit-serializable": {
       "class": "capability-absent",
       "reason": "Prisma Client 7.10.1's documented transaction API is prisma.$transaction(callback, options) or prisma.$transaction([queries]). Neither returns a handle the application commits with a separate call. The callback form commits when the callback returns. The array form runs the queries and commits inside the one call. Sending BEGIN and COMMIT through $executeRaw would bypass $transaction, so it is not that API."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "Prisma Migrate 7.10.1 reads migration.sql and migration_lock.toml. migrate deploy applies that forward SQL and records _prisma_migrations. A migration directory has no down file, and deploy does not run a reversal. This adapter does not add one."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "Prisma Migrate 7.10.1 reads migration.sql and migration_lock.toml. migrate deploy applies that forward SQL and records _prisma_migrations. A migration directory has no down file, and deploy does not run a reversal. This adapter does not add one."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "Prisma Migrate 7.10.1 reads migration.sql and migration_lock.toml. migrate deploy applies that forward SQL and records _prisma_migrations. A migration directory has no down file, and deploy does not run a reversal. This adapter does not add one."
     }
   }
 }

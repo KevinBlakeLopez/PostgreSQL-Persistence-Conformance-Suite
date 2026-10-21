@@ -8,6 +8,8 @@ Native mode is `transaction.atomic()` with `CONN_MAX_AGE` 0 and no pool. `TX-03`
 
 TX-04 and TX-05 are a later run, [`reports/examples/2026-10-21T19-26-59Z-4ccef5`](../../reports/examples/2026-10-21T19-26-59Z-4ccef5/summary.md). Both savepoint cases passed. `TX-04.independent-inner` is unsupported, not applicable by design. Both TX-05 forms passed with `transaction_isolation` `serializable`. Three repetitions agreed.
 
+MG-02 and MG-03 are [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples/2026-10-21T20-00-04Z-178fa4/summary.md). `MigrationExecutor` takes no advisory lock. `MG-02.held` fails: marker count 2, history count 2, and A and B were inside the migration at once. `MG-03.no-reversal` passes: unapply raises `IrreversibleError`, and the marker and the `django_migrations` row remain. Three repetitions agreed.
+
 ## Cases
 
 | Case | Fault | Django reported | PostgreSQL at report time, and after exit | Same backend reused | Invariant |
