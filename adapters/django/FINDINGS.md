@@ -6,6 +6,8 @@ Native mode is `transaction.atomic()` with `CONN_MAX_AGE` 0 and no pool. `TX-03`
 
 `TX-01B.commit-reply-discarded` is NOT_RUN. On this server, `Connection.commit()` returned with `transaction_status` `IDLE` after it had been `INTRANS`. psycopg does not return from `commit()` until `_exec_command(b"COMMIT")` finishes, so the caller never observes a lost COMMIT reply while the driver still reports a transaction. The node-postgres reply-lost simulation is not that probe.
 
+TX-04 and TX-05 are a later run, [`reports/examples/2026-10-21T19-26-59Z-4ccef5`](../../reports/examples/2026-10-21T19-26-59Z-4ccef5/summary.md). Both savepoint cases passed. `TX-04.independent-inner` is unsupported, not applicable by design. Both TX-05 forms passed with `transaction_isolation` `serializable`. Three repetitions agreed.
+
 ## Cases
 
 | Case | Fault | Django reported | PostgreSQL at report time, and after exit | Same backend reused | Invariant |

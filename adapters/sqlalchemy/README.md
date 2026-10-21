@@ -2,7 +2,7 @@
 
 SQLAlchemy 2.1 `Session.begin()` and `Session.begin_nested()` against the suite's disposable PostgreSQL, through psycopg 3. The adapter is a separate Python program. It speaks PPCS adapter protocol version 1 on stdin and stdout. It does not use node-kit.
 
-Implemented cases: `CTL-01.commit`, `CTL-01.rollback`, `TX-01A.caught-error-then-commit`, `TX-01B.conn-lost-before-commit`, `TX-02.savepoint-rollback-not-sent`, `TX-02.savepoint-rollback-rejected`, `TX-02.conn-lost-before-savepoint-rollback`, `TX-03.rollback-not-sent`, `TX-03.statement-error-rollback-not-sent`, and `TX-03.conn-lost-in-transaction`. All of them run in the native mode. `TX-03`'s next unit of work is a second `Session` on the same engine (`pool_size` 1, `max_overflow` 0). The engine is not disposed between the units, and `pool_pre_ping` is off.
+Implemented cases: `CTL-01.commit`, `CTL-01.rollback`, `TX-01A.caught-error-then-commit`, `TX-01B.conn-lost-before-commit`, `TX-02.savepoint-rollback-not-sent`, `TX-02.savepoint-rollback-rejected`, `TX-02.conn-lost-before-savepoint-rollback`, `TX-03.rollback-not-sent`, `TX-03.statement-error-rollback-not-sent`, `TX-03.conn-lost-in-transaction`, `TX-04.nested-failure-contained`, `TX-04.nested-released-outer-rollback`, `TX-05.managed-serializable`, and `TX-05.explicit-serializable`. All of them run in the native mode. The TX-04 savepoint cases use `Session.begin_nested()`. TX-05 passes `execution_options={"isolation_level": "SERIALIZABLE"}` to `Session` before `begin()`. `TX-04.independent-inner` is unsupported, not applicable by design: `Session.begin_nested()` is a savepoint, and a second `Session` does not share the first Session's pending objects. MG-02 and MG-03 are unsupported, capability absent. Alembic is a separate project and is not this adapter. `TX-03`'s next unit of work is a second `Session` on the same engine (`pool_size` 1, `max_overflow` 0). The engine is not disposed between the units, and `pool_pre_ping` is off.
 
 Category C faults are injected in this process, once. `ROLLBACK TO SAVEPOINT` is withheld or rewritten in `before_cursor_execute`, before psycopg sends it. A withheld statement raises `RuntimeError` with no SQLSTATE. A rewritten `ROLLBACK TO SAVEPOINT` is sent under the name `ppcs_no_such_savepoint`, and `after-fault` is reported from `handle_error` after PostgreSQL answers, before `Session.begin_nested()` sees the error. A top-level `ROLLBACK` does not reach the cursor event. On SQLAlchemy 2.1.5, `DefaultDialect.do_rollback` calls `dbapi_connection.rollback()` (`sqlalchemy/engine/default.py`). That call is withheld once on `psycopg.Connection.rollback`, before send. The cursor hook does not also match it.
 
@@ -34,7 +34,7 @@ The manifest command is `./.venv/bin/python main.py`, run with this directory as
 From the suite root, with the disposable server up:
 
 ```sh
-node harness/run.mjs --adapter=sqlalchemy --case=CTL-01,TX-01A,TX-01B,TX-02,TX-03 --repeat=3
+node harness/run.mjs --adapter=sqlalchemy --case=CTL-01,TX-01A,TX-01B,TX-02,TX-03,TX-04,TX-05 --repeat=3
 ```
 
 `TX-01B.commit-reply-discarded` is selected by the `TX-01B` prefix and recorded as NOT_RUN. The controls that gate these cases, including `pg-control`, run in the same command.
