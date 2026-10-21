@@ -1,0 +1,317 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T19-39-32Z-b559f2",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "CTL-01.commit",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and commits",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` through the framework's ordinary write API.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "End the transaction normally, so that the framework commits it.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "ruby-pg-control",
+      "version": "0.1.0",
+      "source_sha256": "c02bd6b5b0ca54c4274d4a3541ada1d725f57dd1c36cf3a2df0e042ec39cc5c3"
+    },
+    "framework": {
+      "name": "ruby-pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0"
+    },
+    "components": {
+      "ruby": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin25]",
+      "pg": "1.7.0",
+      "libpq": "180006"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "native",
+    "description": "Positive control. Explicit BEGIN, parameterized writes, COMMIT or ROLLBACK. PG::Result#cmd_status of COMMIT must be COMMIT before the control reports committed. A tag of ROLLBACK is reported as rolled back. Any other tag, or a COMMIT that raises, is reported as failed. A failed ROLLBACK TO SAVEPOINT is followed by ROLLBACK, not COMMIT. A connection whose ROLLBACK failed is closed. BEGIN carries a requested isolation level. One PG::Connection, or a one-connection holder for TX-03. Not a framework pool.",
+    "configuration": {
+      "commit_reply": "cmd_status checked; only COMMIT is a commit, only ROLLBACK is a rollback",
+      "commit_error": "reported as a failure",
+      "failed_savepoint_rollback": "transaction ended with ROLLBACK",
+      "failed_rollback": "connection discarded",
+      "write_before_nested_scope": "sent at once",
+      "isolation_level": "sent with BEGIN"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "COMMIT was answered with the command tag COMMIT",
+    "contract": "The correct control reports committed only when PG::Result#cmd_status for COMMIT is COMMIT. A command tag of ROLLBACK is a rollback. Any other tag, or a COMMIT that raises, is a failure: the control does not treat an ambiguous outcome as a confirmed commit or a confirmed rollback. After a failed savepoint rollback it sends ROLLBACK instead of COMMIT. It starts a transaction at the isolation level requested of it.",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 1383292,
+          "xid": "21794"
+        },
+        "session": {
+          "pid": 1383292,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "21794",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-21 19:42:51.579312+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "21794"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1383292,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "21794",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-21 19:42:51.579312+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1383292,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-21 19:42:51.579312+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "21794",
+        "pid": 1383292,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-21 19:42:51.579312+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "21794"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.1 held: xid 21794 committed at report time (`after-end`); marker visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [21794]"
+      },
+      {
+        "description": "the API reported \"committed\"",
+        "met": true,
+        "detail": "reported: committed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker.",
+        "holds": true,
+        "detail": "xid 21794 committed at report time (`after-end`); marker visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=ruby-pg-control --mode=correct --case=CTL-01.commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1383292): BEGIN",
+        "c1(pid 1383292): -> command tag BEGIN for: BEGIN",
+        "c1(pid 1383292): insert into item (name) values ($1)",
+        "c1(pid 1383292): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 1383292): COMMIT",
+        "c1(pid 1383292): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ],
+      "last_commit": {
+        "cmd_status": "COMMIT",
+        "result_status": "PGRES_COMMAND_OK",
+        "transaction_status": "idle"
+      },
+      "note": "PG::Connection#transaction_status is IDLE after both a COMMIT tag and a ROLLBACK tag. cmd_status is the public field that distinguishes them."
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T19:42:51.161Z",
+    "finished_at": "2026-10-21T19:42:52.247Z",
+    "duration_ms": 1086
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 21794 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 446
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 21798 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 297
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 21802 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 343
+      }
+    ]
+  }
+}

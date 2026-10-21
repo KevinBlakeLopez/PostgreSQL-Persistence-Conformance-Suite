@@ -1,0 +1,376 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T19-39-32Z-b559f2",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "TX-05.managed-serializable",
+    "version": "1.0",
+    "family": "TX-05",
+    "family_title": "Requested isolation level",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A managed transaction requests SERIALIZABLE",
+    "steps": [
+      "Start a transaction with the framework's managed transaction API, the one that runs a callback inside the transaction and commits when it returns, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+      "Write the marker `tx` through the framework's ordinary write API, and make sure that write was sent.",
+      "Read the marker back through the framework's ordinary query API, inside the same transaction, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+      "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+      "Return from the callback normally, so that the framework commits the transaction. Then go to the last step.",
+      "Only if the API raised at step 1: start a plain transaction through the same managed API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+      "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one."
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "activerecord",
+      "version": "0.1.0",
+      "source_sha256": "93d57dc1b0108028ff11f97d489e37c980b64e3351997aeb67e91387914dd7bf"
+    },
+    "framework": {
+      "name": "activerecord",
+      "version": "8.1.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0"
+    },
+    "components": {
+      "ruby": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin25]",
+      "activerecord": "8.1.4",
+      "pg": "1.7.0",
+      "libpq": "180006"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "ActiveRecord::Base.transaction on the connection pool. Pool size is the case pool_max. A nested transaction(requires_new: true) is a savepoint named active_record_N. create! writes the markers. MigrationContext applies and rolls back files under a temporary path. No full Rails application, no database.yml, and no callback is registered on the scored path.",
+    "configuration": {
+      "api": "ActiveRecord::Base.transaction",
+      "nested": "transaction(requires_new: true) savepoint",
+      "pool": "connection pool size from the case pool_max",
+      "faults": "category C and D faults are injected on PG::Connection before Active Record sees the error",
+      "migrations": "ActiveRecord::MigrationContext"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "isolation_level": "serializable"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "ActiveRecord::Base.transaction returned",
+    "contract": "ActiveRecord::Base.transaction commits when the block returns. It rolls back and re-raises when the block raises, except ActiveRecord::Rollback, which rolls back and is not re-raised. Rails documents that rescuing ActiveRecord::StatementInvalid inside the block does not roll the transaction back, and that on PostgreSQL a statement error aborts the transaction until the whole transaction is restarted. A nested transaction joins the parent unless requires_new: true, which is a savepoint. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Transactions/ClassMethods.html",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-read": {
+        "reported": {
+          "pid": 1375440,
+          "xid": "20720",
+          "transaction_isolation": "serializable"
+        },
+        "session": {
+          "pid": 1375440,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "20720",
+          "xid_matches": true,
+          "backend_xmin": "20720",
+          "backend_start": "2026-10-21 19:40:00.551958+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setti",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "20720"
+          ],
+          "read_item": true,
+          "siread": [
+            {
+              "locktype": "relation",
+              "relation": "item",
+              "page": null,
+              "tuple": null,
+              "on_item": true
+            }
+          ]
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1375440,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "20720",
+              "xid_matches": null,
+              "backend_xmin": "20720",
+              "backend_start": "2026-10-21 19:40:00.551958+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setti",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1375440,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-21 19:40:00.551958+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "20720",
+        "pid": 1375440,
+        "captured_at": "after-read",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-21 19:40:00.551958+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "20720"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-read` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-read`: item locked; transactionid [20720]"
+      },
+      {
+        "description": "the case requests SERIALIZABLE, the one level whose effect the runner can corroborate",
+        "met": true,
+        "detail": "requested: serializable"
+      },
+      {
+        "description": "at `after-read` the transaction's session was idle in its transaction (\"idle in transaction\"), so its locks show the statements it had run",
+        "met": true,
+        "detail": "session: \"idle in transaction\""
+      },
+      {
+        "description": "the transaction's read of item reached PostgreSQL: its backend held an AccessShareLock on item at `after-read`",
+        "met": true,
+        "detail": "AccessShareLock on item: held"
+      },
+      {
+        "description": "PostgreSQL's own report of the level, current_setting('transaction_isolation'), came with the captured ID at `after-read`",
+        "met": true,
+        "detail": "reported: serializable"
+      },
+      {
+        "description": "PostgreSQL's report and the runner's lock evidence agree: SERIALIZABLE with an SIReadLock on item or one of its indexes, or a weaker level with no SIReadLock at all",
+        "met": true,
+        "detail": "reported: serializable; SIReadLocks: relation:item"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.",
+        "holds": true,
+        "detail": "requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item"
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction.",
+        "holds": true,
+        "detail": "the API started the transaction"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for activerecord (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=activerecord --mode=native --case=TX-05.managed-serializable",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1375440): SET client_min_messages TO 'warning'",
+        "c1(pid 1375440): SET standard_conforming_strings = on",
+        "c1(pid 1375440): SET intervalstyle = iso_8601",
+        "c1(pid 1375440): SELECT t.oid, t.typname FROM pg_type as t WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'numeric', 'bool', 'timestamp', 'timestamptz')",
+        "c1(pid 1375440): SET SESSION timezone TO 'UTC'",
+        "c1(pid 1375440): SHOW search_path",
+        "c1(pid 1375440): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'text', 'varchar', 'char', 'name', 'bpchar', 'bool', 'bit', 'varbit', ",
+        "c1(pid 1375440): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typtype IN ('r', 'e', 'd')",
+        "c1(pid 1375440): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typelem IN (16, 17, 18, 19, 20, 21, 23, 25, 26, 114, 142, 600, 601, 602, 603, 604, 628, 700, 701, 718, 790, 829, 869, 650, 1042, 1043",
+        "c1(pid 1375440): BEGIN ISOLATION LEVEL SERIALIZABLE",
+        "c1(pid 1375440): -> command tag BEGIN for: BEGIN ISOLATION LEVEL SERIALIZABLE",
+        "c1(pid 1375440): SELECT a.attname, format_type(a.atttypid, a.atttypmod), pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod, c.collname, col_description(a.attrelid, a.attnum) AS comment, attidentity AS identity, attgenerated as attgenerated FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid",
+        "c1(pid 1375440): SHOW max_identifier_length",
+        "c1(pid 1375440): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relkind IN ('r','v','m','p','f')",
+        "c1(pid 1375440): SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = '\"item\"'::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)",
+        "c1(pid 1375440): INSERT INTO \"item\" (\"name\") VALUES ($1) RETURNING \"id\"",
+        "c1(pid 1375440): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, current_setting('transaction_isolation') as transaction_isolation",
+        "c1(pid 1375440): COMMIT",
+        "c1(pid 1375440): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T19:40:00.022Z",
+    "finished_at": "2026-10-21T19:40:01.731Z",
+    "duration_ms": 1709
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 586
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 549
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 574
+      }
+    ]
+  }
+}

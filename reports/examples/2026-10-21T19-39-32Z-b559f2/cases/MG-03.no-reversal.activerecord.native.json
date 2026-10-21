@@ -1,0 +1,327 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T19-39-32Z-b559f2",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "MG-03.no-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A migration that provides no reversal is reverted",
+    "steps": [
+      "Runner A applies { m1 }. m1 inserts marker m1 and provides no reversal.",
+      "Revert with the framework's default selection.",
+      "Apply { m1 } again.",
+      "Checkpoint `after-end`, as soon as the revert has returned and the reapply has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent."
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "activerecord",
+      "version": "0.1.0",
+      "source_sha256": "93d57dc1b0108028ff11f97d489e37c980b64e3351997aeb67e91387914dd7bf"
+    },
+    "framework": {
+      "name": "activerecord",
+      "version": "8.1.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0"
+    },
+    "components": {
+      "ruby": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin25]",
+      "activerecord": "8.1.4",
+      "pg": "1.7.0",
+      "libpq": "180006"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "ActiveRecord::Base.transaction on the connection pool. Pool size is the case pool_max. A nested transaction(requires_new: true) is a savepoint named active_record_N. create! writes the markers. MigrationContext applies and rolls back files under a temporary path. No full Rails application, no database.yml, and no callback is registered on the scored path.",
+    "configuration": {
+      "api": "ActiveRecord::Base.transaction",
+      "nested": "transaction(requires_new: true) savepoint",
+      "pool": "connection pool size from the case pool_max",
+      "faults": "category C and D faults are injected on PG::Connection before Active Record sees the error",
+      "migrations": "ActiveRecord::MigrationContext"
+    },
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "none"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller of revert learns only what the operation reports. If that report says the migration was reverted, the caller treats its effects as gone.",
+  "api_outcome": {
+    "reported": "refused",
+    "basis": "the migration has no reversal, so Active Record raised IrreversibleMigration",
+    "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html",
+    "error": {
+      "class": "ActiveRecord::IrreversibleMigration",
+      "code": null,
+      "message": ""
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "refused",
+          "exit_code": 1,
+          "api_error": {
+            "class": "ActiveRecord::IrreversibleMigration",
+            "code": null,
+            "message": ""
+          },
+          "basis": "the migration has no reversal, so Active Record raised IrreversibleMigration",
+          "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html"
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 1
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported refused"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 1"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent.",
+        "holds": true,
+        "detail": "revert reported refused; marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent.",
+        "holds": true,
+        "detail": "revert reported refused; marker count 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for activerecord (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=activerecord --mode=native --case=MG-03.no-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1377078): SET client_min_messages TO 'warning'",
+        "c1(pid 1377078): SET standard_conforming_strings = on",
+        "c1(pid 1377078): SET intervalstyle = iso_8601",
+        "c1(pid 1377078): SELECT t.oid, t.typname FROM pg_type as t WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'numeric', 'bool', 'timestamp', 'timestamptz')",
+        "c1(pid 1377078): SET SESSION timezone TO 'UTC'",
+        "c1(pid 1377078): SHOW search_path",
+        "c1(pid 1377078): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'text', 'varchar', 'char', 'name', 'bpchar', 'bool', 'bit', 'varbit', ",
+        "c1(pid 1377078): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typtype IN ('r', 'e', 'd')",
+        "c1(pid 1377078): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typelem IN (16, 17, 18, 19, 20, 21, 23, 25, 26, 114, 142, 600, 601, 602, 603, 604, 628, 700, 701, 718, 790, 829, 869, 650, 1042, 1043",
+        "c1(pid 1377078): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'schema_migrations' AND c.relkind IN ('r','v','m','p','f')",
+        "c1(pid 1377078): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'schema_migrations' AND c.relkind IN ('r','p')",
+        "c1(pid 1377078): SHOW max_identifier_length",
+        "c1(pid 1377078): CREATE TABLE \"schema_migrations\" (\"version\" character varying NOT NULL PRIMARY KEY)",
+        "c1(pid 1377078): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'ar_internal_metadata' AND c.relkind IN ('r','p')",
+        "c1(pid 1377078): CREATE TABLE \"ar_internal_metadata\" (\"key\" character varying NOT NULL PRIMARY KEY, \"value\" character varying, \"created_at\" timestamp(6) NOT NULL, \"updated_at\" timestamp(6) NOT NULL)",
+        "c1(pid 1377078): SELECT current_database()",
+        "c1(pid 1377078): SELECT pg_try_advisory_lock(3524646539827292565)",
+        "c1(pid 1377078): SELECT * FROM \"ar_internal_metadata\" WHERE \"ar_internal_metadata\".\"key\" = $1 ORDER BY \"ar_internal_metadata\".\"key\" ASC LIMIT 1",
+        "c1(pid 1377078): INSERT INTO \"ar_internal_metadata\" (\"key\", \"value\", \"created_at\", \"updated_at\") VALUES ('environment', 'default_env', '2026-10-21 19:41:06.142314', '2026-10-21 19:41:06.142316') RETURNING \"key\"",
+        "c1(pid 1377078): BEGIN",
+        "c1(pid 1377078): -> command tag BEGIN for: BEGIN",
+        "c1(pid 1377078): INSERT INTO item (name) VALUES ('m1-1xe157')",
+        "c1(pid 1377078): INSERT INTO \"schema_migrations\" (\"version\") VALUES ('20260101000000') RETURNING \"version\"",
+        "c1(pid 1377078): COMMIT",
+        "c1(pid 1377078): -> command tag COMMIT for: COMMIT",
+        "c1(pid 1377078): SELECT pg_advisory_unlock(3524646539827292565)"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T19:41:05.660Z",
+    "finished_at": "2026-10-21T19:41:09.859Z",
+    "duration_ms": 4199
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 1362
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 1504
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-03.1 held: revert reported refused; marker count 1; history entries 1; MG-03.2 held: revert reported refused; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "refused",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 1333
+      }
+    ]
+  }
+}
