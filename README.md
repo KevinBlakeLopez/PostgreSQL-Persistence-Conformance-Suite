@@ -26,6 +26,10 @@ A framework's report of a transaction outcome is a claim. A framework's own test
 - **Injected faults show recovery paths, not frequency.** Category C and D faults are injected in the client. They show what a framework does *if* that failure happens, not how often it happens in production.
 - **PPCS is not a ranking, a benchmark, an ORM, or a replacement for a framework's own tests.**
 
+## A caught unique violation
+
+On PostgreSQL, a caught unique violation (`23505`) aborts the transaction. `COMMIT` then completes with command tag `ROLLBACK` and does not raise. Several frameworks still report success. The recorded runs, the versions, and the issues already filed are in [`docs/caught-unique-violation.md`](docs/caught-unique-violation.md).
+
 ## Quick start
 
 Requirements: Docker (with Compose), Node.js 24, pnpm 12. JDK 21 for the Hibernate, Spring JDBC, Spring transaction, and plain JDBC adapters. PHP 8.5.6 and Composer for the Laravel and PDO adapters. `pnpm run setup` does not install PHP.
@@ -169,6 +173,7 @@ PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, and illuminate/database v13.38.0 are [`r
 | `adapters/` | One project per adapter. The JavaScript adapters have lockfiles. `node-kit/` is shared by them only. |
 | `schema/` | JSON Schemas for a case result and for a run manifest |
 | `docs/` | Methodology, specifications, the adapter protocol and provenance |
+| `research/` | Investigations outside the default catalog, including production-reachability |
 | `reports/examples/` | Recorded runs: `summary.md`, `run.json` and one JSON file per case |
 | `compose.yaml`, `scripts/` | The disposable server; setup |
 
@@ -179,6 +184,8 @@ PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, and illuminate/database v13.38.0 are [`r
 - `docs/protocol.md`: how an adapter, in any language, talks to the runner.
 - `docs/provenance.md`: the experiments PPCS reuses, with versions and how their results compare.
 - `CONTRIBUTING.md`: adding an adapter without compromising framework-native semantics.
+- `docs/caught-unique-violation.md`: a caught `23505`, then a normal commit, with the recorded runs and the filed issues.
+- `docs/upstream-submissions.md`: which upstream reports have been filed, and which drafts have not.
 
 ## License
 
