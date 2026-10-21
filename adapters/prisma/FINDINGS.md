@@ -44,7 +44,8 @@ pg-pool 3.14.0 `_release` removes the client when `release` is called with an er
 | `TX-04.independent-inner` | none | not run | | UNSUPPORTED, not applicable by design |
 | `TX-05.managed-serializable` | none | committed | xid 13481 committed at `serializable`. `current_setting('transaction_isolation')` was `serializable`. The runner's SIReadLock check agreed | TX-05.1 held. TX-05.2 held |
 | `TX-05.explicit-serializable` | none | not run | | UNSUPPORTED, capability absent |
-| MG-02, MG-03 | | not run | | NOT_RUN. This adapter does not drive Prisma Migrate |
+| MG-02 | | recorded in `reports/examples/2026-10-21T20-00-04Z-178fa4` | | `prisma migrate deploy` holds `pg_advisory_lock(72707369)`. `MG-02.held`, `MG-02.first-deployment`, and `MG-02.session-loss` pass. `MG-02.idle-session-timeout` is INCONCLUSIVE because the session inside the migration did not end |
+| MG-03 | | unsupported | | capability absent. A migration directory has no down file |
 
 Xids and pids above are from the last repetition, which agreed with the other two on classification.
 

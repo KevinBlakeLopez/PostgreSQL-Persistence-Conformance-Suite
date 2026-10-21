@@ -31,8 +31,13 @@
     "TX-02.conn-lost-before-savepoint-rollback",
     "TX-04.nested-failure-contained",
     "TX-04.nested-released-outer-rollback",
-    "TX-05.managed-serializable"
+    "TX-05.managed-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout"
   ],
+  "history": { "table": "drizzle_migrations", "column": "hash" },
   "rollback_claim_channels": [],
   "unsupported": {
     "TX-04.independent-inner": {
@@ -42,6 +47,18 @@
     "TX-05.explicit-serializable": {
       "class": "capability-absent",
       "reason": "Drizzle ORM 0.45.4's documented transaction API is the callback form db.transaction(callback, config). NodePgSession has no method that returns a handle the application commits with a separate call. PgTransaction.rollback() throws TransactionRollbackError from inside a callback; it does not start or commit a transaction. Sending BEGIN and COMMIT through execute() would bypass NodePgSession.transaction, so it is not that API."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) runs pending up SQL and inserts a history row. The node-postgres migrator reads that up SQL from the journal. There is no down migration and no reversal call. This adapter does not add one."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) runs pending up SQL and inserts a history row. The node-postgres migrator reads that up SQL from the journal. There is no down migration and no reversal call. This adapter does not add one."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) runs pending up SQL and inserts a history row. The node-postgres migrator reads that up SQL from the journal. There is no down migration and no reversal call. This adapter does not add one."
     }
   }
 }

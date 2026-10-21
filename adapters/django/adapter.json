@@ -19,7 +19,18 @@
         "TX-01B.conn-lost-before-commit",
         "TX-02.savepoint-rollback-not-sent",
         "TX-02.savepoint-rollback-rejected",
-        "TX-02.conn-lost-before-savepoint-rollback"
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.managed-serializable",
+        "TX-05.explicit-serializable",
+        "MG-02.held",
+        "MG-02.first-deployment",
+        "MG-02.session-loss",
+        "MG-02.idle-session-timeout",
+        "MG-03.valid-reversal",
+        "MG-03.no-reversal",
+        "MG-03.failing-reversal"
       ]
     },
     {
@@ -42,10 +53,27 @@
     "TX-02.savepoint-rollback-not-sent",
     "TX-02.savepoint-rollback-rejected",
     "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable",
     "TX-03.rollback-not-sent",
     "TX-03.statement-error-rollback-not-sent",
-    "TX-03.conn-lost-in-transaction"
+    "TX-03.conn-lost-in-transaction",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
   ],
+  "history": { "table": "django_migrations", "column": "name" },
   "rollback_claim_channels": [],
-  "unsupported": {}
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Django has no propagation mode that promises an independent transaction. A nested transaction.atomic() is a savepoint on the same connection. Model.objects.create sends the INSERT when it is called, so a nested scope has no pending outer writes it could commit. The hazard TX-04.3 targets cannot arise."
+    }
+  }
 }

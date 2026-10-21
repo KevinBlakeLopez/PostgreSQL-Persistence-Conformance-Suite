@@ -1,0 +1,312 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T20-00-04Z-178fa4",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "MG-02.first-deployment",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Two runners released together against a database with no history storage",
+    "steps": [
+      "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
+      "Release both at once. A runner that executes m1 waits at the gate K.",
+      "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
+      "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "prisma",
+      "version": "0.1.0",
+      "source_sha256": "f21780ff7832cea88c84c69b484e002355b812e9f37b8a9641f87da28631efa6"
+    },
+    "framework": {
+      "name": "@prisma/client",
+      "version": "7.10.1"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@prisma/adapter-pg": "7.10.1",
+      "prisma": "7.10.1",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "PrismaClient with a PrismaPg adapter around a pg.Pool. The pool max is the case's pool_max. Interactive transactions use prisma.$transaction(async (tx) => ...), and a nested tx.$transaction() where the case asks for a nested scope. Isolation is the documented isolationLevel option. Prisma's default interactive-transaction timeout (5000 ms) and maxWait (2000 ms) are left in place. No command-tag check, no connection discard, and no extra rollback.",
+    "configuration": {
+      "client": "PrismaClient",
+      "adapter": "PrismaPg(pg.Pool)",
+      "transaction": "prisma.$transaction(async (tx) => ...)",
+      "query_compiler": "client",
+      "compilerBuild": "fast",
+      "engine": "no Rust query engine",
+      "pool": "pg.Pool, max = case pool_max, external pool not disposed by the adapter",
+      "interactive_transaction_timeout_ms": 5000,
+      "interactive_transaction_max_wait_ms": 2000
+    },
+    "form": "prisma migrate deploy on a generated migration. migration.sql inserts the marker and waits on pg_advisory_xact_lock. The schema engine holds pg_advisory_lock(72707369) for the deploy. An empty _prisma_migrations table is created first when it is absent, because deploy returns P3005 when item already exists and that table does not."
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "database": "uninitialized"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so.",
+  "api_outcome": {
+    "reported": "applied",
+    "basis": "prisma migrate deploy applied the migration",
+    "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. A migration directory contains migration.sql and no down file.",
+    "error": null,
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "prisma migrate deploy applied the migration",
+          "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. A migration directory contains migration.sql and no down file."
+        },
+        "B": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "DatabaseError",
+            "code": "23505",
+            "message": "duplicate key value violates unique constraint \"pg_type_typname_nsp_index\""
+          },
+          "basis": "prisma migrate deploy threw",
+          "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. A migration directory contains migration.sql and no down file."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "A"
+    ],
+    "session_ended": false
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); MG-02.5 held: roles inside the migration at once: A",
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 1; history 1"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "A"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "A"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": true,
+        "detail": "marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).",
+        "holds": true,
+        "detail": "A: applied (exit 0); B: failed (exit 1)"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": true,
+        "detail": "roles inside the migration at once: A"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for prisma (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=prisma --mode=native --case=MG-02.first-deployment",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1410035): CREATE TABLE IF NOT EXISTS \"_prisma_migrations\" ( id varchar(36) PRIMARY KEY NOT NULL, checksum varchar(64) NOT NULL, finished_at timestamptz, migration_name varchar(255) NOT NULL, logs text, rolled_back_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), applied_steps_count integer NOT N"
+      ],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true,
+      "external_pool": true
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T20:02:49.301Z",
+    "finished_at": "2026-10-21T20:02:58.921Z",
+    "duration_ms": 9620
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3168
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3267
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: failed (exit 1); B: applied (exit 0); MG-02.5 held: roles inside the migration at once: B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3185
+      }
+    ]
+  }
+}

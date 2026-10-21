@@ -1,0 +1,50 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "activerecord",
+  "framework": "activerecord",
+  "description": "Active Record 8.1.4 on the pg 1.7.0 adapter, without a Rails application. Native mode calls ActiveRecord::Base.transaction. Nested cases use transaction(requires_new: true), which Rails documents as a savepoint. Writes use create!. Migrations use ActiveRecord::MigrationContext. Category C and D faults withhold or rewrite statements on the PG::Connection Active Record uses, once, before Active Record sees the error. The command tag is recorded in diagnostics and is not the reported outcome.",
+  "command": ["sh", "run.sh"],
+  "shared": ["../ruby"],
+  "history": { "table": "schema_migrations", "column": "version" },
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "ActiveRecord::Base.transaction on the connection pool. Pool size is the case pool_max. A nested transaction(requires_new: true) is a savepoint named active_record_N. create! writes the markers. MigrationContext applies and rolls back files under a temporary path. No full Rails application, no database.yml, and no callback is registered on the scored path."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Active Record has no propagation mode that commits an inner transaction while an outer transaction stays open on another connection. transaction(requires_new: true) is a SAVEPOINT on the same connection, and a nested transaction without requires_new joins the parent. create! sends the insert when it is called, so there are no deferred outer writes for an inner transaction to commit. The hazard TX-04.3 targets cannot arise. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Transactions/ClassMethods.html"
+    },
+    "TX-05.explicit-serializable": {
+      "class": "capability-absent",
+      "reason": "The documented transaction API is ActiveRecord::Base.transaction with a block. isolation: is an option of that block. TransactionManager, which owns begin_transaction and commit_transaction, is marked :nodoc:. There is no documented call that returns a transaction handle the application later commits. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-transaction"
+    }
+  }
+}

@@ -9,6 +9,7 @@ import { ProtocolError, boundedUnit, main, managedOutcome, requestedLevel } from
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
 import { Prisma, PrismaClient } from './generated/prisma/client.ts'
+import { runPrismaMigration } from './migration.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const require = createRequire(import.meta.url)
@@ -229,6 +230,8 @@ const cases = {
     ),
     form: TX05_MANAGED_FORM,
   }),
+
+  ...Object.fromEntries(['MG-02.held', 'MG-02.first-deployment', 'MG-02.session-loss', 'MG-02.idle-session-timeout'].map((id) => [id, (ctx, tools) => runPrismaMigration(ctx.connection, tools)])),
 }
 
 await main({
@@ -269,7 +272,7 @@ await main({
     const adapter = new PrismaPg(pool)
     const prisma = new PrismaClient({ adapter })
     return {
-      context: { prisma, pool },
+      context: { prisma, pool, connection: message.connection },
       close: async () => {
         await prisma.$disconnect()
         await pool.end()

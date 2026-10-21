@@ -6,7 +6,9 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "research" / "production-reachability" / "py"))
@@ -257,6 +259,84 @@ def cursor_gate(execute: Callable[..., Any], sql: Any, params: Any, many: bool, 
     return execute(sql, params, many, context)
 
 
+_migration_root: str | None = None
+
+MIGRATION_CONTRACT = (
+    "Django 6.1 MigrationExecutor.migrate applies or unapplies the plan. On PostgreSQL the migration "
+    "runs inside schema_editor(atomic=True) (django/db/migrations/executor.py). record_applied runs in "
+    "that transaction when the migration has no deferred SQL. record_unapplied runs after the backwards "
+    "transaction commits. The executor takes no advisory lock. RunPython without a reverse callable is not reversible: "
+    "unapply raises IrreversibleError and does not record the migration as unapplied."
+)
+MIGRATION_FORM = (
+    "MigrationExecutor.migrate on a generated ppcs_mg.0001_m1 RunPython migration. "
+    "forwards inserts the marker and, when the case holds the gate, waits on pg_advisory_xact_lock in that transaction."
+)
+
+
+def migration_source(marker: str, gate: int, hold: bool, reversal: str) -> str:
+    reverse = ""
+    if reversal == "valid":
+        reverse = """
+
+def backwards(apps, schema_editor):
+    schema_editor.execute("DELETE FROM item WHERE name = %s", [MARKER])
+    schema_editor.execute("INSERT INTO ppcs_undo (name) VALUES (%s)", [MARKER])
+"""
+        operation = "migrations.RunPython(forwards, backwards)"
+    elif reversal == "partial-then-error":
+        reverse = """
+
+def backwards(apps, schema_editor):
+    schema_editor.execute("DELETE FROM item WHERE name = %s", [MARKER])
+    schema_editor.execute("INSERT INTO ppcs_undo (name) VALUES (%s)", [MARKER])
+    raise RuntimeError("the reversal failed on purpose after deleting the marker")
+"""
+        operation = "migrations.RunPython(forwards, backwards)"
+    else:
+        operation = "migrations.RunPython(forwards)"
+    return f"""from django.db import migrations
+
+MARKER = {json.dumps(marker)}
+GATE = {gate}
+HOLD = {hold!r}
+
+def forwards(apps, schema_editor):
+    schema_editor.execute("INSERT INTO item (name) VALUES (%s)", [MARKER])
+    if HOLD:
+        schema_editor.execute("SELECT pg_advisory_xact_lock(%s)", [GATE])
+{reverse}
+class Migration(migrations.Migration):
+    initial = True
+    dependencies = []
+    operations = [
+        {operation},
+    ]
+"""
+
+
+def prepare_migration_app(message: dict[str, Any]) -> list[str]:
+    global _migration_root
+    mig = message.get("migration") or {}
+    root = tempfile.mkdtemp(prefix="ppcs-django-mg-")
+    _migration_root = root
+    package = Path(root) / "ppcs_mg"
+    migrations = package / "migrations"
+    migrations.mkdir(parents=True)
+    (package / "__init__.py").write_text("")
+    (migrations / "__init__.py").write_text("")
+    (migrations / "0001_m1.py").write_text(
+        migration_source(
+            message["markers"]["m1"],
+            int(mig.get("gate") or 0),
+            mig.get("hold") is True,
+            mig.get("reversal") or "valid",
+        )
+    )
+    sys.path.insert(0, root)
+    return ["ppcs_mg"]
+
+
 def configure(message: dict[str, Any]) -> None:
     import django
     from django.conf import settings
@@ -266,12 +346,18 @@ def configure(message: dict[str, Any]) -> None:
         raise RuntimeError(f'unknown mode "{mode}"')
     conn = message["connection"]
     if not settings.configured:
+        options: dict[str, Any] = {"application_name": conn["application_name"]}
+        if conn.get("options"):
+            options["options"] = conn["options"]
+        apps = ["djapp"]
+        if str(message.get("case", {}).get("family", "")).startswith("MG-"):
+            apps = prepare_migration_app(message)
         settings.configure(
             SECRET_KEY="ppcs-django-adapter",
             DEBUG=False,
             USE_TZ=False,
             DEFAULT_AUTO_FIELD="django.db.models.AutoField",
-            INSTALLED_APPS=["djapp"],
+            INSTALLED_APPS=apps,
             DATABASES={
                 "default": {
                     "ENGINE": "django.db.backends.postgresql",
@@ -283,7 +369,7 @@ def configure(message: dict[str, Any]) -> None:
                     "CONN_MAX_AGE": None if mode == "persistent" else 0,
                     "CONN_HEALTH_CHECKS": False,
                     "AUTOCOMMIT": True,
-                    "OPTIONS": {"application_name": conn["application_name"]},
+                    "OPTIONS": options,
                 }
             },
         )
@@ -291,14 +377,23 @@ def configure(message: dict[str, Any]) -> None:
     install_patches()
 
 
-def identify() -> dict[str, Any]:
+def identify(*, isolation: bool = False) -> dict[str, Any]:
     from django.db import connection
 
+    sql = (
+        "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transaction_isolation')"
+        if isolation
+        else "select pg_current_xact_id()::text, pg_backend_pid()"
+    )
     with connection.cursor() as cursor:
-        cursor.execute("select pg_current_xact_id()::text, pg_backend_pid()")
-        xid, pid = cursor.fetchone()
+        cursor.execute(sql)
+        row = cursor.fetchone()
+    xid, pid = row[0], row[1]
     fault.pid = int(pid)
-    return {"xid": str(xid), "pid": int(pid)}
+    out: dict[str, Any] = {"xid": str(xid), "pid": int(pid)}
+    if isolation:
+        out["transaction_isolation"] = row[2]
+    return out
 
 
 def backend_pid() -> int | None:
@@ -609,6 +704,228 @@ def case_reuse(message: dict[str, Any], kind: str) -> dict[str, Any]:
     return outcome
 
 
+# OPTIONS isolation_level is applied in get_new_connection, before autocommit
+# (django/db/backends/postgresql/base.py). atomic() and set_autocommit() take
+# no isolation argument. https://docs.djangoproject.com/en/6.1/ref/databases/#isolation-level
+TX04_FORM = (
+    "Outer transaction.atomic() and a nested transaction.atomic(). The nested "
+    "block is a savepoint. Model.objects.create sends each INSERT when it is called."
+)
+TX05_MANAGED_FORM = (
+    "DATABASES OPTIONS isolation_level is psycopg.IsolationLevel.SERIALIZABLE, "
+    "applied when the connection is opened. The managed case then calls transaction.atomic(). "
+    "atomic() takes no isolation argument."
+)
+TX05_EXPLICIT_FORM = (
+    "DATABASES OPTIONS isolation_level is psycopg.IsolationLevel.SERIALIZABLE, "
+    "applied when the connection is opened. The explicit case then calls set_autocommit(False) "
+    "and transaction.commit(). Those methods take no isolation argument."
+)
+DJANGO_ISOLATION = (
+    CONTRACT
+    + " The isolation level is DATABASES OPTIONS isolation_level, a psycopg.IsolationLevel "
+    "set before the connection is opened. transaction.atomic() takes no isolation argument."
+)
+DJANGO_EXPLICIT_ISOLATION = (
+    "Django documents manual transaction management beside atomic(): set_autocommit(False), "
+    "then commit() or rollback(), then set_autocommit(True). "
+    "The isolation level is DATABASES OPTIONS isolation_level, a psycopg.IsolationLevel "
+    "set before the connection is opened. set_autocommit() and commit() take no isolation argument."
+)
+
+
+def set_connection_isolation(level: str | None) -> None:
+    import psycopg
+    from django.conf import settings
+    from django.db import connections
+
+    wrapper = connections["default"]
+    wrapper.close()
+    options = wrapper.settings_dict["OPTIONS"]
+    configured = settings.DATABASES["default"]["OPTIONS"]
+    if level is None:
+        options.pop("isolation_level", None)
+        configured.pop("isolation_level", None)
+        return
+    mapped = {
+        "read uncommitted": psycopg.IsolationLevel.READ_UNCOMMITTED,
+        "read committed": psycopg.IsolationLevel.READ_COMMITTED,
+        "repeatable read": psycopg.IsolationLevel.REPEATABLE_READ,
+        "serializable": psycopg.IsolationLevel.SERIALIZABLE,
+    }.get(level)
+    if mapped is None:
+        raise ProtocolError(f"the case requests an unknown isolation level: {json.dumps(level)}")
+    options["isolation_level"] = mapped
+    configured["isolation_level"] = mapped
+
+
+def read_marker(name: str) -> None:
+    from djapp.models import Item
+
+    got = Item.objects.filter(name=name).values_list("name", flat=True).get()
+    if got != name:
+        raise RuntimeError("the marker read did not return the written value")
+
+
+def level_work(message: dict[str, Any], checkpoint_name: str, *, with_isolation: bool) -> None:
+    from djapp.models import Item
+
+    marker = message["markers"]["tx"]
+    Item.objects.create(name=marker, qty=0)
+    read_marker(marker)
+    checkpoint(checkpoint_name, identify(isolation=with_isolation))
+
+
+def case_nested(message: dict[str, Any], variant: str) -> dict[str, Any]:
+    from django.db.transaction import atomic
+
+    from djapp.models import Item
+
+    markers = message["markers"]
+    nested: dict[str, Any] = {"caught": False, "completed": False}
+    exit_trace.reset()
+    escaped: BaseException | None = None
+    outer_error: BaseException | None = None
+    try:
+        with atomic():
+            Item.objects.create(name=markers["outer"], qty=0)
+            try:
+                with atomic():
+                    Item.objects.create(name=markers["inner"], qty=0)
+                    checkpoint("inner-after-write", identify())
+                    if variant == "nested-fails":
+                        raise AppError("application error: the nested scope fails")
+                nested["completed"] = True
+            except ProtocolError:
+                raise
+            except Exception as exc:
+                raise_if_protocol(exc)
+                nested["caught"] = True
+                nested["error"] = err_info(exc)
+            if variant == "outer-fails":
+                outer_error = AppError("application error: the outer scope fails")
+                raise outer_error
+    except ProtocolError:
+        raise
+    except Exception as exc:
+        raise_if_protocol(exc)
+        escaped = exc
+    outcome = map_exit(
+        exit_trace.snapshot(),
+        escaped,
+        outer_error if escaped is outer_error else None,
+        CONTRACT,
+    )
+    outcome["steps"] = {"nested": nested}
+    outcome["form"] = TX04_FORM
+    return outcome
+
+
+def _requested_level(
+    attempt: Callable[[], dict[str, Any]],
+    plain: Callable[[], None],
+    state: dict[str, bool],
+    form: str,
+) -> dict[str, Any]:
+    outcome = attempt()
+    outcome["form"] = form
+    if state["started"] or outcome.get("reported") != "failed":
+        return outcome
+    try:
+        plain()
+    except ProtocolError:
+        raise
+    except Exception as exc:
+        raise_if_protocol(exc)
+        outcome["steps"] = {**(outcome.get("steps") or {}), "baseline": {"error": err_info(exc)}}
+    return outcome
+
+
+def case_managed_serializable(message: dict[str, Any]) -> dict[str, Any]:
+    level = (message["case"].get("settings") or {}).get("isolation_level")
+    state = {"started": False}
+
+    def attempt() -> dict[str, Any]:
+        set_connection_isolation(level if isinstance(level, str) else None)
+        if not isinstance(level, str):
+            raise ProtocolError(f"the case requests an unknown isolation level: {json.dumps(level)}")
+
+        def body() -> None:
+            state["started"] = True
+            level_work(message, "after-read", with_isolation=True)
+            return None
+
+        outcome = run_atomic(body)
+        outcome["contract"] = DJANGO_ISOLATION
+        return outcome
+
+    def plain() -> None:
+        set_connection_isolation(None)
+
+        def body() -> None:
+            checkpoint("baseline", identify())
+            return None
+
+        outcome = run_atomic(body)
+        if outcome.get("reported") != "committed":
+            raise RuntimeError(outcome.get("basis") or "the plain transaction did not commit")
+
+    return _requested_level(attempt, plain, state, TX05_MANAGED_FORM)
+
+
+def case_explicit_serializable(message: dict[str, Any]) -> dict[str, Any]:
+    from django.db import transaction
+
+    level = (message["case"].get("settings") or {}).get("isolation_level")
+    state = {"started": False}
+
+    def attempt() -> dict[str, Any]:
+        set_connection_isolation(level if isinstance(level, str) else None)
+        if not isinstance(level, str):
+            raise ProtocolError(f"the case requests an unknown isolation level: {json.dumps(level)}")
+        opened = False
+        try:
+            transaction.set_autocommit(False)
+            opened = True
+            state["started"] = True
+            level_work(message, "after-read", with_isolation=True)
+            transaction.commit()
+            return {
+                "reported": "committed",
+                "basis": "transaction.commit() returned",
+                "contract": DJANGO_EXPLICIT_ISOLATION,
+            }
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            if opened:
+                try:
+                    transaction.rollback()
+                except Exception:
+                    pass
+            return {
+                "reported": "failed",
+                "basis": "set_autocommit(False) or transaction.commit() raised",
+                "contract": DJANGO_EXPLICIT_ISOLATION,
+                "api_error": err_info(exc),
+            }
+        finally:
+            if opened:
+                transaction.set_autocommit(True)
+
+    def plain() -> None:
+        set_connection_isolation(None)
+        transaction.set_autocommit(False)
+        try:
+            checkpoint("baseline", identify())
+            transaction.commit()
+        finally:
+            transaction.set_autocommit(True)
+
+    return _requested_level(attempt, plain, state, TX05_EXPLICIT_FORM)
+
+
 DJANGO_EXPLICIT = (
     "Django documents manual transaction management beside atomic(): set_autocommit(False), "
     "then commit() or rollback(), then set_autocommit(True) "
@@ -774,7 +1091,53 @@ CASES = {
     "TX-03.rollback-not-sent": lambda message: case_reuse(message, "rollback-not-sent"),
     "TX-03.statement-error-rollback-not-sent": lambda message: case_reuse(message, "statement-error"),
     "TX-03.conn-lost-in-transaction": lambda message: case_reuse(message, "conn-lost"),
+    "TX-04.nested-failure-contained": lambda message: case_nested(message, "nested-fails"),
+    "TX-04.nested-released-outer-rollback": lambda message: case_nested(message, "outer-fails"),
+    "TX-05.managed-serializable": case_managed_serializable,
+    "TX-05.explicit-serializable": case_explicit_serializable,
+    "MG-02.held": lambda message: case_migrate(message),
+    "MG-02.first-deployment": lambda message: case_migrate(message),
+    "MG-02.session-loss": lambda message: case_migrate(message),
+    "MG-02.idle-session-timeout": lambda message: case_migrate(message),
+    "MG-03.valid-reversal": lambda message: case_migrate(message),
+    "MG-03.no-reversal": lambda message: case_migrate(message),
+    "MG-03.failing-reversal": lambda message: case_migrate(message),
 }
+
+
+def case_migrate(message: dict[str, Any]) -> dict[str, Any]:
+    from django.db import connections
+    from django.db.migrations.executor import MigrationExecutor
+
+    operation = (message.get("migration") or {}).get("operation")
+    executor = MigrationExecutor(connections["default"])
+    target = [("ppcs_mg", None)] if operation == "revert" else [("ppcs_mg", "0001_m1")]
+    try:
+        plan = executor.migration_plan(target)
+        if not plan:
+            reported = "nothing_to_do"
+            basis = "MigrationExecutor.migration_plan was empty"
+        else:
+            executor.migrate(target)
+            reported = "reverted" if operation == "revert" else "applied"
+            basis = "MigrationExecutor.migrate returned"
+        return {
+            "reported": reported,
+            "exit_code": 0,
+            "basis": basis,
+            "contract": MIGRATION_CONTRACT,
+            "form": MIGRATION_FORM,
+        }
+    except Exception as exc:
+        raise_if_protocol(exc)
+        return {
+            "reported": "failed",
+            "exit_code": 1,
+            "basis": "MigrationExecutor.migrate raised",
+            "contract": MIGRATION_CONTRACT,
+            "form": MIGRATION_FORM,
+            "api_error": err_info(exc),
+        }
 
 
 def diagnostics() -> dict[str, Any]:
@@ -874,6 +1237,8 @@ def run() -> None:
         connections.close_all()
     except Exception:
         pass
+    if _migration_root is not None:
+        shutil.rmtree(_migration_root, ignore_errors=True)
     send({"type": "result", **result})
 
 

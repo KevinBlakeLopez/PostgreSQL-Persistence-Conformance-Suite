@@ -1,0 +1,76 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "ruby-pg-control",
+  "framework": "ruby-pg-control",
+  "description": "Positive and negative controls written directly against the Ruby pg gem. correct reads PG::Result#cmd_status and reports a COMMIT error as a failure, not as a confirmed rollback. unsafe ignores the command tag and reports a raised COMMIT as a rollback. The modes are not harness kind control, so this adapter is not a second case-control gate and is not auto-run beside other adapters. expectations record the classifications the control is built to produce; the suite does not apply them as a gate.",
+  "command": ["sh", "run.sh"],
+  "shared": ["../ruby"],
+  "history": { "table": "ppcs_history", "column": "name" },
+  "modes": [
+    {
+      "id": "correct",
+      "kind": "native",
+      "description": "Positive control. Explicit BEGIN, parameterized writes, COMMIT or ROLLBACK. PG::Result#cmd_status of COMMIT must be COMMIT before the control reports committed. A tag of ROLLBACK is reported as rolled back. Any other tag, or a COMMIT that raises, is reported as failed. A failed ROLLBACK TO SAVEPOINT is followed by ROLLBACK, not COMMIT. A connection whose ROLLBACK failed is closed. BEGIN carries a requested isolation level. One PG::Connection, or a one-connection holder for TX-03. Not a framework pool."
+    },
+    {
+      "id": "unsafe",
+      "kind": "configured",
+      "description": "Negative control. A COMMIT that does not raise is reported as committed, whatever cmd_status is. A COMMIT that raises is reported as rolled back. A failed savepoint rollback is ignored and the outer transaction is committed. A connection whose ROLLBACK failed is kept and handed to the next unit. A write made before a nested scope is sent inside that scope's savepoint. BEGIN ignores a requested isolation level."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
+  ],
+  "rollback_claim_channels": ["result"],
+  "expectations": {
+    "CTL-01.commit": { "correct": "PASS", "unsafe": "PASS" },
+    "CTL-01.rollback": { "correct": "PASS", "unsafe": "PASS" },
+    "TX-01A.caught-error-then-commit": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-01B.conn-lost-before-commit": { "correct": "PASS", "unsafe": "PASS" },
+    "TX-01B.commit-reply-discarded": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-02.savepoint-rollback-not-sent": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-02.savepoint-rollback-rejected": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-02.conn-lost-before-savepoint-rollback": { "correct": "PASS", "unsafe": "PASS" },
+    "TX-03.rollback-not-sent": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-03.statement-error-rollback-not-sent": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-03.conn-lost-in-transaction": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-04.nested-failure-contained": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-04.nested-released-outer-rollback": { "correct": "PASS", "unsafe": "PASS" },
+    "TX-05.managed-serializable": { "correct": "PASS", "unsafe": "FAIL" },
+    "TX-05.explicit-serializable": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-02.held": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-02.first-deployment": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-02.session-loss": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-02.idle-session-timeout": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-03.valid-reversal": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-03.no-reversal": { "correct": "PASS", "unsafe": "FAIL" },
+    "MG-03.failing-reversal": { "correct": "PASS", "unsafe": "FAIL" }
+  },
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "The control has no propagation modes, so it has no API that promises an independent inner transaction, and the hazard TX-04.3 targets (pending outer writes committed by the inner transaction) cannot arise."
+    }
+  }
+}
