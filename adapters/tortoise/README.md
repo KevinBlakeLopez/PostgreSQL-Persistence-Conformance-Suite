@@ -8,7 +8,7 @@ asyncpg's transaction rollback is the statement `ROLLBACK;`. On release, the poo
 
 Pool `maxsize` is 1, the catalog's `pool_max`. Tortoise's own default is 5. The pool stays open between TX-03's two units.
 
-`TX-04.independent-inner` is unsupported, not applicable by design: there is no propagation mode that promises an independent transaction, and `Model.save` sends its `INSERT` when it is called. Both TX-05 cases are unsupported, capability absent: `in_transaction()` accepts only a connection name. `TX-01B.commit-reply-discarded` and the migration cases are not implemented.
+`TX-04.independent-inner` is unsupported, not applicable by design: there is no propagation mode that promises an independent transaction, and `Model.save` sends its `INSERT` when it is called. Both TX-05 cases are unsupported, capability absent: `in_transaction()` accepts only a connection name. `TX-01B.commit-reply-discarded` is not implemented. MG-02 and MG-03 are unsupported, capability absent: Tortoise ORM 1.1.9 has no migration runner. Aerich is a separate project and is not this adapter.
 
 ## Setup
 

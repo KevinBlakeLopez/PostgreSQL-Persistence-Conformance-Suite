@@ -27,7 +27,7 @@ from typing import Any, Callable
 import psycopg
 import sqlalchemy
 from psycopg.pq import TransactionStatus
-from sqlalchemy import Integer, Text, event, text
+from sqlalchemy import Integer, Text, event, select, text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
@@ -53,6 +53,42 @@ CONTRACT = (
     "the savepoint, and a failure of that rollback propagates. "
     "If commit() raises on the way out, TransactionalContext.__exit__ calls "
     "rollback() when it can and propagates the error from that exit."
+)
+
+# Session(execution_options={"isolation_level": ...}) is applied to the
+# Connection when it is first procured (sqlalchemy/orm/session.py, 2.1).
+# The psycopg dialect then sets the DBAPI isolation level so the next BEGIN
+# carries it (sqlalchemy/dialects/postgresql/psycopg.py, set_isolation_level).
+ISOLATION_CONTRACT = (
+    CONTRACT
+    + " The isolation level is Session(execution_options={'isolation_level': ...}), "
+    "set before begin(). PostgreSQL accepts SERIALIZABLE there."
+)
+EXPLICIT_ISOLATION_CONTRACT = (
+    "Session.begin() returns a SessionTransaction. Transaction.commit() commits it "
+    "and Transaction.rollback() rolls it back. "
+    "The isolation level is Session(execution_options={'isolation_level': ...}), "
+    "set before begin(). PostgreSQL accepts SERIALIZABLE there."
+)
+SA_LEVELS = {
+    "read uncommitted": "READ UNCOMMITTED",
+    "read committed": "READ COMMITTED",
+    "repeatable read": "REPEATABLE READ",
+    "serializable": "SERIALIZABLE",
+}
+TX04_FORM = (
+    "Outer Session.begin() and Session.begin_nested(). begin_nested() is the "
+    "documented SAVEPOINT. write_marker flushes the outer row before the savepoint."
+)
+TX05_MANAGED_FORM = (
+    "Session(execution_options={'isolation_level': ...}) then Session.begin() as a "
+    "context manager. The marker is inserted with add() and flush(), and read back "
+    "with select()."
+)
+TX05_EXPLICIT_FORM = (
+    "Session(execution_options={'isolation_level': ...}) then Session.begin(), "
+    "which returns a SessionTransaction committed with Transaction.commit(). "
+    "The marker is inserted with add() and flush(), and read back with select()."
 )
 
 
@@ -312,11 +348,34 @@ def open_engine(connection: dict[str, Any], pool_max: int) -> Engine:
     )
 
 
-def identify(session: Session) -> dict[str, Any]:
-    row = session.execute(
-        text("select pg_current_xact_id()::text as xid, pg_backend_pid() as pid")
-    ).mappings().one()
-    return {"xid": row["xid"], "pid": int(row["pid"])}
+def identify(session: Session, *, isolation: bool = False) -> dict[str, Any]:
+    sql = (
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid, "
+        "current_setting('transaction_isolation') as transaction_isolation"
+        if isolation
+        else "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid"
+    )
+    row = session.execute(text(sql)).mappings().one()
+    out: dict[str, Any] = {"xid": row["xid"], "pid": int(row["pid"])}
+    if isolation:
+        out["transaction_isolation"] = row["transaction_isolation"]
+    return out
+
+
+def read_marker(session: Session, name: str) -> None:
+    got = session.execute(select(Marker.name).where(Marker.name == name)).scalar_one()
+    if got != name:
+        raise RuntimeError("the marker read did not return the written value")
+
+
+def sa_level(settings: dict[str, Any]) -> str:
+    requested = settings.get("isolation_level")
+    level = SA_LEVELS.get(requested) if isinstance(requested, str) else None
+    if level is None:
+        raise ProtocolError(
+            f"the case requests an unknown isolation level: {json.dumps(requested)}"
+        )
+    return level
 
 
 def write_marker(session: Session, name: str) -> None:
@@ -559,6 +618,157 @@ def case_reuse(engine: Engine, message: dict[str, Any], fault: Fault, kind: str)
     return outcome
 
 
+def case_nested(engine: Engine, message: dict[str, Any], fault: Fault, variant: str) -> dict[str, Any]:
+    markers = message["markers"]
+    nested: dict[str, Any] = {"caught": False, "completed": False}
+
+    def body(session: Session) -> None:
+        write_marker(session, markers["outer"])
+        try:
+            with session.begin_nested():
+                write_marker(session, markers["inner"])
+                checkpoint("inner-after-write", identify(session))
+                if variant == "nested-fails":
+                    raise AppError("application error: the nested scope fails")
+            nested["completed"] = True
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            nested["caught"] = True
+            nested["error"] = err_info(exc)
+        if variant == "outer-fails":
+            raise AppError("application error: the outer scope fails")
+
+    outcome = run_begin(engine, body)
+    outcome["steps"] = {"nested": nested}
+    outcome["form"] = TX04_FORM
+    return outcome
+
+
+def level_work(session: Session, message: dict[str, Any], checkpoint_name: str, *, with_isolation: bool) -> None:
+    marker = message["markers"]["tx"]
+    write_marker(session, marker)
+    read_marker(session, marker)
+    checkpoint(checkpoint_name, identify(session, isolation=with_isolation))
+
+
+def case_managed_serializable(engine: Engine, message: dict[str, Any], fault: Fault) -> dict[str, Any]:
+    level = sa_level(message["case"].get("settings") or {})
+    state = {"started": False}
+
+    def attempt() -> dict[str, Any]:
+        session = Session(engine, execution_options={"isolation_level": level})
+        thrown: BaseException | None = None
+        try:
+            with session.begin():
+                state["started"] = True
+                try:
+                    level_work(session, message, "after-read", with_isolation=True)
+                except Exception as exc:
+                    raise_if_protocol(exc)
+                    thrown = exc
+                    raise
+            outcome = map_begin_exit(None, None)
+        except ProtocolError:
+            raise
+        except Exception as exc:
+            raise_if_protocol(exc)
+            outcome = map_begin_exit(thrown, exc)
+        finally:
+            session.close()
+        outcome["contract"] = ISOLATION_CONTRACT
+        return outcome
+
+    def plain() -> None:
+        session = Session(engine)
+        try:
+            with session.begin():
+                checkpoint("baseline", identify(session))
+        finally:
+            session.close()
+
+    return _requested_level(attempt, plain, state, TX05_MANAGED_FORM)
+
+
+def case_explicit_serializable(engine: Engine, message: dict[str, Any], fault: Fault) -> dict[str, Any]:
+    level = sa_level(message["case"].get("settings") or {})
+    state = {"started": False}
+
+    def attempt() -> dict[str, Any]:
+        session = Session(engine, execution_options={"isolation_level": level})
+        trans = None
+        try:
+            try:
+                trans = session.begin()
+            except Exception as exc:
+                raise_if_protocol(exc)
+                return {
+                    "reported": "failed",
+                    "basis": "Session.begin() raised before it returned a transaction",
+                    "contract": EXPLICIT_ISOLATION_CONTRACT,
+                    "api_error": err_info(exc),
+                }
+            state["started"] = True
+            try:
+                level_work(session, message, "after-read", with_isolation=True)
+            except Exception as exc:
+                raise_if_protocol(exc)
+                try:
+                    trans.rollback()
+                except Exception:
+                    pass
+                raise
+            try:
+                trans.commit()
+            except Exception as exc:
+                raise_if_protocol(exc)
+                return {
+                    "reported": "failed",
+                    "basis": "SessionTransaction.commit() raised",
+                    "contract": EXPLICIT_ISOLATION_CONTRACT,
+                    "api_error": err_info(exc),
+                }
+            return {
+                "reported": "committed",
+                "basis": "SessionTransaction.commit() returned",
+                "contract": EXPLICIT_ISOLATION_CONTRACT,
+            }
+        finally:
+            session.close()
+
+    def plain() -> None:
+        session = Session(engine)
+        try:
+            trans = session.begin()
+            checkpoint("baseline", identify(session))
+            trans.commit()
+        finally:
+            session.close()
+
+    return _requested_level(attempt, plain, state, TX05_EXPLICIT_FORM)
+
+
+def _requested_level(
+    attempt: Callable[[], dict[str, Any]],
+    plain: Callable[[], None],
+    state: dict[str, bool],
+    form: str,
+) -> dict[str, Any]:
+    outcome = attempt()
+    outcome["form"] = form
+    if state["started"] or outcome.get("reported") != "failed":
+        return outcome
+    try:
+        plain()
+    except ProtocolError:
+        raise
+    except Exception as exc:
+        raise_if_protocol(exc)
+        outcome["steps"] = {**(outcome.get("steps") or {}), "baseline": {"error": err_info(exc)}}
+    return outcome
+
+
 EXPLICIT_CONTRACT = (
     "Session.begin() returns a SessionTransaction. Transaction.commit() commits it "
     "and Transaction.rollback() rolls it back. Session.begin_nested() begins a SAVEPOINT. "
@@ -741,6 +951,10 @@ CASES = {
     "TX-03.rollback-not-sent": lambda engine, message, fault: case_reuse(engine, message, fault, "rollback-not-sent"),
     "TX-03.statement-error-rollback-not-sent": lambda engine, message, fault: case_reuse(engine, message, fault, "statement-error"),
     "TX-03.conn-lost-in-transaction": lambda engine, message, fault: case_reuse(engine, message, fault, "conn-lost"),
+    "TX-04.nested-failure-contained": lambda engine, message, fault: case_nested(engine, message, fault, "nested-fails"),
+    "TX-04.nested-released-outer-rollback": lambda engine, message, fault: case_nested(engine, message, fault, "outer-fails"),
+    "TX-05.managed-serializable": case_managed_serializable,
+    "TX-05.explicit-serializable": case_explicit_serializable,
 }
 
 

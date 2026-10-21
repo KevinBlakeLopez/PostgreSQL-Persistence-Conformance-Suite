@@ -24,8 +24,45 @@
     "TX-02.conn-lost-before-savepoint-rollback",
     "TX-03.rollback-not-sent",
     "TX-03.statement-error-rollback-not-sent",
-    "TX-03.conn-lost-in-transaction"
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
   ],
   "rollback_claim_channels": [],
-  "unsupported": {}
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "SQLAlchemy's Session has no propagation mode that promises an independent transaction. Session.begin_nested() is a SAVEPOINT on the same transaction. Pending objects belong to that Session and flush into its transaction. A second Session.begin() on another checkout does not share them, so the hazard TX-04.3 targets cannot arise."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "The SQLAlchemy ORM Session exposes no migration runner, history table, or reversal. Schema migration is not a contract of Session. Alembic is a separate project and is not this adapter."
+    }
+  }
 }

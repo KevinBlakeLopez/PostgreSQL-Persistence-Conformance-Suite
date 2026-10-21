@@ -6,6 +6,8 @@ Native mode is `Session.begin()` on the engine this adapter already builds (`poo
 
 `TX-01B.commit-reply-discarded` is NOT_RUN. On this server, `Session.begin()`'s commit returned with psycopg `transaction_status` `IDLE` after it had been `INTRANS`. psycopg 3.3.6 `Connection.commit` waits on `_commit_gen`, which calls `_exec_command(b"COMMIT")` and does not return until that command finishes (`psycopg/_connection_base.py`). The caller never observes a lost COMMIT reply while the driver still reports a transaction. The node-postgres reply-lost simulation is not that probe. Closing the socket after `commit()` returns is not that loss.
 
+TX-04 and TX-05 are a later run, [`reports/examples/2026-10-21T19-26-59Z-4ccef5`](../../reports/examples/2026-10-21T19-26-59Z-4ccef5/summary.md). Both savepoint cases passed. `TX-04.independent-inner` is unsupported, not applicable by design. Both TX-05 forms passed with `transaction_isolation` `serializable`. Three repetitions agreed.
+
 ## Cases
 
 | Case | Fault | SQLAlchemy reported | PostgreSQL at report time, and after exit | Same backend reused | Invariant |

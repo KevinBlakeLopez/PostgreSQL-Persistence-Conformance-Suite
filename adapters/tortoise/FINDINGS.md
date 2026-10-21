@@ -4,7 +4,7 @@ Tortoise ORM 1.1.9, asyncpg 0.32.0, Python 3.13.11, PostgreSQL 18.6 (`postgres:1
 
 Native mode is `in_transaction()` on `tortoise.backends.asyncpg`, the engine `postgres://` selects. A nested `in_transaction()` is a savepoint. Pool `minsize` is 1 and `maxsize` is 1. Tortoise's own default `maxsize` is 5. The pool stays open between TX-03's two units. Category C patches `asyncpg.Connection.execute` once, before Tortoise sees the error. A top-level withhold matches `ROLLBACK;` and leaves the pool reset's `ROLLBACK` (no semicolon) alone. Category B is the runner's `pg_terminate_backend`. A clean exit is reported committed. An exit with the exception raised inside the block is reported rolled back. An exit with an error the block did not raise is reported failed.
 
-`TX-01B.commit-reply-discarded` is NOT_RUN. `asyncpg.Transaction.commit` awaits `Connection.execute` until the command finishes. `TX-04.independent-inner` is unsupported, not applicable by design. Both TX-05 cases are unsupported, capability absent. MG-02 and MG-03 are NOT_RUN.
+`TX-01B.commit-reply-discarded` is NOT_RUN. `asyncpg.Transaction.commit` awaits `Connection.execute` until the command finishes. `TX-04.independent-inner` is unsupported, not applicable by design. Both TX-05 cases are unsupported, capability absent. MG-02 and MG-03 are unsupported, capability absent. The run cited below recorded them NOT_RUN, before the manifest declared them. Aerich is not this adapter.
 
 ## Cases
 
