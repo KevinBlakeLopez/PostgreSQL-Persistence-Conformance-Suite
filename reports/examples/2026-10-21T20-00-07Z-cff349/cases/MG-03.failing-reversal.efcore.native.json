@@ -1,0 +1,297 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T20-00-07Z-cff349",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "MG-03.failing-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A transactional migration's reversal deletes its marker and then fails",
+    "steps": [
+      "Runner A applies { m1 }.",
+      "Revert. m1's reversal deletes its marker and then raises an error. The migration is transactional, so the deletion is in the reversal's transaction.",
+      "Checkpoint `after-end`, as soon as the revert has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "efcore",
+      "version": "0.1.0",
+      "source_sha256": "94fe165e635007090414f6b69b62aca32e601a894b1e6afb60e0b246ee9b23d5"
+    },
+    "framework": {
+      "name": "Microsoft.EntityFrameworkCore",
+      "version": "10.0.13"
+    },
+    "driver": {
+      "name": "Npgsql",
+      "version": "10.0.3"
+    },
+    "components": {
+      "Microsoft.EntityFrameworkCore": "10.0.13",
+      "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
+      "Npgsql": "10.0.3",
+      "runtime": "10.0.13"
+    },
+    "runtime": {
+      "name": "dotnet",
+      "version": "10.0.13"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Database.BeginTransactionAsync, CommitAsync, and RollbackAsync. Marker inserts use Database.ExecuteSqlAsync. The native TX-01A violation is SaveChangesAsync, which EF Core wraps in a savepoint. Nested scopes use CreateSavepointAsync. Pooling is false. EnableRetryOnFailure is not called. The provider's default execution strategy is left in place.",
+    "configuration": {
+      "transactions": "Database.BeginTransactionAsync, IDbContextTransaction.CommitAsync and RollbackAsync",
+      "writes": "Database.ExecuteSqlAsync for markers; SaveChangesAsync for the native TX-01A unique violation",
+      "savepoints": "CreateSavepointAsync, RollbackToSavepointAsync, ReleaseSavepointAsync; SaveChangesAsync may create its own savepoint",
+      "execution_strategy": "the provider default; EnableRetryOnFailure is not called",
+      "connections": "Pooling=false",
+      "migrations": "Database.MigrateAsync, history table ef_migrations_history"
+    },
+    "form": "Database.MigrateAsync on a Migration whose Up inserts the marker and optionally waits on the case gate. Down deletes the marker, refuses when ppcs.reversal is none, or raises after the delete when the reversal is partial-then-error."
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "partial-then-error"
+    },
+    "transactional": true
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A reported failure says the revert did not complete. For a transactional migration, the caller can treat the migration as still applied.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "Database.MigrateAsync(\"0\") threw",
+    "contract": "EF Core 10 Database.MigrateAsync applies pending migrations compiled in this assembly, or moves to a target migration. On PostgreSQL the relational provider runs each migration in a transaction when the provider reports transactional migrations. This adapter does not take an advisory lock of its own before reading history. The migration SQL inserts the marker and, when the case holds the gate, waits on pg_advisory_xact_lock inside that migration. History is the table ef_migrations_history. The adapter reports applied when EF logs Applying migration, and nothing_to_do when MigrateAsync returns without that log. MigrateAsync(\"0\") runs the Down method. An exception whose message says the migration has no reversal is reported as refused. Any other exception is reported as failed.",
+    "error": {
+      "class": "PostgresException",
+      "code": "P0001",
+      "message": "P0001: the reversal failed on purpose after deleting the marker"
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "PostgresException",
+            "code": "P0001",
+            "message": "P0001: the reversal failed on purpose after deleting the marker"
+          },
+          "basis": "Database.MigrateAsync(\"0\") threw",
+          "contract": "EF Core 10 Database.MigrateAsync applies pending migrations compiled in this assembly, or moves to a target migration. On PostgreSQL the relational provider runs each migration in a transaction when the provider reports transactional migrations. This adapter does not take an advisory lock of its own before reading history. The migration SQL inserts the marker and, when the case holds the gate, waits on pg_advisory_xact_lock inside that migration. History is the table ef_migrations_history. The adapter reports applied when EF logs Applying migration, and nothing_to_do when MigrateAsync returns without that log. MigrateAsync(\"0\") runs the Down method. An exception whose message says the migration has no reversal is reported as refused. Any other exception is reported as failed."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 1
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported failed"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 1"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains.",
+        "holds": true,
+        "detail": "revert reported failed; marker count 1; history entries 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for efcore (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=efcore --mode=native --case=MG-03.failing-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "notes": [],
+      "sql": [],
+      "trace": [],
+      "execution_strategy": null,
+      "supports_savepoints": null,
+      "hooks": {
+        "transaction_committed": 0,
+        "transaction_rolled_back": 0
+      },
+      "pooled": false
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T20:01:36.837Z",
+    "finished_at": "2026-10-21T20:01:39.407Z",
+    "duration_ms": 2570
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 859
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 863
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 848
+      }
+    ]
+  }
+}

@@ -1,0 +1,341 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T20-00-07Z-cff349",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "af929302a2dad94c6624f7f46e11c603b96152a25f96cede55c22d414814c8d0"
+  },
+  "specification": {
+    "id": "TX-04.nested-released-outer-rollback",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope completes; then the outer transaction rolls back",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "End the nested scope normally, so that its savepoint is released.",
+      "Raise an application error in the outer scope, so that the framework rolls the outer transaction back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.2",
+        "statement": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "b504ba4a1b60b5ab50e83f83df1bb66b9aab1e7d8429670852dbada03ea853d2"
+  },
+  "subject": {
+    "adapter": {
+      "name": "efcore",
+      "version": "0.1.0",
+      "source_sha256": "94fe165e635007090414f6b69b62aca32e601a894b1e6afb60e0b246ee9b23d5"
+    },
+    "framework": {
+      "name": "Microsoft.EntityFrameworkCore",
+      "version": "10.0.13"
+    },
+    "driver": {
+      "name": "Npgsql",
+      "version": "10.0.3"
+    },
+    "components": {
+      "Microsoft.EntityFrameworkCore": "10.0.13",
+      "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
+      "Npgsql": "10.0.3",
+      "runtime": "10.0.13"
+    },
+    "runtime": {
+      "name": "dotnet",
+      "version": "10.0.13"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Database.BeginTransactionAsync, CommitAsync, and RollbackAsync. Marker inserts use Database.ExecuteSqlAsync. The native TX-01A violation is SaveChangesAsync, which EF Core wraps in a savepoint. Nested scopes use CreateSavepointAsync. Pooling is false. EnableRetryOnFailure is not called. The provider's default execution strategy is left in place.",
+    "configuration": {
+      "transactions": "Database.BeginTransactionAsync, IDbContextTransaction.CommitAsync and RollbackAsync",
+      "writes": "Database.ExecuteSqlAsync for markers; SaveChangesAsync for the native TX-01A unique violation",
+      "savepoints": "CreateSavepointAsync, RollbackToSavepointAsync, ReleaseSavepointAsync; SaveChangesAsync may create its own savepoint",
+      "execution_strategy": "the provider default; EnableRetryOnFailure is not called",
+      "connections": "Pooling=false",
+      "migrations": "Database.MigrateAsync, history table ef_migrations_history"
+    },
+    "form": "The outer transaction is BeginTransactionAsync. The nested scope is CreateSavepointAsync, RollbackToSavepointAsync, and ReleaseSavepointAsync. A second BeginTransactionAsync is not used."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope completed, and that the outer transaction rolled back.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw and IDbContextTransaction.RollbackAsync returned",
+    "contract": "EF Core 10 IDbContextTransaction.CommitAsync commits the transaction begun by Database.BeginTransactionAsync. The EF Core transaction API does not return a PostgreSQL command tag. A return from CommitAsync is reported as committed. A throw from CommitAsync is reported as failed. A throw from the body followed by RollbackAsync returning is reported as rolled_back. A throw from RollbackAsync is reported as failed. Marker inserts use Database.ExecuteSqlAsync. SaveChangesAsync inside an explicit transaction inserts the row under a savepoint and releases it; the row xmin is then that subtransaction, while pg_current_xact_id() is the top-level id, and the harness does not attribute that xmin to a top-level write. The native TX-01A violation is still SaveChangesAsync of a Uniq entity. The execute-sql mode uses ExecuteSqlAsync for that violation. A nested scope is CreateSavepointAsync, RollbackToSavepointAsync, and ReleaseSavepointAsync. EF Core creates its own savepoint around SaveChangesAsync when a user transaction is already active and the transaction reports SupportsSavepoints. This adapter does not disable that savepoint and does not read Npgsql protocol messages.",
+    "error": {
+      "class": "AppException",
+      "code": null,
+      "message": "application error: the outer scope fails"
+    },
+    "steps": {
+      "nested": {
+        "caught": false,
+        "completed": true
+      },
+      "hooks": {
+        "transaction_committed": 0,
+        "transaction_rolled_back": 1
+      },
+      "supports_savepoints": true
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 28242,
+          "xid": "5359"
+        },
+        "session": {
+          "pid": 28242,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "5359",
+          "xid_matches": true,
+          "backend_xmin": "5359",
+          "backend_start": "2026-10-21 20:00:38.152239+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "5359",
+            "5360"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 28242,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "5359",
+              "xid_matches": null,
+              "backend_xmin": "5359",
+              "backend_start": "2026-10-21 20:00:38.152239+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 28242,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "5359",
+        "pid": 28242,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-21 20:00:38.152239+00"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-04.2 held: the API reported: rolled_back; xid 5359 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [5359, 5360]"
+      },
+      {
+        "description": "the nested scope completed normally",
+        "met": true,
+        "detail": "nested scope: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.2",
+        "statement": "A nested scope (a savepoint) that completed belongs to the outer transaction: when the outer transaction rolls back, the nested scope's writes are rolled back too.",
+        "holds": true,
+        "detail": "the API reported: rolled_back; xid 5359 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for efcore (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=efcore --mode=native --case=TX-04.nested-released-outer-rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "notes": [
+        "CreateSavepointAsync ppcs_nested",
+        "ReleaseSavepointAsync ppcs_nested"
+      ],
+      "sql": [
+        "info: 10/21/2026 13:00:38.111 RelationalEventId.CommandExecuted[20101] (Microsoft.EntityFrameworkCore.Database.Command) \n      Executed DbCommand (17ms) [Parameters=[@p0='?'], CommandType='Text', CommandTimeout='30']\n      insert into item (name) values (@p0)",
+        "info: 10/21/2026 13:00:38.116 RelationalEventId.CommandExecuted[20101] (Microsoft.EntityFrameworkCore.Database.Command) \n      Executed DbCommand (1ms) [Parameters=[@p0='?'], CommandType='Text', CommandTimeout='30']\n      insert into item (name) values (@p0)"
+      ],
+      "trace": [],
+      "execution_strategy": "NpgsqlExecutionStrategy",
+      "supports_savepoints": true,
+      "hooks": {
+        "transaction_committed": 0,
+        "transaction_rolled_back": 1
+      },
+      "pooled": false
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T20:00:37.740Z",
+    "finished_at": "2026-10-21T20:00:39.187Z",
+    "duration_ms": 1447
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 5359 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 512
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 5364 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 462
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-04.2 held: the API reported: rolled_back; xid 5369 rolled back at report time (`after-end`); outer visible: false; inner (released scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 473
+      }
+    ]
+  }
+}
