@@ -1,0 +1,84 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "efcore",
+  "framework": "Microsoft.EntityFrameworkCore",
+  "description": "Entity Framework Core 10.0.13 on Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3 and Npgsql 10.0.3. Native mode uses Database.BeginTransactionAsync, SaveChangesAsync, CommitAsync, and RollbackAsync, with Pooling off so a commit's backend is still visible at after-end. execute-sql uses Database.ExecuteSqlAsync for the unique violation only. pooled uses an NpgsqlDataSource with MaxPoolSize 1 for TX-03. Category C faults throw from an EF Core transaction interceptor before Npgsql sends ROLLBACK or ROLLBACK TO SAVEPOINT. Migrations use Database.MigrateAsync and the history table ef_migrations_history. The adapter does not add its own advisory lock around Migrate.",
+  "command": ["./run"],
+  "shared": ["../dotnet"],
+  "history": { "table": "ef_migrations_history", "column": "MigrationId" },
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "Database.BeginTransactionAsync, CommitAsync, and RollbackAsync. Marker inserts use Database.ExecuteSqlAsync. The native TX-01A violation is SaveChangesAsync, which EF Core wraps in a savepoint. Nested scopes use CreateSavepointAsync. Pooling is false. EnableRetryOnFailure is not called. The provider's default execution strategy is left in place.",
+      "cases": [
+        "CTL-01.commit",
+        "CTL-01.rollback",
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.explicit-serializable",
+        "MG-02.held",
+        "MG-02.first-deployment",
+        "MG-02.session-loss",
+        "MG-02.idle-session-timeout",
+        "MG-03.valid-reversal",
+        "MG-03.no-reversal",
+        "MG-03.failing-reversal"
+      ]
+    },
+    {
+      "id": "execute-sql",
+      "kind": "configured",
+      "description": "The same BeginTransactionAsync and CommitAsync calls. The marker is still SaveChangesAsync. The unique violation is Database.ExecuteSqlAsync, which is not wrapped in the savepoint EF Core creates around SaveChangesAsync. TX-01A only, plus the observation controls.",
+      "cases": ["TX-01A.caught-error-then-commit"]
+    },
+    {
+      "id": "pooled",
+      "kind": "configured",
+      "description": "The same context and transaction calls. NpgsqlDataSource with MaxPoolSize 1 is passed to UseNpgsql. The context is disposed between the two TX-03 units, which returns the connection to the pool. The pool is not cleared and this adapter does not issue a validation query. TX-03 only, plus the observation controls.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.explicit-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "EF Core has no propagation mode that promises an independent transaction while an outer transaction stays open. BeginTransactionAsync throws if a transaction is already in progress. A second DbContext is a second physical transaction coordinated by application code, not a framework propagation mode. This adapter does not manufacture that mode."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "EF Core has no managed transaction API that runs a callback and commits when the callback returns, and that accepts an isolation level. ExecutionStrategy.ExecuteAsync is a retry policy. AutoTransactionBehavior starts an implicit transaction around SaveChanges and does not take an isolation level. BeginTransactionAsync is the explicit API and is the other case."
+    }
+  }
+}

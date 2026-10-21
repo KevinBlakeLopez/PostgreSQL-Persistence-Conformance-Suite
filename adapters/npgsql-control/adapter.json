@@ -1,0 +1,91 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "npgsql-control",
+  "framework": "npgsql-control",
+  "description": "Plain Npgsql positive and negative controls on Npgsql 10.0.3. No EF Core and no framework. correct probes with SELECT 1 before CommitAsync because the public API does not expose the COMMIT command tag, and disposes a connection whose rollback failed. unsafe treats a returning CommitAsync as success, commits after a failed savepoint rollback, and calls CommitAsync after a failed rollback. pooled is the correct policy on an NpgsqlDataSource with MaxPoolSize 1. pooled-no-reset is that pool with NoResetOnClose. Category C faults are withheld or rewritten on NpgsqlTransaction.RollbackAsync and RollbackAsync(name), once, before Npgsql sends. The modes are not harness kind control, so this adapter is not a second case-control gate.",
+  "command": ["./run"],
+  "shared": ["../dotnet"],
+  "modes": [
+    {
+      "id": "correct",
+      "kind": "native",
+      "description": "Positive control. BeginTransactionAsync, parameterized commands, CommitAsync or RollbackAsync. CommitAsync is reported as committed only when a prior SELECT 1 succeeded. A 25P02 from that probe, followed by CommitAsync returning, is reported as rolled_back. The command tag is not read. A thrown CommitAsync is reported as failed and the connection is disposed. A failed RollbackAsync(savepoint) is followed by RollbackAsync, not CommitAsync. A thrown RollbackAsync disposes the connection. IsolationLevel is passed to BeginTransactionAsync. Pooling is off."
+    },
+    {
+      "id": "unsafe",
+      "kind": "configured",
+      "description": "Negative control. CommitAsync returning is reported as committed, with no probe. A thrown CommitAsync is reported as rolled_back. A failed RollbackAsync(savepoint) is ignored and the outer transaction is committed. A thrown RollbackAsync is followed by CommitAsync, and the connection is kept. IsolationLevel is not passed. A write made before a savepoint is executed inside that savepoint. Pooling is off."
+    },
+    {
+      "id": "pooled",
+      "kind": "configured",
+      "description": "The correct completion policy. NpgsqlDataSource with MaxPoolSize 1 and the driver's default reset on close. TX-03 only, plus the observation controls. The connection is returned to the pool when the unit finishes.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    },
+    {
+      "id": "pooled-no-reset",
+      "kind": "configured",
+      "description": "The correct completion policy. NpgsqlDataSource with MaxPoolSize 1 and NoResetOnClose true, so a connection returned while a transaction is open is not reset by the pool. TX-03 only, plus the observation controls.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": ["result"],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "Npgsql has no propagation mode and no API that commits an inner transaction while an outer transaction stays open. SaveAsync stays in the same transaction, so an inner transaction cannot commit writes the outer transaction has not committed."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner or reversible migration history. This adapter does not add one."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner or reversible migration history. This adapter does not add one."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "Plain Npgsql has no migration runner or reversible migration history. This adapter does not add one."
+    }
+  }
+}

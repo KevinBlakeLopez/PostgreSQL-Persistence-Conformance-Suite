@@ -1,0 +1,18 @@
+#!/bin/sh
+# Manifest command. stdout is the protocol stream. This script prints nothing on success.
+set -eu
+cd "$(dirname "$0")"
+export DOTNET_NOLOGO=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+if [ -z "${DOTNET_ROOT:-}" ] && [ -x "$HOME/.dotnet/dotnet" ]; then
+  export DOTNET_ROOT="$HOME/.dotnet"
+fi
+if [ -n "${DOTNET_ROOT:-}" ]; then
+  export PATH="$DOTNET_ROOT:$PATH"
+fi
+dll="bin/Release/net10.0/Ppcs.NpgsqlControl.dll"
+if [ ! -f "$dll" ]; then
+  echo "npgsql-control is not built. From this directory: dotnet build -c Release" >&2
+  exit 2
+fi
+exec dotnet exec "$dll"
