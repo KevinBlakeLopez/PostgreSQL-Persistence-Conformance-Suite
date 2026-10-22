@@ -1,8 +1,8 @@
 # Draft: Kysely
 
-**Not filed.**
+**Filed 2026-10-21** as https://github.com/kysely-org/kysely/issues/2157. Duplicate search the same day: `isCommitted` returned only #1990, the closed connection-leak report. `ROLLBACK` with commit returned #1894, a migrations lock issue. `23505` returned nothing. `command tag` returned #428, a MySQL row-count request. npm `latest` was 0.29.7. No pull request.
 
-Suggested title: `commit()` sets `isCommitted` when PostgreSQL rolls the transaction back
+Suggested title: `commit()` sets `isCommitted` when the transaction did not commit
 
 Suggested labels: `bug`, `postgres`, `built-in dialect`
 
@@ -10,84 +10,47 @@ Suggested labels: `bug`, `postgres`, `built-in dialect`
 
 ### What happened
 
-On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and then commits, PostgreSQL accepts `COMMIT` and reports command tag `ROLLBACK`. No exception is raised. The effect is a rollback, and the earlier writes are gone.
+On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and then commits, the `COMMIT` completes without raising. The earlier writes are gone.
 
-Kysely 0.29.6 treats that `COMMIT` as success.
+Kysely 0.29.6 treats that completion as success.
 
-`PostgresDriver.commitTransaction` runs `commit` and does not read the command tag (`dist/dialect/postgres/postgres-driver.js`). `ControlledTransaction.commit()` then sets `isCommitted` to `true` (`dist/kysely.js`). `db.transaction().execute(callback)` does the same with its internal flag and resolves the promise.
+Two call paths were recorded, three times each, on Kysely 0.29.6, pg 8.23.1, Node.js 24.14.1, and PostgreSQL 18.6. The run is `2026-10-19T18-15-49Z-b2c174`.
 
-node-postgres exposes the tag on `Result.command`. For this `COMMIT` the tag is `ROLLBACK`.
+**Explicit `commit().execute()`.** `trx.commit().execute()` resolved. The public `isCommitted` flag was `true`. An independent connection did not see the row written before the caught `23505`. After the call returned, the session was idle and its last statement was `commit`. `pg_xact_status()` for that transaction was `aborted`. The Kysely case file's `command_tag` is `null`.
+
+**Managed `db.transaction().execute(callback)`.** The callback caught `23505` and returned. The promise resolved. The row was absent, the session was idle, its last statement was `commit`, and `pg_xact_status()` was `aborted`. This case file also has `command_tag: null`. Its `driver.isCommitted` is `null`. The managed callback receives a `Transaction`. In 0.29.6 that class, which starts at `dist/kysely.js` line 541, has no `isCommitted` getter. The public getter is only on `ControlledTransaction`, lines 742–744. That is source, not a logged flag. In `dist/kysely.js` `TransactionBuilder.execute` (0.29.6, lines 668–692), after `commitTransaction` resolves, the method sets a local `state.isCommitted = true` and returns the callback's result. That assignment is source, not a value this run logged.
+
+In the same run, a raw node-postgres `COMMIT` after a caught `23505` logged `command_tag: "ROLLBACK"` and did not throw. That is the pg control, not a field on the Kysely result. Kysely's `PostgresDriver.commitTransaction` (`dist/dialect/postgres/postgres-driver.js`, lines 55–57) awaits `executeQuery` of `commit` and does not use the returned result. `ControlledTransaction.commit()` (`dist/kysely.js`, lines 772–778) then sets `this.#state.isCommitted = true`. The public getter is lines 742–744. The doc comment on `commit()` begins at line 748, and line 749 says "Commits the transaction."
+
+A savepoint recovery on these versions does commit the kept row. `savepoint('ppcs_sp')`, catch `23505`, `rollbackToSavepoint()`, then `commit()`. The case file shows the row visible, `pg_xact_status()` `committed`, and `driver.isCommitted: true`.
 
 ### Versions
 
-- Kysely 0.29.6
+- Kysely 0.29.6, the version that was run
 - pg 8.23.1
 - Node.js 24.14.1
 - PostgreSQL 18.6
 
-The command-tag behavior is documented for current PostgreSQL and is not specific to 18.6: in an aborted transaction, `COMMIT` has the same effect as `ROLLBACK`, including the command tag, and no exception condition is raised. https://www.postgresql.org/docs/current/sql-commit.html
+On 2026-10-21, npm `latest` is 0.29.7. Its `PostgresDriver.commitTransaction` still awaits `executeQuery` of `commit` and does not use the result. `ControlledTransaction.commit` still sets `isCommitted` after that call. The line numbers below are from the 0.29.6 build.
 
 ### Reproduction
 
-```js
-import { Kysely, PostgresDialect, sql } from 'kysely'
-import pg from 'pg'
-
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-const db = new Kysely({ dialect: new PostgresDialect({ pool }) })
-
-await sql`create table item (id serial primary key, name text not null)`.execute(db)
-await sql`create table uniq (id serial primary key, code text not null unique)`.execute(db)
-await sql`insert into uniq (code) values ('taken')`.execute(db)
-
-const trx = await db.startTransaction().execute()
-await trx.insertInto('item').values({ name: 'kept' }).execute()
-try {
-  await trx.insertInto('uniq').values({ code: 'taken' }).execute()
-} catch (error) {
-  // 23505 unique_violation. The application catches it and continues.
-  console.log(error.code)
-}
-await trx.commit().execute()
-
-console.log(trx.isCommitted) // true
-const visible = await sql`select name from item`.execute(db)
-console.log(visible.rows) // []
-```
-
-The same ending happens with `db.transaction().execute(callback)` when the callback catches `23505` and returns. The promise resolves, and the `item` row is not visible to another connection.
-
-This was repeated three times. A savepoint recovery on the same versions does commit the kept row: `savepoint()`, catch the unique violation, `rollbackToSavepoint()`, then `commit()`. So a real commit is distinguishable from this one.
-
-A reduced script printed:
-
-```json
-{
-  "api": "kysely ControlledTransaction.commit()",
-  "version": "0.29.6",
-  "sqlstate": "23505",
-  "commit_threw": false,
-  "isCommitted": true,
-  "visible": []
-}
-```
+The recorded explicit path is `startTransaction().execute()`, an insert, a caught unique violation, then `commit().execute()`. The recorded managed path is `db.transaction().execute(callback)` with the same catch and a normal return. Visibility was read from another connection. The script `reproductions/node-commit-tag.mjs` has that explicit shape. Its stdout was not saved. The case files are the record.
 
 ### Expected
 
-`commit().execute()` should reject, and `isCommitted` should stay `false`, when PostgreSQL answers `COMMIT` with `ROLLBACK`. `db.transaction().execute()` should reject in that case instead of resolving.
-
-`commit()` is documented as committing the transaction. `isCommitted` is the public flag for that outcome.
+`commit().execute()` should not report that the transaction committed when the row is absent and `pg_xact_status()` is `aborted`. `isCommitted` should not be `true` in that case. `db.transaction().execute()` should not resolve as a successful commit for that same outcome.
 
 ### Actual
 
-`commit().execute()` resolves, `isCommitted` is `true`, and the insert from inside the transaction is not visible.
+`commit().execute()` resolved and `isCommitted` was `true`. The row was absent.
+
+`db.transaction().execute()` resolved. The row was absent. No public `isCommitted` value was logged for that path.
 
 ### Why it matters
 
-Application code that catches a unique violation and then commits is a normal way to try an insert and keep the rest of the transaction. After `isCommitted` becomes true, that code can send mail, return success, or enqueue work for a row that was not stored. The connection itself is usable afterward: PostgreSQL has ended the transaction, so the next transaction on that connection can commit its own row. The failure is the success flag, not a poisoned connection.
+Application code that catches a unique violation and then commits can treat `isCommitted` as proof that the earlier write was stored. The explicit path recorded that flag as `true` while an independent connection did not see the row.
 
 ### What this is not
 
-This is not a failed savepoint. Rolling back to a savepoint and then committing does persist the earlier write.
-
-I did not find an existing Kysely issue for `isCommitted` remaining true when PostgreSQL answers `COMMIT` with `ROLLBACK`.
+Rolling back to a savepoint and then committing does persist the earlier write. That recovery was recorded separately, with the row visible and `isCommitted` true.
