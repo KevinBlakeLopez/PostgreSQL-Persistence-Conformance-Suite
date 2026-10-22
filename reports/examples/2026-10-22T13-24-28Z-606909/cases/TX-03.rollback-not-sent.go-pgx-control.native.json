@@ -1,0 +1,539 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T13-24-28Z-606909",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-03.rollback-not-sent",
+    "version": "1.1",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The top-level ROLLBACK of a failed transaction fails on the client; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK, which fails, so the connection keeps its open transaction.",
+      "When the fault fires, before the framework sees its error, the adapter's driver layer reports checkpoint `after-fault` (the backend PID): the runner records the fault's effect on the server.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "go-pgx-control",
+      "version": "0.1.0",
+      "source_sha256": "eeaedf188fe2e594466d8e0f1856cf31c5b40850b8cd229e7c30456edbc449d6"
+    },
+    "framework": {
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0"
+    },
+    "driver": {
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0"
+    },
+    "components": {},
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "pgx.Conn.BeginTx, Tx.Commit, and Tx.Rollback on one connection. A nested Tx.Begin is a savepoint. Tx.Commit's return value is reported as the API result: nil is committed, pgx.ErrTxCommitRollback is rolled_back, and any other error is failed. Pooling is not used. After Conn.die closes the connection, the next transaction dials a replacement.",
+    "configuration": {
+      "api": "pgx.Tx.Begin, Commit, and Rollback",
+      "nested": "pgx.Tx.Begin is a savepoint",
+      "pgx": "v5.11.0",
+      "pool": "single *pgx.Conn, replaced only after pgx closes it"
+    },
+    "form": {
+      "name": "pool",
+      "reason": "unit 2 is the next transaction on the same pool of one connection"
+    }
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "mechanism": "A client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+    "injection_point": "The framework's ROLLBACK of unit 1.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "Unit 1's transaction stays open on its connection (\"idle in transaction\"), holding the doomed write.",
+    "expected_client": "An error from the framework's rollback; what the framework then does with the connection is under test.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework knows that its ROLLBACK failed, so it knows that the connection's transaction state is unknown.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "pgx.Tx.Rollback returned an error after the body failed. The error does not by itself assert that PostgreSQL rolled the transaction back.",
+    "contract": "pgx v5.11.0 Tx.Commit (tx.go, dbTx.Commit) executes COMMIT and returns ErrTxCommitRollback when the command tag is ROLLBACK. The Tx interface documents that a commit which fails with a rollback status returns an error where errors.Is(ErrTxCommitRollback) is true. ErrTxCommitRollback's comment says PostgreSQL accepts COMMIT on an aborted transaction and treats it as ROLLBACK. A nil error is pgx's report that the transaction committed. dbTx.Rollback executes ROLLBACK and, on any error, calls Conn.die, which closes the connection. A nested Tx.Begin is a savepoint. Nested Rollback executes ROLLBACK TO SAVEPOINT and does not close the connection.",
+    "error": {
+      "class": "*pgconn.errTimeout",
+      "code": null,
+      "message": "timeout: context already done: context canceled"
+    },
+    "steps": {
+      "body_error": {
+        "class": "*errors.errorString",
+        "code": null,
+        "message": "application error: unit 1 fails"
+      },
+      "cleanup_error": {
+        "class": "*pgconn.errTimeout",
+        "code": null,
+        "message": "timeout: context already done: context canceled"
+      },
+      "fault": {
+        "fired": 1,
+        "injection": "client-side",
+        "mode": "client-reject",
+        "withheld": [
+          "rollback"
+        ]
+      },
+      "reuse": {
+        "reconnected": true,
+        "same_backend": false,
+        "unit1_pid": 1746470,
+        "unit2_pid": 1746486
+      },
+      "unit2": {
+        "elapsed_ms": 73,
+        "outcome": "completed",
+        "reported": "committed"
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 1746470,
+          "xid": "35896"
+        },
+        "session": {
+          "pid": 1746470,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "35896",
+          "xid_matches": true,
+          "backend_xmin": "35896",
+          "backend_start": "2026-10-22 13:24:58.603011+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "35896"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1746470,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "35896",
+              "xid_matches": null,
+              "backend_xmin": "35896",
+              "backend_start": "2026-10-22 13:24:58.603011+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-fault": {
+        "reported": {
+          "pid": 1746470,
+          "xid": null
+        },
+        "session": {
+          "pid": 1746470,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "35896",
+          "xid_matches": null,
+          "backend_xmin": "35896",
+          "backend_start": "2026-10-22 13:24:58.603011+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "35896"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1746470,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "35896",
+              "xid_matches": null,
+              "backend_xmin": "35896",
+              "backend_start": "2026-10-22 13:24:58.603011+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 1746470,
+          "xid": null
+        },
+        "session": {
+          "pid": 1746470,
+          "present": false
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 1746470,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 1746486,
+          "xid": "35897"
+        },
+        "session": {
+          "pid": 1746486,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "35897",
+          "xid_matches": true,
+          "backend_xmin": "35897",
+          "backend_start": "2026-10-22 13:24:58.747135+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "35897"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 1746470,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1746486,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "35897",
+              "xid_matches": null,
+              "backend_xmin": "35897",
+              "backend_start": "2026-10-22 13:24:58.747135+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 1746470,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "committed",
+            "session": {
+              "pid": 1746486,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 13:24:58.747135+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "35896",
+        "pid": 1746470,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-22 13:24:58.603011+00"
+      },
+      "unit2": {
+        "xid": "35897",
+        "pid": 1746486,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-22 13:24:58.747135+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": true
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": "35897"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-03.1 held: failed transaction: xid 35896 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 35897; TX-03.2 held: next unit: completed, reported committed after 73 ms; its transaction: 35897 committed; next visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"doomed\" had reached PostgreSQL at `unit1-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit1-after-write`: item locked; transactionid [35896]"
+      },
+      {
+        "description": "the write of marker \"next\" had reached PostgreSQL at `unit2-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit2-after-write`: item locked; transactionid [35897]"
+      },
+      {
+        "description": "the client-side fault (client-reject) fired exactly once",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      },
+      {
+        "description": "the withheld ROLLBACK left unit 1's transaction open: its session was in a transaction holding unit 1's ID",
+        "met": true,
+        "detail": "at `after-fault`: session \"idle in transaction\", backend_xid 35896; transactionid locks [35896]"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": true,
+        "detail": "failed transaction: xid 35896 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 35897"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": true,
+        "detail": "next unit: completed, reported committed after 73 ms; its transaction: 35897 committed; next visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for go-pgx-control (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=go-pgx-control --mode=native --case=TX-03.rollback-not-sent",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "reconnected": true,
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "rollback",
+          "error": "timeout: context already done: context canceled"
+        },
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "commit",
+          "command_tag": "COMMIT"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T13:24:58.361Z",
+    "finished_at": "2026-10-22T13:24:59.837Z",
+    "duration_ms": 1476
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 35896 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 35897; TX-03.2 held: next unit: completed, reported committed after 73 ms; its transaction: 35897 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 526
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 35901 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 35902; TX-03.2 held: next unit: completed, reported committed after 54 ms; its transaction: 35902 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 580
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 35906 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 35907; TX-03.2 held: next unit: completed, reported committed after 40 ms; its transaction: 35907 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 370
+      }
+    ]
+  }
+}

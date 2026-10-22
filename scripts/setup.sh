@@ -22,3 +22,10 @@ for project in "$DIR" "$DIR"/adapters/*; do
     (cd "$project" && pnpm exec prisma generate)
   fi
 done
+# The Go adapters are not part of the Node install. When Go is on PATH, download the
+# pinned module so later `go run -mod=readonly` does not touch go.sum. A machine
+# without Go still installs the JavaScript adapters.
+if command -v go >/dev/null 2>&1 && [ -f "$DIR/adapters/go/go.mod" ]; then
+  echo "== /adapters/go/"
+  (cd "$DIR/adapters/go" && go mod download)
+fi

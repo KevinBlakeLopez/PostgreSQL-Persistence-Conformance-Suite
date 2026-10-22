@@ -1,0 +1,341 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T13-24-28Z-606909",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-04.nested-failure-contained",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope fails; the caller handles the failure and commits",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() (the top-level transaction's ID) and pg_backend_pid().",
+      "Raise an application error in the nested scope.",
+      "The outer scope catches the error and ends normally.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "gorm",
+      "version": "0.1.0",
+      "source_sha256": "39051de8a3ec8902f0030d9c0089b77b66ec443124939a7b8ffd84b99c580064"
+    },
+    "framework": {
+      "name": "gorm.io/gorm",
+      "version": "v1.31.2"
+    },
+    "driver": {
+      "name": "gorm.io/driver/postgres",
+      "version": "v1.6.3"
+    },
+    "components": {
+      "database/sql": "go1.27.3",
+      "github.com/jackc/pgx/v5": "v5.11.0"
+    },
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "managed",
+    "kind": "native",
+    "description": "DB.Transaction. The callback catches the unique violation and returns nil, so GORM calls Commit. A nested DB.Transaction is a savepoint. sql.TxOptions.Isolation is passed to DB.Transaction for TX-05. SkipDefaultTransaction and DisableNestedTransaction keep their defaults.",
+    "configuration": {
+      "api": "db.Transaction. A nested db.Transaction is a savepoint. DisableNestedTransaction is left at its default, false.",
+      "connector": "postgres.Config.Conn is a *sql.DB opened with pgx stdlib. GORM's DSN path uses the same driver.",
+      "logger": "logger.Discard, so GORM does not write on the protocol stdout",
+      "pool": "database/sql pool under GORM, MaxOpenConns = pool_max. Not pgxpool."
+    },
+    "form": {
+      "name": "savepoint",
+      "reason": "the nested scope uses the surface's ordinary savepoint API, not a second connection"
+    }
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope failed: its error reached the caller. PostgreSQL answers the final COMMIT with COMMIT.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "db.Transaction returned nil",
+    "contract": "GORM v1.31.2 DB.Transaction (finisher_api.go) commits when the callback returns nil and returns tx.Commit().Error. Its comment says: return error will rollback, otherwise to commit. A nil return is GORM's report that the transaction committed. A non-nil return is not a successful commit. gorm.io/driver/postgres v1.6.3 opens the pool with pgx stdlib (postgres.go Initialize) unless Config.Conn is set. This adapter passes a *sql.DB opened on pgx stdlib, which is the supported Config.Conn path, so the pool limits and the tracer sit under GORM. A nested DB.Transaction is a savepoint when DisableNestedTransaction is false, which is the default. The postgres dialector's SavePoint and RollbackTo call Exec and return nil, ignoring the *gorm.DB that Exec returns.",
+    "error": null,
+    "steps": {
+      "nested": {
+        "caught": true,
+        "completed": false
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 1749844,
+          "xid": "36354"
+        },
+        "session": {
+          "pid": 1749844,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "36354",
+          "xid_matches": true,
+          "backend_xmin": "36354",
+          "backend_start": "2026-10-22 13:25:34.155503+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "36354",
+            "36355"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1749844,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "36354",
+              "xid_matches": null,
+              "backend_xmin": "36354",
+              "backend_start": "2026-10-22 13:25:34.155503+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1749844,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 13:25:34.155503+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "36354",
+        "pid": 1749844,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-22 13:25:34.155503+00"
+      }
+    },
+    "markers": {
+      "outer": true,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": "36354",
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-04.1 held: the API reported: committed; xid 36354 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [36354, 36355]"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: committed; xid 36354 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for gorm (managed)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=gorm --mode=managed --case=TX-04.nested-failure-contained",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "SAVEPOINT sp1717800257467846143",
+          "command_tag": "SAVEPOINT"
+        },
+        {
+          "sql": "ROLLBACK TO SAVEPOINT sp1717800257467846143",
+          "command_tag": "ROLLBACK"
+        },
+        {
+          "sql": "commit",
+          "command_tag": "COMMIT"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T13:25:33.923Z",
+    "finished_at": "2026-10-22T13:25:34.881Z",
+    "duration_ms": 958
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 36354 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 326
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 36359 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 313
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 36364 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 319
+      }
+    ]
+  }
+}

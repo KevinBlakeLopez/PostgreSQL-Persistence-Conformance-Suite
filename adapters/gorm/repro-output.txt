@@ -1,0 +1,10 @@
+Command, 2026-10-22, disposable PPCS server only. cluster_name matched .ppcs-instance.json. Database ppcs_gorm_rollback_repro was created and dropped. The password was not printed.
+
+go run -mod=readonly ./cmd/gorm-rollback-repro ../../.ppcs-instance.json
+
+RollbackTo().Error == nil: true
+Commit().Error: commit unexpectedly resulted in rollback
+errors.Is(Commit().Error, pgx.ErrTxCommitRollback): true
+rows visible after Commit: 0
+
+Go 1.27.3, gorm.io/gorm v1.31.2, gorm.io/driver/postgres v1.6.3, github.com/jackc/pgx/v5 v5.11.0, PostgreSQL 18.6.

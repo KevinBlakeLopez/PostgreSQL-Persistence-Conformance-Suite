@@ -29,6 +29,7 @@ These did not treat that completion as a commit:
 - Django 6.1.2 `transaction.atomic()`, which rolls the transaction back
 - SQLAlchemy ORM 2.1.5 explicit `SessionTransaction.commit()`, which raises
 - SQLAlchemy ORM's `after_commit` on the managed path. The block can return after flush has rolled the transaction back. `after_commit` did not run.
+- pgx v5.11.0 `Tx.Commit`, and through it Go `database/sql` and GORM v1.31.2. The suite run [`reports/examples/2026-10-22T13-24-28Z-606909`](../reports/examples/2026-10-22T13-24-28Z-606909/summary.md) reports `rolled_back` because `Commit` returns `ErrTxCommitRollback`. The tracer recorded command tag `ROLLBACK`. The comparison is [`docs/go-persistence.md`](go-persistence.md).
 
 ## Reports already submitted
 

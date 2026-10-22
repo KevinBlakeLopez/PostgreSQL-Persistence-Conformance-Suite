@@ -1,0 +1,82 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "gorm",
+  "framework": "gorm.io/gorm",
+  "description": "GORM on gorm.io/driver/postgres and pgx v5.11.0 through database/sql. managed uses DB.Transaction. explicit uses DB.Begin, DB.Commit, and DB.Rollback. A nested DB.Transaction is a savepoint; DisableNestedTransaction is left false. Explicit nested scopes use SavePoint and RollbackTo. The pool is the database/sql pool under GORM, MaxOpenConns equal to pool_max, not pgxpool. postgres.Config.Conn supplies that *sql.DB; GORM's DSN path uses the same pgx stdlib driver. The logger is discarded so it cannot write on the protocol stdout. Category C faults are the pgx QueryTracer under that pool. Category D discards the parsed commit inside driver.Tx, after pgx.Tx.Commit returns and before database/sql returns it to GORM.",
+  "command": ["./run"],
+  "shared": ["../go"],
+  "modes": [
+    {
+      "id": "managed",
+      "kind": "native",
+      "description": "DB.Transaction. The callback catches the unique violation and returns nil, so GORM calls Commit. A nested DB.Transaction is a savepoint. sql.TxOptions.Isolation is passed to DB.Transaction for TX-05. SkipDefaultTransaction and DisableNestedTransaction keep their defaults.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-01B.commit-reply-discarded",
+        "TX-01B.commit-reply-unseen",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.managed-serializable"
+      ]
+    },
+    {
+      "id": "explicit",
+      "kind": "native",
+      "description": "DB.Begin, DB.Commit, and DB.Rollback. The unique violation is caught and Commit is still called. Nested scopes use SavePoint and RollbackTo. sql.TxOptions.Isolation is passed to DB.Begin for TX-05.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-01B.commit-reply-discarded",
+        "TX-01B.commit-reply-unseen",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.explicit-serializable"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-01B.commit-reply-unseen",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": ["result"],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "GORM has no propagation mode that commits an inner transaction while an outer transaction stays open. A nested DB.Transaction or SavePoint is a SAVEPOINT on the same connection. DisableNestedTransaction false is the default and still uses a savepoint. This adapter does not open a second *sql.DB and call it an independent transaction."
+    },
+    "MG-02.held": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate or a migration history. GORM has no multi-process advisory-lock migration protocol in the transaction API under test. This adapter does not add one."},
+    "MG-02.first-deployment": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate or a migration history. GORM has no multi-process advisory-lock migration protocol in the transaction API under test. This adapter does not add one."},
+    "MG-02.session-loss": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate or a migration history. GORM has no multi-process advisory-lock migration protocol in the transaction API under test. This adapter does not add one."},
+    "MG-02.idle-session-timeout": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate or a migration history. GORM has no multi-process advisory-lock migration protocol in the transaction API under test. This adapter does not add one."},
+    "MG-03.valid-reversal": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate. There is no reversible migration history under test. This adapter does not add one."},
+    "MG-03.no-reversal": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate. There is no reversible migration history under test. This adapter does not add one."},
+    "MG-03.failing-reversal": {"class": "capability-absent", "reason": "This adapter does not use GORM's AutoMigrate. There is no reversible migration history under test. This adapter does not add one."}
+  }
+}

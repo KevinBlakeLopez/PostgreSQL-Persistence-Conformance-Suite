@@ -1,0 +1,11 @@
+#!/bin/sh
+# Manifest command. stdout is the adapter protocol. This script prints nothing.
+set -eu
+if ! command -v go >/dev/null 2>&1; then
+  if [ -x "$HOME/sdk/go1.27.3/bin/go" ]; then
+    PATH="$HOME/sdk/go1.27.3/bin:$PATH"
+    export PATH
+  fi
+fi
+cd "$(CDPATH= cd "$(dirname "$0")/../go" && pwd)"
+exec go run -mod=readonly ./cmd/pgx-control

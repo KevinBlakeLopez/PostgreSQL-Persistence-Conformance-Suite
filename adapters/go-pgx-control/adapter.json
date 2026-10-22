@@ -1,0 +1,63 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "go-pgx-control",
+  "framework": "github.com/jackc/pgx/v5",
+  "description": "Native pgx control on pgx v5.11.0. No database/sql and no GORM. native dials one *pgx.Conn and replaces it only after pgx closes it. pooled uses pgxpool.Pool with MaxConns equal to pool_max and MinConns 0, for TX-03. Nested Tx.Begin is a savepoint. Category C client-reject cancels the query context inside pgx.QueryTracer.TraceQueryStart, which pgx calls before it sends. Category C rewrite replaces ROLLBACK TO SAVEPOINT on the cleartext connection before the server sees it. TX-01B.commit-reply-discarded is not implemented: pgx.Tx.Commit is the API under test, and QueryTracer cannot change the value Commit returns after it has parsed the command tag. The modes are not harness kind control.",
+  "command": ["./run"],
+  "shared": ["../go"],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "pgx.Conn.BeginTx, Tx.Commit, and Tx.Rollback on one connection. A nested Tx.Begin is a savepoint. Tx.Commit's return value is reported as the API result: nil is committed, pgx.ErrTxCommitRollback is rolled_back, and any other error is failed. Pooling is not used. After Conn.die closes the connection, the next transaction dials a replacement."
+    },
+    {
+      "id": "pooled",
+      "kind": "configured",
+      "description": "The same BeginTx, Commit, and Rollback calls on pgxpool.Pool with MaxConns 1 and MinConns 0. pgxpool.Tx.Commit and Rollback Release the connection. pgxpool destroys a connection whose transaction status is not idle. TX-03 only, plus the observation controls.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-unseen",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": ["result"],
+  "unsupported": {
+    "TX-01B.commit-reply-discarded": {
+      "class": "capability-absent",
+      "reason": "The API under test is pgx.Tx.Commit. pgx v5.11.0 parses the command tag inside dbTx.Commit and returns ErrTxCommitRollback when the tag is ROLLBACK. QueryTracer.TraceQueryEnd runs inside Conn.Exec, before Commit chooses its return value, and cannot replace that return value. There is no supported hook between the parsed tag and Tx.Commit's return. The category E case, TX-01B.commit-reply-unseen, is the wire loss this adapter can run. This is not a claim that pgx reports the tag correctly."
+    },
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "pgx has no propagation mode and no API that commits an inner transaction while an outer transaction stays open. Tx.Begin on an open transaction is a savepoint. This adapter does not open a second connection and call it an independent transaction."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "pgx has no managed callback API that commits when a callback returns. BeginTx and Commit are explicit. TxOptions.IsoLevel is passed to BeginTx in the explicit case."
+    },
+    "MG-02.held": {"class": "capability-absent", "reason": "pgx has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.first-deployment": {"class": "capability-absent", "reason": "pgx has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.session-loss": {"class": "capability-absent", "reason": "pgx has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.idle-session-timeout": {"class": "capability-absent", "reason": "pgx has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-03.valid-reversal": {"class": "capability-absent", "reason": "pgx has no migration runner or reversible migration history. This adapter does not add one."},
+    "MG-03.no-reversal": {"class": "capability-absent", "reason": "pgx has no migration runner or reversible migration history. This adapter does not add one."},
+    "MG-03.failing-reversal": {"class": "capability-absent", "reason": "pgx has no migration runner or reversible migration history. This adapter does not add one."}
+  }
+}

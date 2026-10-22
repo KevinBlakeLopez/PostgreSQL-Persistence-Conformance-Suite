@@ -1,0 +1,50 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "go-database-sql-control",
+  "framework": "database/sql",
+  "description": "database/sql control on Go's database/sql and pgx v5.11.0 stdlib. No GORM. The pool is database/sql with MaxOpenConns equal to pool_max. sql.Tx.Commit returns the error from driver.Tx.Commit. pgx stdlib wrapTx.Commit calls pgx.Tx.Commit, so a ROLLBACK command tag becomes pgx.ErrTxCommitRollback at sql.Tx.Commit if pgx returns that error. The command tag itself is not a database/sql result. Nested transactions are SAVEPOINT SQL, because database/sql has no savepoint type. Category C faults use the same pgx QueryTracer as the native pgx control, under this driver. Category D discards the parsed commit inside a driver.Tx wrapper, after pgx.Tx.Commit returns and before database/sql returns to the caller. The mode is not harness kind control.",
+  "command": ["./run"],
+  "shared": ["../go"],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "sql.DB.BeginTx, sql.Tx.Commit, and sql.Tx.Rollback. sql.TxOptions.Isolation is set for TX-05. A nil Commit error is reported as committed. pgx.ErrTxCommitRollback is reported as rolled_back. Any other Commit or Rollback error is reported as failed. The pool is database/sql, not pgxpool. stdlib ResetSession still returns driver.ErrBadConn when the pgx transaction status is not idle."
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-discarded",
+    "TX-01B.commit-reply-unseen",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": ["result"],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "database/sql has no propagation mode and no API that commits an inner transaction while an outer transaction stays open. A SAVEPOINT stays on the same connection and the same transaction. This adapter does not open a second connection and call it an independent transaction."
+    },
+    "TX-05.managed-serializable": {
+      "class": "capability-absent",
+      "reason": "database/sql has no managed callback API that commits when a callback returns. BeginTx and Commit are explicit. sql.TxOptions.Isolation is passed to BeginTx in the explicit case."
+    },
+    "MG-02.held": {"class": "capability-absent", "reason": "database/sql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.first-deployment": {"class": "capability-absent", "reason": "database/sql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.session-loss": {"class": "capability-absent", "reason": "database/sql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-02.idle-session-timeout": {"class": "capability-absent", "reason": "database/sql has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one."},
+    "MG-03.valid-reversal": {"class": "capability-absent", "reason": "database/sql has no migration runner or reversible migration history. This adapter does not add one."},
+    "MG-03.no-reversal": {"class": "capability-absent", "reason": "database/sql has no migration runner or reversible migration history. This adapter does not add one."},
+    "MG-03.failing-reversal": {"class": "capability-absent", "reason": "database/sql has no migration runner or reversible migration history. This adapter does not add one."}
+  }
+}

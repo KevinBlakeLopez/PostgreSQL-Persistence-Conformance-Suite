@@ -1,0 +1,332 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T13-24-28Z-606909",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "gorm",
+      "version": "0.1.0",
+      "source_sha256": "39051de8a3ec8902f0030d9c0089b77b66ec443124939a7b8ffd84b99c580064"
+    },
+    "framework": {
+      "name": "gorm.io/gorm",
+      "version": "v1.31.2"
+    },
+    "driver": {
+      "name": "gorm.io/driver/postgres",
+      "version": "v1.6.3"
+    },
+    "components": {
+      "database/sql": "go1.27.3",
+      "github.com/jackc/pgx/v5": "v5.11.0"
+    },
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "managed",
+    "kind": "native",
+    "description": "DB.Transaction. The callback catches the unique violation and returns nil, so GORM calls Commit. A nested DB.Transaction is a savepoint. sql.TxOptions.Isolation is passed to DB.Transaction for TX-05. SkipDefaultTransaction and DisableNestedTransaction keep their defaults.",
+    "configuration": {
+      "api": "db.Transaction. A nested db.Transaction is a savepoint. DisableNestedTransaction is left at its default, false.",
+      "connector": "postgres.Config.Conn is a *sql.DB opened with pgx stdlib. GORM's DSN path uses the same driver.",
+      "logger": "logger.Discard, so GORM does not write on the protocol stdout",
+      "pool": "database/sql pool under GORM, MaxOpenConns = pool_max. Not pgxpool."
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "the callback returned nil and db.Transaction returned an error that does not assert a rollback",
+    "contract": "GORM v1.31.2 DB.Transaction (finisher_api.go) commits when the callback returns nil and returns tx.Commit().Error. Its comment says: return error will rollback, otherwise to commit. A nil return is GORM's report that the transaction committed. A non-nil return is not a successful commit. gorm.io/driver/postgres v1.6.3 opens the pool with pgx stdlib (postgres.go Initialize) unless Config.Conn is set. This adapter passes a *sql.DB opened on pgx stdlib, which is the supported Config.Conn path, so the pool limits and the tracer sit under GORM. A nested DB.Transaction is a savepoint when DisableNestedTransaction is false, which is the default. The postgres dialector's SavePoint and RollbackTo call Exec and return nil, ignoring the *gorm.DB that Exec returns.",
+    "error": {
+      "class": "*pgconn.PgError",
+      "code": "57P01",
+      "message": "FATAL: terminating connection due to administrator command (SQLSTATE 57P01)"
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 1747926,
+          "xid": "36101"
+        },
+        "session": {
+          "pid": 1747926,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "36101",
+          "xid_matches": true,
+          "backend_xmin": "36101",
+          "backend_start": "2026-10-22 13:25:13.969763+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "36101"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1747926,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "36101",
+              "xid_matches": null,
+              "backend_xmin": "36101",
+              "backend_start": "2026-10-22 13:25:13.969763+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 1747926,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 1747926,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "36101",
+        "pid": 1747926,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-22 13:25:13.969763+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [36101]"
+      },
+      {
+        "description": "the runner terminated the backend at `before-end`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (aborted), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 36101 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for gorm (managed)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=gorm --mode=managed --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "commit",
+          "error": "FATAL: terminating connection due to administrator command (SQLSTATE 57P01)"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T13:25:13.751Z",
+    "finished_at": "2026-10-22T13:25:14.856Z",
+    "duration_ms": 1105
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 413
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 346
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 346
+      }
+    ]
+  }
+}
