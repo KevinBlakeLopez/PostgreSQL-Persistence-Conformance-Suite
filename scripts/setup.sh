@@ -22,6 +22,12 @@ for project in "$DIR" "$DIR"/adapters/*; do
     (cd "$project" && pnpm exec prisma generate)
   fi
 done
+# The SQLx adapter is a Cargo project. The JavaScript CI job has no Rust toolchain, so this step
+# runs only when cargo is already installed. The Rust workflow builds it itself.
+if command -v cargo >/dev/null 2>&1 && [ -f "$DIR/adapters/sqlx/Cargo.toml" ]; then
+  echo "== /adapters/sqlx/"
+  (cd "$DIR/adapters/sqlx" && cargo build --locked --release)
+fi
 # The Go adapters are not part of the Node install. When Go is on PATH, download the
 # pinned module so later `go run -mod=readonly` does not touch go.sum. A machine
 # without Go still installs the JavaScript adapters.

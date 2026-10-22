@@ -1,0 +1,122 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "sqlx",
+  "framework": "sqlx",
+  "description": "SQLx 0.9.0 PostgreSQL driver on Tokio. explicit calls Pool::begin, Transaction::commit, and Transaction::rollback. managed calls Connection::transaction, which commits on Ok and calls rollback().await on Err. direct uses one PgConnection and the explicit calls, with no pool. drop and direct-drop drop an open Transaction instead of calling rollback(); Drop only queues ROLLBACK. sql sends SET TRANSACTION because begin has no isolation argument. The pool is PgPool, max_connections equal to pool_max, min_connections 0, test_before_acquire false. Category C faults are withheld or rewritten in this process, on the cleartext proxy in front of SQLx, once, before PostgreSQL receives the statement. Compile-time query macros are not enabled.",
+  "command": ["./run"],
+  "modes": [
+    {
+      "id": "explicit",
+      "kind": "native",
+      "description": "PgPool begin, Transaction::commit, and Transaction::rollback. A nested Transaction::begin is SAVEPOINT _sqlx_savepoint_N. max_connections is pool_max, min_connections is 0, and test_before_acquire is false. No after_release hook is installed. SQLx still calls ping before returning a connection to the pool; that is the pool, not an adapter mitigation.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-01B.commit-reply-unseen",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback"
+      ]
+    },
+    {
+      "id": "managed",
+      "kind": "native",
+      "description": "Connection::transaction on a connection checked out of the same PgPool. The callback's Ok commits and its Err calls rollback().await. A nested scope inside the callback is Transaction::begin, a savepoint. The pool settings match explicit.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-01B.commit-reply-unseen",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback"
+      ]
+    },
+    {
+      "id": "direct",
+      "kind": "native",
+      "description": "One PgConnection, not a pool. begin, commit, and rollback are the explicit methods. TX-03 is not run: there is no pool to reuse. This separates SQLx's transaction result from PgPool's return path.",
+      "cases": [
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-01B.commit-reply-unseen",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback"
+      ]
+    },
+    {
+      "id": "drop",
+      "kind": "native",
+      "description": "The same PgPool as explicit. Commit still calls Transaction::commit. Rollback paths drop the Transaction. Drop calls start_rollback, which queues the statement and does not wait. The pool's return path calls ping, which flushes that queue. TX-01A and TX-01B are not run: those cases end with COMMIT.",
+      "cases": [
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback"
+      ]
+    },
+    {
+      "id": "direct-drop",
+      "kind": "native",
+      "description": "One PgConnection. CTL-01.rollback drops the Transaction and reports after-end before the connection is closed. No pool ping runs. Only the observation controls run, so a failed rollback control does not gate a scenario.",
+      "cases": []
+    },
+    {
+      "id": "sql",
+      "kind": "configured",
+      "description": "TX-05 only, plus the observation controls. begin and transaction take no isolation argument. The first statement is SET TRANSACTION ISOLATION LEVEL SERIALIZABLE. That is application SQL, not a transaction-API option. The explicit case then calls Transaction::commit. The managed case uses Connection::transaction.",
+      "cases": ["TX-05.managed-serializable", "TX-05.explicit-serializable"]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-01B.commit-reply-unseen",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-01B.commit-reply-discarded": {
+      "class": "capability-absent",
+      "reason": "SQLx 0.9.0 PgConnection::run reads the simple-query response, including CommandComplete and ReadyForQuery, before Transaction::commit returns. There is no supported hook after that parse and before commit's Result where the adapter can discard a reply the driver has already accepted. The category E case, TX-01B.commit-reply-unseen, is the loss this adapter can run. This is not a claim that commit reports the command tag."
+    },
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "SQLx has no propagation mode that commits an inner transaction on a second connection while an outer transaction stays open. Transaction::begin on an open transaction is SAVEPOINT _sqlx_savepoint_N. Connection::transaction calls begin on the same connection. There is no deferred write queue. This adapter does not open a second connection and call it an independent transaction."
+    },
+    "MG-02.held": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive sqlx::migrate or a multi-process advisory-lock migration protocol."},
+    "MG-02.first-deployment": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive sqlx::migrate or a multi-process advisory-lock migration protocol."},
+    "MG-02.session-loss": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive sqlx::migrate or a multi-process advisory-lock migration protocol."},
+    "MG-02.idle-session-timeout": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive sqlx::migrate or a multi-process advisory-lock migration protocol."},
+    "MG-03.valid-reversal": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive a reversible migration history."},
+    "MG-03.no-reversal": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive a reversible migration history."},
+    "MG-03.failing-reversal": {"class": "capability-absent", "reason": "This adapter evaluates SQLx transactions and the PostgreSQL driver. It does not drive a reversible migration history."}
+  }
+}

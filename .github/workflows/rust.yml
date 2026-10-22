@@ -1,0 +1,49 @@
+# SQLx adapter on GitHub Actions.
+#
+# The JavaScript suite job stays filtered to Lucid, MikroORM, TypeORM, and pg-control.
+# This job builds the Rust adapter from Cargo.lock and runs it on the disposable PostgreSQL 18.6 server.
+
+name: rust
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.14.1
+      - name: Rust 1.99.1
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.99.1 --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: pnpm 12.8.1, from package.json's packageManager
+        run: corepack enable && pnpm --version
+      - name: Install the harness
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Build the SQLx adapter from the lockfile
+        run: cargo build --locked --release --manifest-path adapters/sqlx/Cargo.toml
+      - name: Start the disposable server
+        run: pnpm run pg:up
+      - name: SQLx adapter
+        run: node harness/run.mjs --adapter=sqlx --repeat=3
+      - name: Keep the evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ppcs-rust-results
+          path: results/
+          if-no-files-found: ignore
+      - name: Remove the server
+        if: always()
+        run: pnpm run pg:down

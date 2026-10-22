@@ -1,0 +1,325 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T18-40-05Z-7b77ec",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "MG-02.idle-session-timeout",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "PostgreSQL ends runner A's idle sessions while A is inside the migration",
+    "steps": [
+      "Runner A's connections set idle_session_timeout = 1s.",
+      "As MG-02.held, until checkpoint inside-A.",
+      "Wait until one of A's sessions has ended, or 4 s have passed.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "7afb3b256f25b5d99a29e66922fde39cc77b97293dc1589770ccab601357a489"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "control",
+    "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, ignoring a requested isolation level.",
+    "configuration": {
+      "commit_reply": "ignored",
+      "commit_error": "reported as a rollback",
+      "failed_savepoint_rollback": "ignored",
+      "failed_rollback": "connection returned to the pool",
+      "write_before_nested_scope": "deferred into the nested scope's savepoint",
+      "isolation_level": "ignored: plain BEGIN"
+    },
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "connection_options": {
+      "A": "-c idle_session_timeout=1000"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "idle_session_timeout ends a session that is idle outside a transaction. A session busy inside the migration's transaction is not idle, so the setting does not end that session.",
+  "api_outcome": {
+    "reported": "applied",
+    "basis": "the control committed the marker and a history entry",
+    "contract": "The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker.",
+    "error": null,
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "the control committed the marker and a history entry",
+          "contract": "The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker."
+        },
+        "B": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "the control committed the marker and a history entry",
+          "contract": "The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker."
+        },
+        "C": {
+          "reported": "nothing_to_do",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "history already held an entry, so the control applied nothing",
+          "contract": "The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker."
+        }
+      },
+      "enumerations": 1,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 2
+    },
+    "history_counts": {
+      "m1": 2
+    },
+    "inside_migration": [
+      "A",
+      "B"
+    ],
+    "session_ended": false
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "FAIL",
+    "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 2; history 2"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "A, B"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "A, B"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": false,
+        "detail": "marker count 2; history entries 2"
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE.",
+        "holds": null,
+        "detail": "no session of runner A ended, so the fault did not happen"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": false,
+        "detail": "roles inside the migration at once: A, B"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": {
+      "invariants": [
+        "MG-02.1: After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "MG-02.5: No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      ],
+      "framework": "The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker."
+    },
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for pg-control (unsafe)"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=unsafe --case=MG-02.idle-session-timeout",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1903648): BEGIN",
+        "c1(pid 1903648): -> command tag BEGIN for: BEGIN",
+        "c1(pid 1903648): select 1 from ppcs_history where name = $1",
+        "c1(pid 1903648): insert into item (name) values ($1)",
+        "c1(pid 1903648): select pg_advisory_xact_lock($1)",
+        "c1(pid 1903648): insert into ppcs_history (name) values ($1)",
+        "c1(pid 1903648): COMMIT",
+        "c1(pid 1903648): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T18:41:25.436Z",
+    "finished_at": "2026-10-22T18:41:38.874Z",
+    "duration_ms": 13438
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "FAIL",
+        "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 4476
+      },
+      {
+        "repetition": 2,
+        "classification": "FAIL",
+        "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 4467
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 4495
+      }
+    ]
+  }
+}
