@@ -7,11 +7,13 @@ export const Item = new EntitySchema({ name: 'Item', tableName: 'item', columns:
 export const Uniq = new EntitySchema({ name: 'Uniq', tableName: 'uniq', columns: { id, code: { type: String, unique: true } } })
 
 export async function openDataSource(connection, { poolMax, logLines }) {
-  const { host, port, user, password, database, application_name } = connection
+  const { host, port, user, password, database, application_name, options } = connection
   const ds = new DataSource({
     type: 'postgres',
     host, port, username: user, password, database,
     applicationName: application_name,
+    // The runner passes libpq options, including idle_session_timeout for MG-02.idle-session-timeout.
+    ...(options ? { extra: { options } } : {}),
     entities: [Item, Uniq],
     synchronize: false,
     poolSize: poolMax,

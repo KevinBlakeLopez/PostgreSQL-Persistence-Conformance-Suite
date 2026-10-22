@@ -2,7 +2,7 @@
   "manifest": "ppcs-adapter/1",
   "name": "mikroorm",
   "framework": "@mikro-orm/core",
-  "description": "MikroORM with its PostgreSQL driver, through EntityManager.transactional() inside a request context, with defineEntity entities.",
+  "description": "MikroORM with its PostgreSQL driver, through EntityManager.transactional() inside a request context, with defineEntity entities. MG-02 and MG-03 call Migrator.up() and Migrator.down(). The default is one transaction per migration and no advisory lock.",
   "command": [
     "node",
     "main.mjs"
@@ -43,8 +43,16 @@
     "TX-04.nested-released-outer-rollback",
     "TX-04.independent-inner",
     "TX-05.managed-serializable",
-    "TX-05.explicit-serializable"
+    "TX-05.explicit-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
   ],
+  "history": { "table": "mikro_orm_migrations", "column": "name" },
   "rollback_claim_channels": [],
   "unsupported": {}
 }

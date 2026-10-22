@@ -8,6 +8,7 @@ import { TransactionPropagation } from '@mikro-orm/postgresql'
 import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { runMikroMigration } from './migration.mjs'
 import { Item, Uniq, inRequest, openOrm } from './orm.mjs'
 import { mikroPrCases } from './pr01.mjs'
 
@@ -255,6 +256,10 @@ const cases = {
     form: TX05_EXPLICIT_FORM,
   }),
   ...mikroPrCases(),
+  ...Object.fromEntries([
+    'MG-02.held', 'MG-02.first-deployment', 'MG-02.session-loss', 'MG-02.idle-session-timeout',
+    'MG-03.valid-reversal', 'MG-03.no-reversal', 'MG-03.failing-reversal',
+  ].map((id) => [id, runMikroMigration])),
 }
 
 await main({
@@ -263,6 +268,7 @@ await main({
     framework: { name: '@mikro-orm/core', version: packageVersion(HERE, '@mikro-orm/core') },
     driver: { name: 'pg', version: packageVersion(HERE, 'pg') },
     components: {
+      '@mikro-orm/migrations': packageVersion(HERE, '@mikro-orm/migrations'),
       '@mikro-orm/postgresql': packageVersion(HERE, '@mikro-orm/postgresql'),
       '@mikro-orm/sql': packageVersion(MIKRO_PG, '@mikro-orm/sql'),
       kysely: packageVersion(MIKRO_SQL, 'kysely'),

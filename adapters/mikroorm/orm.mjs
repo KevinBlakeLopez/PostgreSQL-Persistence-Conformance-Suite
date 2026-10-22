@@ -17,11 +17,16 @@ export const Uniq = defineEntity({
 })
 
 export function openOrm(connection, { poolMax, logLines }) {
-  const { host, port, user, password, database } = connection
+  const { host, port, user, password, database, application_name, options } = connection
   return MikroORM.init({
     host, port, user, password, dbName: database,
     entities: [Item, Uniq],
     pool: { min: 0, max: poolMax },
+    // The runner names each process (ppcs-A and the rest) and, for one migration case, sets idle_session_timeout.
+    driverOptions: {
+      application_name,
+      ...(options ? { options } : {}),
+    },
     ensureDatabase: false,
     allowGlobalContext: false,
     debug: false,

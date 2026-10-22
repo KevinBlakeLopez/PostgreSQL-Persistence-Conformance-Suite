@@ -7,6 +7,7 @@ import pg from 'pg'
 import { ProtocolError, boundedUnit, explicitOutcome, main, managedOutcome, requestedLevel } from '../node-kit/adapter-main.mjs'
 import { faultReport, instrument, savepointRollbackFault } from '../node-kit/pg-instrument.mjs'
 import { errInfo, packageDir, packageVersion, sleep } from '../node-kit/util.mjs'
+import { runTypeormMigration } from './migration.mjs'
 import { Item, Uniq, openDataSource } from './orm.mjs'
 import { typeormPrCases } from './pr01.mjs'
 
@@ -219,6 +220,10 @@ const cases = {
     form: TX05_EXPLICIT_FORM,
   }),
   ...typeormPrCases(),
+  ...Object.fromEntries([
+    'MG-02.held', 'MG-02.first-deployment', 'MG-02.session-loss', 'MG-02.idle-session-timeout',
+    'MG-03.valid-reversal', 'MG-03.no-reversal', 'MG-03.failing-reversal',
+  ].map((id) => [id, runTypeormMigration])),
 }
 
 await main({

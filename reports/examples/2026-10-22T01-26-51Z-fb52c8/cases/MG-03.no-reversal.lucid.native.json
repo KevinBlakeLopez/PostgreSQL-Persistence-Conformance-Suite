@@ -1,0 +1,321 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T01-26-51Z-fb52c8",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "MG-03.no-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A migration that provides no reversal is reverted",
+    "steps": [
+      "Runner A applies { m1 }. m1 inserts marker m1 and provides no reversal.",
+      "Revert with the framework's default selection.",
+      "Apply { m1 } again.",
+      "Checkpoint `after-end`, as soon as the revert has returned and the reapply has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent."
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "lucid",
+      "version": "0.1.0",
+      "source_sha256": "fae3c8c56d97cddd361a2d1cf70319605b8a73f2d13387b7885b5510462315e0"
+    },
+    "framework": {
+      "name": "@adonisjs/lucid",
+      "version": "22.4.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "knex": "3.3.0",
+      "tarn": "3.1.2",
+      "pg-pool": "3.14.0",
+      "@adonisjs/core": "7.6.0",
+      "luxon": "3.7.2"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Lucid's defaults, with the managed transaction API db.transaction(callback).",
+    "configuration": {},
+    "form": "MigrationRunner.run() on a standalone Database. The migration file is generated for the case."
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "none"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller of revert learns only what the operation reports. If that report says the migration was reverted, the caller treats its effects as gone.",
+  "api_outcome": {
+    "reported": "reverted",
+    "basis": "MigrationRunner status completed for direction down",
+    "contract": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js).",
+    "error": null,
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "reverted",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "MigrationRunner status completed for direction down",
+          "contract": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js)."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 2
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 0
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "FAIL",
+    "reason": "MG-03.1 violated: revert reported reverted; marker count 1; history entries 0; MG-03.2 violated: revert reported reverted; marker count 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported reverted"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 0"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent.",
+        "holds": false,
+        "detail": "revert reported reverted; marker count 1; history entries 0"
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent.",
+        "holds": false,
+        "detail": "revert reported reverted; marker count 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": {
+      "invariants": [
+        "MG-03.1: If a revert reports a migration as reverted, its history entry is absent and its marker is absent.",
+        "MG-03.2: If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent."
+      ],
+      "framework": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js)."
+    },
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for lucid (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=lucid --mode=native --case=MG-03.no-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1594194): select version();",
+        "c1(pid 1594194): SELECT PG_TRY_ADVISORY_LOCK('1') as lock_status;",
+        "c1(pid 1594194): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1594194): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1594194): create table \"adonis_schema\" (\"id\" serial primary key, \"name\" varchar(255) not null, \"batch\" integer not null, \"migration_time\" timestamptz default CURRENT_TIMESTAMP)",
+        "c1(pid 1594194): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1594194): create table \"adonis_schema_versions\" (\"version\" integer, constraint \"adonis_schema_versions_pkey\" primary key (\"version\"))",
+        "c1(pid 1594194): select \"version\" from \"adonis_schema_versions\" limit $1",
+        "c1(pid 1594194): insert into \"adonis_schema_versions\" (\"version\") values ($1)",
+        "c1(pid 1594194): select \"name\", \"batch\", \"migration_time\", \"id\" from \"adonis_schema\" where \"batch\" > $1 order by \"id\" desc",
+        "c1(pid 1594194): BEGIN;",
+        "c1(pid 1594194): -> command tag BEGIN for: BEGIN;",
+        "c1(pid 1594194): update \"adonis_schema_versions\" set \"version\" = $1 where \"version\" = $2",
+        "c1(pid 1594194): COMMIT;",
+        "c1(pid 1594194): -> command tag COMMIT for: COMMIT;",
+        "c1(pid 1594194): select max(\"batch\") as \"batch\" from \"adonis_schema\"",
+        "c1(pid 1594194): select \"name\" from \"adonis_schema\"",
+        "c1(pid 1594194): BEGIN;",
+        "c1(pid 1594194): -> command tag BEGIN for: BEGIN;",
+        "c1(pid 1594194): insert into item (name) values ($1)",
+        "c1(pid 1594194): insert into \"adonis_schema\" (\"batch\", \"name\") values ($1, $2)",
+        "c1(pid 1594194): COMMIT;",
+        "c1(pid 1594194): -> command tag COMMIT for: COMMIT;",
+        "c1(pid 1594194): SELECT PG_ADVISORY_UNLOCK('1') as lock_status;"
+      ],
+      "commit_replies": [
+        "COMMIT",
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T01:28:06.151Z",
+    "finished_at": "2026-10-22T01:28:07.802Z",
+    "duration_ms": 1651
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "FAIL",
+        "reason": "MG-03.1 violated: revert reported reverted; marker count 1; history entries 0; MG-03.2 violated: revert reported reverted; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "reverted",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 566
+      },
+      {
+        "repetition": 2,
+        "classification": "FAIL",
+        "reason": "MG-03.1 violated: revert reported reverted; marker count 1; history entries 0; MG-03.2 violated: revert reported reverted; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "reverted",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 540
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "MG-03.1 violated: revert reported reverted; marker count 1; history entries 0; MG-03.2 violated: revert reported reverted; marker count 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "reverted",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 545
+      }
+    ]
+  }
+}
