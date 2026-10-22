@@ -938,6 +938,7 @@ def _orm_pr(kind: str, engine: Engine, message: dict[str, Any]) -> dict[str, Any
 
 CASES = {
     "CTL-01.commit": case_commit,
+    "TX-01B.commit-reply-unseen": case_commit,
     "CTL-01.rollback": case_rollback,
     "TX-01A.caught-error-then-commit": case_caught_error,
     "PR-01.managed-catch-commit": lambda engine, message, fault: _orm_pr("managed", engine, message),

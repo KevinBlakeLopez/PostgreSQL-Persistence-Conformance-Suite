@@ -13,6 +13,7 @@
 import { randomBytes } from 'node:crypto'
 import { runAdapter } from './adapter-process.mjs'
 import { classify, REPORT_POINT } from './classify.mjs'
+import { startCommitReplyProxy } from './pg-wire-proxy.mjs'
 
 export const RESULT_SCHEMA = 'ppcs-result/1'
 const UNKNOWN = 'UNKNOWN'
@@ -26,6 +27,7 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
   // `after-end` is a checkpoint of every case: the adapter sends it when the framework's API has returned.
   const declaredCheckpoints = { ...(kase.checkpoints ?? {}), [REPORT_POINT]: { implicit: true } }
   let record
+  let proxy = null
   const database = await instance.createDatabase(`ppcs_${kase.id.replace(/[^A-Za-z0-9]+/g, '_')}`)
   try {
     await instance.query(database, catalog.fixture.sql)
@@ -84,6 +86,11 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
       return { actions }
     }
 
+    let connection = instance.connection(database, 'ppcs-adapter')
+    if (kase.id === 'TX-01B.commit-reply-unseen') {
+      proxy = await startCommitReplyProxy({ host: instance.settings.host, port: instance.settings.port })
+      connection = { ...connection, host: '127.0.0.1', port: proxy.port }
+    }
     record = await runAdapter({
       command: adapter.command,
       cwd: adapter.dir,
@@ -94,10 +101,11 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
         case: { id: kase.id, family: kase.family, version: kase.version, title: kase.title, settings: kase.settings ?? {} },
         mode: mode.id,
         repetition,
-        connection: instance.connection(database, 'ppcs-adapter'),
+        connection,
         markers,
       },
     })
+    if (proxy) observed.proxy = { dropped: proxy.dropped() }
 
     observed.sessions_at_end = await observer.settle(database)
     for (const tx of Object.values(observed.transactions)) {
@@ -110,6 +118,7 @@ export async function runCase({ instance, observer, catalog, adapter, mode, kase
     } catch (e) { observed.markersError = String(e.message) }
     observed.fixture.after = await observer.fixtureFingerprint(database).catch((e) => `error: ${String(e.message)}`)
   } finally {
+    await proxy?.close()
     if (!process.env.PPCS_KEEP_DB) await instance.dropDatabase(database)
   }
 

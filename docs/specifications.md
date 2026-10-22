@@ -48,10 +48,11 @@ The connection, or PostgreSQL's reply, is lost around `COMMIT`. Does the framewo
 - **TX-01B.1** When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.
 - **TX-01B.2** When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events.
 
-The two cases differ in what the client can know:
+The cases differ in what the client can know:
 
 - **`conn-lost-before-commit`** is a known outcome. The session ended before the framework tried to commit, and the driver refused to send `COMMIT`. A report of rollback is justified, so the case declares only TX-01B.1.
-- **`commit-reply-discarded`** is unknown to the client. TX-01B.2 is exercised only for adapters that observe a channel through which the framework could claim a rollback (`rollback_claim_channels`); otherwise it is recorded as not exercised.
+- **`commit-reply-discarded`** is unknown to the client. The driver has already parsed the reply. TX-01B.2 is exercised only for adapters that observe a channel through which the framework could claim a rollback (`rollback_claim_channels`); otherwise it is recorded as not exercised.
+- **`commit-reply-unseen`** is the same unknown outcome, produced on the wire before the driver reads the reply. It does not replace `commit-reply-discarded`. TX-01B.2 is exercised on the same rule.
 
 A framework that verified the outcome, for example with `pg_xact_status()`, and reported it would still fail TX-01B.2: PPCS does not yet evaluate such evidence.
 
@@ -59,6 +60,7 @@ A framework that verified the outcome, for example with `pg_xact_status()`, and 
 | --- | --- | --- |
 | `TX-01B.conn-lost-before-commit` (B) | The transaction writes `tx`. At the checkpoint, the runner terminates its backend. The adapter waits 100 ms, then ends the transaction normally. | Rolled back; known to the client |
 | `TX-01B.commit-reply-discarded` (D, client-side simulation) | The transaction writes `tx`. The adapter arms a fault in its driver: `COMMIT` is sent and completes, then the client closes its connection and discards the reply. The transaction ends normally. The driver has already parsed the reply, so the case says nothing about logic that reads the driver's state. | Committed; unknown to the client |
+| `TX-01B.commit-reply-unseen` (E, network) | The transaction writes `tx` and ends normally. The runner's protocol proxy forwards `COMMIT`, then discards PostgreSQL's reply through `ReadyForQuery` and closes the client socket before the driver reads it. | Committed; unknown to the client |
 
 ## TX-02: Failed savepoint rollback
 
@@ -220,7 +222,6 @@ On Lucid 22.4.2, `MG-03.valid-reversal` and `MG-03.failing-reversal` pass. `MG-0
 
 ## Planned, not yet included
 
-- **TX-01B through a network-level fault.** The PostgreSQL protocol proxy described in `docs/methodology.md`.
 - **The explicit (manual) transaction forms** of each framework, for example `trx.commit()` and `queryRunner.commitTransaction()`, in the families other than TX-05, which covers them.
 - **After-commit callbacks.**
 - **The other migration families.** MG-01, MG-04, MG-05 and MG-06 are specified in the migration research and are not in this catalog yet.

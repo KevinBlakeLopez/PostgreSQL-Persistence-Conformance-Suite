@@ -184,7 +184,7 @@ public final class Main {
         Map<String, Object> markers = Json.object(message.get("markers"));
         Map<String, Object> settings = messageSettings(message);
         return switch (id) {
-            case "CTL-01.commit" -> top(session, markers, false);
+            case "CTL-01.commit", "TX-01B.commit-reply-unseen" -> top(session, markers, false);
             case "CTL-01.rollback" -> top(session, markers, true);
             case "TX-01A.caught-error-then-commit" -> caughtError(session, markers);
             case "PR-01.managed-catch-commit" -> pr(session, markers, "managed");

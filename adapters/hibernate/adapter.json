@@ -11,6 +11,7 @@
       "description": "Session.openSession and Transaction.begin on a DataSource that calls DriverManager.getConnection for every checkout and closes that connection on close. No pool. hibernate.dialect is not set; Hibernate selects the dialect from the connection. Flush mode is the Session default AUTO. hibernate.hbm2ddl.auto is none and jakarta.persistence.schema-generation.database.action is none. hibernate.jpa.compliance.transaction is false, the 7.4.13 default. The transaction coordinator is jdbc. Connection handling is DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION. TX-03 is not run in this mode: each Session checks out a new physical connection and session.close closes it, so a later unit cannot be handed that connection.",
       "cases": [
         "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
         "CTL-01.rollback",
         "TX-01A.caught-error-then-commit",
         "TX-01B.conn-lost-before-commit"
@@ -29,6 +30,7 @@
   ],
   "implements": [
     "CTL-01.commit",
+    "TX-01B.commit-reply-unseen",
     "CTL-01.rollback",
     "TX-01A.caught-error-then-commit",
     "TX-01B.conn-lost-before-commit",

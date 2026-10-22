@@ -23,7 +23,7 @@ test('every case is described in docs/specifications.md', () => {
 test('every case declares its fault, settings, checkpoints and writes consistently', () => {
   for (const c of catalog.cases) {
     const migration = c.family.startsWith('MG-')
-    assert.ok(['none', 'A', 'B', 'C', 'D'].includes(c.fault.category), c.id)
+    assert.ok(['none', 'A', 'B', 'C', 'D', 'E'].includes(c.fault.category), c.id)
     if (c.fault.category !== 'none') for (const k of ['mechanism', 'injection_point', 'expected_server', 'expected_client']) assert.ok(c.fault[k], `${c.id}: fault.${k}`)
     if (c.fault.category === 'B') assert.ok(Object.values(c.checkpoints).some((cp) => cp.action === 'terminate_backend'), `${c.id}: category B needs a terminate_backend checkpoint`)
     assert.ok(Number.isInteger(c.settings?.pool_max), `${c.id}: settings.pool_max`)

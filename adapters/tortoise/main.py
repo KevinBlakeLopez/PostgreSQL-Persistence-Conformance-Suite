@@ -518,6 +518,7 @@ async def case_nested(message: dict[str, Any], variant: str) -> dict[str, Any]:
 
 CASES = {
     "CTL-01.commit": case_commit,
+    "TX-01B.commit-reply-unseen": case_commit,
     "CTL-01.rollback": case_rollback,
     "TX-01A.caught-error-then-commit": case_caught_error,
     "TX-01B.conn-lost-before-commit": case_conn_lost_before_commit,

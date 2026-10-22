@@ -11,6 +11,7 @@
       "description": "DriverManagerDataSource. A connection is opened for the transaction and closed when Spring releases it. No pool. The outer TransactionTemplate uses the default PROPAGATION_REQUIRED. A nested TransactionTemplate uses PROPAGATION_NESTED. TX-03 is not run in this mode (not-applicable-by-design). On this server, DataSourceUtils.releaseConnection closed a connection whose autocommit was false, and that backend was gone from pg_stat_activity. DataSourceTransactionManager.doCleanupAfterCompletion unbinds the holder and then calls releaseConnection, which closes the connection because it is no longer bound. The next TransactionTemplate ran on a different backend. This DataSource cannot hand a transactionally active connection to later work.",
       "cases": [
         "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
         "CTL-01.rollback",
         "TX-01A.caught-error-then-commit",
         "TX-01B.conn-lost-before-commit",
@@ -32,6 +33,7 @@
   ],
   "implements": [
     "CTL-01.commit",
+    "TX-01B.commit-reply-unseen",
     "CTL-01.rollback",
     "TX-01A.caught-error-then-commit",
     "TX-01B.conn-lost-before-commit",

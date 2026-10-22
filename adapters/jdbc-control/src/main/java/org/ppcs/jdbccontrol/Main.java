@@ -125,7 +125,7 @@ public final class Main {
         Map<String, Object> settings = messageSettings(message);
         boolean correct = mode.equals("correct");
         return switch (id) {
-            case "CTL-01.commit" -> commit(sessions, protocol, markers, correct);
+            case "CTL-01.commit", "TX-01B.commit-reply-unseen" -> commit(sessions, protocol, markers, correct);
             case "CTL-01.rollback" -> rollback(sessions, protocol, markers, correct);
             case "TX-01A.caught-error-then-commit" -> caughtError(sessions, protocol, markers, correct);
             case "TX-01B.conn-lost-before-commit" -> connLostBeforeCommit(sessions, protocol, markers, settings, correct);

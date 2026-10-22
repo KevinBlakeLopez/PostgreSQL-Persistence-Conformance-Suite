@@ -163,7 +163,7 @@ final class PdoControl
         $unsafe = $mode === 'unsafe';
 
         return match ($id) {
-            'CTL-01.commit' => self::commit($session, $protocol, $markers, $unsafe),
+            'CTL-01.commit', 'TX-01B.commit-reply-unseen' => self::commit($session, $protocol, $markers, $unsafe),
             'CTL-01.rollback' => self::rollback($session, $protocol, $markers, $unsafe),
             'TX-01A.caught-error-then-commit' => self::caughtError($session, $protocol, $markers, $unsafe),
             'TX-01B.conn-lost-before-commit' => self::connLost($session, $protocol, $markers, $settings, $unsafe),

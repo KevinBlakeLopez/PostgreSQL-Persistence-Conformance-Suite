@@ -65,7 +65,7 @@ The signature is read at the fault, not when the API returns. A framework that r
 
 **Category D:** the fault must have fired exactly once, and PostgreSQL's outcome must be the one the case produces (committed), both at report time and at the end. The simulation has one known artifact: node-postgres parses PostgreSQL's reply before the simulated loss, so the driver's own state is "idle". Results of `TX-01B.commit-reply-discarded` therefore say nothing about logic that reads driver state, or about pool recovery after a real loss.
 
-**Deferred: a network-level unknown-outcome fault.** A TCP proxy that understands the PostgreSQL protocol could discard the reply to `COMMIT` without touching the client. It would make an unknown-outcome case available to adapters in any language. PPCS does not include it yet; its only case of that kind is the category D simulation in TX-01B.
+**Category E:** the runner's protocol proxy forwarded `COMMIT`, dropped exactly one server reply through `ReadyForQuery`, and closed the client socket before the driver read it. PostgreSQL's outcome must be the one the case produces (committed), both at report time and at the end. `TX-01B.commit-reply-unseen` is this fault. It does not replace `TX-01B.commit-reply-discarded`: that category D row stays a client-side simulation whose driver has already parsed the reply.
 
 ## Commit outcome ambiguity
 

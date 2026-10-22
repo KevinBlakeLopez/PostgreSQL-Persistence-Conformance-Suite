@@ -314,6 +314,54 @@
       }
     },
     {
+      "id": "TX-01B.commit-reply-unseen",
+      "family": "TX-01B",
+      "version": "1.0",
+      "kind": "scenario",
+      "title": "COMMIT completes on the server, and the network drops the reply before the client reads it",
+      "steps": [
+        "Start a transaction with the framework's ordinary transaction API. The runner places a protocol proxy between the client and PostgreSQL.",
+        "Write the marker `tx`.",
+        "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+        "End the transaction normally, so that the framework sends COMMIT. The proxy forwards COMMIT, reads PostgreSQL's reply through ReadyForQuery, does not write that reply to the client, and closes the client socket.",
+        "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+      ],
+      "checkpoints": {
+        "before-end": {
+          "captures": "tx"
+        }
+      },
+      "markers": [
+        "tx"
+      ],
+      "marker_writes": {
+        "tx": {
+          "transaction": "tx",
+          "level": "top",
+          "sent": "before-end"
+        }
+      },
+      "fault": {
+        "category": "E",
+        "mechanism": "The runner's protocol proxy forwards COMMIT to PostgreSQL, then discards the reply through ReadyForQuery and closes the client socket. The client does not parse the reply. This is not the category D simulation, which closes the socket after node-postgres has already parsed the reply.",
+        "injection_point": "On the wire, after PostgreSQL has written the COMMIT reply and before the client reads it.",
+        "expected_server": "The transaction commits.",
+        "expected_client": "The connection closes where the reply to COMMIT would have been read.",
+        "depends_on_internals": false
+      },
+      "knowledge": "None at the API level: the reply to COMMIT was not delivered. Only a later read can establish that the transaction committed.",
+      "expected": {
+        "fate": "committed"
+      },
+      "invariants": [
+        "TX-01B.1",
+        "TX-01B.2"
+      ],
+      "settings": {
+        "pool_max": 1
+      }
+    },
+    {
       "id": "TX-02.savepoint-rollback-not-sent",
       "family": "TX-02",
       "version": "1.1",

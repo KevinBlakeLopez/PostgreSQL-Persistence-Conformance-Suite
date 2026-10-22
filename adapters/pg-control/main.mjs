@@ -242,6 +242,8 @@ const cases = {
     await checkpoint('before-end', await identify(c))
   }),
 
+  'TX-01B.commit-reply-unseen': async (ctx, tools) => cases['CTL-01.commit'](ctx, tools),
+
   'CTL-01.rollback': async (ctx, { markers, checkpoint, mode }) => transaction(await ctx.client(), mode, async (c) => {
     await c.query('insert into item (name) values ($1)', [markers.tx])
     await checkpoint('before-end', await identify(c))

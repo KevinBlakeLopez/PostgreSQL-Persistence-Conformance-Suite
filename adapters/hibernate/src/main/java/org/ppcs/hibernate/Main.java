@@ -163,7 +163,7 @@ public final class Main {
         Map<String, Object> markers = Json.object(message.get("markers"));
         Map<String, Object> settings = messageSettings(message);
         return switch (id) {
-            case "CTL-01.commit" -> top(holder, markers, false);
+            case "CTL-01.commit", "TX-01B.commit-reply-unseen" -> top(holder, markers, false);
             case "CTL-01.rollback" -> top(holder, markers, true);
             case "TX-01A.caught-error-then-commit" -> caughtError(holder, markers);
             case "TX-01B.conn-lost-before-commit" -> connLost(holder, markers, settings);

@@ -1,0 +1,339 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T23-38-12Z-0d8b0f",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "MG-02.held",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Runner B starts while runner A is inside the migration",
+    "steps": [
+      "The runner holds advisory lock K on its own session.",
+      "Runner A applies { m1 }. m1 inserts its marker, then waits on select pg_advisory_xact_lock(K), inside the migration's transaction.",
+      "Checkpoint inside-A: A's session is waiting for K.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "lucid",
+      "version": "0.1.0",
+      "source_sha256": "fae3c8c56d97cddd361a2d1cf70319605b8a73f2d13387b7885b5510462315e0"
+    },
+    "framework": {
+      "name": "@adonisjs/lucid",
+      "version": "22.4.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "knex": "3.3.0",
+      "tarn": "3.1.2",
+      "pg-pool": "3.14.0",
+      "@adonisjs/core": "7.6.0",
+      "luxon": "3.7.2"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Lucid's defaults, with the managed transaction API db.transaction(callback).",
+    "configuration": {},
+    "form": "MigrationRunner.run() on a standalone Database. The migration file is generated for the case."
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A runner that waits learns that another run is in progress. It does not learn, from a successful return alone, that its own execution was the one that committed.",
+  "api_outcome": {
+    "reported": "applied",
+    "basis": "MigrationRunner status completed",
+    "contract": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js).",
+    "error": null,
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "MigrationRunner status completed",
+          "contract": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js)."
+        },
+        "B": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "",
+            "code": "E_UNABLE_RELEASE_LOCK",
+            "message": "Migration completed, but unable to release database lock",
+            "protocol": false
+          }
+        },
+        "C": {
+          "reported": "nothing_to_do",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "MigrationRunner status skipped",
+          "contract": "In @adonisjs/lucid 22.4.2, MigrationRunner.run() executes pending migrations (direction up) or reverts a batch (direction down). status is completed when files ran, skipped when none did, and error when a migration threw (build/src/migration/runner.js)."
+        }
+      },
+      "enumerations": 1,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "A"
+    ],
+    "session_ended": false
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); C: nothing_to_do (exit 0); MG-02.5 held: roles inside the migration at once: A",
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 1; history 1"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "A"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "A"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": true,
+        "detail": "marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).",
+        "holds": true,
+        "detail": "A: applied (exit 0); B: failed (exit 1); C: nothing_to_do (exit 0)"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": true,
+        "detail": "roles inside the migration at once: A"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for lucid (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=lucid --mode=native --case=MG-02.held",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1521967): select version();",
+        "c1(pid 1521967): SELECT PG_TRY_ADVISORY_LOCK('1') as lock_status;",
+        "c1(pid 1521967): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1521967): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1521967): create table \"adonis_schema\" (\"id\" serial primary key, \"name\" varchar(255) not null, \"batch\" integer not null, \"migration_time\" timestamptz default CURRENT_TIMESTAMP)",
+        "c1(pid 1521967): select * from information_schema.tables where table_name = $1 and table_schema = current_schema()",
+        "c1(pid 1521967): create table \"adonis_schema_versions\" (\"version\" integer, constraint \"adonis_schema_versions_pkey\" primary key (\"version\"))",
+        "c1(pid 1521967): select \"version\" from \"adonis_schema_versions\" limit $1",
+        "c1(pid 1521967): insert into \"adonis_schema_versions\" (\"version\") values ($1)",
+        "c1(pid 1521967): select \"name\", \"batch\", \"migration_time\", \"id\" from \"adonis_schema\" where \"batch\" > $1 order by \"id\" desc",
+        "c1(pid 1521967): BEGIN;",
+        "c1(pid 1521967): -> command tag BEGIN for: BEGIN;",
+        "c1(pid 1521967): update \"adonis_schema_versions\" set \"version\" = $1 where \"version\" = $2",
+        "c1(pid 1521967): COMMIT;",
+        "c1(pid 1521967): -> command tag COMMIT for: COMMIT;",
+        "c1(pid 1521967): select max(\"batch\") as \"batch\" from \"adonis_schema\"",
+        "c1(pid 1521967): select \"name\" from \"adonis_schema\"",
+        "c1(pid 1521967): BEGIN;",
+        "c1(pid 1521967): -> command tag BEGIN for: BEGIN;",
+        "c1(pid 1521967): insert into item (name) values ($1)",
+        "c1(pid 1521967): select pg_advisory_xact_lock($1)",
+        "c1(pid 1521967): insert into \"adonis_schema\" (\"batch\", \"name\") values ($1, $2)",
+        "c1(pid 1521967): COMMIT;",
+        "c1(pid 1521967): -> command tag COMMIT for: COMMIT;",
+        "c1(pid 1521967): SELECT PG_ADVISORY_UNLOCK('1') as lock_status;"
+      ],
+      "commit_replies": [
+        "COMMIT",
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T23:38:40.815Z",
+    "finished_at": "2026-10-21T23:38:51.370Z",
+    "duration_ms": 10555
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); C: nothing_to_do (exit 0); MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3552
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); C: nothing_to_do (exit 0); MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3514
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: applied (exit 0); B: failed (exit 1); C: nothing_to_do (exit 0); MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3489
+      }
+    ]
+  }
+}

@@ -11,6 +11,7 @@
       "description": "Programmatic TransactionTemplate on DataSourceTransactionManager over DriverManagerDataSource. No pool. The outer template uses the default PROPAGATION_REQUIRED. A nested scope uses PROPAGATION_NESTED. An independent inner transaction uses PROPAGATION_REQUIRES_NEW, which opens a second physical connection. The explicit isolation case uses PlatformTransactionManager.getTransaction and commit. TX-03 is not run in this mode: DataSourceTransactionManager.doCleanupAfterCompletion releases the connection, and DriverManagerDataSource closes it, so a later unit cannot be handed that connection.",
       "cases": [
         "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
         "CTL-01.rollback",
         "TX-01A.caught-error-then-commit",
         "TX-01B.conn-lost-before-commit",
@@ -30,6 +31,7 @@
       "description": "Declarative @Transactional on the same DataSourceTransactionManager and DriverManagerDataSource. The adapter calls a JDK proxy advised by TransactionInterceptor. It does not call the target directly. Nested work is a second call on that proxy, with PROPAGATION_NESTED or PROPAGATION_REQUIRES_NEW. The default rollback rule is RuntimeException and Error. TX-03.statement-error-rollback-not-sent is not in this mode. TX-05.explicit-serializable is not in this mode: @Transactional does not return a transaction handle.",
       "cases": [
         "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
         "CTL-01.rollback",
         "TX-01A.caught-error-then-commit",
         "TX-01B.conn-lost-before-commit",
@@ -65,6 +67,7 @@
   ],
   "implements": [
     "CTL-01.commit",
+    "TX-01B.commit-reply-unseen",
     "CTL-01.rollback",
     "TX-01A.caught-error-then-commit",
     "TX-01B.conn-lost-before-commit",

@@ -71,9 +71,14 @@ export function fateStory(observed, kase, label) {
   return `${then}; ${fateWord(end)} ${by}, so decided after the API returned, not by the reported operation`
 }
 
-/** The precondition that a case's fault took effect: the runner's termination at `name` (category B), or the
- * adapter's client-side fault, which must have fired exactly once (categories C and D). */
+/** The precondition that a case's fault took effect: the runner's termination at `name` (category B), the
+ * runner's protocol proxy dropping one COMMIT reply (category E), or the adapter's client-side fault, which
+ * must have fired exactly once (categories C and D). */
 function faultTookEffect(ev, name) {
+  if (ev.case.fault.category === 'E') {
+    const dropped = ev.observed?.proxy?.dropped
+    return check('the proxy dropped exactly one COMMIT reply before the client read it', dropped === 1, `dropped: ${dropped ?? 0}`)
+  }
   if (ev.case.fault.category === 'B') {
     const a = checkpoint(ev, name)?.action
     return check(`the runner terminated the backend at \`${name}\`, and it had gone before the adapter resumed`, a?.terminated === true && a?.gone === true, `terminated: ${a?.terminated ?? 'not attempted'}; gone: ${a?.gone ?? 'not checked'}`)

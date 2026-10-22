@@ -232,7 +232,7 @@ final class LaravelAdapter
         }
 
         return match ($id) {
-            'CTL-01.commit' => $this->commitCase(),
+            'CTL-01.commit', 'TX-01B.commit-reply-unseen' => $this->commitCase(),
             'CTL-01.rollback' => $this->rollbackCase(),
             'TX-01A.caught-error-then-commit' => $this->caughtError(),
             'TX-01B.conn-lost-before-commit' => $this->connLost(),

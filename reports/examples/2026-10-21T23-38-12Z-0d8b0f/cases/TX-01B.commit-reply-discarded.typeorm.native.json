@@ -1,0 +1,356 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-21T23-38-12Z-0d8b0f",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-01B.commit-reply-discarded",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "COMMIT completes on the server, and the client discards the reply (client-side simulation)",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Arm the client-side fault: the driver sends the next COMMIT, which PostgreSQL executes; the driver then closes its own connection and reports a connection error instead of the reply.",
+      "End the transaction normally, so that the framework sends COMMIT.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "typeorm",
+      "version": "0.1.0",
+      "source_sha256": "4099adf5effb2a0f483a2569d9318e51fe13cc0d8cd6dca0eda6fcff441a49e5"
+    },
+    "framework": {
+      "name": "typeorm",
+      "version": "1.1.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "TypeORM's defaults, with the managed transaction API ds.transaction(callback).",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "D",
+    "mechanism": "A client-side simulation inside the adapter's driver layer (node-postgres, pg.Client.prototype.query): COMMIT is sent and completes on the server; the client then closes its own connection, and the caller receives a connection error instead of the reply. It is not a network failure. Artifact: the driver has already parsed PostgreSQL's reply (its transaction status reads idle) before the simulated loss, where a real loss leaves it reading in-transaction. The case therefore establishes only whether the API claims an outcome after its COMMIT call fails, not behaviour that depends on the driver's state, such as pool recovery.",
+    "injection_point": "In the client, between the server's reply to COMMIT and its delivery to the framework.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "The transaction commits.",
+    "expected_client": "A connection error in place of the reply to COMMIT.",
+    "depends_on_internals": true
+  },
+  "knowledge": "None at the API level: the reply to COMMIT was discarded before the framework saw it. Only a later read can establish that the transaction committed.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "ds.transaction(callback) rejected with an error the callback did not throw",
+    "contract": "In TypeORM 1.1.2, ds.transaction(callback) (EntityManager.transaction) starts a transaction, runs the callback, calls commitTransaction() and returns the callback's result; if the callback throws, it calls rollbackTransaction(), ignores any rollback error, and rethrows (entity-manager/EntityManager.js). A resolved call is TypeORM's report that the transaction committed.",
+    "error": {
+      "class": "QueryFailedError",
+      "code": null,
+      "message": "connection lost after sending: COMMIT"
+    },
+    "steps": {
+      "fault": {
+        "mode": "reply-lost",
+        "fired": 1
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 1531944,
+          "xid": "28611"
+        },
+        "session": {
+          "pid": 1531944,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "28611",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-21 23:44:11.943039+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "28611"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1531944,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "28611",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-21 23:44:11.943039+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1531944,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "28611",
+        "pid": 1531944,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-21 23:44:11.943039+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "28611"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 not exercised: the adapter observes no channel through which the framework could report a confirmed rollback here (a result, an error type, or a rollback hook or event), so the invariant was not exercised",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [28611]"
+      },
+      {
+        "description": "the client-side fault (reply-lost) fired exactly once",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (committed), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 28611 committed at report time (`after-end`); marker visible: true"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events.",
+        "holds": null,
+        "detail": "the adapter observes no channel through which the framework could report a confirmed rollback here (a result, an error type, or a rollback hook or event), so the invariant was not exercised",
+        "not_exercised": true
+      }
+    ],
+    "not_exercised": [
+      "TX-01B.2"
+    ],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for typeorm (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=typeorm --mode=native --case=TX-01B.commit-reply-discarded",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1531944): SELECT version()",
+        "c1(pid 1531944): SELECT * FROM current_schema()",
+        "c1(pid 1531944): START TRANSACTION",
+        "c1(pid 1531944): -> command tag START for: START TRANSACTION",
+        "c1(pid 1531944): INSERT INTO \"item\"(\"name\", \"qty\") VALUES ($1, DEFAULT) RETURNING \"id\", \"qty\"",
+        "c1(pid 1531944): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 1531944): COMMIT -- INJECTED (client-side simulation): sent, then the client closes its connection and discards the reply",
+        "c1(pid 1531944): ROLLBACK",
+        "c1(pid 1531944): -> ERROR Client was closed and is not queryable"
+      ],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true,
+      "logs": [
+        {
+          "level": "error",
+          "msg": "connection lost after sending: COMMIT | COMMIT"
+        },
+        {
+          "level": "error",
+          "msg": "Client was closed and is not queryable | ROLLBACK"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-21T23:44:11.719Z",
+    "finished_at": "2026-10-21T23:44:12.556Z",
+    "duration_ms": 837
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 not exercised: the adapter observes no channel through which the framework could report a confirmed rollback here (a result, an error type, or a rollback hook or event), so the invariant was not exercised",
+        "mechanism_exercised": null,
+        "not_exercised": [
+          "TX-01B.2"
+        ],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 256
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 not exercised: the adapter observes no channel through which the framework could report a confirmed rollback here (a result, an error type, or a rollback hook or event), so the invariant was not exercised",
+        "mechanism_exercised": null,
+        "not_exercised": [
+          "TX-01B.2"
+        ],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 247
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 not exercised: the adapter observes no channel through which the framework could report a confirmed rollback here (a result, an error type, or a rollback hook or event), so the invariant was not exercised",
+        "mechanism_exercised": null,
+        "not_exercised": [
+          "TX-01B.2"
+        ],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 334
+      }
+    ]
+  }
+}
