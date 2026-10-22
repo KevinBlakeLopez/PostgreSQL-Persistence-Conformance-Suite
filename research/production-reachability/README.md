@@ -10,6 +10,7 @@ PostgreSQL 18.6, the disposable server from `pnpm run pg:up`. Each executed case
 
 - Main run: `research/production-reachability/runs/2026-10-19T18-15-49Z-b2c174` (87 harness PASS, 3 harness INCONCLUSIVE).
 - Django explicit follow-up: `research/production-reachability/runs/2026-10-19T20-58-26Z-508b7a`. The first attempt called `on_commit()` under manual transaction management. Django raises `TransactionManagementError` for that call, before the scenario's write. The follow-up does not register `on_commit` on the manual API.
+- MikroORM follow-up: `research/production-reachability/runs/2026-10-22T12-18-31Z-928c75`. `@mikro-orm/core`, `@mikro-orm/postgresql`, `@mikro-orm/sql`, and `@mikro-orm/migrations` 7.2.6-dev.19, kysely 0.29.7, pg 8.23.1. Six harness results, three repetitions, all agreed. npm `latest` was still 7.2.5. `7.2.6-dev.20` also contains the client change, but `@mikro-orm/core@7.2.6-dev.20` was not published, so this run used dev.19. That build contains the `PostgreSqlClient` from #8499. It does not contain the #8462 savepoint change.
 
 Standalone checks, outside the harness, are in `reproductions/` and were executed against the same server. They printed:
 
@@ -41,6 +42,7 @@ Versions are the ones the adapters loaded. The driver is pg 8.23.1 on Node, psyc
 | Kysely | 0.29.6 | explicit catch, then commit | `startTransaction()` / `commit().execute()` | did not throw; `isCommitted === true` | aborted, marker absent | `ControlledTransaction.commit()` sets the public `isCommitted` flag after `commit` resolves. The flag's documented meaning is that the transaction was committed. | R1 | FAIL |
 | Lucid | 22.4.2 | managed and explicit catch, then complete | `db.transaction(callback)` and `trx.commit()` | call resolved; a `commit` listener ran; first command tag `ROLLBACK` | aborted, marker absent | Lucid's managed contract treats a resolved call as a committed transaction. The pg result is not read. | R1 | FAIL |
 | MikroORM | 7.2.5 | managed and explicit catch, then complete | `em.transactional()` and `em.begin()` / `em.commit()` | call resolved; command tag `ROLLBACK` | aborted, marker absent | A resolved `transactional()` or `commit()` is MikroORM's report that the transaction committed. This form flushes the duplicate in the same callback. It is not the nested `REQUIRED` form of the existing TX-01A case. | R1 | FAIL |
+| MikroORM | 7.2.6-dev.19 | managed and explicit catch, then complete | `em.transactional()` and `em.begin()` / `em.commit()` | both calls rejected `25P02`, "COMMIT was answered with ROLLBACK". Managed then sent `rollback`. Explicit's last statement stayed `commit`. | aborted, marker absent | Follow-up on 2026-10-22. The 7.2.5 row is unchanged. npm `latest` was still 7.2.5. The harness marks the managed case "mechanism not exercised" because the last statement was `rollback`, not `commit`. The call no longer reports a commit. Savepoint recovery still committed the earlier marker. | R1 | PASS |
 | TypeORM | 1.1.2 | managed and explicit catch, then complete | `ds.transaction(callback)` and `QueryRunner.commitTransaction()` | call resolved; `afterTransactionCommit` ran; `afterTransactionRollback` did not; command tag `ROLLBACK` | aborted, marker absent | `commitTransaction()` executes `COMMIT` and does not read the command tag, then broadcasts `AfterTransactionCommit`. | R1 | FAIL |
 | SQLAlchemy Core | 2.1.5 | managed and explicit catch, then complete | `Connection.begin()` and `Transaction.commit()` | block or `commit()` returned; connection `commit` event fired; trace `COMMIT (INERROR -> IDLE)` | aborted, marker absent | `TransactionalContext.__exit__` commits when the block returns and the transaction is still active. Core leaves it active after a caught `IntegrityError`. psycopg's `commit()` returns on command tag `ROLLBACK`. | R1 | FAIL |
 | SQLAlchemy ORM | 2.1.5 | managed catch, then return | `Session.begin()` | block returned; `after_commit` did not run; `after_rollback` did; trace `ROLLBACK (INERROR)`; session already idle before the block ended | aborted, marker absent | `Session._flush` rolls the transaction back when flush fails and raises `IntegrityError`, which the application caught. `__exit__` commits only while the transaction is still active (`sqlalchemy/engine/util.py`), so it neither committed nor raised. A normal exit here is not an `after_commit`. | R1 | DOCUMENTED / EXPECTED |
@@ -63,11 +65,12 @@ Frameworks that distinguished an aborted transaction from a commit, for a caught
 - node-postgres, when the application reads `Result.command`.
 - Django `transaction.atomic()`, which rolls the transaction back itself.
 - SQLAlchemy ORM `SessionTransaction.commit()`, which raises after flush has rolled the transaction back.
+- MikroORM 7.2.6-dev.19 `em.transactional()` and `em.commit()`, which reject when the command tag is `ROLLBACK`. The 7.2.5 release still resolved. npm `latest` on 2026-10-22 was 7.2.5.
 - SQLAlchemy ORM's `after_commit` / `after_rollback` events. The context manager's normal return does not.
 
 Frameworks that presented a successful completion, or ran a commit hook, when PostgreSQL had aborted the transaction:
 
-- Knex, Kysely (`isCommitted`), Lucid, MikroORM, and TypeORM (`afterTransactionCommit`).
+- Knex, Kysely (`isCommitted`), Lucid, MikroORM 7.2.5, and TypeORM (`afterTransactionCommit`).
 - SQLAlchemy Core, including the connection `commit` event.
 - Spring JDBC and Spring `DataSourceTransactionManager`, including `afterCommit` and `afterCompletion(STATUS_COMMITTED)`.
 - Django's manual `transaction.commit()`, which is a different API from `atomic()`.
@@ -94,7 +97,7 @@ The sentence "No issues were filed" is the state of this investigation when the 
 Overlapping findings were filed from other writeups. Do not file a second copy:
 
 - Knex `transaction()` resolving on this `COMMIT` is [knex#6547](https://github.com/knex/knex/issues/6547) (K1, submitted 2026-10-17). [`upstream-drafts/knex.md`](upstream-drafts/knex.md) restates it.
-- MikroORM `em.transactional()` resolving on this `COMMIT` is [mikro-orm#8476](https://github.com/mikro-orm/mikro-orm/issues/8476) (M3, submitted 2026-10-18).
+- MikroORM `em.transactional()` resolving on this `COMMIT` is [mikro-orm#8476](https://github.com/mikro-orm/mikro-orm/issues/8476) (M3, submitted 2026-10-18). Closed 2026-10-22 as completed via [#8499](https://github.com/mikro-orm/mikro-orm/pull/8499). The 7.2.6-dev.19 follow-up rejects both calls. npm `latest` was still 7.2.5.
 - Lucid reporting success, and running `after('commit')`, is [lucid#1205](https://github.com/adonisjs/lucid/issues/1205) (L2, submitted 2026-10-21).
 - Whether pgjdbc `Connection.commit()` should report the rollback tag is [pgjdbc#4494](https://github.com/pgjdbc/pgjdbc/issues/4494) (J1, submitted 2026-10-19). The use case was answered on 2026-10-21. No second pgjdbc issue.
 

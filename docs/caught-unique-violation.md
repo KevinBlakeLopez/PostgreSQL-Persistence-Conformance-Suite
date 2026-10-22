@@ -10,6 +10,8 @@ Rolling the failed statement back to a savepoint, then committing the outer tran
 
 The authoritative run is [`research/production-reachability/runs/2026-10-19T18-15-49Z-b2c174`](../research/production-reachability/runs/2026-10-19T18-15-49Z-b2c174/summary.md). Three repetitions agreed. A harness PASS on `PR-01` means the evidence is complete. It does not mean the commit report was right. The contract reading is [`research/production-reachability/README.md`](../research/production-reachability/README.md). Django's manual `commit()` is the follow-up [`2026-10-19T20-58-26Z-508b7a`](../research/production-reachability/runs/2026-10-19T20-58-26Z-508b7a/summary.md).
 
+MikroORM 7.2.6-dev.19 is a later follow-up, [`2026-10-22T12-18-31Z-928c75`](../research/production-reachability/runs/2026-10-22T12-18-31Z-928c75/summary.md). `em.transactional()` and `em.commit()` rejected with `25P02` and the message `COMMIT was answered with ROLLBACK`. The marker was absent. Savepoint recovery still committed. npm `latest` on that day was still 7.2.5, so the 7.2.5 line below remains the published release. The managed case's last statement was `rollback`, because `transactional()` sent `rollback` after the rejected `commit`. The harness records that case as mechanism not exercised.
+
 In that run, these reported a successful completion, or ran a commit hook, while `pg_xact_status()` was `aborted` and the marker was absent:
 
 - Knex 3.3.0 `transaction()`
@@ -33,7 +35,7 @@ These did not treat that completion as a commit:
 | Project | Link |
 | --- | --- |
 | Knex | https://github.com/knex/knex/issues/6547 |
-| MikroORM | https://github.com/mikro-orm/mikro-orm/issues/8476 |
+| MikroORM | https://github.com/mikro-orm/mikro-orm/issues/8476 Closed 2026-10-22 as completed via https://github.com/mikro-orm/mikro-orm/pull/8499 |
 | Lucid | https://github.com/adonisjs/lucid/issues/1205 |
 | PostgreSQL JDBC | https://github.com/pgjdbc/pgjdbc/issues/4494 |
 

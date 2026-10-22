@@ -28,7 +28,7 @@ A framework's report of a transaction outcome is a claim. A framework's own test
 
 ## A caught unique violation
 
-On PostgreSQL, a caught unique violation (`23505`) aborts the transaction. `COMMIT` then completes with command tag `ROLLBACK` and does not raise. Several frameworks still report success. The recorded runs, the versions, and the issues already filed are in [`docs/caught-unique-violation.md`](docs/caught-unique-violation.md).
+On PostgreSQL, a caught unique violation (`23505`) aborts the transaction. `COMMIT` then completes with command tag `ROLLBACK` and does not raise. Several frameworks still report success. MikroORM 7.2.5 does. A follow-up on 7.2.6-dev.19 rejects that commit; npm `latest` was still 7.2.5. The recorded runs, the versions, and the issues already filed are in [`docs/caught-unique-violation.md`](docs/caught-unique-violation.md).
 
 ## Quick start
 

@@ -1,0 +1,558 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-22T12-18-31Z-928c75",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "PR-01.savepoint-recovery",
+    "version": "1.0",
+    "family": "PR-01",
+    "family_title": "Production-reachable caught constraint violation",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Savepoint recovery: roll back the failing statement, then commit",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` and make sure the write was sent.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Establish a savepoint with the framework's supported savepoint or nested-transaction API.",
+      "Insert the duplicate value 'taken' inside that savepoint. After the unique violation, roll back to the savepoint using that API.",
+      "Checkpoint `before-end`: report the same backend PID. Send no query.",
+      "Commit the surrounding transaction through the ordinary API.",
+      "Checkpoint `after-api` as soon as that API has returned, before any reuse.",
+      "Run one new transaction that writes `reuse`. Checkpoint `reuse-after-write` if it starts.",
+      "Checkpoint `after-end`, as soon as the case function has returned."
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary."
+      }
+    ],
+    "catalog": "research/production-reachability/catalog.json",
+    "catalog_sha256": "405731e049f8c5cd4dbf502e60f6525cbf6e2261aa702a401727c80e06d99937"
+  },
+  "subject": {
+    "adapter": {
+      "name": "mikroorm",
+      "version": "0.1.0",
+      "source_sha256": "47d24a44f2afbd5368109d892ba324c6c9b4523282d95d07298238cdd080fe38"
+    },
+    "framework": {
+      "name": "@mikro-orm/core",
+      "version": "7.2.6-dev.19"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@mikro-orm/migrations": "7.2.6-dev.19",
+      "@mikro-orm/postgresql": "7.2.6-dev.19",
+      "@mikro-orm/sql": "7.2.6-dev.19",
+      "kysely": "0.29.7",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "MikroORM's defaults: em.transactional(callback) in a RequestContext, allowGlobalContext false. One non-default option is part of a case's form, not of the mode: the TX-02 cases call the nested em.transactional() with { clear: true }, as the reused experiments did, and each result records that form and its reason.",
+    "configuration": {},
+    "form": "em.transactional(callback) with a nested em.transactional() around the duplicate. The nested error is caught and the outer callback returns."
+  },
+  "configuration": {
+    "pool_max": 2
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside a savepoint. The application rolls back to that savepoint and commits the outer transaction. No statement is withheld or rewritten.",
+    "injection_point": "Inside the savepoint, after the outer write.",
+    "expected_server": "ROLLBACK TO SAVEPOINT undoes the failed statement. The outer COMMIT can commit the earlier write.",
+    "expected_client": "The application uses the framework's savepoint API to recover, then commits.",
+    "depends_on_internals": false
+  },
+  "knowledge": "A committed outer transaction after a rolled-back savepoint is a successful recovery, not a commit of an aborted transaction.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "em.transactional(callback) resolved",
+    "contract": "In MikroORM 7.2.5, em.transactional(callback) runs the callback, flushes, and commits (AbstractSqlConnection.transactional: begin, callback, commit, return); if the callback or the flush throws, it rolls back and rethrows. A resolved call is MikroORM's report that the transaction committed. The driver result of COMMIT is not read.",
+    "error": null,
+    "steps": {
+      "variant": "savepoint",
+      "savepoint": {
+        "recovered": true,
+        "violation": {
+          "class": "UniqueConstraintViolationException",
+          "code": "23505",
+          "message": "duplicate key value violates unique constraint \"uniq_code_key\""
+        }
+      },
+      "violation": {
+        "class": "UniqueConstraintViolationException",
+        "code": "23505",
+        "message": "duplicate key value violates unique constraint \"uniq_code_key\""
+      },
+      "probe": {
+        "supported": true,
+        "ok": true,
+        "error": null
+      },
+      "hooks": {
+        "supported": false,
+        "reason": "This case uses the resolved or rejected transactional() call as the outcome. No MikroORM event subscriber was registered."
+      },
+      "command_tag": null,
+      "driver": null,
+      "reuse": {
+        "attempted": true,
+        "elapsed_ms": 50,
+        "reported": "committed",
+        "error": null,
+        "pid": 1702604,
+        "same_backend": true
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 1702604,
+          "xid": "33142"
+        },
+        "session": {
+          "pid": 1702604,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "33142",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-22 12:18:54.961841+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "33142"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "33142",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "before-end": {
+        "reported": {
+          "pid": 1702604,
+          "xid": null
+        },
+        "session": {
+          "pid": 1702604,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "33142",
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-22 12:18:54.961841+00",
+          "query": "rollback to \"trx1\"",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "33142"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "33142",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "rollback to \"trx1\"",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-api": {
+        "reported": {
+          "pid": 1702604,
+          "xid": null
+        },
+        "session": {
+          "pid": 1702604,
+          "present": true,
+          "state": "idle",
+          "in_transaction": false,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-22 12:18:54.961841+00",
+          "query": "commit",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "reuse-after-write": {
+        "reported": {
+          "pid": 1702604,
+          "xid": "33144"
+        },
+        "session": {
+          "pid": 1702604,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "33144",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-22 12:18:54.961841+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "33144"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "33144",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "in progress",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "33144",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          },
+          "reuse": {
+            "fate": "committed",
+            "session": {
+              "pid": 1702604,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-22 12:18:54.961841+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "33142",
+        "pid": 1702604,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-22 12:18:54.961841+00"
+      },
+      "reuse": {
+        "xid": "33144",
+        "pid": 1702604,
+        "captured_at": "reuse-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-22 12:18:54.961841+00"
+      }
+    },
+    "markers": {
+      "tx": true,
+      "reuse": true
+    },
+    "marker_xmin": {
+      "tx": "33142",
+      "reuse": "33144"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": true,
+    "mechanism_detail": "at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\"",
+    "classification": "PASS",
+    "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\"",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [33142]"
+      },
+      {
+        "description": "a unique_violation (23505) was observed on the failing statement",
+        "met": true,
+        "detail": "violation: 23505; api_error: none"
+      },
+      {
+        "description": "the marker visibility agrees with pg_xact_status() for the captured transaction",
+        "met": true,
+        "detail": "pg_xact_status: committed; marker visible: true"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "PR-01.1",
+        "statement": "The run recorded the application-visible outcome and an independent database outcome that agree with each other. This invariant does not judge whether the application-visible outcome was the correct commit report. That judgment is in the research summary.",
+        "holds": true,
+        "detail": "the API reported committed; at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\""
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for mikroorm (native)"
+      },
+      "case_controls": {
+        "held": null,
+        "detail": "no control adapter states an expectation for this case"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=mikroorm --mode=native --case=PR-01.savepoint-recovery",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 1702604): begin",
+        "c1(pid 1702604): -> command tag BEGIN for: begin",
+        "c1(pid 1702604): insert into \"item\" (\"name\", \"qty\") values ('tx-c879e8', 0) returning \"id\"",
+        "c1(pid 1702604): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 1702604): savepoint \"trx1\"",
+        "c1(pid 1702604): -> command tag SAVEPOINT for: savepoint \"trx1\"",
+        "c1(pid 1702604): insert into \"uniq\" (\"code\") values ('taken') returning \"id\"",
+        "c1(pid 1702604): -> ERROR 23505 duplicate key value violates unique constraint \"uniq_code_key\"",
+        "c1(pid 1702604): rollback to \"trx1\"",
+        "c1(pid 1702604): -> command tag ROLLBACK for: rollback to \"trx1\"",
+        "c1(pid 1702604): commit",
+        "c1(pid 1702604): -> command tag COMMIT for: commit",
+        "c1(pid 1702604): select 1 as ok",
+        "c1(pid 1702604): begin",
+        "c1(pid 1702604): -> command tag BEGIN for: begin",
+        "c1(pid 1702604): insert into \"item\" (\"name\", \"qty\") values ('reuse-c879e8', 0) returning \"id\"",
+        "c1(pid 1702604): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 1702604): commit",
+        "c1(pid 1702604): -> command tag COMMIT for: commit"
+      ],
+      "commit_replies": [
+        "COMMIT",
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-22T12:18:54.643Z",
+    "finished_at": "2026-10-22T12:18:56.213Z",
+    "duration_ms": 1570
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": true,
+          "reuse": true
+        },
+        "duration_ms": 493
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": true,
+          "reuse": true
+        },
+        "duration_ms": 540
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "PR-01.1 held: the API reported committed; at before-end the session was \"idle in transaction\"; at after-api the session was \"idle\" and its last statement was \"commit\"",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed",
+          "reuse": "committed"
+        },
+        "markers": {
+          "tx": true,
+          "reuse": true
+        },
+        "duration_ms": 537
+      }
+    ]
+  }
+}
