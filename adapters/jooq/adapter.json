@@ -1,0 +1,118 @@
+{
+  "manifest": "ppcs-adapter/1",
+  "name": "jooq",
+  "framework": "jooq",
+  "description": "jOOQ Open Source Edition 3.21.9 on PostgreSQL JDBC 42.7.14. SQL uses the DSL with plain table and field names; there is no generated catalog and no commercial edition. native calls DSLContext.transaction, whose default TransactionProvider is DefaultTransactionProvider. A nested transaction() is a JDBC savepoint. jdbc executes SQL through jOOQ and commits with Connection.commit. It does not call DSLContext.transaction. Category C faults are a client-side injection in this process, fired once, before pgjdbc sends. TX-03 runs only in the pooled modes (HikariCP 7.1.0, maximumPoolSize 1).",
+  "command": ["./run"],
+  "modes": [
+    {
+      "id": "native",
+      "kind": "native",
+      "description": "DSL.using(DataSource, SQLDialect.POSTGRES) and DSLContext.transaction. No TransactionProvider is installed, so Configuration.transactionProvider() supplies DefaultTransactionProvider, whose default nested flag is true. The callback uses the Configuration it is given. A nested scope is configuration.dsl().transaction, which DefaultTransactionProvider implements with Connection.setSavepoint. Isolation for TX-05.managed-serializable is the Isolation.SERIALIZABLE transaction property, applied by DefaultTransactionProvider.brace before setAutoCommit(false). The DataSource calls DriverManager.getConnection and closes that connection when jOOQ releases it. No pool. TX-03 is not run in this mode. TX-05.explicit-serializable is not run in this mode: transaction() does not return a handle.",
+      "cases": [
+        "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
+        "CTL-01.rollback",
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.managed-serializable"
+      ]
+    },
+    {
+      "id": "jdbc",
+      "kind": "native",
+      "description": "The same DataSource and the same DSL inserts. The application calls Connection.setAutoCommit(false) and Connection.commit or Connection.rollback. DSLContext.transaction is not called. A nested scope is Connection.setSavepoint, Connection.rollback(Savepoint), and Connection.releaseSavepoint on that connection. TX-05 calls Connection.setTransactionIsolation(TRANSACTION_SERIALIZABLE) before setAutoCommit(false). The connection stays open until after the after-end checkpoint, then closes. No pool. TX-03 is not run in this mode. This is the manual's JDBC-owned transaction, not a mitigation.",
+      "cases": [
+        "CTL-01.commit",
+        "TX-01B.commit-reply-unseen",
+        "CTL-01.rollback",
+        "TX-01A.caught-error-then-commit",
+        "TX-01B.conn-lost-before-commit",
+        "TX-02.savepoint-rollback-not-sent",
+        "TX-02.savepoint-rollback-rejected",
+        "TX-02.conn-lost-before-savepoint-rollback",
+        "TX-04.nested-failure-contained",
+        "TX-04.nested-released-outer-rollback",
+        "TX-05.managed-serializable",
+        "TX-05.explicit-serializable"
+      ]
+    },
+    {
+      "id": "pooled",
+      "kind": "configured",
+      "description": "DSLContext.transaction, as in native. HikariCP 7.1.0 with maximumPoolSize 1 and no other pool setting changed. Between the two units jOOQ releases the connection through DefaultTransactionProvider. The pool is not closed, the connection is not evicted by the adapter, and no validation query is issued between them. TX-03 runs only in this mode and in jdbc-pooled.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    },
+    {
+      "id": "jdbc-pooled",
+      "kind": "configured",
+      "description": "JDBC commit and rollback, as in jdbc, on HikariCP 7.1.0 with maximumPoolSize 1 and no other pool setting changed. Each unit closes its connection through the normal path, which returns it to the pool. The pool is not closed, the connection is not evicted, and no validation query is issued between the units. TX-03 runs only in this mode and in pooled.",
+      "cases": [
+        "TX-03.rollback-not-sent",
+        "TX-03.statement-error-rollback-not-sent",
+        "TX-03.conn-lost-in-transaction"
+      ]
+    }
+  ],
+  "implements": [
+    "CTL-01.commit",
+    "TX-01B.commit-reply-unseen",
+    "CTL-01.rollback",
+    "TX-01A.caught-error-then-commit",
+    "TX-01B.conn-lost-before-commit",
+    "TX-02.savepoint-rollback-not-sent",
+    "TX-02.savepoint-rollback-rejected",
+    "TX-02.conn-lost-before-savepoint-rollback",
+    "TX-03.rollback-not-sent",
+    "TX-03.statement-error-rollback-not-sent",
+    "TX-03.conn-lost-in-transaction",
+    "TX-04.nested-failure-contained",
+    "TX-04.nested-released-outer-rollback",
+    "TX-05.managed-serializable",
+    "TX-05.explicit-serializable"
+  ],
+  "rollback_claim_channels": [],
+  "unsupported": {
+    "TX-04.independent-inner": {
+      "class": "not-applicable-by-design",
+      "reason": "jOOQ 3.21.9 DefaultTransactionProvider has no propagation mode that commits an inner transaction on a second connection while an outer transaction stays open. A nested DSLContext.transaction is a JDBC savepoint on the same connection, which the manual documents. JDBC Connection has no such propagation mode either. Opening a second connection and committing it is application code coordinating two physical transactions, not a framework propagation mode. This adapter does not manufacture that mode."
+    },
+    "MG-02.held": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a migration history or a multi-process advisory-lock protocol. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-02.first-deployment": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a migration history or a multi-process advisory-lock protocol. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-02.session-loss": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a migration history or a multi-process advisory-lock protocol. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-02.idle-session-timeout": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a migration history or a multi-process advisory-lock protocol. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-03.valid-reversal": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a reversible migration history. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-03.no-reversal": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a reversible migration history. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    },
+    "MG-03.failing-reversal": {
+      "class": "capability-absent",
+      "reason": "This adapter evaluates jOOQ's transaction API and JDBC-owned transactions. It does not drive a reversible migration history. jOOQ Open Source Edition 3.21.9 contains org.jooq.Migrations; that API is not this adapter."
+    }
+  }
+}
