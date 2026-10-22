@@ -22,7 +22,7 @@ Standalone checks, outside the harness, are in `reproductions/` and were execute
 
 ## What PostgreSQL does
 
-A unique violation (`23505`) aborts the transaction unless it happens inside a savepoint that the application then rolls back. PostgreSQL's `COMMIT` reference says that, in an aborted transaction, `COMMIT` has the same effect as `ROLLBACK` and the command tag is `ROLLBACK`, not an error. This run observed that tag on node-postgres: `Result.command` was `ROLLBACK`, and `Client.query('COMMIT')` resolved. psycopg `Connection.commit()` and pgjdbc `Connection.commit()` do not expose that tag. For those drivers the evidence is the session state (`INERROR` to idle, last statement `COMMIT`) plus `pg_xact_status()`.
+A unique violation (`23505`) aborts the transaction unless it happens inside a savepoint that the application then rolls back. This run observed the command tag on node-postgres: `Result.command` was `ROLLBACK`, and `Client.query('COMMIT')` resolved. The PostgreSQL 18 `COMMIT` reference page does not state that tag. psycopg `Connection.commit()` and pgjdbc `Connection.commit()` do not expose that tag. For those drivers the evidence is the session state (`INERROR` to idle, last statement `COMMIT`) plus `pg_xact_status()`.
 
 A later transaction on the same backend committed its own row after these completions. The connection was not left `idle in transaction (aborted)`. `COMMIT` of an aborted transaction ends the transaction, so the pool can reuse the connection. The hazard is a false success report, including commit hooks, not a poisoned connection.
 

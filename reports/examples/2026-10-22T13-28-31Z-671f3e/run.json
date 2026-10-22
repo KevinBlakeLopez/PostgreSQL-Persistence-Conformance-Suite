@@ -1,0 +1,134 @@
+{
+  "schema": "ppcs-run/1",
+  "run_id": "2026-10-22T13-28-31Z-671f3e",
+  "ppcs_version": "0.3.0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "runner_runtime": "v24.14.1",
+  "status": "completed",
+  "started_at": "2026-10-22T13:28:31.295Z",
+  "finished_at": "2026-10-22T13:28:38.631Z",
+  "duration_ms": 7336,
+  "filters": {
+    "adapters": [
+      "drizzle-rc"
+    ],
+    "cases": [
+      "TX-01A"
+    ],
+    "modes": [
+      "native"
+    ]
+  },
+  "repetitions": 3,
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "catalog": {
+    "path": "specifications",
+    "sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "adapters": [
+    {
+      "name": "drizzle-rc",
+      "manifest": "adapters/drizzle-rc/adapter.json",
+      "source_sha256": "96218116d00523408d5a801fda28f1ba5741caee0a478f05dc7afee22dd9065d"
+    },
+    {
+      "name": "pg-control",
+      "manifest": "adapters/pg-control/adapter.json",
+      "source_sha256": "7afb3b256f25b5d99a29e66922fde39cc77b97293dc1589770ccab601357a489"
+    }
+  ],
+  "results": [
+    {
+      "case": "CTL-01.commit",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.drizzle-rc.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.drizzle-rc.native.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "drizzle-rc",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.drizzle-rc.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.unsafe.json"
+    }
+  ],
+  "counts": {
+    "PASS": 7,
+    "FAIL": 2,
+    "UNSUPPORTED": 0,
+    "INCONCLUSIVE": 0,
+    "NOT_RUN": 0
+  }
+}

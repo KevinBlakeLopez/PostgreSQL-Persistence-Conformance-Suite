@@ -10,9 +10,9 @@ Suggested repo: [knex/knex](https://github.com/knex/knex/issues/new)
 
 ### What happened
 
-On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and the Knex transaction then commits, PostgreSQL accepts `COMMIT` and reports command tag `ROLLBACK`. No error is raised. The effect is a rollback, and the earlier writes are gone.
+On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and the Knex transaction then commits, Knex's `COMMIT` query resolves. No error is raised. The earlier writes are gone.
 
-Knex 3.3.0 treats that as a successful transaction. `commit()` sends `COMMIT;` with status `1` (`lib/execution/transaction.js`). `query()` resolves the transaction promise when that query promise resolves. It does not read the command tag. node-postgres puts the tag on `Result.command`, and for this statement the tag is `ROLLBACK`.
+Knex 3.3.0 treats that as a successful transaction. `commit()` sends `COMMIT;` with status `1` (`lib/execution/transaction.js`). `query()` resolves the transaction promise when that query promise resolves. It does not read the command tag. The Knex rows in that run logged that `COMMIT` was sent and did not log a reply tag. The command tag `ROLLBACK` is the plain node-postgres control in the same run: `COMMIT` resolved with that tag, and that control reported `rolled_back`.
 
 ### Versions
 
@@ -20,8 +20,6 @@ Knex 3.3.0 treats that as a successful transaction. `commit()` sends `COMMIT;` w
 - pg 8.23.1
 - Node.js 24.14.1
 - PostgreSQL 18.6
-
-The command-tag behavior is documented for current PostgreSQL and is not specific to 18.6. In an aborted transaction, `COMMIT` has the same effect as `ROLLBACK`, including the command tag, and no exception condition is raised. https://www.postgresql.org/docs/current/sql-commit.html
 
 ### Reproduction
 

@@ -17,13 +17,13 @@ Suggested repo: [prisma/orm](https://github.com/prisma/orm/issues/new). `prisma/
 
 ### What happened
 
-On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and the Prisma callback then returns, PostgreSQL accepts `COMMIT` and reports command tag `ROLLBACK`. No error is raised. The effect is a rollback, and the earlier writes are gone.
+On PostgreSQL, a statement error aborts the current transaction. If the application catches that error and the Prisma callback then returns, `COMMIT` completes without an error. The earlier writes are gone.
 
 Prisma Client treats that `COMMIT` as success. `prisma.$transaction()` resolves.
 
 `_transactionWithCallback` calls `transaction("commit")` when the callback returns (`@prisma/client` `runtime/client.mjs`). For `@prisma/adapter-pg`, the transaction manager sends `{ sql: "COMMIT" }` through `executeRaw` and, if that promise resolves, calls `transaction.commit()`. `PgQueryable.executeRaw` returns `result.rowCount` and does not read `result.command` (`@prisma/adapter-pg` `dist/index.js`).
 
-node-postgres exposes the tag on `Result.command`. For this `COMMIT` the tag is `ROLLBACK`. The query compiler is not on this path. `$executeRaw` and the transaction manager's `COMMIT` go to the driver adapter as SQL.
+On the first repetition, node-postgres recorded `Result.command` `ROLLBACK` for that `COMMIT`. The query compiler is not on this path. `$executeRaw` and the transaction manager's `COMMIT` go to the driver adapter as SQL.
 
 ### Versions
 
@@ -32,8 +32,6 @@ node-postgres exposes the tag on `Result.command`. For this `COMMIT` the tag is 
 - pg 8.23.1, pg-pool 3.14.0
 - Node.js 24.14.1
 - PostgreSQL 18.6
-
-The command-tag behavior is documented for current PostgreSQL and is not specific to 18.6. In an aborted transaction, `COMMIT` has the same effect as `ROLLBACK`, including the command tag, and no exception condition is raised. https://www.postgresql.org/docs/current/sql-commit.html
 
 ### Reproduction
 
@@ -50,15 +48,12 @@ await prisma.$transaction(async (tx) => {
 })
 ```
 
-Observed on three repetitions:
+Three repetitions agreed that `prisma.$transaction()` resolved, `pg_xact_status()` was `aborted`, and another connection did not see the `kept` row. On the first repetition:
 
-- `prisma.$transaction()` resolved
 - the reply to `COMMIT` was command tag `ROLLBACK`
 - after the API returned, the session was idle and its last statement was `COMMIT`
-- `pg_xact_status()` was `aborted`
-- another connection did not see the `kept` row
 
-A nested `tx.$transaction()` around the duplicate insert, with that error caught by the outer callback, committed the `kept` row. The trace was `ROLLBACK TO SAVEPOINT`, `RELEASE SAVEPOINT`, then `COMMIT` with command tag `COMMIT`. That path is a real commit after a savepoint rollback.
+A nested `tx.$transaction()` around the duplicate insert, with that error caught by the outer callback, committed the `kept` row. On the first repetition the trace was `ROLLBACK TO SAVEPOINT`, `RELEASE SAVEPOINT`, then `COMMIT` with command tag `COMMIT`. That path is a real commit after a savepoint rollback.
 
 ### Expected
 

@@ -10,7 +10,7 @@ Suggested component: `spring-tx` / `spring-jdbc`
 
 ### What happened
 
-On PostgreSQL, a statement error aborts the current transaction. If application code catches that error and the Spring transaction then completes normally, PostgreSQL accepts `COMMIT` and reports command tag `ROLLBACK`. No `SQLException` is raised. The effect is a rollback.
+On PostgreSQL, a statement error aborts the current transaction. If application code catches that error and the Spring transaction then completes normally, `Connection.commit()` returns. No `SQLException` is raised. The earlier write is gone.
 
 Spring Framework 7.0.9 treats that as a successful commit. `DataSourceTransactionManager.doCommit` calls `Connection.commit()` and translates only a `SQLException`:
 
@@ -24,16 +24,14 @@ try {
 
 `Connection.commit()` returns. `AbstractPlatformTransactionManager.processCommit` then calls `triggerAfterCommit` and `triggerAfterCompletion(STATUS_COMMITTED)`.
 
-PostgreSQL JDBC 42.7.14 does not surface the `ROLLBACK` command tag through `Connection.commit()`, which is void. The tag is still what PostgreSQL sent. An independent session sees the transaction aborted.
+PostgreSQL JDBC 42.7.14 `Connection.commit()` is void. It returned without a `SQLException`. An independent session sees the transaction aborted. This run recorded no command tag. The pooled rows logged `COMMIT` as the last statement. On the `DriverManagerDataSource` rows the session was already gone.
 
 ### Versions
 
 - Spring Framework 7.0.9 (`spring-tx`, `spring-jdbc`)
 - PostgreSQL JDBC 42.7.14
-- Java 21
+- Java 27, the runtime recorded in the run. The adapter compiler release is 21.
 - PostgreSQL 18.6
-
-The command-tag behavior is documented for current PostgreSQL and is not specific to 18.6: in an aborted transaction, `COMMIT` has the same effect as `ROLLBACK`, including the command tag, and no exception condition is raised. https://www.postgresql.org/docs/current/sql-commit.html
 
 ### Reproduction
 
@@ -69,23 +67,24 @@ tx.execute(status -> {
 });
 ```
 
+This snippet has the same shape as the recorded `TransactionTemplate` form. It is not the code that was executed.
+
 Schema: `item (id serial primary key, name text not null)`, `uniq (id serial primary key, code text not null unique)`, with one existing row `code = 'taken'`.
 
-Observed on three repetitions, with both `DriverManagerDataSource` and HikariCP:
+Three repetitions agreed, for both `DriverManagerDataSource` and HikariCP, that `TransactionTemplate.execute` returned, `pg_xact_status()` was `aborted`, and a second connection did not see the row inserted before the error. The recorded marker was `tx`, not `kept`. On the first repetition, for both of those DataSources:
 
-- `TransactionTemplate.execute` returned normally
 - `afterCommit` ran once
 - `afterCompletion` received `STATUS_COMMITTED` (`0`)
 - before that completion, the session was `idle in transaction (aborted)`
-- `pg_xact_status()` for the transaction was `aborted`
-- a second connection did not see the `kept` row
 
-The same hook result happened for:
+The first repetition recorded those same hook counts for:
 
 - `@Transactional` when the method caught `SQLException` and returned
 - `PlatformTransactionManager.getTransaction` followed by `commit`, with the `SQLException` caught before `commit`
 
-A nested savepoint used through `PROPAGATION_NESTED`, with the duplicate insert inside the nested callback and the exception caught there, committed the outer row. That path is working. The failure is a commit of a transaction PostgreSQL has already aborted.
+Three repetitions of those two forms agreed that the call returned, the transaction was aborted, and the row was absent.
+
+The four `TransactionTemplate` rows that use `PROPAGATION_NESTED` committed the outer row. The duplicate insert was inside the nested callback, and the exception left that callback. The nested template rolled back. The declarative `PROPAGATION_NESTED` row did not commit the outer row. The run classifies that row INCONCLUSIVE because the recorded violation is `25P02`, not `23505`. The failure in this report is a commit of a transaction PostgreSQL has already aborted.
 
 ### Expected
 
@@ -99,14 +98,14 @@ A nested savepoint used through `PROPAGATION_NESTED`, with the duplicate insert 
 
 `afterCommit` runs, `afterCompletion` is `STATUS_COMMITTED`, `execute` returns, and the insert is not durable.
 
-The connection is not left in an aborted block. `COMMIT` ends the transaction, so a later transaction on that connection can commit its own row. An application that only retries the next request will not notice. An `afterCommit` listener that sends mail or enqueues work will act on a commit that did not happen.
+On the pooled rows, a later transaction reused the same PostgreSQL backend and committed its own row. With `DriverManagerDataSource` the connection was closed, and the later transaction ran on a new backend. An `afterCommit` listener that sends mail or enqueues work will act on a commit that did not happen.
 
 ### Related observation
 
-If a checked `SQLException` leaves an `@Transactional` method, Spring's default rollback rule does not mark the transaction rollback-only, so the interceptor still commits. The caller sees the `SQLException`, and `afterCommit` still runs while PostgreSQL has aborted the transaction. The caught-and-return case above is the one where the application itself sees a normal return.
+If a checked `SQLException` leaves an `@Transactional` method, Spring's default rollback rule does not mark the transaction rollback-only, so the interceptor still commits. The caller sees the `SQLException`. On the first repetition, `afterCommit` still ran while PostgreSQL had aborted the transaction. The caught-and-return case above is the one where the application itself sees a normal return.
 
 ### What this is not
 
 This is not Spring issue 28685. That issue is an exception thrown from `afterCommit`, after which `afterCompletion` is still `STATUS_COMMITTED`. Here `afterCommit` runs because `Connection.commit()` returned, and the database had already aborted the transaction.
 
-pgjdbc is part of the mechanism, because `Connection.commit()` does not report the `ROLLBACK` tag. Spring is where the false commit becomes `afterCommit`. `PgConnection.getTransactionState()` is `FAILED` before `commit()` returns in this situation, so the aborted state is visible to code that looks at the PostgreSQL JDBC connection before calling `commit()`.
+pgjdbc is part of the mechanism, because `Connection.commit()` returned without a `SQLException` while an independent session saw the transaction aborted. Spring is where that return becomes `afterCommit`. This run did not log a command tag or `PgConnection.getTransactionState()`.
