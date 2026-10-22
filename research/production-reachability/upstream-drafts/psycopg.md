@@ -1,11 +1,8 @@
 # psycopg — `commit()` returns after PostgreSQL rolls the transaction back
 
-Draft. Not filed.
+**Filed 2026-10-21** as https://github.com/psycopg/psycopg/issues/1453 Posted as `KevinBlakeLopez`. No pull request.
 
-Search on 2026-10-21: no open psycopg issue reports `commit()` returning when the command tag is `ROLLBACK`.
-https://github.com/psycopg/psycopg/issues?q=is%3Aissue+ROLLBACK+commit
-
-The 2026-10-19 case files record driver psycopg 3.3.6. Check the current release again on the day this is posted.
+Search the same day, before filing: `ROLLBACK commit` and `commit() ROLLBACK` did not return a report of `commit()` returning when the command tag is `ROLLBACK`. Open #1451 is cancellation of `AsyncConnection.transaction().__aenter__()`, which leaves a stale transaction stack. Closed #969 and #967 ask whether a transaction context records commit versus rollback. Closed #296 is pipeline mode. PyPI `latest` was 3.3.6, uploaded 2026-09-18. The 2026-10-19 case files record that same driver version.
 
 ## Notes (not part of the issue)
 
@@ -21,7 +18,7 @@ Line numbers below are psycopg 3.3.6.
 
 `cursor.execute("COMMIT")` with no parameters uses `send_query` (`psycopg/_cursor_base.py`, line 459). `_exec_command` uses `send_query` for `COMMIT` (`psycopg/_connection_base.py`, line 474).
 
-SQLAlchemy and Django are not separate reports. SQLAlchemy Core on the 2026-10-19 run logged `COMMIT (INERROR -> IDLE)`, and a later transaction on that connection committed. Django's manual `commit()` observation is the follow-up `2026-10-19T20-58-26Z-508b7a`: the server session moved from `idle in transaction (aborted)` to `idle`, the last statement was `COMMIT`, and a later transaction on that connection committed. It did not log a psycopg status. The same day's earlier Django explicit case reported `rolled_back`. The direct program closes the connection after `commit()` and does not show reuse.
+SQLAlchemy and Django are not separate reports. SQLAlchemy Core on the 2026-10-19 run logged `COMMIT (INERROR -> IDLE)`. The later transaction was a new `Engine.connect()` checkout from the pool, and it committed on the same PostgreSQL backend (`same_backend: true`, the same pid). Django's manual `commit()` observation is the follow-up `2026-10-19T20-58-26Z-508b7a`: the server session moved from `idle in transaction (aborted)` to `idle`, the last statement was `COMMIT`, and a later transaction on that connection committed. It did not log a psycopg status. The same day's earlier Django explicit case reported `rolled_back` because the adapter raised `TransactionManagementError`: `on_commit() cannot be used in manual transaction management`. The basis is that the body threw and `transaction.rollback()` was called. That case is not a measurement of `commit()`. Its adapter source hash is `7a09a9af3b0330d2cc70efb5954145cbd07d53531daa86d7409eb00e09d2784c`. The follow-up hash is `de213cddef82bde0259da5c10b50c38ada8e32ea261789d4a8d28ae10b688e89`. The direct program closes the connection after `commit()` and does not show reuse.
 
 ## Body
 
@@ -177,7 +174,7 @@ cursor.execute('COMMIT') on a second connection, not commit()
 
 `commit()` returns `None` and does not raise. The program above closes that connection after `commit()` and does not use it again.
 
-SQLAlchemy Core 2.1.5, on psycopg 3.3.6, logged `COMMIT (INERROR -> IDLE)` after a caught unique violation. The insert was gone. A later transaction on that same connection committed.
+SQLAlchemy Core 2.1.5, on psycopg 3.3.6, logged `COMMIT (INERROR -> IDLE)` after a caught unique violation. The insert was gone. A later `Engine.connect()` from that pool committed on the same PostgreSQL backend.
 
 Django 6.1.2 called `transaction.commit()` after catching the same error. The server session moved from `idle in transaction (aborted)` to `idle`, and the last statement was `COMMIT`. The insert was gone. A later transaction on that same connection committed. That run did not record a psycopg status.
 
