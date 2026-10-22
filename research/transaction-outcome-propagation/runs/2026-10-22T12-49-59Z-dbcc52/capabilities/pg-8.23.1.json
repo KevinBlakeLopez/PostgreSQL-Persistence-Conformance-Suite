@@ -1,0 +1,39 @@
+{
+  "schema": "ppcs-driver-capability/1",
+  "driver": {
+    "name": "pg",
+    "version": "8.23.1",
+    "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf"
+  },
+  "scenario": "TX-01A.caught-error-then-commit",
+  "scope": "pg.Client public API, taken from the pg-read-tag subject in this run and copied onto the other subjects. Untested capabilities stay UNKNOWN.",
+  "capabilities": {
+    "command_tag": "EXPOSED",
+    "affected_row_count": "EXPOSED",
+    "sqlstate": "EXPOSED",
+    "transaction_status": "EXPOSED",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "EXPOSED",
+    "unknown_commit_outcome": "UNKNOWN",
+    "rollback_acknowledgment": "UNKNOWN",
+    "connection_invalidation": "UNKNOWN",
+    "pool_reset": "NOT_APPLICABLE",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "NOT_APPLICABLE"
+  },
+  "notes": {
+    "command_tag": "Client.query('COMMIT') resolved with Result.command \"ROLLBACK\". The application can read that field on the public result.",
+    "affected_row_count": "Result.rowCount is a separate field from Result.command. On this COMMIT result it was null.",
+    "sqlstate": "The error caught from the duplicate insert has code 23505.",
+    "transaction_status": "Client.getTransactionStatus() returned \"E\" after the statement error once Client.readyForQuery was true, and \"I\" after COMMIT. The method returns the ReadyForQuery status byte Client stored. The query promise can reject on ErrorResponse before that byte is updated.",
+    "connection_failure": "TX-01A does not drop the connection. Distinguishing connection loss from a server-reported transaction failure was not tested.",
+    "commit_acknowledgment": "The acknowledgment recorded here is Result.command on the resolved COMMIT query.",
+    "unknown_commit_outcome": "TX-01B was not run. Whether this driver can represent an unknown commit without asserting success or failure is UNKNOWN in this inventory.",
+    "rollback_acknowledgment": "This scenario sends COMMIT after the statement error. A ROLLBACK command tag was not requested, so rollback acknowledgment was not tested.",
+    "connection_invalidation": "Removing an unsafe connection from a pool was not tested.",
+    "pool_reset": "This inventory is pg.Client. Pool reset is not a Client operation. The TypeORM subject uses pg-pool beside the driver, and this scenario does not record a reset statement.",
+    "savepoint_failure": "TX-02 was not run.",
+    "nested_transactions": "pg.Client executes the SQL it is given. It has no nested-transaction API of its own, so a nesting guarantee is not a Client capability."
+  },
+  "evidence_from": "records/pg-read-tag.json"
+}

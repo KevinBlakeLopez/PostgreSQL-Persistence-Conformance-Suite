@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ppcs:schema:driver-capability:1",
+  "title": "PPCS driver capability inventory, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "driver", "scenario", "scope", "capabilities", "notes", "evidence_from"],
+  "properties": {
+    "schema": { "const": "ppcs-driver-capability/1" },
+    "driver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "git_head"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "git_head": { "type": ["string", "null"] }
+      }
+    },
+    "scenario": { "type": "string" },
+    "scope": { "type": "string" },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_tag", "affected_row_count", "sqlstate", "transaction_status", "connection_failure",
+        "commit_acknowledgment", "unknown_commit_outcome", "rollback_acknowledgment",
+        "connection_invalidation", "pool_reset", "savepoint_failure", "nested_transactions"
+      ],
+      "properties": {
+        "command_tag": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "affected_row_count": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "sqlstate": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "transaction_status": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "connection_failure": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "commit_acknowledgment": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "unknown_commit_outcome": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "rollback_acknowledgment": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "connection_invalidation": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "pool_reset": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "savepoint_failure": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "nested_transactions": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_tag", "affected_row_count", "sqlstate", "transaction_status", "connection_failure",
+        "commit_acknowledgment", "unknown_commit_outcome", "rollback_acknowledgment",
+        "connection_invalidation", "pool_reset", "savepoint_failure", "nested_transactions"
+      ],
+      "properties": {
+        "command_tag": { "type": "string" },
+        "affected_row_count": { "type": "string" },
+        "sqlstate": { "type": "string" },
+        "transaction_status": { "type": "string" },
+        "connection_failure": { "type": "string" },
+        "commit_acknowledgment": { "type": "string" },
+        "unknown_commit_outcome": { "type": "string" },
+        "rollback_acknowledgment": { "type": "string" },
+        "connection_invalidation": { "type": "string" },
+        "pool_reset": { "type": "string" },
+        "savepoint_failure": { "type": "string" },
+        "nested_transactions": { "type": "string" }
+      }
+    },
+    "evidence_from": { "type": "string" }
+  }
+}
