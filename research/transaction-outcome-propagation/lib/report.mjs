@@ -6,7 +6,13 @@ const ORDER = ['pg-read-tag', 'pg-ignore-tag', 'typeorm-transaction']
 const cell = (value) => String(value ?? '').replaceAll('|', '\\|')
 
 function bySubject(records) {
-  return [...records].sort((a, b) => ORDER.indexOf(a.subject.id) - ORDER.indexOf(b.subject.id))
+  return [...records].sort((a, b) => {
+    const scenario = a.scenario.localeCompare(b.scenario)
+    if (scenario !== 0) return scenario
+    const known = ORDER.indexOf(a.subject.id) - ORDER.indexOf(b.subject.id)
+    if (ORDER.includes(a.subject.id) && ORDER.includes(b.subject.id)) return known
+    return a.subject.id.localeCompare(b.subject.id)
+  })
 }
 
 function tagOf(record) {
@@ -24,10 +30,11 @@ export function renderReport({ run, records, capability }) {
   lines.push('')
   lines.push('## Executive summary')
   lines.push('')
-  lines.push('This run asks where a caught unique violation, followed by COMMIT, stops matching PostgreSQL. Each subject used a fresh database. A second connection read `pg_xact_status()` and marker visibility. The boundary is computed from those observations.')
+  lines.push('Each subject used a fresh database. A second connection read `pg_xact_status()` and marker visibility. The boundary is computed from those observations. `client_knowledge` UNKNOWN means the client did not receive the acknowledgment; the observer may still know the database outcome.')
   lines.push('')
   for (const record of rows) {
-    lines.push(`- **${record.subject.id}.** Verified outcome ${record.verified_outcome}. Driver command tag ${tagOf(record)}. Application ${record.application_observation.reported}. Boundary **${record.information_loss_boundary}** (${record.confidence}).`)
+    const knowledge = record.client_knowledge ? `, client ${record.client_knowledge}` : ''
+    lines.push(`- **${record.subject.id}** (${record.scenario}). Verified outcome ${record.verified_outcome}${knowledge}. Driver command tag ${tagOf(record)}. Application ${record.application_observation.reported}. Boundary **${record.information_loss_boundary}** (${record.confidence}).`)
   }
   lines.push('')
   lines.push('Defect claim: not made. A boundary names the layer where the recorded result stopped matching the verified database outcome.')

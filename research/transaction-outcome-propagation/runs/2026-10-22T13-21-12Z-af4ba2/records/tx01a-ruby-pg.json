@@ -1,0 +1,264 @@
+{
+  "schema": "ppcs-propagation/1",
+  "scenario": "TX-01A.caught-error-then-commit",
+  "repetition_recorded": 1,
+  "subject": {
+    "id": "tx01a-ruby-pg",
+    "kind": "driver_control",
+    "framework": null,
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0",
+      "git_head": null
+    },
+    "pool": null,
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    },
+    "server": {
+      "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "server_version_num": 180006,
+      "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "layers": [
+    {
+      "name": "server",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "PostgreSQL",
+      "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "note": "The database outcome is pg_xact_status() and marker visibility on a second connection."
+    },
+    {
+      "name": "protocol",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "PostgreSQL frontend/backend protocol",
+      "version": null,
+      "note": "This run does not capture packets. A command tag inferred from node-postgres is that driver parsing CommandComplete."
+    },
+    {
+      "name": "driver",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg",
+      "version": "1.7.0",
+      "note": "Driver observations are fields on the pg query result, or Client.getTransactionStatus()."
+    },
+    {
+      "name": "pool",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject constructs a pg.Client. No pool is on the call path."
+    },
+    {
+      "name": "transaction_manager",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject calls the driver. There is no transaction manager."
+    },
+    {
+      "name": "framework",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "No persistence framework is on this call path."
+    },
+    {
+      "name": "application",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "tx01a-ruby-pg",
+      "version": null,
+      "note": "The application is the subject code in this experiment."
+    }
+  ],
+  "verified_outcome": "ROLLED_BACK",
+  "client_knowledge": "KNOWN",
+  "verified_evidence": {
+    "pg_xact_status": "aborted",
+    "marker_visible": false,
+    "xid": "35468",
+    "backend_pid": 1742617,
+    "session_state": null,
+    "session_query": null,
+    "observer": "separate_connection"
+  },
+  "server_command_tag": {
+    "value": "ROLLBACK",
+    "observation": "INFERRED",
+    "access": "source_inspection",
+    "basis": "Inferred from the driver command tag. This run did not capture the protocol packet."
+  },
+  "capability_scope": "pg 1.7.0, from this scenario only.",
+  "driver_capabilities": {
+    "command_tag": "EXPOSED",
+    "affected_row_count": "UNKNOWN",
+    "sqlstate": "EXPOSED",
+    "transaction_status": "EXPOSED",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "EXPOSED",
+    "unknown_commit_outcome": "UNKNOWN",
+    "rollback_acknowledgment": "UNKNOWN",
+    "connection_invalidation": "UNKNOWN",
+    "pool_reset": "UNKNOWN",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "UNKNOWN"
+  },
+  "capability_notes": {
+    "command_tag": "cmd_status was ROLLBACK.",
+    "affected_row_count": "This scenario did not establish this capability.",
+    "sqlstate": "The caught insert SQLSTATE was 23505.",
+    "transaction_status": "PG::Connection#transaction_status returned 0 after COMMIT.",
+    "connection_failure": "This scenario did not establish this capability.",
+    "commit_acknowledgment": "cmd_status is the acknowledgment this API exposes for COMMIT.",
+    "unknown_commit_outcome": "This scenario did not establish this capability.",
+    "rollback_acknowledgment": "This scenario did not establish this capability.",
+    "connection_invalidation": "This scenario did not establish this capability.",
+    "pool_reset": "This scenario did not establish this capability.",
+    "savepoint_failure": "This scenario did not establish this capability.",
+    "nested_transactions": "This scenario did not establish this capability."
+  },
+  "driver_observation": {
+    "command_tag": {
+      "value": "ROLLBACK",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Public driver result."
+    },
+    "row_count": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Row count was not the measurement in this scenario."
+    },
+    "sqlstate": {
+      "value": "23505",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "PG::Result#result_error_field(PG::PG_DIAG_SQLSTATE)."
+    },
+    "transaction_status_after_statement_error": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled at the statement error in this scenario."
+    },
+    "transaction_status_after_commit": {
+      "value": "0",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Driver transaction-status value after the ending call."
+    },
+    "query_settled": "resolved",
+    "instrumentation": "none",
+    "commits": []
+  },
+  "intermediate_layers": [],
+  "framework_observation": {
+    "present": false,
+    "reported": "NOT_APPLICABLE",
+    "call": null,
+    "threw": null,
+    "resolved_value": null,
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_APPLICABLE",
+      "access": "not_applicable",
+      "basis": "This subject does not call a persistence framework."
+    },
+    "after_transaction_commit": null,
+    "after_transaction_rollback": null,
+    "basis": null
+  },
+  "application_observation": {
+    "reported": "REPORTED_ROLLBACK",
+    "basis": "PG::Result#cmd_status was ROLLBACK. transaction_status was 0."
+  },
+  "interpretation": {
+    "kind": "outcome_preserved",
+    "defect_claim": "not_made",
+    "note": "The subject reads cmd_status. transaction_status is a separate integer and is not the command tag."
+  },
+  "information_loss_boundary": "NONE",
+  "confidence": "HIGH",
+  "boundary_basis": "The independent check found a rollback, and the application-visible result reports a rollback or a failure.",
+  "evidence": [
+    {
+      "package": null,
+      "version": null,
+      "git_head": null,
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "runtime",
+      "kind": "runtime",
+      "layer": "database",
+      "statement": "pg_xact_status() aborted, marker visible false, session absent, xid 35468."
+    }
+  ],
+  "limits": [
+    "Java and .NET are not installed in this environment, so pgjdbc and Npgsql were not executed.",
+    "The system Python has no psycopg module, so psycopg was not executed.",
+    "No packet capture. A server command tag is inferred only when a driver command tag was observed.",
+    "TX-02's missing savepoint name and TX-03's withheld ROLLBACK are client-side injections.",
+    "TX-01B.commit-reply-unseen uses harness/lib/pg-wire-proxy.mjs unchanged."
+  ],
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "compared": [
+      "verified_outcome",
+      "application_reported",
+      "information_loss_boundary",
+      "driver_command_tag"
+    ],
+    "runs": [
+      {
+        "repetition": 1,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 2,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 3,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      }
+    ]
+  }
+}

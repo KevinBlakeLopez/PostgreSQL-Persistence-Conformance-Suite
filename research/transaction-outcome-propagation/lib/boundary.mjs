@@ -52,6 +52,58 @@ export function classifyBoundary(input) {
     }
   }
 
+  if (input.clientKnowledge === 'UNKNOWN') {
+    const reported = input.applicationReported
+    if (reported === 'REPORTED_FAILURE' || reported === 'REPORTED_UNKNOWN') {
+      return {
+        boundary: 'NONE',
+        confidence: 'HIGH',
+        basis: 'The client did not receive the acknowledgment. The application reported a failure or uncertainty, rather than a successful commit or a confirmed rollback.',
+      }
+    }
+    if (reported === 'REPORTED_SUCCESS' && input.frameworkPresent === true && input.frameworkReported === 'REPORTED_SUCCESS') {
+      return {
+        boundary: 'FRAMEWORK',
+        confidence: 'HIGH',
+        basis: 'The client did not receive the commit acknowledgment, and the framework reported success.',
+      }
+    }
+    if (reported === 'REPORTED_SUCCESS' && input.frameworkPresent === false) {
+      return {
+        boundary: 'APPLICATION',
+        confidence: 'HIGH',
+        basis: 'The client did not receive the commit acknowledgment, and the application reported success.',
+      }
+    }
+    if (reported === 'REPORTED_ROLLBACK' && input.frameworkPresent === true && input.frameworkReported === 'REPORTED_ROLLBACK') {
+      return {
+        boundary: 'FRAMEWORK',
+        confidence: 'HIGH',
+        basis: 'The client did not receive the commit acknowledgment, and the framework reported a confirmed rollback.',
+      }
+    }
+    if (reported === 'REPORTED_ROLLBACK' && input.frameworkPresent === false) {
+      return {
+        boundary: 'APPLICATION',
+        confidence: 'HIGH',
+        basis: 'The client did not receive the commit acknowledgment, and the application reported a confirmed rollback.',
+      }
+    }
+    return {
+      boundary: 'UNDETERMINED',
+      confidence: 'LOW',
+      basis: 'The client did not receive the acknowledgment, and these reports do not identify one layer.',
+    }
+  }
+
+  if (input.laterUnitCommittedEarlierWrite === true && input.frameworkPresent === true) {
+    return {
+      boundary: 'FRAMEWORK',
+      confidence: 'HIGH',
+      basis: 'A later unit of work committed the earlier write after the first unit reported failure and its ROLLBACK did not reach PostgreSQL. The framework released that connection back to the pool.',
+    }
+  }
+
   const verified = input.verifiedOutcome
   const application = input.applicationReported
   const applicationSuccess = application === 'REPORTED_SUCCESS'
@@ -127,6 +179,14 @@ export function classifyBoundary(input) {
     }
   }
 
+  if (verified === 'ROLLED_BACK' && applicationSuccess && input.frameworkPresent === true && input.frameworkReported === 'REPORTED_SUCCESS' && input.driverCallRejected === true) {
+    return {
+      boundary: 'FRAMEWORK',
+      confidence: 'HIGH',
+      basis: 'The driver rejected the ending call and the database rolled back. The framework still reported success.',
+    }
+  }
+
   if (verified === 'ROLLED_BACK' && applicationSuccess && showedRollback(input) && input.frameworkPresent === true && input.frameworkReported === 'REPORTED_SUCCESS') {
     return {
       boundary: 'FRAMEWORK',
@@ -174,7 +234,8 @@ export function classifyBoundary(input) {
   }
 }
 
-export function interpretationKind(boundary, verified) {
+export function interpretationKind(boundary, verified, clientKnowledge) {
+  if (boundary === 'NONE' && clientKnowledge === 'UNKNOWN') return 'uncertainty_preserved'
   if (boundary === 'NONE' && verified === 'UNKNOWN') return 'uncertainty_preserved'
   if (boundary === 'NONE') return 'outcome_preserved'
   if (boundary === 'APPLICATION') return 'application_discarded_driver_result'

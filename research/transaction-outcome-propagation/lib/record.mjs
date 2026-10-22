@@ -24,6 +24,9 @@ export function decisionInput(input) {
     frameworkReported: input.frameworkReported,
     applicationReported: input.applicationReported,
     poolMaskedCommandTag: input.poolMaskedCommandTag ?? null,
+    clientKnowledge: input.clientKnowledge === 'UNKNOWN' ? 'UNKNOWN' : 'KNOWN',
+    laterUnitCommittedEarlierWrite: input.laterUnitCommittedEarlierWrite === true,
+    driverCallRejected: input.driverCallRejected === true,
   }
 }
 
@@ -129,7 +132,8 @@ export function propagationRecord(input) {
   requireKeys(input.capabilityReport.capabilities, CAPABILITY_KEYS, 'capabilities')
   requireKeys(input.capabilityReport.notes, CAPABILITY_KEYS, 'capability notes')
 
-  let decision = classifyBoundary(decisionInput(input))
+  const decisionFields = decisionInput(input)
+  let decision = classifyBoundary(decisionFields)
   if (input.repetitions?.agreed === false) {
     decision = {
       ...decision,
@@ -145,6 +149,7 @@ export function propagationRecord(input) {
     subject: input.subject,
     layers: stackLayers(input.subject),
     verified_outcome: input.verifiedOutcome,
+    client_knowledge: decisionFields.clientKnowledge,
     verified_evidence: {
       pg_xact_status: input.fate,
       marker_visible: input.markerVisible,
@@ -163,7 +168,7 @@ export function propagationRecord(input) {
     framework_observation: input.frameworkObservation,
     application_observation: input.applicationObservation,
     interpretation: {
-      kind: interpretationKind(decision.boundary, input.verifiedOutcome),
+      kind: interpretationKind(decision.boundary, input.verifiedOutcome, decisionFields.clientKnowledge),
       defect_claim: 'not_made',
       note: input.interpretationNote,
     },

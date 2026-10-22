@@ -1,0 +1,279 @@
+{
+  "schema": "ppcs-propagation/1",
+  "scenario": "TX-03.rollback-not-sent",
+  "repetition_recorded": 1,
+  "subject": {
+    "id": "tx03-rollback-not-sent-typeorm",
+    "kind": "framework",
+    "framework": {
+      "name": "typeorm",
+      "version": "1.1.2",
+      "git_head": null
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf"
+    },
+    "pool": {
+      "name": "pg-pool",
+      "version": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    },
+    "server": {
+      "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "server_version_num": 180006,
+      "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "layers": [
+    {
+      "name": "server",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "PostgreSQL",
+      "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "note": "The database outcome is pg_xact_status() and marker visibility on a second connection."
+    },
+    {
+      "name": "protocol",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "PostgreSQL frontend/backend protocol",
+      "version": null,
+      "note": "This run does not capture packets. A command tag inferred from node-postgres is that driver parsing CommandComplete."
+    },
+    {
+      "name": "driver",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg",
+      "version": "8.23.1",
+      "note": "Driver observations are fields on the pg query result, or Client.getTransactionStatus()."
+    },
+    {
+      "name": "pool",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "pg-pool",
+      "version": "3.14.0",
+      "note": "A pool is in the process. This scenario does not record a reset statement. The command tag is read from the client result inside the transaction call, before the connection is released."
+    },
+    {
+      "name": "transaction_manager",
+      "presence": "folded",
+      "observed": false,
+      "folded_into": "framework",
+      "component": null,
+      "version": null,
+      "note": "PostgresQueryRunner.commitTransaction is TypeORM's transaction operation. It stays in the framework layer so the record does not invent a second boundary inside one library."
+    },
+    {
+      "name": "framework",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "typeorm",
+      "version": "1.1.2",
+      "note": "The application-facing call is the framework transaction API."
+    },
+    {
+      "name": "application",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "tx03-rollback-not-sent-typeorm",
+      "version": null,
+      "note": "The application is the subject code in this experiment."
+    }
+  ],
+  "verified_outcome": "COMMITTED",
+  "client_knowledge": "KNOWN",
+  "verified_evidence": {
+    "pg_xact_status": "committed",
+    "marker_visible": true,
+    "xid": "35460",
+    "backend_pid": 1742611,
+    "session_state": "idle",
+    "session_query": "COMMIT",
+    "observer": "separate_connection"
+  },
+  "server_command_tag": {
+    "value": null,
+    "observation": "NOT_OBSERVED",
+    "access": "not_applicable",
+    "basis": "No driver command tag was observed, so no server command tag is inferred."
+  },
+  "capability_scope": "pg 8.23.1, from this scenario only.",
+  "driver_capabilities": {
+    "command_tag": "UNKNOWN",
+    "affected_row_count": "UNKNOWN",
+    "sqlstate": "UNKNOWN",
+    "transaction_status": "UNKNOWN",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "UNKNOWN",
+    "unknown_commit_outcome": "UNKNOWN",
+    "rollback_acknowledgment": "EXPOSED",
+    "connection_invalidation": "NOT_EXPOSED",
+    "pool_reset": "UNKNOWN",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "UNKNOWN"
+  },
+  "capability_notes": {
+    "command_tag": "This scenario did not establish this capability.",
+    "affected_row_count": "This scenario did not establish this capability.",
+    "sqlstate": "This scenario did not establish this capability.",
+    "transaction_status": "This scenario did not establish this capability.",
+    "connection_failure": "This scenario did not establish this capability.",
+    "commit_acknowledgment": "This scenario did not establish this capability.",
+    "unknown_commit_outcome": "This scenario did not establish this capability.",
+    "rollback_acknowledgment": "The injected rejection is the driver-visible result of ROLLBACK. No command tag exists because the statement was not sent.",
+    "connection_invalidation": "The earlier write became visible, so the connection was reused while its transaction was still open.",
+    "pool_reset": "No pool reset statement was recorded between the two transaction calls.",
+    "savepoint_failure": "This scenario did not establish this capability.",
+    "nested_transactions": "This scenario did not establish this capability."
+  },
+  "driver_observation": {
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "diagnostic_wrapper",
+      "basis": "Diagnostic wrapper on pg.Client.prototype.query."
+    },
+    "row_count": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Row count was not the measurement in this scenario."
+    },
+    "sqlstate": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "public_return_value",
+      "basis": "unit 1 fails"
+    },
+    "transaction_status_after_statement_error": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled at the statement error in this scenario."
+    },
+    "transaction_status_after_commit": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled."
+    },
+    "query_settled": "rejected",
+    "instrumentation": "diagnostic_wrapper",
+    "commits": []
+  },
+  "intermediate_layers": [
+    {
+      "layer": "POOL",
+      "component": "pg-pool",
+      "version": "3.14.0",
+      "observation": "NOT_OBSERVED",
+      "note": "TypeORM uses pg-pool with poolSize 1. Reset statements were not recorded."
+    }
+  ],
+  "framework_observation": {
+    "present": true,
+    "reported": "REPORTED_FAILURE",
+    "call": "DataSource.transaction(callback)",
+    "threw": true,
+    "resolved_value": null,
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_EXPOSED",
+      "access": "public_return_value",
+      "basis": "DataSource.transaction does not return a command tag."
+    },
+    "after_transaction_commit": null,
+    "after_transaction_rollback": null,
+    "basis": "Unit 1 threw (unit 1 fails). Unit 2 resolved (). Next marker visible true. Driver statements: START TRANSACTION [resolved START]; ROLLBACK [not_sent]; START TRANSACTION [resolved START]; COMMIT [resolved COMMIT]."
+  },
+  "application_observation": {
+    "reported": "REPORTED_FAILURE",
+    "basis": "Unit 1 threw (unit 1 fails). Unit 2 resolved (). Next marker visible true. Driver statements: START TRANSACTION [resolved START]; ROLLBACK [not_sent]; START TRANSACTION [resolved START]; COMMIT [resolved COMMIT]."
+  },
+  "interpretation": {
+    "kind": "framework_discarded_driver_result",
+    "defect_claim": "not_made",
+    "note": "ROLLBACK was rejected inside pg.Client.query and was not sent. TypeORM 1.1.2 EntityManager.transaction calls queryRunner.release() with no error, and release() forwards that empty argument to pg-pool."
+  },
+  "information_loss_boundary": "FRAMEWORK",
+  "confidence": "HIGH",
+  "boundary_basis": "A later unit of work committed the earlier write after the first unit reported failure and its ROLLBACK did not reach PostgreSQL. The framework released that connection back to the pool.",
+  "evidence": [
+    {
+      "package": null,
+      "version": null,
+      "git_head": null,
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "runtime",
+      "kind": "runtime",
+      "layer": "database",
+      "statement": "pg_xact_status() committed, marker visible true, session idle, xid 35460."
+    }
+  ],
+  "limits": [
+    "Java and .NET are not installed in this environment, so pgjdbc and Npgsql were not executed.",
+    "The system Python has no psycopg module, so psycopg was not executed.",
+    "No packet capture. A server command tag is inferred only when a driver command tag was observed.",
+    "TX-02's missing savepoint name and TX-03's withheld ROLLBACK are client-side injections.",
+    "TX-01B.commit-reply-unseen uses harness/lib/pg-wire-proxy.mjs unchanged."
+  ],
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "compared": [
+      "verified_outcome",
+      "application_reported",
+      "information_loss_boundary",
+      "driver_command_tag"
+    ],
+    "runs": [
+      {
+        "repetition": 1,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "REPORTED_FAILURE",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 2,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "REPORTED_FAILURE",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 3,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "REPORTED_FAILURE",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      }
+    ]
+  }
+}

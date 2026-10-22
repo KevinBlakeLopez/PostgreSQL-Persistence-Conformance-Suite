@@ -123,6 +123,49 @@ test('a thrown failure preserves rollback semantics without a command tag', () =
   assert.equal(decision.boundary, 'NONE')
 })
 
+test('a lost commit acknowledgment reported as a failure preserves uncertainty', () => {
+  const decision = classifyBoundary({
+    verifiedOutcome: 'COMMITTED',
+    clientKnowledge: 'UNKNOWN',
+    applicationReported: 'REPORTED_FAILURE',
+    frameworkPresent: true,
+    frameworkReported: 'REPORTED_FAILURE',
+    driverCommandTag: null,
+    driverCommandTagObservation: 'NOT_OBSERVED',
+    driverCommandTagCapability: 'UNKNOWN',
+  })
+  assert.equal(decision.boundary, 'NONE')
+  assert.equal(decision.confidence, 'HIGH')
+})
+
+test('a lost commit acknowledgment reported as success is the framework', () => {
+  const decision = classifyBoundary({
+    verifiedOutcome: 'COMMITTED',
+    clientKnowledge: 'UNKNOWN',
+    applicationReported: 'REPORTED_SUCCESS',
+    frameworkPresent: true,
+    frameworkReported: 'REPORTED_SUCCESS',
+    driverCommandTag: null,
+    driverCommandTagObservation: 'NOT_OBSERVED',
+    driverCommandTagCapability: 'UNKNOWN',
+  })
+  assert.equal(decision.boundary, 'FRAMEWORK')
+})
+
+test('a later unit committing the failed unit is the framework', () => {
+  const decision = classifyBoundary({
+    verifiedOutcome: 'COMMITTED',
+    laterUnitCommittedEarlierWrite: true,
+    applicationReported: 'REPORTED_FAILURE',
+    frameworkPresent: true,
+    frameworkReported: 'REPORTED_FAILURE',
+    driverCommandTag: null,
+    driverCommandTagObservation: 'NOT_OBSERVED',
+    driverCommandTagCapability: 'UNKNOWN',
+  })
+  assert.equal(decision.boundary, 'FRAMEWORK')
+})
+
 test('a driver that does not expose the tag is the driver boundary', () => {
   const decision = classifyBoundary({
     verifiedOutcome: 'ROLLED_BACK',

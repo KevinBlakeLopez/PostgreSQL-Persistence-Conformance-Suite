@@ -42,6 +42,14 @@ node --test research/transaction-outcome-propagation/test/boundary.test.mjs
 
 `pnpm test` includes that file. The live experiment is not part of CI's `--expect` comparison.
 
+Further scenarios, still outside the harness:
+
+```sh
+node research/transaction-outcome-propagation/experiments/followups.mjs
+```
+
+That run covers TX-01B connection loss, TX-01B with the existing commit-reply proxy, a client-triggered rejected savepoint rollback (TX-02), a withheld ROLLBACK (TX-03), and TX-01A through PHP `pdo_pgsql` and the Ruby `pg` gem when those runtimes are installed. pgjdbc, Npgsql, and psycopg are skipped when their runtimes are absent. The proxy module is used as-is.
+
 ## Add a driver observation
 
 1. Add a subject function that calls the library the way an application does. Use the dependency already installed for an adapter. Do not add a package for instrumentation.
