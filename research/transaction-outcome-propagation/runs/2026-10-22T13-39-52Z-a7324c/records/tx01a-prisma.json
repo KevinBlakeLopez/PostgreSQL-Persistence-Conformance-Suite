@@ -1,0 +1,278 @@
+{
+  "schema": "ppcs-propagation/1",
+  "scenario": "TX-01A.caught-error-then-commit",
+  "repetition_recorded": 1,
+  "subject": {
+    "id": "tx01a-prisma",
+    "kind": "framework",
+    "framework": {
+      "name": "@prisma/client",
+      "version": "7.10.1",
+      "git_head": null
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf"
+    },
+    "pool": {
+      "name": "pg-pool",
+      "version": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    },
+    "server": {
+      "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "server_version_num": 180006,
+      "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "layers": [
+    {
+      "name": "server",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "PostgreSQL",
+      "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "note": "The database outcome is pg_xact_status() and marker visibility on a second connection."
+    },
+    {
+      "name": "protocol",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "PostgreSQL frontend/backend protocol",
+      "version": null,
+      "note": "This run does not capture packets. A command tag inferred from node-postgres is that driver parsing CommandComplete."
+    },
+    {
+      "name": "driver",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg",
+      "version": "8.23.1",
+      "note": "Driver observations are fields on the pg query result, or Client.getTransactionStatus()."
+    },
+    {
+      "name": "pool",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "pg-pool",
+      "version": "3.14.0",
+      "note": "A pool is in the process. This scenario does not record a reset statement. The command tag is read from the client result inside the transaction call, before the connection is released."
+    },
+    {
+      "name": "transaction_manager",
+      "presence": "folded",
+      "observed": false,
+      "folded_into": "framework",
+      "component": null,
+      "version": null,
+      "note": "PostgresQueryRunner.commitTransaction is TypeORM's transaction operation. It stays in the framework layer so the record does not invent a second boundary inside one library."
+    },
+    {
+      "name": "framework",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "@prisma/client",
+      "version": "7.10.1",
+      "note": "The application-facing call is the framework transaction API."
+    },
+    {
+      "name": "application",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "tx01a-prisma",
+      "version": null,
+      "note": "The application is the subject code in this experiment."
+    }
+  ],
+  "verified_outcome": "ROLLED_BACK",
+  "client_knowledge": "KNOWN",
+  "verified_evidence": {
+    "pg_xact_status": "aborted",
+    "marker_visible": false,
+    "xid": "37343",
+    "backend_pid": 1761879,
+    "session_state": "idle",
+    "session_query": "COMMIT",
+    "observer": "separate_connection"
+  },
+  "server_command_tag": {
+    "value": "ROLLBACK",
+    "observation": "INFERRED",
+    "access": "source_inspection",
+    "basis": "Inferred from Result.command on the pg result the framework received. No packet was captured."
+  },
+  "capability_scope": "pg 8.23.1 as required by @prisma/client 7.10.1.",
+  "driver_capabilities": {
+    "command_tag": "EXPOSED",
+    "affected_row_count": "UNKNOWN",
+    "sqlstate": "EXPOSED",
+    "transaction_status": "UNKNOWN",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "EXPOSED",
+    "unknown_commit_outcome": "UNKNOWN",
+    "rollback_acknowledgment": "UNKNOWN",
+    "connection_invalidation": "UNKNOWN",
+    "pool_reset": "UNKNOWN",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "UNKNOWN"
+  },
+  "capability_notes": {
+    "command_tag": "The wrapper saw Result.command ROLLBACK for COMMIT.",
+    "affected_row_count": "This scenario did not establish this capability.",
+    "sqlstate": "The caught insert SQLSTATE was 23505.",
+    "transaction_status": "This scenario did not establish this capability.",
+    "connection_failure": "This scenario did not establish this capability.",
+    "commit_acknowledgment": "Result.command is the acknowledgment pg exposes. The framework call does not return it.",
+    "unknown_commit_outcome": "This scenario did not establish this capability.",
+    "rollback_acknowledgment": "This scenario did not establish this capability.",
+    "connection_invalidation": "This scenario did not establish this capability.",
+    "pool_reset": "This scenario did not establish this capability.",
+    "savepoint_failure": "This scenario did not establish this capability.",
+    "nested_transactions": "This scenario did not establish this capability."
+  },
+  "driver_observation": {
+    "command_tag": {
+      "value": "ROLLBACK",
+      "observation": "OBSERVED",
+      "access": "diagnostic_wrapper",
+      "basis": "Diagnostic wrapper on the pg.Client.prototype.query this framework resolves."
+    },
+    "row_count": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Row count was not the measurement."
+    },
+    "sqlstate": {
+      "value": "23505",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "SQLSTATE from the caught duplicate insert."
+    },
+    "transaction_status_after_statement_error": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled."
+    },
+    "transaction_status_after_commit": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled."
+    },
+    "query_settled": "resolved",
+    "instrumentation": "diagnostic_wrapper",
+    "commits": []
+  },
+  "intermediate_layers": [
+    {
+      "layer": "POOL",
+      "component": "pg-pool",
+      "version": "3.14.0",
+      "observation": "NOT_OBSERVED",
+      "note": "The framework uses a pg pool of one connection. Reset statements were not recorded. The command tag is read from Client.query before release."
+    }
+  ],
+  "framework_observation": {
+    "present": true,
+    "reported": "REPORTED_SUCCESS",
+    "call": "prisma.$transaction(callback)",
+    "threw": false,
+    "resolved_value": "callback_result",
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_EXPOSED",
+      "access": "public_return_value",
+      "basis": "prisma.$transaction(callback) does not return Result.command."
+    },
+    "after_transaction_commit": null,
+    "after_transaction_rollback": null,
+    "basis": "prisma.$transaction(callback) resolved."
+  },
+  "application_observation": {
+    "reported": "REPORTED_SUCCESS",
+    "basis": "prisma.$transaction(callback) resolved. Statements: BEGIN [resolved BEGIN]; COMMIT [resolved ROLLBACK]. @prisma/adapter-pg 7.10.1 executes COMMIT. PgQueryable.executeRaw returns rowCount."
+  },
+  "interpretation": {
+    "kind": "framework_discarded_driver_result",
+    "defect_claim": "not_made",
+    "note": "@prisma/client 7.10.1 calls prisma.$transaction(callback). The pg result of COMMIT is recorded by the wrapper, not by the framework return value. @prisma/adapter-pg 7.10.1 executes COMMIT. PgQueryable.executeRaw returns rowCount. Defect claim: not made."
+  },
+  "information_loss_boundary": "FRAMEWORK",
+  "confidence": "HIGH",
+  "boundary_basis": "The independent check found a rollback. The driver exposed command tag ROLLBACK on the query result. The framework reported success, and the application received that success.",
+  "evidence": [
+    {
+      "package": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf",
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "runtime",
+      "kind": "diagnostic_instrumentation",
+      "layer": "driver",
+      "statement": "pg_xact_status() aborted, marker visible false, session idle. BEGIN [resolved BEGIN]; COMMIT [resolved ROLLBACK]"
+    }
+  ],
+  "limits": [
+    "Drizzle 1.0.0-rc.4 was not repeated. The suite already recorded the same TX-01A shape for 0.45.4 and the release candidate.",
+    "Lucid and MikroORM are not separate rows. Knex and Kysely are the libraries those adapters place on pg.",
+    "No packet capture. The server command tag is inferred from Result.command.",
+    "psycopg, asyncpg, pgjdbc, and Npgsql were not run."
+  ],
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "compared": [
+      "verified_outcome",
+      "application_reported",
+      "information_loss_boundary",
+      "driver_command_tag"
+    ],
+    "runs": [
+      {
+        "repetition": 1,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_SUCCESS",
+        "framework_reported": "REPORTED_SUCCESS",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 2,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_SUCCESS",
+        "framework_reported": "REPORTED_SUCCESS",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 3,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_SUCCESS",
+        "framework_reported": "REPORTED_SUCCESS",
+        "information_loss_boundary": "FRAMEWORK",
+        "confidence": "HIGH"
+      }
+    ]
+  }
+}

@@ -37,16 +37,26 @@ export function instrumentPg(pgModule, hooks = {}) {
       seen.push(seenRow(originalText, null, null, 'not_sent'))
       return Promise.reject(new Error('injected client-side failure: ROLLBACK was not sent'))
     }
-    const result = original.apply(this, args)
+    const client = this
+    const sql = (typeof text === 'string' ? text : originalText).trim().slice(0, 120)
+    const record = (res, err) => {
+      const row = seenRow(sql, res, err, err ? 'rejected' : 'resolved')
+      row.transaction_status = typeof client.getTransactionStatus === 'function' ? client.getTransactionStatus() : null
+      seen.push(row)
+    }
+    const callbackIndex = args.findIndex((arg) => typeof arg === 'function')
     if (originalText && CONTROL.test(typeof text === 'string' ? text.trim() : originalText)) {
-      const client = this
-      const sql = (typeof text === 'string' ? text : originalText).trim().slice(0, 120)
-      const record = (res, err) => {
-        const row = seenRow(sql, res, err, err ? 'rejected' : 'resolved')
-        row.transaction_status = typeof client.getTransactionStatus === 'function' ? client.getTransactionStatus() : null
-        seen.push(row)
+      if (callbackIndex >= 0) {
+        const originalCallback = args[callbackIndex]
+        args[callbackIndex] = (err, res) => {
+          record(res, err)
+          return originalCallback.call(this, err, res)
+        }
       }
-      if (result?.then) result.then((res) => record(res, null), (err) => record(null, err))
+    }
+    const result = original.apply(this, args)
+    if (callbackIndex < 0 && originalText && CONTROL.test(typeof text === 'string' ? text.trim() : originalText) && result?.then) {
+      result.then((res) => record(res, null), (err) => record(null, err))
     }
     return result
   }

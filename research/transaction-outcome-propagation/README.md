@@ -50,6 +50,14 @@ node research/transaction-outcome-propagation/experiments/followups.mjs
 
 That run covers TX-01B connection loss, TX-01B with the existing commit-reply proxy, a client-triggered rejected savepoint rollback (TX-02), a withheld ROLLBACK (TX-03), and TX-01A through PHP `pdo_pgsql` and the Ruby `pg` gem when those runtimes are installed. pgjdbc, Npgsql, and psycopg are skipped when their runtimes are absent. The proxy module is used as-is.
 
+Knex, Kysely, Drizzle, and Prisma, each on its adapter's pinned `pg`:
+
+```sh
+node research/transaction-outcome-propagation/experiments/pg-frameworks.mjs
+```
+
+Prisma's generated client is produced by `pnpm exec prisma generate` in `adapters/prisma` and is not committed.
+
 ## Add a driver observation
 
 1. Add a subject function that calls the library the way an application does. Use the dependency already installed for an adapter. Do not add a package for instrumentation.

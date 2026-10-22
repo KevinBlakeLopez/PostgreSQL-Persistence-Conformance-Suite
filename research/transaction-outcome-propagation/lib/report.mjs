@@ -26,7 +26,7 @@ export function renderReport({ run, records, capability }) {
   const lines = []
   lines.push('# PostgreSQL Transaction Outcome Propagation: Driver and Framework Capability Matrix')
   lines.push('')
-  lines.push(`TX-01A slice for node-postgres ${run.driver.version} and TypeORM ${run.framework.version}. Run \`${run.run_id}\`.`)
+  lines.push(`${run.scenario} for ${run.driver.name} ${run.driver.version}. Frameworks: ${run.framework.name} ${run.framework.version}. Run \`${run.run_id}\`.`)
   lines.push('')
   lines.push('## Executive summary')
   lines.push('')
