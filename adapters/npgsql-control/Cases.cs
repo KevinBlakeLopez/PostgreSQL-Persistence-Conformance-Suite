@@ -21,7 +21,7 @@ static class Cases
         var settings = CaseJson.OptionalObject(CaseJson.Object(message, "case"), "settings");
         return id switch
         {
-            "CTL-01.commit" => await Commit(sessions, protocol, markers, correct),
+            "CTL-01.commit" or "TX-01B.commit-reply-unseen" => await Commit(sessions, protocol, markers, correct),
             "CTL-01.rollback" => await Rollback(sessions, protocol, markers, correct),
             "TX-01A.caught-error-then-commit" => await CaughtError(sessions, protocol, markers, correct),
             "TX-01B.conn-lost-before-commit" => await ConnLost(sessions, protocol, markers, settings, correct),

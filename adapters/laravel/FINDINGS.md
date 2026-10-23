@@ -78,7 +78,7 @@ TX-05 passed. `current_setting('transaction_isolation')` was `serializable`, rea
 
 ## What was not run
 
-Migration cases. Laravel's migrator is a real API. Driving it is a later milestone, so these rows are NOT_RUN rather than unsupported.
+Migration cases. The later recording is [`reports/examples/2026-10-23T13-03-36Z-03a5b5`](../../reports/examples/2026-10-23T13-03-36Z-03a5b5/summary.md). `Migrator::run()` takes no advisory lock. `MG-03.no-reversal` reports reverted and deletes the history row while the marker remains.
 
 Deadlock and serialization-failure retries. From `ConcurrencyErrorDetector` at v13.38.0, a `PDOException` whose code is `40001` is treated as a concurrency error, and `transaction()` retries while attempts remain. The default attempts value is 1. A `QueryException` is not a `PDOException`, so the `40001` check does not apply to it unless the message matches the detector's list. `could not serialize access` is not in that list. This is source reading. No deadlock was executed.
 

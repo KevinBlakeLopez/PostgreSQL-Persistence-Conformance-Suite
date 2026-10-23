@@ -34,7 +34,7 @@ From the repository root:
 node harness/run.mjs --adapter=npgsql-control --case=CTL-01,TX-01,TX-02,TX-03,TX-04,TX-05,MG-02,MG-03 --repeat=3
 ```
 
-`pg-control` runs beside the scenario cases. `TX-01B.commit-reply-discarded` is selected by the `TX-01` prefix and recorded as NOT_RUN.
+`pg-control` runs beside the scenario cases. `TX-01B.commit-reply-discarded` is selected by the `TX-01` prefix and recorded as NOT_RUN. `TX-01B.commit-reply-unseen` is the runner's protocol proxy. `correct` reports `failed` when `CommitAsync` throws. `unsafe` reports `rolled_back`. The recording is `reports/examples/2026-10-23T12-49-21Z-094ceb`.
 
 A probe, not a PPCS case, prints what `CommitAsync` does after a unique violation. It checks `cluster_name` against `.ppcs-instance.json`, creates `ppcs_npgsql_probe`, and drops that database:
 

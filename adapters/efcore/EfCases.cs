@@ -38,7 +38,7 @@ static class EfCases
 
         return id switch
         {
-            "CTL-01.commit" => await Commit(host, markers),
+            "CTL-01.commit" or "TX-01B.commit-reply-unseen" => await Commit(host, markers),
             "CTL-01.rollback" => await Rollback(host, markers),
             "TX-01A.caught-error-then-commit" => await CaughtError(host, markers),
             "TX-01B.conn-lost-before-commit" => await ConnLost(host, markers, settings),

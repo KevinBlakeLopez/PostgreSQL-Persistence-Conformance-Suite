@@ -33,7 +33,7 @@ node harness/run.mjs --adapter=efcore --case=CTL-01,TX-01,TX-02,TX-03,TX-04,TX-0
 | `execute-sql` | The same transaction calls. The TX-01A violation is `Database.ExecuteSqlAsync` instead of `SaveChangesAsync`. |
 | `pooled` | `NpgsqlDataSource` with `MaxPoolSize` 1, TX-03 only. The context is disposed between units. |
 
-`TX-05.managed-serializable` is unsupported: EF Core has no callback transaction API that accepts an isolation level. `TX-04.independent-inner` is unsupported: `BeginTransactionAsync` does not start an independent transaction while one is open. `TX-01B.commit-reply-discarded` is NOT_RUN. `CommitAsync` consumes the reply inside Npgsql before it returns, and this adapter does not discard that reply.
+`TX-05.managed-serializable` is unsupported: EF Core has no callback transaction API that accepts an isolation level. `TX-04.independent-inner` is unsupported: `BeginTransactionAsync` does not start an independent transaction while one is open. `TX-01B.commit-reply-discarded` is NOT_RUN. `CommitAsync` consumes the reply inside Npgsql before it returns, and this adapter does not discard that reply. `TX-01B.commit-reply-unseen` uses the runner's protocol proxy. The recording is `reports/examples/2026-10-23T12-49-21Z-094ceb`.
 
 Marker inserts are `ExecuteSqlAsync` because `SaveChangesAsync` inside a user transaction writes the row under a savepoint. After that savepoint is released, the row's `xmin` is the subtransaction id, while `pg_current_xact_id()` is the top-level id. The harness does not attribute that `xmin` to a top-level write, so a `SaveChanges` marker makes the case INCONCLUSIVE before the commit is scored.
 

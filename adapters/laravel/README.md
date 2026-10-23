@@ -11,4 +11,4 @@ cd adapters/php && composer install --no-interaction --no-scripts
 node harness/run.mjs --adapter=laravel --repeat=3
 ```
 
-`TX-04.independent-inner` is unsupported, not applicable by design. `TX-01B.commit-reply-discarded` is not implemented. MG-02 and MG-03 are not implemented. Laravel has a migrator. This adapter does not drive it.
+`TX-04.independent-inner` is unsupported, not applicable by design. `TX-01B.commit-reply-discarded` is not implemented. MG-02 and MG-03 call `Migrator::run()` and `Migrator::rollback()` on the managed mode. The recording is [`reports/examples/2026-10-23T13-03-36Z-03a5b5`](../../reports/examples/2026-10-23T13-03-36Z-03a5b5/summary.md), on PHP 8.5.12.
