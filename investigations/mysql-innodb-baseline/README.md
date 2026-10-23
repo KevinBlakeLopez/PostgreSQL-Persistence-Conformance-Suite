@@ -46,6 +46,15 @@ Initialization is the official image entrypoint on an empty tmpfs: `MYSQL_DATABA
 | `src/run-knex.mjs` | Knex 3.3.0 beside a careful and a careless mysql2 control |
 | `src/run-lucid.mjs` | Lucid 22.4.2 `db.transaction(callback)` on the same three cases |
 | `src/run-lost-commit.mjs` | Drops the server's COMMIT OK packet after the server has sent it |
+| `src/run-php-mx01.mjs` | mysqli, PDO MySQL, and CodeIgniter 4 MySQLi on the duplicate-key case. Writes `evidence/php-mx01.json`. Does not replace `evidence/suite.json`. |
+| `src/run-php-concurrency.mjs` | The same three clients on deadlock and lock-wait timeout. Node holds the other session. Writes `evidence/php-concurrency.json`. |
+| `src/run-php-update-batch.mjs` | CodeIgniter 4.7.5 `updateBatch()` after `where()`, on a synthetic table. Writes `evidence/php-update-batch.json`. |
+| `src/run-php-connection.mjs` | mysqli, PDO, and CodeIgniter after a killed connection and after `wait_timeout`. Writes `evidence/php-connection.json`. |
+| `src/run-php-nested.mjs` | CodeIgniter nested transaction depth beside a mysqli `SAVEPOINT`. Writes `evidence/php-nested.json`. |
+| `src/run-php-ddl.mjs` | mysqli and a CodeIgniter migration that applies DDL and then fails. Writes `evidence/php-ddl.json`. |
+| `src/run-php-model.mjs` | CodeIgniter Model `allowedFields`, and a Model update inside a failed transaction. Writes `evidence/php-model.json`. |
+
+The PHP subject is [`php/README.md`](php/README.md). Install it with `composer install --no-interaction --no-scripts` from that directory, then `node src/run-php-mx01.mjs` or `node src/run-php-concurrency.mjs`. The servers still come from `scripts/mysql-up.sh`. The duplicate-key run finished `2026-10-21T17:15:26.400Z`. The deadlock and lock-wait run finished `2026-10-21T17:44:17.623Z`. The connection-loss run finished `2026-10-21T19:27:50.163Z`. The nested-transaction run finished `2026-10-21T19:39:28.598Z`. The DDL run finished `2026-10-21T20:04:32.993Z`. The Model run finished `2026-10-21T20:17:38.862Z`. A score is whether a pre-stated expectation held. It is not a defect verdict, and these files do not replace the mysql2 evidence already in `evidence/`.
 
 `node src/run-knex.mjs` writes `evidence/knex.json`. `node src/run-lucid.mjs` writes `evidence/lucid.json` and compares it with the Knex file. `node src/run-suite.mjs` executes the case list and writes `evidence/suite.json`. None of these is the PostgreSQL harness. They need `mysql-up.sh` first.
 

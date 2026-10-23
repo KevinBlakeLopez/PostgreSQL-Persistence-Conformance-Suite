@@ -1,0 +1,5288 @@
+{
+  "finished_at": "2026-10-21T17:44:17.623Z",
+  "not_the_ppcs_harness": true,
+  "does_not_replace": [
+    "evidence/suite.json",
+    "evidence/php-mx01.json"
+  ],
+  "score_meaning": "matched_expectation compares the run with expectation_basis. It is not a framework-defect verdict.",
+  "server": {
+    "version": "8.4.11",
+    "innodb_rollback_on_timeout": "0",
+    "transaction_isolation": "REPEATABLE-READ",
+    "autocommit": "1"
+  },
+  "rollback_on_timeout_server": {
+    "innodb_rollback_on_timeout": "1"
+  },
+  "versions": {
+    "php": "8.5.6",
+    "mysqli_client": "mysqlnd 8.5.6",
+    "pdo_client": "mysqlnd 8.5.6",
+    "ci4": "v4.7.5",
+    "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+  },
+  "repetitions": 3,
+  "mismatched": [],
+  "runs": [
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "mysqli",
+      "repetition": 1,
+      "schema": "mx02_mysqli_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits. mysqli commit returns true. That acknowledgement is not the victim commit, and the victim marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1213 rolled the victim back before the next insert; mysqli commit returned true and did not restore it",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1119,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1156",
+            "PROCESSLIST_ID": "1119",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "mysqli",
+      "repetition": 2,
+      "schema": "mx02_mysqli_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits. mysqli commit returns true. That acknowledgement is not the victim commit, and the victim marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1213 rolled the victim back before the next insert; mysqli commit returned true and did not restore it",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1123,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1160",
+            "PROCESSLIST_ID": "1123",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "mysqli",
+      "repetition": 3,
+      "schema": "mx02_mysqli_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits. mysqli commit returns true. That acknowledgement is not the victim commit, and the victim marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1213 rolled the victim back before the next insert; mysqli commit returned true and did not restore it",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1127,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1164",
+            "PROCESSLIST_ID": "1127",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "pdo",
+      "repetition": 1,
+      "schema": "mx02_pdo_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits and the victim marker does not remain. PDO::commit() throws \"There is no active transaction\" because the server transaction is already gone. A first execution of this harness saw that exception and dropped the surrounding steps; this expectation keeps the exception as the driver result.",
+      "matched_expectation": true,
+      "reason": "1213 ended the transaction; PDO commit threw because none remained, and the victim marker is absent",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1131,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1168",
+            "PROCESSLIST_ID": "1131",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "pdo",
+      "repetition": 2,
+      "schema": "mx02_pdo_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits and the victim marker does not remain. PDO::commit() throws \"There is no active transaction\" because the server transaction is already gone. A first execution of this harness saw that exception and dropped the surrounding steps; this expectation keeps the exception as the driver result.",
+      "matched_expectation": true,
+      "reason": "1213 ended the transaction; PDO commit threw because none remained, and the victim marker is absent",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1135,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1172",
+            "PROCESSLIST_ID": "1135",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "pdo",
+      "repetition": 3,
+      "schema": "mx02_pdo_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-02. The subject is the lighter transaction and is the deadlock victim. Errno 1213 means that transaction is already rolled back. The next insert autocommits and the victim marker does not remain. PDO::commit() throws \"There is no active transaction\" because the server transaction is already gone. A first execution of this harness saw that exception and dropped the surrounding steps; this expectation keeps the exception as the driver result.",
+      "matched_expectation": true,
+      "reason": "1213 ended the transaction; PDO commit threw because none remained, and the victim marker is absent",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1139,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "subjectLock": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1213,
+          "sqlstate": "40001",
+          "error_message": "SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction",
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1176",
+            "PROCESSLIST_ID": "1139",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-managed",
+      "repetition": 1,
+      "schema": "mx02_ci4_managed_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "CodeIgniter managed default does not throw. The failed statement sets transStatus false and leaves transDepth at 1, because the framework does not see that InnoDB already rolled the victim back. transComplete then returns false. The victim marker is absent. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1143,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1180",
+            "PROCESSLIST_ID": "1143",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-managed",
+      "repetition": 2,
+      "schema": "mx02_ci4_managed_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "CodeIgniter managed default does not throw. The failed statement sets transStatus false and leaves transDepth at 1, because the framework does not see that InnoDB already rolled the victim back. transComplete then returns false. The victim marker is absent. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1147,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1184",
+            "PROCESSLIST_ID": "1147",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-managed",
+      "repetition": 3,
+      "schema": "mx02_ci4_managed_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "CodeIgniter managed default does not throw. The failed statement sets transStatus false and leaves transDepth at 1, because the framework does not see that InnoDB already rolled the victim back. transComplete then returns false. The victim marker is absent. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1151,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1188",
+            "PROCESSLIST_ID": "1151",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-documented",
+      "repetition": 1,
+      "schema": "mx02_ci4_manual_documented_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "The user-guide manual branch sees transStatus false and calls transRollback. InnoDB has already removed the victim marker. The insert after the error autocommits. transRollback returns true.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1155,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1192",
+            "PROCESSLIST_ID": "1155",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-documented",
+      "repetition": 2,
+      "schema": "mx02_ci4_manual_documented_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "The user-guide manual branch sees transStatus false and calls transRollback. InnoDB has already removed the victim marker. The insert after the error autocommits. transRollback returns true.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1159,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1196",
+            "PROCESSLIST_ID": "1159",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-documented",
+      "repetition": 3,
+      "schema": "mx02_ci4_manual_documented_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "The user-guide manual branch sees transStatus false and calls transRollback. InnoDB has already removed the victim marker. The insert after the error autocommits. transRollback returns true.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1163,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1200",
+            "PROCESSLIST_ID": "1163",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-unchecked",
+      "repetition": 1,
+      "schema": "mx02_ci4_manual_unchecked_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "transCommit does not read transStatus. After 1213 it still returns true. That acknowledgement is not the victim transaction, whose marker is absent. transStatus stays false. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1168,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1205",
+            "PROCESSLIST_ID": "1168",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "manual",
+          "choice": "trans_commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-unchecked",
+      "repetition": 2,
+      "schema": "mx02_ci4_manual_unchecked_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "transCommit does not read transStatus. After 1213 it still returns true. That acknowledgement is not the victim transaction, whose marker is absent. transStatus stays false. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1172,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1209",
+            "PROCESSLIST_ID": "1172",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "manual",
+          "choice": "trans_commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-02.deadlock-victim",
+      "mode": "ci4-manual-unchecked",
+      "repetition": 3,
+      "schema": "mx02_ci4_manual_unchecked_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "transCommit does not read transStatus. After 1213 it still returns true. That acknowledgement is not the victim transaction, whose marker is absent. transStatus stays false. The insert after the error autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter still had depth 1 after 1213; the victim row was already gone and the next insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1176,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "victimInsert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "subjectLock": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "cross": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1213,
+          "error_message": "Deadlock found when trying to get lock; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_cross": {
+          "errno": null,
+          "outcome": "resolved"
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1213",
+            "PROCESSLIST_ID": "1176",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after-deadlock"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "manual",
+          "choice": "trans_commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after-deadlock"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Deadlock found when trying to get lock; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "mysqli",
+      "repetition": 1,
+      "schema": "mx03off_mysqli_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1180,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2002,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1217",
+            "PROCESSLIST_ID": "1180",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "mysqli",
+      "repetition": 2,
+      "schema": "mx03off_mysqli_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1185,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2003,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1222",
+            "PROCESSLIST_ID": "1185",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "mysqli",
+      "repetition": 3,
+      "schema": "mx03off_mysqli_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 1190,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 7,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2006,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1227",
+            "PROCESSLIST_ID": "1190",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "pdo",
+      "repetition": 1,
+      "schema": "mx03off_pdo_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. The transaction is still open, so PDO commit succeeds and both markers remain.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1195,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 5,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2005,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1232",
+            "PROCESSLIST_ID": "1195",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "pdo",
+      "repetition": 2,
+      "schema": "mx03off_pdo_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. The transaction is still open, so PDO commit succeeds and both markers remain.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1200,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2003,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1237",
+            "PROCESSLIST_ID": "1200",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "pdo",
+      "repetition": 3,
+      "schema": "mx03off_pdo_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. The transaction is still open, so PDO commit succeeds and both markers remain.",
+      "matched_expectation": true,
+      "reason": "1205 left the transaction open and commit kept both markers",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 1205,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2004,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1242",
+            "PROCESSLIST_ID": "1205",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "before",
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-managed",
+      "repetition": 1,
+      "schema": "mx03off_ci4_managed_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1210,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2005,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1247",
+            "PROCESSLIST_ID": "1210",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-managed",
+      "repetition": 2,
+      "schema": "mx03off_ci4_managed_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1215,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2006,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1252",
+            "PROCESSLIST_ID": "1215",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-managed",
+      "repetition": 3,
+      "schema": "mx03off_ci4_managed_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1220,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2003,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1257",
+            "PROCESSLIST_ID": "1220",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 1,
+      "schema": "mx03off_ci4_manual_documented_r1",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1225,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 3,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2004,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1262",
+            "PROCESSLIST_ID": "1225",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 2,
+      "schema": "mx03off_ci4_manual_documented_r2",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1230,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2006,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1267",
+            "PROCESSLIST_ID": "1230",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-statement-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 3,
+      "schema": "mx03off_ci4_manual_documented_r3",
+      "innodb_rollback_on_timeout": false,
+      "expectation_basis": "innodb_rollback_on_timeout is OFF. Errno 1205 rolls back only the waiting statement. The transaction stays open. A later commit keeps the marker written before the wait and the marker written after it. CodeIgniter treats the failed statement as a failed group. transStatus is false at depth 1, and the documented end path rolls the still-open transaction back. Neither marker remains. The driver control on this server commits both.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled the still-open transaction back on 1205, so neither marker remained",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1235,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2003,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1272",
+            "PROCESSLIST_ID": "1235",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ACTIVE",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "mysqli",
+      "repetition": 1,
+      "schema": "mx03on_mysqli_r1",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back and the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 970,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2004,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1007",
+            "PROCESSLIST_ID": "970",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "mysqli",
+      "repetition": 2,
+      "schema": "mx03on_mysqli_r2",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back and the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 975,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2005,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1012",
+            "PROCESSLIST_ID": "975",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "mysqli",
+      "repetition": 3,
+      "schema": "mx03on_mysqli_r3",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "MX-03. innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. mysqli commit returns true in both settings. When the server has already aborted the transaction, that return is not a commit of the earlier marker.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back and the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "mysqli",
+          "connection_id": 980,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 3,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2003,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1017",
+            "PROCESSLIST_ID": "980",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "mysqli"
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "pdo",
+      "repetition": 1,
+      "schema": "mx03on_pdo_r1",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. PDO::commit() throws \"There is no active transaction\" after the server abort. The later insert has already autocommitted. The earlier marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back; the later insert autocommitted and PDO commit threw",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 985,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2004,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1022",
+            "PROCESSLIST_ID": "985",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "pdo",
+      "repetition": 2,
+      "schema": "mx03on_pdo_r2",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. PDO::commit() throws \"There is no active transaction\" after the server abort. The later insert has already autocommitted. The earlier marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back; the later insert autocommitted and PDO commit threw",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 990,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 2,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2005,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1027",
+            "PROCESSLIST_ID": "990",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 3,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "pdo",
+      "repetition": 3,
+      "schema": "mx03on_pdo_r3",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. PDO::commit() throws \"There is no active transaction\" after the server abort. The later insert has already autocommitted. The earlier marker does not remain.",
+      "matched_expectation": true,
+      "reason": "1205 rolled the transaction back; the later insert autocommitted and PDO commit threw",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "pdo",
+          "connection_id": 996,
+          "flags": null,
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 0,
+          "ok": true
+        },
+        "before": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "op": "query",
+          "threw": true,
+          "returned": false,
+          "error_code": 1205,
+          "sqlstate": "HY000",
+          "error_message": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+          "elapsed_ms": 2004,
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1033",
+            "PROCESSLIST_ID": "996",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "op": "query",
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "sqlstate": null,
+          "error_message": null,
+          "elapsed_ms": 1,
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "driver",
+          "choice": "commit",
+          "returned": false,
+          "threw": true,
+          "message": "There is no active transaction",
+          "sqlstate": null,
+          "status": {
+            "driver": "pdo",
+            "in_transaction": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-managed",
+      "repetition": 1,
+      "schema": "mx03on_ci4_managed_r1",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1001,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 0,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2004,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1038",
+            "PROCESSLIST_ID": "1001",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-managed",
+      "repetition": 2,
+      "schema": "mx03on_ci4_managed_r2",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1006,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2003,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1043",
+            "PROCESSLIST_ID": "1006",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-managed",
+      "repetition": 3,
+      "schema": "mx03on_ci4_managed_r3",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1011,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2007,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1048",
+            "PROCESSLIST_ID": "1011",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "managed",
+          "choice": "trans_complete",
+          "returned": false,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 1,
+      "schema": "mx03on_ci4_manual_documented_r1",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1016,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2003,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1053",
+            "PROCESSLIST_ID": "1016",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 2,
+      "schema": "mx03on_ci4_manual_documented_r2",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1021,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2005,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1058",
+            "PROCESSLIST_ID": "1021",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "case": "MX-03.lock-wait-transaction-rollback",
+      "mode": "ci4-manual-documented",
+      "repetition": 3,
+      "schema": "mx03on_ci4_manual_documented_r3",
+      "innodb_rollback_on_timeout": true,
+      "expectation_basis": "innodb_rollback_on_timeout is ON. Errno 1205 rolls the whole transaction back. The marker written before the wait does not remain. An insert after the error autocommits. CodeIgniter still reports transStatus false at depth 1. The documented end path rolls the group back. The earlier marker is already gone. The later insert autocommits.",
+      "matched_expectation": true,
+      "reason": "CodeIgniter rolled its group back after the server had already aborted the transaction; the later insert autocommitted",
+      "versions": {
+        "php": "8.5.6",
+        "mysqli_client": "mysqlnd 8.5.6",
+        "pdo_client": "mysqlnd 8.5.6",
+        "ci4": "v4.7.5",
+        "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+      },
+      "observed": {
+        "opened": {
+          "op": "open",
+          "driver": "ci4",
+          "connection_id": 1026,
+          "flags": {
+            "DBDriver": "MySQLi",
+            "DBDebug": true,
+            "pConnect": false,
+            "strictOn": false,
+            "transStrict": true,
+            "transException": false
+          },
+          "versions": {
+            "php": "8.5.6",
+            "mysqli_client": "mysqlnd 8.5.6",
+            "pdo_client": "mysqlnd 8.5.6",
+            "ci4": "v4.7.5",
+            "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+          },
+          "ok": true
+        },
+        "timeoutSet": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 0,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "before": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 3,
+          "op": "query",
+          "ok": true
+        },
+        "fixture_wait_found": true,
+        "timed": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1205,
+          "error_message": "Lock wait timeout exceeded; try restarting transaction",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 2006,
+          "op": "query",
+          "ok": true
+        },
+        "state_after_error": {
+          "thread": {
+            "THREAD_ID": "1063",
+            "PROCESSLIST_ID": "1026",
+            "PROCESSLIST_COMMAND": "Sleep",
+            "PROCESSLIST_STATE": null
+          },
+          "transaction": [
+            {
+              "STATE": "ROLLED BACK",
+              "AUTOCOMMIT": "NO",
+              "ISOLATION_LEVEL": "REPEATABLE READ"
+            }
+          ]
+        },
+        "follow_up": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "elapsed_ms": 1,
+          "op": "query",
+          "ok": true
+        },
+        "visible_before_end": [
+          "after"
+        ],
+        "completed": {
+          "op": "complete",
+          "api": "documented",
+          "choice": "rollback",
+          "returned": true,
+          "threw": false,
+          "message": null,
+          "sqlstate": null,
+          "status": {
+            "driver": "ci4",
+            "trans_status": false,
+            "trans_depth": 0,
+            "trans_failure": false,
+            "trans_strict": true,
+            "trans_exception": false
+          },
+          "ok": true
+        },
+        "names": [
+          "after"
+        ],
+        "closed": {
+          "op": "close",
+          "left_transaction_open": false,
+          "logs": [
+            {
+              "level": "error",
+              "message": "Lock wait timeout exceeded; try restarting transaction",
+              "file": "Connection.php",
+              "line": 294
+            }
+          ],
+          "ok": true,
+          "stderr": ""
+        }
+      }
+    }
+  ]
+}

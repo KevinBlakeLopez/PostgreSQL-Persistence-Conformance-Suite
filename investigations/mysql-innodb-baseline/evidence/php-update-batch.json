@@ -1,0 +1,642 @@
+{
+  "finished_at": "2026-10-21T18:59:38.769Z",
+  "not_the_ppcs_harness": true,
+  "does_not_replace": [
+    "evidence/suite.json",
+    "evidence/php-mx01.json",
+    "evidence/php-concurrency.json"
+  ],
+  "score_meaning": "matched_expectation compares the run with the 4.7.4 contract: where() before updateBatch() throws, and no row changes.",
+  "changelog": "CodeIgniter 4.7.4: updateBatch() after Query Builder where() conditions throws DatabaseException.",
+  "framework_test": "tests/system/Database/Builder/UpdateTest.php testUpdateBatchThrowsExceptionWithWhere",
+  "server_version": "8.4.11",
+  "versions": {
+    "php": "8.5.6",
+    "mysqli_client": "mysqlnd 8.5.6",
+    "pdo_client": "mysqlnd 8.5.6",
+    "ci4": "v4.7.5",
+    "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+  },
+  "repetitions": 3,
+  "mismatched": [],
+  "runs": [
+    {
+      "repetition": 1,
+      "schema": "mxqb_batch_r1",
+      "matched_expectation": true,
+      "reason": "where() before updateBatch() threw, the rows stayed, and the constraint argument did the matching",
+      "final_rows": [
+        {
+          "scope_id": 1,
+          "code": "a",
+          "label": "only-scope-1"
+        },
+        {
+          "scope_id": 1,
+          "code": "b",
+          "label": "gamma"
+        },
+        {
+          "scope_id": 2,
+          "code": "a",
+          "label": "beta"
+        }
+      ],
+      "api": {
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "chained_where_debug_on": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "chained_where_debug_off": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "reused_builder": {
+          "first": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "second_without_a_new_where": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "constraint_only": {
+          "call": {
+            "threw": false,
+            "returned": 2,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'changed' `label`\n) `_u`\nON `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "changed"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "changed"
+            }
+          ]
+        },
+        "composite_constraint": {
+          "call": {
+            "threw": false,
+            "returned": 1,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'only-scope-1' `label`, 1 `scope_id`\n) `_u`\nON `item`.`scope_id` = `_u`.`scope_id` AND `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "only-scope-1"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        }
+      },
+      "php_exit": 0
+    },
+    {
+      "repetition": 2,
+      "schema": "mxqb_batch_r2",
+      "matched_expectation": true,
+      "reason": "where() before updateBatch() threw, the rows stayed, and the constraint argument did the matching",
+      "final_rows": [
+        {
+          "scope_id": 1,
+          "code": "a",
+          "label": "only-scope-1"
+        },
+        {
+          "scope_id": 1,
+          "code": "b",
+          "label": "gamma"
+        },
+        {
+          "scope_id": 2,
+          "code": "a",
+          "label": "beta"
+        }
+      ],
+      "api": {
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "chained_where_debug_on": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "chained_where_debug_off": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "reused_builder": {
+          "first": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "second_without_a_new_where": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "constraint_only": {
+          "call": {
+            "threw": false,
+            "returned": 2,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'changed' `label`\n) `_u`\nON `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "changed"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "changed"
+            }
+          ]
+        },
+        "composite_constraint": {
+          "call": {
+            "threw": false,
+            "returned": 1,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'only-scope-1' `label`, 1 `scope_id`\n) `_u`\nON `item`.`scope_id` = `_u`.`scope_id` AND `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "only-scope-1"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        }
+      },
+      "php_exit": 0
+    },
+    {
+      "repetition": 3,
+      "schema": "mxqb_batch_r3",
+      "matched_expectation": true,
+      "reason": "where() before updateBatch() threw, the rows stayed, and the constraint argument did the matching",
+      "final_rows": [
+        {
+          "scope_id": 1,
+          "code": "a",
+          "label": "only-scope-1"
+        },
+        {
+          "scope_id": 1,
+          "code": "b",
+          "label": "gamma"
+        },
+        {
+          "scope_id": 2,
+          "code": "a",
+          "label": "beta"
+        }
+      ],
+      "api": {
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "chained_where_debug_on": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "chained_where_debug_off": {
+          "call": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "sql_before": null,
+          "sql_after": null,
+          "sql_unchanged": true,
+          "rows_before": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ],
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "reused_builder": {
+          "first": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "second_without_a_new_where": {
+            "threw": true,
+            "returned": null,
+            "class": "CodeIgniter\\Database\\Exceptions\\DatabaseException",
+            "message": "updateBatch() cannot be safely combined with existing Query Builder WHERE conditions. Use updateBatch($data, $constraints), onConstraint(), or include all required constraint fields in the batch data."
+          },
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "alpha"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        },
+        "constraint_only": {
+          "call": {
+            "threw": false,
+            "returned": 2,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'changed' `label`\n) `_u`\nON `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "changed"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "changed"
+            }
+          ]
+        },
+        "composite_constraint": {
+          "call": {
+            "threw": false,
+            "returned": 1,
+            "class": null,
+            "message": null
+          },
+          "sql": "UPDATE `item`\nINNER JOIN (\nSELECT 'a' `code`, 'only-scope-1' `label`, 1 `scope_id`\n) `_u`\nON `item`.`scope_id` = `_u`.`scope_id` AND `item`.`code` = `_u`.`code`\nSET\n`item`.`label` = `_u`.`label`",
+          "rows_after": [
+            {
+              "scope_id": "1",
+              "code": "a",
+              "label": "only-scope-1"
+            },
+            {
+              "scope_id": "1",
+              "code": "b",
+              "label": "gamma"
+            },
+            {
+              "scope_id": "2",
+              "code": "a",
+              "label": "beta"
+            }
+          ]
+        }
+      },
+      "php_exit": 0
+    }
+  ]
+}

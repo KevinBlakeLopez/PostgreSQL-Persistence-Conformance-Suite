@@ -1,0 +1,769 @@
+{
+  "finished_at": "2026-10-21T20:17:38.862Z",
+  "not_the_ppcs_harness": true,
+  "does_not_replace": [
+    "evidence/suite.json",
+    "evidence/php-mx01.json",
+    "evidence/php-concurrency.json",
+    "evidence/php-update-batch.json",
+    "evidence/php-connection.json",
+    "evidence/php-nested.json",
+    "evidence/php-ddl.json"
+  ],
+  "score_meaning": "matched_expectation compares the Model return with the row read by another connection. It is not a defect verdict.",
+  "server_version": "8.4.11",
+  "versions": {
+    "php": "8.5.6",
+    "mysqli_client": "mysqlnd 8.5.6",
+    "ci4": "v4.7.5",
+    "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+  },
+  "repetitions": 3,
+  "mismatched": [],
+  "runs": [
+    {
+      "scenario": "update-mixed",
+      "repetition": 1,
+      "schema": "mxmodel_update_mixed_r1",
+      "expectation_basis": "ItemModel allows only label. update() with label and secret returns true. Another connection sees the new label and the original secret. The UPDATE does not name secret.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "update-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6063,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-mixed",
+      "repetition": 2,
+      "schema": "mxmodel_update_mixed_r2",
+      "expectation_basis": "ItemModel allows only label. update() with label and secret returns true. Another connection sees the new label and the original secret. The UPDATE does not name secret.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "update-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6065,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-mixed",
+      "repetition": 3,
+      "schema": "mxmodel_update_mixed_r3",
+      "expectation_basis": "ItemModel allows only label. update() with label and secret returns true. Another connection sees the new label and the original secret. The UPDATE does not name secret.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "update-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6067,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "save-mixed",
+      "repetition": 1,
+      "schema": "mxmodel_save_mixed_r1",
+      "expectation_basis": "save() with an id calls update(). The same allowedFields rule applies: secret is removed, the call returns true, and the stored secret is unchanged.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "save-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6069,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "save-mixed",
+      "repetition": 2,
+      "schema": "mxmodel_save_mixed_r2",
+      "expectation_basis": "save() with an id calls update(). The same allowedFields rule applies: secret is removed, the call returns true, and the stored secret is unchanged.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "save-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6071,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "save-mixed",
+      "repetition": 3,
+      "schema": "mxmodel_save_mixed_r3",
+      "expectation_basis": "save() with an id calls update(). The same allowedFields rule applies: secret is removed, the call returns true, and the stored secret is unchanged.",
+      "matched_expectation": true,
+      "reason": "the Model returned true, label changed, and secret stayed",
+      "final_row": {
+        "id": 1,
+        "label": "beta",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "beta",
+          "secret": "keep"
+        },
+        "scenario": "save-mixed",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6074,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'beta'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-omitted-only",
+      "repetition": 1,
+      "schema": "mxmodel_update_omitted_only_r1",
+      "expectation_basis": "update() with only secret leaves an empty dataset after allowedFields. CodeIgniter throws DataException, \"There is no data to update.\", and does not send UPDATE.",
+      "matched_expectation": true,
+      "reason": "an update of only a protected field threw, and the row stayed",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": true,
+          "returned": false,
+          "class": "CodeIgniter\\Database\\Exceptions\\DataException",
+          "message": "There is no data to update."
+        },
+        "sql_before": null,
+        "sql_after": null,
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-omitted-only",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6076,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-omitted-only",
+      "repetition": 2,
+      "schema": "mxmodel_update_omitted_only_r2",
+      "expectation_basis": "update() with only secret leaves an empty dataset after allowedFields. CodeIgniter throws DataException, \"There is no data to update.\", and does not send UPDATE.",
+      "matched_expectation": true,
+      "reason": "an update of only a protected field threw, and the row stayed",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": true,
+          "returned": false,
+          "class": "CodeIgniter\\Database\\Exceptions\\DataException",
+          "message": "There is no data to update."
+        },
+        "sql_before": null,
+        "sql_after": null,
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-omitted-only",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6078,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-omitted-only",
+      "repetition": 3,
+      "schema": "mxmodel_update_omitted_only_r3",
+      "expectation_basis": "update() with only secret leaves an empty dataset after allowedFields. CodeIgniter throws DataException, \"There is no data to update.\", and does not send UPDATE.",
+      "matched_expectation": true,
+      "reason": "an update of only a protected field threw, and the row stayed",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": true,
+          "returned": false,
+          "class": "CodeIgniter\\Database\\Exceptions\\DataException",
+          "message": "There is no data to update."
+        },
+        "sql_before": null,
+        "sql_after": null,
+        "row_before": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-omitted-only",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6080,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-then-rollback",
+      "repetition": 1,
+      "schema": "mxmodel_update_then_rollback_r1",
+      "expectation_basis": "The Model update returns true inside transStart(). A later duplicate key makes transComplete() return false. Another connection never sees the new label. The original row remains. The Model return is not the transaction result.",
+      "matched_expectation": true,
+      "reason": "the Model update returned true and the failed transaction left the original row",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "INSERT INTO uniq_row (code) VALUES ('taken')",
+        "other_before_complete": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "duplicate_returned": false,
+        "duplicate_error_code": 1062,
+        "complete": false,
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-then-rollback",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6082,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'gamma'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-then-rollback",
+      "repetition": 2,
+      "schema": "mxmodel_update_then_rollback_r2",
+      "expectation_basis": "The Model update returns true inside transStart(). A later duplicate key makes transComplete() return false. Another connection never sees the new label. The original row remains. The Model return is not the transaction result.",
+      "matched_expectation": true,
+      "reason": "the Model update returned true and the failed transaction left the original row",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "INSERT INTO uniq_row (code) VALUES ('taken')",
+        "other_before_complete": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "duplicate_returned": false,
+        "duplicate_error_code": 1062,
+        "complete": false,
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-then-rollback",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6084,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'gamma'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "update-then-rollback",
+      "repetition": 3,
+      "schema": "mxmodel_update_then_rollback_r3",
+      "expectation_basis": "The Model update returns true inside transStart(). A later duplicate key makes transComplete() return false. Another connection never sees the new label. The original row remains. The Model return is not the transaction result.",
+      "matched_expectation": true,
+      "reason": "the Model update returned true and the failed transaction left the original row",
+      "final_row": {
+        "id": 1,
+        "label": "alpha",
+        "secret": "keep"
+      },
+      "api": {
+        "call": {
+          "threw": false,
+          "returned": true,
+          "class": null,
+          "message": null
+        },
+        "sql": "INSERT INTO uniq_row (code) VALUES ('taken')",
+        "other_before_complete": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "duplicate_returned": false,
+        "duplicate_error_code": 1062,
+        "complete": false,
+        "row_after": {
+          "id": "1",
+          "label": "alpha",
+          "secret": "keep"
+        },
+        "scenario": "update-then-rollback",
+        "allowed_fields": [
+          "label"
+        ],
+        "skip_validation": true,
+        "connection_id": 6086,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "UPDATE `item` SET `label` = 'gamma'\nWHERE `item`.`id` IN (1)",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    }
+  ]
+}

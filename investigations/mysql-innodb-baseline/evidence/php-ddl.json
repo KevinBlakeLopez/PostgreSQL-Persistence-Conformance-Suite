@@ -1,0 +1,679 @@
+{
+  "finished_at": "2026-10-21T20:04:32.993Z",
+  "not_the_ppcs_harness": true,
+  "not_scored_as": "MG-03",
+  "does_not_replace": [
+    "evidence/suite.json",
+    "evidence/php-mx01.json",
+    "evidence/php-concurrency.json",
+    "evidence/php-update-batch.json",
+    "evidence/php-connection.json",
+    "evidence/php-nested.json"
+  ],
+  "score_meaning": "matched_expectation compares the run with MySQL implicit commit. It is not a defect verdict.",
+  "server_version": "8.4.11",
+  "versions": {
+    "php": "8.5.6",
+    "mysqli_client": "mysqlnd 8.5.6",
+    "ci4": "v4.7.5",
+    "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+  },
+  "repetitions": 3,
+  "mismatched": [],
+  "runs": [
+    {
+      "scenario": "mysqli",
+      "repetition": 1,
+      "schema": "mxddl_mysqli_r1",
+      "expectation_basis": "MX-07. CREATE TABLE implicitly commits. The marker is visible to another connection before ROLLBACK. ROLLBACK removes neither the marker nor the new table. The duplicate key is errno 1062 and does not change that.",
+      "matched_expectation": true,
+      "reason": "CREATE TABLE committed the marker, and ROLLBACK removed neither the row nor the table",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "mysqli",
+        "connection_id": 5658,
+        "before_ddl": {
+          "names": [],
+          "table": false
+        },
+        "after_ddl": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "duplicate": {
+          "threw": true,
+          "returned": false,
+          "error_code": 1062,
+          "sqlstate": "23000",
+          "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+        },
+        "rollback_returned": true,
+        "after_rollback": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [],
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "mysqli",
+      "repetition": 2,
+      "schema": "mxddl_mysqli_r2",
+      "expectation_basis": "MX-07. CREATE TABLE implicitly commits. The marker is visible to another connection before ROLLBACK. ROLLBACK removes neither the marker nor the new table. The duplicate key is errno 1062 and does not change that.",
+      "matched_expectation": true,
+      "reason": "CREATE TABLE committed the marker, and ROLLBACK removed neither the row nor the table",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "mysqli",
+        "connection_id": 5661,
+        "before_ddl": {
+          "names": [],
+          "table": false
+        },
+        "after_ddl": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "duplicate": {
+          "threw": true,
+          "returned": false,
+          "error_code": 1062,
+          "sqlstate": "23000",
+          "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+        },
+        "rollback_returned": true,
+        "after_rollback": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [],
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "mysqli",
+      "repetition": 3,
+      "schema": "mxddl_mysqli_r3",
+      "expectation_basis": "MX-07. CREATE TABLE implicitly commits. The marker is visible to another connection before ROLLBACK. ROLLBACK removes neither the marker nor the new table. The duplicate key is errno 1062 and does not change that.",
+      "matched_expectation": true,
+      "reason": "CREATE TABLE committed the marker, and ROLLBACK removed neither the row nor the table",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "mysqli",
+        "connection_id": 5664,
+        "before_ddl": {
+          "names": [],
+          "table": false
+        },
+        "after_ddl": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "duplicate": {
+          "threw": true,
+          "returned": false,
+          "error_code": 1062,
+          "sqlstate": "23000",
+          "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+        },
+        "rollback_returned": true,
+        "after_rollback": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [],
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "ci4-migration",
+      "repetition": 1,
+      "schema": "mxddl_ci4_migration_r1",
+      "expectation_basis": "MigrationRunner::force() calls up() and records history only when up() returns. This up() starts a transaction, inserts a marker, creates a table, hits a duplicate key, calls transComplete(), then throws. MySQL has already committed the marker and the table. transComplete() returns false. The runner does not record the migration. This is not PostgreSQL MG-03.",
+      "matched_expectation": true,
+      "reason": "the migration reported failure and recorded no history, and the marker and table remained",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "migrations",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "ci4-migration",
+        "connection_id": 5668,
+        "runner_returned": false,
+        "runner_exception": {
+          "class": "RuntimeException",
+          "message": "migration failed after schema change",
+          "file": "2026-10-21-120000_DdlThenFail.php",
+          "line": 47,
+          "trace": [
+            "MigrationRunner.php:1024 up",
+            "MigrationRunner.php:411 migrate",
+            "ddl.php:121 force",
+            "ddl.php:19 mpcs_ci4_migration"
+          ]
+        },
+        "notes": {
+          "other_before_ddl": [],
+          "table_before_ddl": false,
+          "other_after_ddl": [
+            "ddl-marker"
+          ],
+          "table_after_ddl": true,
+          "depth_after_ddl": 1,
+          "status_after_ddl": true,
+          "duplicate_returned": false,
+          "duplicate_error": {
+            "code": 1062,
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          },
+          "status_before_complete": false,
+          "depth_before_complete": 1,
+          "complete": false,
+          "other_after_complete": [
+            "ddl-marker"
+          ],
+          "table_after_complete": true,
+          "depth_after_complete": 0
+        },
+        "history": [],
+        "after_runner": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [
+          {
+            "level": "error",
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          }
+        ],
+        "statements": [
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r1`",
+            "errno": 0
+          },
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r1` LIKE 'migrations'",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE `migrations` (\n\t`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,\n\t`version` VARCHAR(255) NOT NULL,\n\t`class` VARCHAR(255) NOT NULL,\n\t`group` VARCHAR(255) NOT NULL,\n\t`namespace` VARCHAR(255) NOT NULL,\n\t`time` INT(11) NOT NULL,\n\t`batch` INT(11) UNSIGNED NOT NULL,\n\tCONSTRAINT `pk_migrations` PRIMARY KEY(`id`)\n) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT *\nFROM `migrations`\nWHERE `group` = 'default'\nAND `namespace` = 'App'\nORDER BY `id` ASC",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT MAX(`batch`) AS `batch`\nFROM `migrations`",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "ci4-migration",
+      "repetition": 2,
+      "schema": "mxddl_ci4_migration_r2",
+      "expectation_basis": "MigrationRunner::force() calls up() and records history only when up() returns. This up() starts a transaction, inserts a marker, creates a table, hits a duplicate key, calls transComplete(), then throws. MySQL has already committed the marker and the table. transComplete() returns false. The runner does not record the migration. This is not PostgreSQL MG-03.",
+      "matched_expectation": true,
+      "reason": "the migration reported failure and recorded no history, and the marker and table remained",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "migrations",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "ci4-migration",
+        "connection_id": 5672,
+        "runner_returned": false,
+        "runner_exception": {
+          "class": "RuntimeException",
+          "message": "migration failed after schema change",
+          "file": "2026-10-21-120000_DdlThenFail.php",
+          "line": 47,
+          "trace": [
+            "MigrationRunner.php:1024 up",
+            "MigrationRunner.php:411 migrate",
+            "ddl.php:121 force",
+            "ddl.php:19 mpcs_ci4_migration"
+          ]
+        },
+        "notes": {
+          "other_before_ddl": [],
+          "table_before_ddl": false,
+          "other_after_ddl": [
+            "ddl-marker"
+          ],
+          "table_after_ddl": true,
+          "depth_after_ddl": 1,
+          "status_after_ddl": true,
+          "duplicate_returned": false,
+          "duplicate_error": {
+            "code": 1062,
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          },
+          "status_before_complete": false,
+          "depth_before_complete": 1,
+          "complete": false,
+          "other_after_complete": [
+            "ddl-marker"
+          ],
+          "table_after_complete": true,
+          "depth_after_complete": 0
+        },
+        "history": [],
+        "after_runner": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [
+          {
+            "level": "error",
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          }
+        ],
+        "statements": [
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r2`",
+            "errno": 0
+          },
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r2` LIKE 'migrations'",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE `migrations` (\n\t`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,\n\t`version` VARCHAR(255) NOT NULL,\n\t`class` VARCHAR(255) NOT NULL,\n\t`group` VARCHAR(255) NOT NULL,\n\t`namespace` VARCHAR(255) NOT NULL,\n\t`time` INT(11) NOT NULL,\n\t`batch` INT(11) UNSIGNED NOT NULL,\n\tCONSTRAINT `pk_migrations` PRIMARY KEY(`id`)\n) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT *\nFROM `migrations`\nWHERE `group` = 'default'\nAND `namespace` = 'App'\nORDER BY `id` ASC",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT MAX(`batch`) AS `batch`\nFROM `migrations`",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    },
+    {
+      "scenario": "ci4-migration",
+      "repetition": 3,
+      "schema": "mxddl_ci4_migration_r3",
+      "expectation_basis": "MigrationRunner::force() calls up() and records history only when up() returns. This up() starts a transaction, inserts a marker, creates a table, hits a duplicate key, calls transComplete(), then throws. MySQL has already committed the marker and the table. transComplete() returns false. The runner does not record the migration. This is not PostgreSQL MG-03.",
+      "matched_expectation": true,
+      "reason": "the migration reported failure and recorded no history, and the marker and table remained",
+      "final_names": [
+        "ddl-marker"
+      ],
+      "final_tables": [
+        {
+          "table_name": "ddl_side",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "marker",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "migrations",
+          "engine": "InnoDB"
+        },
+        {
+          "table_name": "uniq_row",
+          "engine": "InnoDB"
+        }
+      ],
+      "api": {
+        "scenario": "ci4-migration",
+        "connection_id": 5676,
+        "runner_returned": false,
+        "runner_exception": {
+          "class": "RuntimeException",
+          "message": "migration failed after schema change",
+          "file": "2026-10-21-120000_DdlThenFail.php",
+          "line": 47,
+          "trace": [
+            "MigrationRunner.php:1024 up",
+            "MigrationRunner.php:411 migrate",
+            "ddl.php:121 force",
+            "ddl.php:19 mpcs_ci4_migration"
+          ]
+        },
+        "notes": {
+          "other_before_ddl": [],
+          "table_before_ddl": false,
+          "other_after_ddl": [
+            "ddl-marker"
+          ],
+          "table_after_ddl": true,
+          "depth_after_ddl": 1,
+          "status_after_ddl": true,
+          "duplicate_returned": false,
+          "duplicate_error": {
+            "code": 1062,
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          },
+          "status_before_complete": false,
+          "depth_before_complete": 1,
+          "complete": false,
+          "other_after_complete": [
+            "ddl-marker"
+          ],
+          "table_after_complete": true,
+          "depth_after_complete": 0
+        },
+        "history": [],
+        "after_runner": {
+          "names": [
+            "ddl-marker"
+          ],
+          "table": true
+        },
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "logs": [
+          {
+            "level": "error",
+            "message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'"
+          }
+        ],
+        "statements": [
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r3`",
+            "errno": 0
+          },
+          {
+            "sql_text": "SHOW TABLES FROM `mxddl_ci4_migration_r3` LIKE 'migrations'",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE `migrations` (\n\t`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,\n\t`version` VARCHAR(255) NOT NULL,\n\t`class` VARCHAR(255) NOT NULL,\n\t`group` VARCHAR(255) NOT NULL,\n\t`namespace` VARCHAR(255) NOT NULL,\n\t`time` INT(11) NOT NULL,\n\t`batch` INT(11) UNSIGNED NOT NULL,\n\tCONSTRAINT `pk_migrations` PRIMARY KEY(`id`)\n) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT *\nFROM `migrations`\nWHERE `group` = 'default'\nAND `namespace` = 'App'\nORDER BY `id` ASC",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT MAX(`batch`) AS `batch`\nFROM `migrations`",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('ddl-marker')",
+            "errno": 0
+          },
+          {
+            "sql_text": "CREATE TABLE ddl_side (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 0
+    }
+  ]
+}
