@@ -1,0 +1,478 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T16-01-15Z-6fc728",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-03.conn-lost-in-transaction",
+    "version": "1.1",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The backend of a failing transaction is terminated before its ROLLBACK; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend and waits until it has gone. Then wait settle_ms.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK on the closed connection, which fails.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "lucid",
+      "version": "0.1.0",
+      "source_sha256": "fae3c8c56d97cddd361a2d1cf70319605b8a73f2d13387b7885b5510462315e0"
+    },
+    "framework": {
+      "name": "@adonisjs/lucid",
+      "version": "22.4.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "knex": "3.3.0",
+      "tarn": "3.1.2",
+      "pg-pool": "3.14.0",
+      "@adonisjs/core": "7.6.0",
+      "luxon": "3.7.2"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Lucid's defaults, with the managed transaction API db.transaction(callback).",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside unit 1, after its write, before the framework's ROLLBACK.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and unit 1's transaction is rolled back.",
+    "expected_client": "An error from the framework's rollback; the pool holds a closed connection.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework knows that its connection failed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "db.transaction(callback) rejected with the error the callback threw",
+    "contract": "In @adonisjs/lucid 22.4.2, the managed form of transaction() awaits the callback, commits, and resolves with the callback's value; if the callback throws, it rolls back and rethrows (src/query_client/index.js, \"Self managed transaction\"). A resolved call is Lucid's report that the transaction committed.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "application error: unit 1 fails"
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "elapsed_ms": 58,
+        "reported": "committed",
+        "basis": "db.transaction(callback) resolved",
+        "contract": "In @adonisjs/lucid 22.4.2, the managed form of transaction() awaits the callback, commits, and resolves with the callback's value; if the callback throws, it rolls back and rethrows (src/query_client/index.js, \"Self managed transaction\"). A resolved call is Lucid's report that the transaction committed."
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 9682,
+          "xid": "2157"
+        },
+        "session": {
+          "pid": 9682,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "2157",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-23 16:01:37.257029+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "2157"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 9682,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "2157",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 16:01:37.257029+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 9682,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 9682,
+          "xid": null
+        },
+        "session": {
+          "pid": 9682,
+          "present": false
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 9682,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      },
+      "unit2-after-write": {
+        "reported": {
+          "pid": 9695,
+          "xid": "2158"
+        },
+        "session": {
+          "pid": 9695,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "2158",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-23 16:01:37.478396+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "2158"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 9682,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "in progress",
+            "session": {
+              "pid": 9695,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "2158",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 16:01:37.478396+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 9682,
+              "present": false
+            }
+          },
+          "unit2": {
+            "fate": "committed",
+            "session": {
+              "pid": 9695,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 16:01:37.478396+00",
+              "query": "COMMIT;",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "2157",
+        "pid": 9682,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-23 16:01:37.257029+00"
+      },
+      "unit2": {
+        "xid": "2158",
+        "pid": 9695,
+        "captured_at": "unit2-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-23 16:01:37.478396+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": true
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": "2158"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-03.1 held: failed transaction: xid 2157 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 2158; TX-03.2 held: next unit: completed, reported committed after 58 ms; its transaction: 2158 committed; next visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"doomed\" had reached PostgreSQL at `unit1-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit1-after-write`: item locked; transactionid [2157]"
+      },
+      {
+        "description": "the write of marker \"next\" had reached PostgreSQL at `unit2-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit2-after-write`: item locked; transactionid [2158]"
+      },
+      {
+        "description": "the runner terminated the backend at `unit1-after-write`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": true,
+        "detail": "failed transaction: xid 2157 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 2158"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": true,
+        "detail": "next unit: completed, reported committed after 58 ms; its transaction: 2158 committed; next visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for lucid (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=lucid --mode=native --case=TX-03.conn-lost-in-transaction",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 9682): select version();",
+        "c1(pid 9682): BEGIN;",
+        "c1(pid 9682): -> command tag BEGIN for: BEGIN;",
+        "c1(pid 9682): insert into \"item\" (\"name\") values ($1) returning \"id\"",
+        "c1(pid 9682): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 9682): ROLLBACK",
+        "c1(pid 9682): -> ERROR Client has encountered a connection error and is not queryable",
+        "c2(pid 9695): BEGIN;",
+        "c2(pid 9695): -> command tag BEGIN for: BEGIN;",
+        "c2(pid 9695): insert into \"item\" (\"name\") values ($1) returning \"id\"",
+        "c2(pid 9695): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c2(pid 9695): COMMIT;",
+        "c2(pid 9695): -> command tag COMMIT for: COMMIT;"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": [
+        {
+          "level": "warn",
+          "msg": "Connection Error: Connection ended unexpectedly"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T16:01:36.949Z",
+    "finished_at": "2026-10-23T16:01:39.093Z",
+    "duration_ms": 2144
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 2157 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 2158; TX-03.2 held: next unit: completed, reported committed after 58 ms; its transaction: 2158 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 706
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 2162 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 2163; TX-03.2 held: next unit: completed, reported committed after 65 ms; its transaction: 2163 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 717
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-03.1 held: failed transaction: xid 2167 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: 2168; TX-03.2 held: next unit: completed, reported committed after 63 ms; its transaction: 2168 committed; next visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted",
+          "unit2": "committed"
+        },
+        "markers": {
+          "doomed": false,
+          "next": true
+        },
+        "duration_ms": 721
+      }
+    ]
+  }
+}
