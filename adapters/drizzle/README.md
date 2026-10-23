@@ -10,7 +10,7 @@ Implemented cases: `CTL-01.commit`, `CTL-01.rollback`, `TX-01A.caught-error-then
 
 Category C and D faults are injected in `pg.Client.prototype.query`, once, through `adapters/node-kit/pg-instrument.mjs`. Drizzle 0.45.4 and this adapter resolve the same `pg@8.23.1`. The native mode does not read `Result.command`, does not pass an error to `client.release()`, and does not add a rollback.
 
-The pool has an `'error'` listener so an idle client's error does not kill the process. pg-pool removes that listener while a client is checked out. The adapter adds an `'error'` listener on each connected client so a terminated backend does not kill the process before `db.transaction()` can reject. The listener does not roll back or discard the connection.
+The pool has an `'error'` listener so an idle client's error does not kill the process. pg-pool forwards an idle client's error to the pool through a client listener of its own, and removes that client listener while the client is checked out. The adapter adds an `'error'` listener on each connected client so a terminated backend does not kill the process before `db.transaction()` can reject. The listener does not roll back or discard the connection.
 
 ## Setup
 

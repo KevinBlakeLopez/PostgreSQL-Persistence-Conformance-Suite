@@ -6,21 +6,23 @@ Shared Composer project for the PDO control and the Laravel adapter. It is not i
 
 Recorded on PostgreSQL 18.6 (`postgres:18.6`, Debian 18.6-1.pgdg13+2) with:
 
-| Piece | Version |
-| --- | --- |
-| PHP | 8.5.6 |
-| pdo_pgsql | 8.5.6, bundled with that PHP |
-| libpq | 18.3, the library this PHP was built against |
-| illuminate/database | v13.38.0 |
-| Composer | 2.8.11 when the lockfile was written |
+| Piece | Transaction recordings | Laravel migration recording |
+| --- | --- | --- |
+| PHP | 8.5.6 | 8.5.12 |
+| pdo_pgsql | 8.5.6, bundled with that PHP | 8.5.12, bundled with that PHP |
+| libpq | 18.3, the library that PHP was built against | 18.6, the library that PHP was built against |
+| illuminate/database | v13.38.0 | v13.38.0 |
+| illuminate/filesystem | not installed | v13.38.0 |
 
-`composer.lock` pins illuminate/database and the packages it requires. `laravel/framework` is not installed. There is no HTTP kernel, service provider boot, queue, or migration run in the scored adapters.
+The lockfile was written with Composer 2.8.11. It was regenerated on 2026-10-23 to add illuminate/filesystem, which brought in symfony/finder. `composer.json` sets the platform PHP to 8.5.6, so dependency resolution does not depend on the local PHP. The PDO control requires PHP 8.5.6 exactly. The Laravel adapter accepts 8.5.6 or a later 8.5 release.
+
+`composer.lock` pins illuminate/database, illuminate/filesystem, and the packages they require. The migrator reads migration files through illuminate/filesystem. `laravel/framework` and illuminate/console are not installed. There is no HTTP kernel, service provider boot, queue, or console command in the scored adapters. The Laravel migration cases call `Migrator` directly.
 
 Capsule uses `Illuminate\Database\Connection` and `ManagesTransactions`, the same classes a Laravel application uses for these calls. It does not register `DatabaseServiceProvider`. That provider binds `db.transactions`. `DatabaseManager::configure` sets the transaction manager only when that binding exists. The scored runs leave it unset. `adapters/php/probe.php` sets `DatabaseTransactionsManager` itself. That probe is not a PPCS case.
 
 ## Install
 
-From this directory, with PHP 8.5.6 and Composer:
+From this directory, with PHP 8.5 and Composer:
 
 ```sh
 composer install --no-interaction --no-scripts
@@ -90,6 +92,7 @@ Category C faults are withheld or rewritten inside `FaultingPdo`, once, before L
 | `src/FaultingPdo.php` | PDO subclass. Records `commit()`. Injects category C faults |
 | `src/PdoControl.php` | Positive and negative PDO policies |
 | `src/LaravelAdapter.php` | Capsule, Eloquent writes, managed and explicit transactions |
+| `src/LaravelMigration.php` | MG-02 and MG-03 through `Migrator::run()` and `Migrator::rollback()` |
 | `src/FaultingConnector.php` | Laravel's `PostgresConnector` with `FaultingPdo` |
 | `probe.php` | Command-tag and callback observations. Not a case |
 | `../pdo-control/` | Adapter manifest and entry point |

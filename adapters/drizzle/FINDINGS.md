@@ -20,7 +20,7 @@ pg 8.23.1 `Client.query` (`lib/client.js`, lines 702–730) starts `query_timeou
 
 pg-pool 3.14.0 `_acquireClient` (line 344) removes the pool's client `'error'` listener while the client is checked out. `_release` (line 392) destroys the client when called with an error, or when the client is not queryable. A release with no error returns it to the idle list.
 
-The adapter's `pool.on('error')` covers idle clients only. pg-pool removes it on checkout. The 2026-10-23 re-run below also listens for `'error'` on each connected client. That listener was not installed for the tables in this section.
+The adapter's `pool.on('error')` covers idle clients only. pg-pool forwards an idle client's `'error'` to the pool through a listener of its own on that client, and `_acquireClient` removes that client listener on checkout. The 2026-10-23 re-run below also listens for `'error'` on each connected client. That listener was not installed for the tables in this section.
 
 ## Cases
 

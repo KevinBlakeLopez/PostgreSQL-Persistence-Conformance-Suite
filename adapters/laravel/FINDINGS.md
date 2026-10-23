@@ -26,7 +26,7 @@ A FAIL here is a counterexample to a PPCS invariant under these versions and thi
 | `TX-04.independent-inner` | none | UNSUPPORTED, not applicable by design | | |
 | `TX-05.managed-serializable` | none | PASS | | |
 | `TX-05.explicit-serializable` | none | | PASS | |
-| `MG-02.*`, `MG-03.*` | | NOT_RUN | | |
+| `MG-02.*`, `MG-03.*` | | NOT_RUN in this recording. See [Migration cases](#migration-cases) | | |
 
 ## TX-01A
 
@@ -76,9 +76,29 @@ Both savepoint cases passed in both modes. A nested failure was rolled back to t
 
 TX-05 passed. `current_setting('transaction_isolation')` was `serializable`, read in the same statement as the xid. The request is not an argument of `transaction()` or `beginTransaction()`. `PostgresConnector::configureIsolationLevel` runs `set session characteristics as transaction isolation level serializable` when the connection config key `isolation_level` is set. That is Laravel's documented connector setting. The transaction methods themselves take no level.
 
-## What was not run
+## Migration cases
 
-Migration cases. The later recording is [`reports/examples/2026-10-23T13-03-36Z-03a5b5`](../../reports/examples/2026-10-23T13-03-36Z-03a5b5/summary.md). `Migrator::run()` takes no advisory lock. `MG-03.no-reversal` reports reverted and deletes the history row while the marker remains.
+Recording: [`reports/examples/2026-10-23T13-03-36Z-03a5b5`](../../reports/examples/2026-10-23T13-03-36Z-03a5b5/summary.md). PHP 8.5.12, pdo_pgsql 8.5.12, libpq 18.6, illuminate/database v13.38.0, illuminate/filesystem v13.38.0, PostgreSQL 18.6. Managed mode only. Three repetitions agreed on every row. CTL-01 passed. `pg-control` held every case gate.
+
+The adapter writes the case's migration file to a temporary directory, creates `migrations` when the table is missing, and calls `Migrator::run()` or `Migrator::rollback()`. That is what `php artisan migrate` does without `--isolated`, and what `migrate:rollback` does. On the MG-02 cases, `up()` inserts the marker and then waits on the runner's gate inside the migration's transaction.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| `MG-02.held` | FAIL | A and B were inside the migration at once. Marker count 2, history count 2. C found nothing to do. |
+| `MG-02.first-deployment` | PASS (history-table collision, no lock) | One runner failed creating `migrations` (`pg_class_relname_nsp_index`, on `migrations_id_seq`). The other applied. B failed in the first repetition, A in the other two. |
+| `MG-02.session-loss` | FAIL, MG-02.5 | B entered while A was still inside. The terminated runner reported `SQLSTATE[HY000]` "no connection to the server", and B applied. Marker count 1. |
+| `MG-02.idle-session-timeout` | FAIL | As `MG-02.held`. A had one session, inside the migration's transaction, and it did not end. |
+| `MG-03.valid-reversal` | PASS | The revert deleted the marker and the history row. The reapply ran the migration again. |
+| `MG-03.no-reversal` | FAIL | `rollback()` returned the migration. The history row was deleted and the marker remained. Lucid ends the same way. |
+| `MG-03.failing-reversal` | PASS | `rollback()` threw. The marker and the history row remained. |
+
+Source reading of `Migrations/Migrator.php` at v13.38.0: the migrator takes no advisory lock. `runUp()` calls `runMigration()`, which wraps `up()` in `Connection::transaction()`, and then calls `repository->log()`. `runDown()` calls `runMigration()`, which skips a missing `down()`, and then calls `repository->delete()`. The `CREATE TABLE` in the recorded first-deployment error has no unique constraint on `migration`, so two runners leave two history rows.
+
+The first-deployment pass is not coordination. Both runners started at once against a database with no history table, and one `CREATE TABLE` collided. When B starts after the table exists and A is still inside the migration, both runners execute it, as `MG-02.held` shows.
+
+`MigrateCommand`, in the same package, implements `Isolatable`. In the illuminate/console v13.38.0 source, `php artisan migrate --isolated` takes a lock in the application's cache store before the command runs. The lock expires after an hour by default. A run that cannot get it prints that the command is already running and exits 0, unless `--isolated` is given a status code. `migrate:rollback` is not `Isolatable`. This adapter does not run the console command, so `--isolated` is not measured.
+
+## What was not run
 
 Deadlock and serialization-failure retries. From `ConcurrencyErrorDetector` at v13.38.0, a `PDOException` whose code is `40001` is treated as a concurrency error, and `transaction()` retries while attempts remain. The default attempts value is 1. A `QueryException` is not a `PDOException`, so the `40001` check does not apply to it unless the message matches the detector's list. `could not serialize access` is not in that list. This is source reading. No deadlock was executed.
 
