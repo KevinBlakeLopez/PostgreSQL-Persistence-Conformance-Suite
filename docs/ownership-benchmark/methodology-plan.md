@@ -1,6 +1,6 @@
 # Ownership benchmark methodology plan
 
-Status: draft for maintainer review. Do not implement the harness, the applications, or the pilot from this document alone. Implementation requires maintainer approval to begin the program, after the design is frozen.
+Status: draft, revised after the 2026-10-23 design review. Not frozen. Do not implement the harness, the applications, or the pilot from this document alone. Implementation requires maintainer approval to begin the program, after the design is frozen. Items marked **Open before freeze** are listed in [`research-questions.md`](research-questions.md).
 
 Questions: [`research-questions.md`](research-questions.md). Workload: [`application-evolution-spec.md`](application-evolution-spec.md). Sequencing: [`../research-roadmap.md`](../research-roadmap.md).
 
@@ -10,7 +10,7 @@ The pilot is the first execution, and only after this plan is accepted. The full
 
 ## Identical requirements
 
-Each architecture in a cohort receives the same functional requirements for each stage. The requirements are the application-evolution spec plus the acceptance tests. Wording may name a capability ("persist an evidence revision atomically"). It does not name an architecture's API ("use `session.flush`" or "hand-write this `INSERT`").
+Each architecture in a cohort receives the same functional requirements for each stage. The requirements are the application-evolution spec plus the acceptance tests. Wording may name a capability ("persist an evidence revision atomically"). It does not name an architecture's API ("use `session.flush`" or "hand-write this `INSERT`"). The spec also fixes the tables and columns the acceptance tests read. That is a data contract shared by every architecture, not an architecture's API.
 
 If a requirement can only be met through an escape hatch, the escape hatch is a measurement. The requirement is not rewritten to avoid it, and it is not rewritten to force it.
 
@@ -18,7 +18,7 @@ If a requirement can only be met through an escape hatch, the escape hatch is a 
 
 Acceptance tests are specified and stored apart from agent-generated implementations. Agents may read the tests. Agents may not modify them, skip them, or replace them with tests they wrote. A trajectory that changes the authoritative suite is invalid.
 
-Tests include functional checks, database invariant checks, concurrency checks where the stage requires them, migration checks, and the PPCS-derived transaction task. The tests observe the database from a connection the application does not own.
+Tests include functional checks, database invariant checks, concurrency checks where the stage requires them, migration checks, and the PPCS-derived transaction task. The tests observe the database from a connection the application does not own. Of the application's data, they read only the tables and columns the application-evolution spec fixes.
 
 ## Equivalent starting conditions
 
@@ -35,13 +35,18 @@ Every trajectory records:
 - the prompt and any system instructions
 - tool permissions
 - context configuration, including which documents were available
-- execution limits
+- execution limits: the caps that were actually set
+- temperature or seed, when the agent exposes them
 - dependency versions and lockfiles
 - environment configuration, including PostgreSQL version and image digest
 
 Changing any of these starts a different experiment. Runs that differ in model or prompt are not pooled into one confirmatory sample.
 
-The hypothesis table, if it is present in the repository the agent can read, is labeled as an unvalidated hypothesis. Agents are not told which architecture is expected to win.
+A run that stops on a cap is recorded as a capped run. When the agent does not expose temperature or seed, the record says so, the same way missing API cost is recorded as missing.
+
+The default context is the stage requirement, the authoritative tests, and ordinary documentation for the assigned library. The master plan's ranking and the PPCS contract verdicts are outside that set. Putting either in context starts a different experiment. In such an experiment the hypothesis table is labeled as an unvalidated hypothesis. Agents are not told which architecture is expected to win.
+
+The prompt text and the numeric caps are part of pilot approval, not of the design freeze.
 
 ## Repeated trajectories
 
@@ -51,7 +56,9 @@ Do not draw a ranking from one run.
 
 ## Randomization and time
 
-Where practical, randomize the order of architectures inside a repetition. Record the calendar time of each trajectory so that a model change during the study can be seen. If the provider changes the model mid-study, stop and record the break. Do not treat the before and after as one sample.
+Within a repetition, all three architectures use the same model, prompt, tools, execution limits, document set, and PostgreSQL image. Only the assigned persistence technology changes, with its library documentation. The order of the three architectures inside a repetition is randomized, and the assigned order is recorded.
+
+Record the calendar time of each trajectory so that a model change during the study can be seen. If the provider changes the model mid-study, stop and record the break. Do not treat the before and after as one sample.
 
 ## Human intervention
 
@@ -76,7 +83,11 @@ Record, for each stage and each trajectory:
 - human review time
 - human repair time
 
+A failing acceptance-test cycle is one execution of the authoritative suite whose result is not a pass. A corrective iteration is one agent turn that edits implementation files after such a failure. The two counts stay separate. They are not added into a debugging total.
+
 Missing cost data is reported as missing. It is not imputed in order to complete a table.
+
+Cost fields have no weights. They are not converted into one another or into correctness results. See the weights section of [`research-questions.md`](research-questions.md).
 
 ## Correctness
 
@@ -90,9 +101,13 @@ Use:
 
 A green functional test suite with a wrong database outcome is a correctness failure.
 
+Each correctness result is its own record. There is no correctness grade and no overall score.
+
 ## PPCS-derived transaction task
 
-This task is required. It is derived from [`../../research/production-reachability/README.md`](../../research/production-reachability/README.md). It is scored in three parts. No part substitutes for another. The task does not dominate the benchmark's overall score; the frozen spec will say how it combines with the other correctness results, and that combination is part of maintainer review.
+This task is required. It is derived from [`../../research/production-reachability/README.md`](../../research/production-reachability/README.md). It is scored in three parts, and each part's score is a field list, not a grade. No part substitutes for another.
+
+The task does not dominate the benchmark because nothing is combined. There is no overall score and no correctness grade. Outcome reporting, connection reuse, and savepoint recovery are three records beside the functional, invariant, concurrency, and migration results. Time, tokens, dollars, iterations, human time, and these correctness records are not converted into one another. The transaction records cannot rank a trajectory. This rule assigns no weight, and it does not use the master plan's Node table.
 
 Primary scenario, with no savepoint:
 
@@ -114,7 +129,7 @@ Record each of:
 - whether the application is told that the transaction committed
 - whether the expected row exists
 
-A reported successful commit while PostgreSQL rolled the transaction back is an outcome mismatch. Record the mismatch. Do not convert it into a single blended pass.
+A reported successful commit while PostgreSQL rolled the transaction back is an outcome mismatch. Store each signal above. Do not reduce them to one mismatch bit. The same database outcome can arrive with different signals and with different documented meanings, and one bit would grade those shapes alike. Do not convert the signals into a single blended pass.
 
 ### B. Connection reuse
 
@@ -122,7 +137,7 @@ Run a subsequent transaction through the same pool or connection source. Record 
 
 ### C. Savepoint recovery control
 
-Repeat the workload with a valid savepoint recovery: write, savepoint, unique violation, roll back to the savepoint, commit the outer transaction. Verify that the earlier write persisted. This is the legitimate success the primary scenario must not be confused with.
+Repeat the workload with a valid savepoint recovery: write, savepoint, unique violation, roll back to the savepoint, commit the outer transaction. Verify that the earlier write persisted. Record the same classes of fields as part A: the API result, callbacks, row visibility, and the independent database outcome. This is the legitimate success the primary scenario must not be confused with.
 
 ### Attribution
 
@@ -134,7 +149,13 @@ For each part, record:
 - what PostgreSQL did
 - whether the connection remained usable
 
-A framework-level mismatch that matches PPCS is reported as framework behavior. It becomes an agent-performance result only when the agent's code departed from the specified use of the API, or when the agent failed to detect the mismatch with the tests it was given. The authoritative tests are what detect it. The agent is not graded for failing to invent that detection if the tests already contain it.
+A framework-level mismatch that matches PPCS is reported as framework behavior. It becomes an agent-performance result only when the agent's code departed from the specified use of the API. The suite does not assert the scripted scenarios, so failing to detect the mismatch there is not an agent result.
+
+**What the suite asserts.** Nothing in the task's scripted scenarios. All of part A's signals are recorded, including what the operation told its caller, and so are parts B and C. The product's own handling of the same uniqueness rule is a separate path. It may use a savepoint or a retry, and the functional tests assert it like any other feature.
+
+**Pilot host.** The pilot runs this task. The spec's natural constraint is on V3's review decision, outside the pilot, so V1 or V2 gains one uniqueness rule, fixed in the spec as a constraint the authoritative tests violate. A test that used whatever constraint an implementation happened to create would depend on that implementation. The pilot is not widened into V3–V7.
+
+**Open before freeze: the pilot's uniqueness rule.** Which rule, and on which stage. It is chosen with the product rules.
 
 ## Evidence preservation
 
@@ -157,7 +178,7 @@ Recorded artifacts are not edited to match the expected outcome. A scoring bug i
 
 Use descriptive statistics and an uncertainty estimate that matches the sample size. State how many trajectories were run. Do not claim statistical significance from a sample too small to support it. Label pilot output as exploratory. Label the pre-registered confirmatory run separately from any analysis added after seeing the data.
 
-Pre-register, in the frozen spec, the primary comparisons and the rule for missing runs. Analyses invented after the results are exploratory even if they use the confirmatory data.
+Pre-register, in the frozen spec, the primary comparisons and the rule for missing runs. A pre-registered comparison is a difference on a single field, read against the run-to-run spread. Analyses invented after the results are exploratory even if they use the confirmatory data.
 
 ## Pilot
 
@@ -167,7 +188,7 @@ The pilot compares:
 2. SQLAlchemy Core
 3. SQLAlchemy ORM
 
-One feature transition: V1 to V2, adding evidence revision history, as specified in the application-evolution document.
+One feature transition: V1 to V2, adding evidence revision history, as specified in the application-evolution document. The pilot also runs the PPCS-derived transaction task, on the uniqueness rule the spec adds to V1 or V2.
 
 The pilot establishes whether:
 
@@ -188,7 +209,7 @@ Proceed to the full benchmark only when:
 - all implementations have equivalent starting behavior
 - experiment isolation works
 - evidence capture is reliable
-- scoring rules are unambiguous
+- scoring rules are unambiguous, including the three transaction records
 - agent configuration is recorded
 - the results can be independently verified
 
@@ -219,6 +240,12 @@ Cross-language expansion waits until this method is stable. The goal is a credib
 | Full ORM | SQLAlchemy ORM |
 
 Reasons to start here: one language, one PostgreSQL server, a comparable application shape, less confounding from unrelated frameworks, and direct relevance to Python development. SQLAlchemy Core and the ORM share a project and a driver, which makes the abstraction difference easier to see. It also means a Core-versus-ORM difference cannot be blamed on an unrelated ecosystem. The psycopg arm is what shows whether leaving SQLAlchemy entirely changes the cost.
+
+**Adherence to the assigned API.** The cohort labels measure the assigned APIs only if a departure is defined before the first trajectory. Implementing the ORM assignment through psycopg, or the psycopg assignment through the ORM, is a departure, and it removes that trajectory from the confirmatory comparison. Ordinary writes and transaction completion use the assigned API. A lower layer used because the assigned query API cannot express a required report is the escape hatch V5 records. It is not a departure. The requirement is still not rewritten to avoid an escape hatch or to force one.
+
+**Test interface.** The Python cohort's acceptance tests call a fixed Python service interface in the test process, and read PostgreSQL on their own connection. A cohort in another language needs its own suite.
+
+**Open before freeze: ORM-arm adherence.** Whether, in the ORM arm, a Core construct or textual SQL used for an ordinary write is a recorded escape hatch or a departure.
 
 Versions are pinned at the start of the pilot and recorded. The upgrade stage, V7, is the planned version move. An unplanned upgrade during V1–V6 invalidates those stages.
 
