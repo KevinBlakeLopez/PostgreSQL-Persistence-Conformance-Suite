@@ -20,7 +20,7 @@ pg 8.23.1 `Client.query` (`lib/client.js`, lines 702–730) starts `query_timeou
 
 pg-pool 3.14.0 `_acquireClient` (line 344) removes the pool's client `'error'` listener while the client is checked out. `_release` (line 392) destroys the client when called with an error, or when the client is not queryable. A release with no error returns it to the idle list.
 
-The adapter's `pool.on('error')` covers idle clients only. It does not see the checked-out client.
+The adapter's `pool.on('error')` covers idle clients only. pg-pool removes it on checkout. The 2026-10-23 re-run below also listens for `'error'` on each connected client. That listener was not installed for the tables in this section.
 
 ## Cases
 
@@ -80,11 +80,11 @@ On TX-01A, pg's reply to `commit` was command tag `ROLLBACK`. The trace records 
 | Same `query_timeout` on a direct `pg.Client` passed to `drizzle(client)` | documented client, not the adapter's pool | same pair of outcomes. The later call resolves | same idle-in-transaction state, then `commit` | `abandoned` and `later`. 3 of 3 | R2, S1. Direct client and pool agree once the connection is idle again |
 | Same pool, but a second `db.transaction` is started while `pg_sleep` is still active | same option | the second `BEGIN` also times out. A third call then waits on `pool.connect` and hits the probe's 8 s bound | session ends idle in transaction. No commit in that window | no visible rows. 3 of 3 | R2, S2. `BEGIN` is outside the `try`, so that timed-out checkout is not released. This is not the commit above |
 | `statement_timeout` 300 ms on the pool. Same insert and `pg_sleep(2)`, then a later insert of `next` | PostgreSQL startup parameter, not `query_timeout` | first call rejects `57014` `canceling statement due to statement timeout`. Later call resolves | session idle; last statement `commit` | only `next` | R2, S4. The server cancelled the statement. Drizzle's rollback completed. Not the same outcome as `query_timeout` |
-| `pg_terminate_backend` during `db.transaction`, with the probe's error listener | the listener is the probe's | rejects `Failed query: rollback` / `Client has encountered a connection error and is not queryable` | row absent | none | The suite, without this listener, is the INCONCLUSIVE exit. With it, the call does not report a commit |
+| `pg_terminate_backend` during `db.transaction`, with the probe's error listener | the listener is the probe's | rejects `Failed query: rollback` / `Client has encountered a connection error and is not queryable` | row absent | none | The 2026-10-19 suite, without this listener, is the INCONCLUSIVE exit. With it, the call does not report a commit |
 
 The `ROLLBACK` text appears in the `query_timeout` trace because the probe logs `query()` calls. The session's last statement stayed `select pg_sleep(2)` until the later `commit`, so that rollback did not end the transaction. pg's timer can drop a query that is still queued behind the sleep, or stop waiting after it has been sent. This probe does not separate those two timings. It does separate them from a server-side `statement_timeout`, and from the category C withhold in TX-03.
 
-A rollback that is sent and acknowledged is `CTL-01.rollback`. A commit whose acknowledgement is discarded is `TX-01B.commit-reply-discarded`: PostgreSQL committed, and Drizzle reported failure rather than success. A broken connection with no listener is the category B exit.
+A rollback that is sent and acknowledged is `CTL-01.rollback`. A commit whose acknowledgement is discarded is `TX-01B.commit-reply-discarded`: PostgreSQL committed, and Drizzle reported failure rather than success. A broken connection with no listener is the category B exit in the 2026-10-19 recording.
 
 ## Comparison
 
@@ -131,14 +131,26 @@ MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples
 2. It does not safely handle a failed rollback. `release()` without an error puts the connection back. A later `db.transaction` can commit the abandoned rows. That happened under the synthetic withhold and under documented `query_timeout`. A failed `BEGIN` is outside the `try`, so that checkout is not released, and `pool.end()` waited out the adapter's 5 s close bound.
 3. The thin path is easier to inspect. The transaction implementation is one function, and the trace shows the SQL and the command tag. The repair, if one were authorized, would be local: read `Result.command`, and pass a rollback or connection failure to `release(err)`. Ease of inspection is not the same as a correct report.
 4. Against direct pg, the value that showed up here is the schema-aware statement builder and the small amount of code a reader has to audit. The transaction wrapper does not keep the fact pg already reported. Under a discipline that reviews the library instead of trusting it, that audit is short, and it fails the commit-tag check.
-5. The outcomes that block treating this as a reliable PostgreSQL transaction layer are the R1 false commit on an aborted transaction, the R2 commit of abandoned rows after `query_timeout`, and the R2 process crash when the backend is disconnected during a checked-out transaction. Nested savepoints and the isolation argument did what PostgreSQL was asked, in the runs where cleanup succeeded.
+5. The outcomes that block treating this as a reliable PostgreSQL transaction layer are the R1 false commit on an aborted transaction, the R2 commit of abandoned rows after `query_timeout`, and, in this recording, the R2 process crash when the backend is disconnected during a checked-out transaction. Nested savepoints and the isolation argument did what PostgreSQL was asked, in the runs where cleanup succeeded. The later category B run classifies that disconnect. It does not change the false commit or the abandoned-row commit.
 
 ## 1.0.0-rc.4
 
-The same cases on Drizzle ORM 1.0.0-rc.4, with the same pg 8.23.1 and the same server, are in `reports/examples/2026-10-19T14-34-08Z-26b178` and `adapters/drizzle-rc/FINDINGS.md`. No classification changed. The transaction control flow in that package is the same sequence as the 0.45.4 function cited above.
+The same cases on Drizzle ORM 1.0.0-rc.4, with the same pg 8.23.1 and the same server, are in `reports/examples/2026-10-19T14-34-08Z-26b178` and `adapters/drizzle-rc/FINDINGS.md`. No classification changed. The transaction control flow in that package is the same sequence as the 0.45.4 function cited above. That package was not re-run with the checked-out client listener.
+
+## Category B, with a checked-out client listener
+
+`reports/examples/2026-10-23T13-11-06Z-d7cd89`. Drizzle ORM 0.45.4, pg 8.23.1, pg-pool 3.14.0, Node.js v24.14.1, PostgreSQL 18.6. The adapter listens for `'error'` on each client as it connects. The listener does not roll back or discard the connection. Three repetitions agreed. CTL-01 and `pg-control` held their gates. The 2026-10-19 file is unchanged.
+
+| Case | Drizzle reported | PostgreSQL | Invariant |
+| --- | --- | --- | --- |
+| `TX-01B.conn-lost-before-commit` | failed (`DrizzleQueryError`: `Failed query: rollback`). Trace: `commit` then `Client has encountered a connection error and is not queryable`, then the same error on `rollback`. Process exit 0 | xid 40184 aborted; marker absent | TX-01B.1 held. PASS |
+| `TX-02.conn-lost-before-savepoint-rollback` | failed (`Failed query: rollback`). The nested scope raised `Failed query: rollback to savepoint sp1` | xid 40196 aborted; neither marker visible | TX-02.1 and TX-02.2 held. PASS |
+| `TX-03.conn-lost-in-transaction` | unit 1 failed (`Failed query: rollback`). Unit 2 reported committed after 52 ms | unit 1 xid 40211 aborted; doomed absent. Unit 2 xid 40212 committed on pid 2190831; next visible | TX-03.1 and TX-03.2 held. PASS. The dead backend was not reused |
+
+The xids and pids are the repetition stored in each case file. The other two repetitions agreed on the classification.
 
 ## Next actions
 
 1. Do not file an upstream issue unless that is authorized. The candidate is `NodePgSession.transaction`: it ignores the `COMMIT` result, and it calls `release()` with no error after a failed `ROLLBACK`. `BEGIN` before the `try` is the checkout leak.
-2. PPCS records the category B process exit as INCONCLUSIVE, because there is no result line. A classification for "the driver error killed the process before the call returned" would make this comparable with adapters that return a failure. That is a harness change, not an adapter workaround. The native adapter should not gain an error listener to hide the crash.
+2. The 2026-10-19 category B rows stay INCONCLUSIVE in that file. The later recording, with a checked-out client `'error'` listener, classifies those three cases. It does not replace this file's measurements.
 3. Leave `investigations/drizzle-followups/probe.mjs` as the `query_timeout` reproduction. Do not fold it into a catalog case in this pass, and do not start a Drizzle application port. Migration cases can wait on a separate adapter that drives `migrate()` and states that there is no reversal.

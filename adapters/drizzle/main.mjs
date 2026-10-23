@@ -214,9 +214,12 @@ await main({
       host, port, user, password, database, application_name,
       max: message.case.settings?.pool_max ?? 1,
     })
-    // node-postgres emits 'error' on the pool when a client connection fails. Without a listener the process
-    // dies on that event, before db.transaction() can reject. The listener does not roll back or discard.
+    // node-postgres emits 'error' on the pool when an idle client fails. pg-pool removes that listener
+    // while a client is checked out, and a terminated backend then emits 'error' on the client. Without
+    // a listener the process dies before db.transaction() can reject. The listener does not roll back
+    // or discard the connection.
     pool.on('error', () => {})
+    pool.on('connect', (client) => { client.on('error', () => {}) })
     const db = drizzle(pool, { schema: { item, uniq } })
     return {
       context: { db, pool, connection: message.connection },
