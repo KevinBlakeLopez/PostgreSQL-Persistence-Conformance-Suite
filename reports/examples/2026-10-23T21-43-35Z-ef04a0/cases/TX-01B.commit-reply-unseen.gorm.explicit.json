@@ -1,0 +1,336 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T21-43-35Z-ef04a0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-01B.commit-reply-unseen",
+    "version": "1.0",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "COMMIT completes on the server, and the network drops the reply before the client reads it",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API. The runner places a protocol proxy between the client and PostgreSQL.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "End the transaction normally, so that the framework sends COMMIT. The proxy forwards COMMIT, reads PostgreSQL's reply through ReadyForQuery, does not write that reply to the client, and closes the client socket.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "gorm",
+      "version": "0.1.0",
+      "source_sha256": "b1332ec148c820848ef55621daf0e611660023192d8739ed2f3e95c2acb2b925"
+    },
+    "framework": {
+      "name": "gorm.io/gorm",
+      "version": "v1.31.2"
+    },
+    "driver": {
+      "name": "gorm.io/driver/postgres",
+      "version": "v1.6.3"
+    },
+    "components": {
+      "database/sql": "go1.27.3",
+      "github.com/jackc/pgx/v5": "v5.11.0"
+    },
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "explicit",
+    "kind": "native",
+    "description": "DB.Begin, DB.Commit, and DB.Rollback. The unique violation is caught and Commit is still called. Nested scopes use SavePoint and RollbackTo. sql.TxOptions.Isolation is passed to DB.Begin for TX-05.",
+    "configuration": {
+      "api": "db.Begin, db.Commit, and db.Rollback. Nested scopes use SavePoint and RollbackTo.",
+      "connector": "postgres.Config.Conn is a *sql.DB opened with pgx stdlib. GORM's DSN path uses the same driver.",
+      "logger": "logger.Discard, so GORM does not write on the protocol stdout",
+      "pool": "database/sql pool under GORM, MaxOpenConns = pool_max. Not pgxpool."
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "E",
+    "mechanism": "The runner's protocol proxy forwards COMMIT to PostgreSQL, then discards the reply through ReadyForQuery and closes the client socket. The client does not parse the reply. This is not the category D simulation, which closes the socket after node-postgres has already parsed the reply.",
+    "injection_point": "On the wire, after PostgreSQL has written the COMMIT reply and before the client reads it.",
+    "expected_server": "The transaction commits.",
+    "expected_client": "The connection closes where the reply to COMMIT would have been read.",
+    "depends_on_internals": false
+  },
+  "knowledge": "None at the API level: the reply to COMMIT was not delivered. Only a later read can establish that the transaction committed.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "gorm.DB.Commit returned an error that does not assert a rollback",
+    "contract": "GORM v1.31.2 DB.Begin starts a transaction and DB.Commit calls the underlying Tx.Commit and stores its error (finisher_api.go). A nil DB.Error after Commit is GORM's report that the transaction committed. gorm.io/driver/postgres v1.6.3 uses pgx stdlib. This adapter passes *sql.DB through Config.Conn. SavePoint and RollbackTo are the explicit savepoint API. The postgres dialector executes the SQL and returns nil from SavePoint and RollbackTo.",
+    "error": {
+      "class": "*pgconn.connLockError",
+      "code": null,
+      "message": "conn closed"
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 2445363,
+          "xid": "47809"
+        },
+        "session": {
+          "pid": 2445363,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "47809",
+          "xid_matches": true,
+          "backend_xmin": "47809",
+          "backend_start": "2026-10-23 21:44:21.644627+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "47809"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 2445363,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "47809",
+              "xid_matches": null,
+              "backend_xmin": "47809",
+              "backend_start": "2026-10-23 21:44:21.644627+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 2445363,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "47809",
+        "pid": 2445363,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-23 21:44:21.644627+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "47809"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "proxy": {
+      "dropped": 1
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 held: the API reported: failed (channels observed: result)",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [47809]"
+      },
+      {
+        "description": "the proxy dropped exactly one COMMIT reply before the client read it",
+        "met": true,
+        "detail": "dropped: 1"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (committed), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 47809 committed at report time (`after-end`); marker visible: true"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events.",
+        "holds": true,
+        "detail": "the API reported: failed (channels observed: result)"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for gorm (explicit)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=gorm --mode=explicit --case=TX-01B.commit-reply-unseen",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "commit",
+          "error": "conn closed"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T21:44:21.311Z",
+    "finished_at": "2026-10-23T21:44:21.981Z",
+    "duration_ms": 670
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 held: the API reported: failed (channels observed: result)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 210
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 held: the API reported: failed (channels observed: result)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 233
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed; TX-01B.2 held: the API reported: failed (channels observed: result)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 227
+      }
+    ]
+  }
+}

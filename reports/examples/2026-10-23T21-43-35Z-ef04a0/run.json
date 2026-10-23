@@ -1,0 +1,1038 @@
+{
+  "schema": "ppcs-run/1",
+  "run_id": "2026-10-23T21-43-35Z-ef04a0",
+  "ppcs_version": "0.3.0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "runner_runtime": "v24.14.1",
+  "status": "completed",
+  "started_at": "2026-10-23T21:43:35.099Z",
+  "finished_at": "2026-10-23T21:46:20.606Z",
+  "duration_ms": 165507,
+  "filters": {
+    "adapters": [
+      "go-pgx-control",
+      "go-database-sql-control",
+      "gorm"
+    ],
+    "cases": [],
+    "modes": []
+  },
+  "repetitions": 3,
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "catalog": {
+    "path": "specifications",
+    "sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "adapters": [
+    {
+      "name": "go-database-sql-control",
+      "manifest": "adapters/go-database-sql-control/adapter.json",
+      "source_sha256": "a537c9bbf2093c0130cd8d5a1863fe5f6773520779075a9825e1184fda09871a"
+    },
+    {
+      "name": "go-pgx-control",
+      "manifest": "adapters/go-pgx-control/adapter.json",
+      "source_sha256": "80601706bec174ec09c187c1f9caaae2babb7c8b028d9b0f7ebb5ff60d41ed5c"
+    },
+    {
+      "name": "gorm",
+      "manifest": "adapters/gorm/adapter.json",
+      "source_sha256": "b1332ec148c820848ef55621daf0e611660023192d8739ed2f3e95c2acb2b925"
+    },
+    {
+      "name": "pg-control",
+      "manifest": "adapters/pg-control/adapter.json",
+      "source_sha256": "7afb3b256f25b5d99a29e66922fde39cc77b97293dc1589770ccab601357a489"
+    }
+  ],
+  "results": [
+    {
+      "case": "CTL-01.commit",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.go-database-sql-control.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-05.managed-serializable.go-database-sql-control.native.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.held.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.first-deployment.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.session-loss.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.idle-session-timeout.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.valid-reversal.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.no-reversal.go-database-sql-control.native.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "go-database-sql-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.failing-reversal.go-database-sql-control.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.go-pgx-control.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "go-pgx-control",
+      "mode": "pooled",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.go-pgx-control.pooled.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.go-pgx-control.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "go-pgx-control",
+      "mode": "pooled",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.go-pgx-control.pooled.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-01B.commit-reply-discarded.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "go-pgx-control",
+      "mode": "pooled",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.go-pgx-control.pooled.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "go-pgx-control",
+      "mode": "pooled",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.go-pgx-control.pooled.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "go-pgx-control",
+      "mode": "pooled",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.go-pgx-control.pooled.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-05.managed-serializable.go-pgx-control.native.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.held.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.first-deployment.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.session-loss.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.idle-session-timeout.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.valid-reversal.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.no-reversal.go-pgx-control.native.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "go-pgx-control",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.failing-reversal.go-pgx-control.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.gorm.managed.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.gorm.explicit.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.gorm.managed.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.gorm.explicit.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.gorm.managed.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.gorm.explicit.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.gorm.managed.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.gorm.explicit.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.gorm.managed.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.gorm.explicit.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.gorm.managed.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.gorm.explicit.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.gorm.managed.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.gorm.explicit.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.gorm.managed.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.gorm.explicit.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.gorm.managed.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.gorm.explicit.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.gorm.managed.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.gorm.explicit.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.gorm.managed.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.gorm.explicit.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.gorm.managed.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.gorm.explicit.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.gorm.managed.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.gorm.explicit.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.gorm.managed.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.gorm.explicit.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.gorm.managed.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.gorm.managed.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "gorm",
+      "mode": "explicit",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.gorm.explicit.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.held.gorm.managed.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.first-deployment.gorm.managed.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.session-loss.gorm.managed.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-02.idle-session-timeout.gorm.managed.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.valid-reversal.gorm.managed.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.no-reversal.gorm.managed.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "gorm",
+      "mode": "managed",
+      "classification": "UNSUPPORTED",
+      "file": "cases/MG-03.failing-reversal.gorm.managed.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-unseen.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.managed-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.explicit-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.held.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.held.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.first-deployment.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.first-deployment.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.session-loss.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.session-loss.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.valid-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.valid-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.no-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.no-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.failing-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.failing-reversal.pg-control.unsafe.json"
+    }
+  ],
+  "counts": {
+    "PASS": 88,
+    "FAIL": 22,
+    "UNSUPPORTED": 27,
+    "INCONCLUSIVE": 0,
+    "NOT_RUN": 0
+  }
+}

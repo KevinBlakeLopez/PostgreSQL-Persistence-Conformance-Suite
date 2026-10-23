@@ -19,4 +19,4 @@ From the repository root, with Go 1.27.3 on `PATH` and the disposable server up:
 node harness/run.mjs --adapter=go-pgx-control,go-database-sql-control,gorm --repeat=3
 ```
 
-The comparison is [`docs/go-persistence.md`](../../docs/go-persistence.md). The recording is [`reports/examples/2026-10-22T13-24-28Z-606909`](../../reports/examples/2026-10-22T13-24-28Z-606909/summary.md).
+The comparison is [`docs/go-persistence.md`](../../docs/go-persistence.md). The recording is [`reports/examples/2026-10-23T21-43-35Z-ef04a0`](../../reports/examples/2026-10-23T21-43-35Z-ef04a0/summary.md). It re-records [`reports/examples/2026-10-22T13-24-28Z-606909`](../../reports/examples/2026-10-22T13-24-28Z-606909/summary.md) with each `form` reported as a string, and every classification is unchanged.

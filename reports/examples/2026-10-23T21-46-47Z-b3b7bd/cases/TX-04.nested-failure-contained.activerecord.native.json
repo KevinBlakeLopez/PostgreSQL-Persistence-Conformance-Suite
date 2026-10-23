@@ -1,0 +1,353 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T21-46-47Z-b3b7bd",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-04.nested-failure-contained",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope fails; the caller handles the failure and commits",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() (the top-level transaction's ID) and pg_backend_pid().",
+      "Raise an application error in the nested scope.",
+      "The outer scope catches the error and ends normally.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "activerecord",
+      "version": "0.1.0",
+      "source_sha256": "fce696f73fa19721fb659bf7a015e0328b8beaf7fc33372257c4a97651007202"
+    },
+    "framework": {
+      "name": "activerecord",
+      "version": "8.1.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0"
+    },
+    "components": {
+      "ruby": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin25]",
+      "activerecord": "8.1.4",
+      "pg": "1.7.0",
+      "libpq": "180006"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "ActiveRecord::Base.transaction on the connection pool. Pool size is the case pool_max. A nested transaction(requires_new: true) is a savepoint named active_record_N. create! writes the markers. MigrationContext applies and rolls back files under a temporary path. No full Rails application, no database.yml, and no callback is registered on the scored path.",
+    "configuration": {
+      "api": "ActiveRecord::Base.transaction",
+      "nested": "transaction(requires_new: true) savepoint",
+      "pool": "connection pool size from the case pool_max",
+      "faults": "category C and D faults are injected on PG::Connection before Active Record sees the error",
+      "migrations": "ActiveRecord::MigrationContext"
+    },
+    "form": "Outer ActiveRecord::Base.transaction and a nested transaction(requires_new: true). A nested transaction block joins the parent transaction. requires_new: true is the documented savepoint form."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope failed: its error reached the caller. PostgreSQL answers the final COMMIT with COMMIT.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "ActiveRecord::Base.transaction returned",
+    "contract": "ActiveRecord::Base.transaction commits when the block returns. It rolls back and re-raises when the block raises, except ActiveRecord::Rollback, which rolls back and is not re-raised. Rails documents that rescuing ActiveRecord::StatementInvalid inside the block does not roll the transaction back, and that on PostgreSQL a statement error aborts the transaction until the whole transaction is restarted. A nested transaction joins the parent unless requires_new: true, which is a savepoint. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Transactions/ClassMethods.html",
+    "error": null,
+    "steps": {
+      "nested": {
+        "caught": true,
+        "completed": false
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 2459353,
+          "xid": "49843"
+        },
+        "session": {
+          "pid": 2459353,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "49843",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-23 21:47:10.594551+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "49843",
+            "49844"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 2459353,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "49843",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 21:47:10.594551+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 2459353,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 21:47:10.594551+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "49843",
+        "pid": 2459353,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-23 21:47:10.594551+00"
+      }
+    },
+    "markers": {
+      "outer": true,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": "49843",
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-04.1 held: the API reported: committed; xid 49843 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [49843, 49844]"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: committed; xid 49843 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for activerecord (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=activerecord --mode=native --case=TX-04.nested-failure-contained",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 2459353): SET client_min_messages TO 'warning'",
+        "c1(pid 2459353): SET standard_conforming_strings = on",
+        "c1(pid 2459353): SET intervalstyle = iso_8601",
+        "c1(pid 2459353): SELECT t.oid, t.typname FROM pg_type as t WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'numeric', 'bool', 'timestamp', 'timestamptz')",
+        "c1(pid 2459353): SET SESSION timezone TO 'UTC'",
+        "c1(pid 2459353): SHOW search_path",
+        "c1(pid 2459353): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'text', 'varchar', 'char', 'name', 'bpchar', 'bool', 'bit', 'varbit', ",
+        "c1(pid 2459353): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typtype IN ('r', 'e', 'd')",
+        "c1(pid 2459353): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typelem IN (16, 17, 18, 19, 20, 21, 23, 25, 26, 114, 142, 600, 601, 602, 603, 604, 628, 700, 701, 718, 790, 829, 869, 650, 1042, 1043",
+        "c1(pid 2459353): BEGIN",
+        "c1(pid 2459353): -> command tag BEGIN for: BEGIN",
+        "c1(pid 2459353): SELECT a.attname, format_type(a.atttypid, a.atttypmod), pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod, c.collname, col_description(a.attrelid, a.attnum) AS comment, attidentity AS identity, attgenerated as attgenerated FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid",
+        "c1(pid 2459353): SHOW max_identifier_length",
+        "c1(pid 2459353): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relkind IN ('r','v','m','p','f')",
+        "c1(pid 2459353): SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = '\"item\"'::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)",
+        "c1(pid 2459353): INSERT INTO \"item\" (\"name\") VALUES ($1) RETURNING \"id\"",
+        "c1(pid 2459353): SAVEPOINT active_record_1",
+        "c1(pid 2459353): -> command tag SAVEPOINT for: SAVEPOINT active_record_1",
+        "c1(pid 2459353): INSERT INTO \"item\" (\"name\") VALUES ($1) RETURNING \"id\"",
+        "c1(pid 2459353): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 2459353): ;",
+        "c1(pid 2459353): ROLLBACK TO SAVEPOINT active_record_1",
+        "c1(pid 2459353): -> command tag ROLLBACK for: ROLLBACK TO SAVEPOINT active_record_1",
+        "c1(pid 2459353): COMMIT",
+        "c1(pid 2459353): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T21:47:09.963Z",
+    "finished_at": "2026-10-23T21:47:11.481Z",
+    "duration_ms": 1518
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 49843 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 493
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 49854 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 529
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 49859 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 496
+      }
+    ]
+  }
+}

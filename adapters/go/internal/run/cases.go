@@ -17,7 +17,7 @@ type Result struct {
 	Contract    string
 	APIError    *APIError
 	Steps       map[string]any
-	Form        map[string]any
+	Form        string
 	Diagnostics map[string]any
 }
 
@@ -35,7 +35,7 @@ func (r Result) Fields() map[string]any {
 	if r.Steps != nil {
 		out["steps"] = r.Steps
 	}
-	if r.Form != nil {
+	if r.Form != "" {
 		out["form"] = r.Form
 	}
 	if r.Diagnostics != nil {
@@ -60,7 +60,7 @@ func (e *Env) CP(name, xid string, pid int, isolation string) error {
 	return e.P.Checkpoint(name, xid, pid, isolation)
 }
 
-func (e *Env) finish(c Completion, steps map[string]any, form map[string]any) (Result, error) {
+func (e *Env) finish(c Completion, steps map[string]any, form string) (Result, error) {
 	if protocol.IsProtocol(c.BodyErr) {
 		return Result{}, c.BodyErr
 	}
@@ -174,7 +174,7 @@ func (e *Env) commit(ctx context.Context) (Result, error) {
 		}
 		return e.CP("before-end", xid, pid, "")
 	})
-	return e.finish(c, nil, nil)
+	return e.finish(c, nil, "")
 }
 
 func (e *Env) rollback(ctx context.Context) (Result, error) {
@@ -195,7 +195,7 @@ func (e *Env) rollback(ctx context.Context) (Result, error) {
 		}
 		return ErrApplication
 	})
-	return e.finish(c, nil, nil)
+	return e.finish(c, nil, "")
 }
 
 func (e *Env) caught(ctx context.Context) (Result, error) {
@@ -226,7 +226,7 @@ func (e *Env) caught(ctx context.Context) (Result, error) {
 	if violation != nil {
 		steps["violation"] = violation
 	}
-	return e.finish(c, steps, nil)
+	return e.finish(c, steps, "")
 }
 
 func (e *Env) connLost(ctx context.Context) (Result, error) {
@@ -256,7 +256,7 @@ func (e *Env) replyLost(ctx context.Context) (Result, error) {
 		e.DB.Fault().Arm(fault.KindCommit, fault.ModeReplyLost)
 		return nil
 	})
-	return e.finish(c, map[string]any{}, nil)
+	return e.finish(c, map[string]any{}, "")
 }
 
 func (e *Env) endAfter(checkpoint string, settle bool) (Result, error) {
@@ -285,7 +285,7 @@ func (e *Env) endAfter(checkpoint string, settle bool) (Result, error) {
 		}
 		return nil
 	})
-	return e.finish(c, nil, nil)
+	return e.finish(c, nil, "")
 }
 
 func (e *Env) savepoint(ctx context.Context, kind string) (Result, error) {
@@ -363,10 +363,7 @@ func (e *Env) savepoint(ctx context.Context, kind string) (Result, error) {
 			steps["fault"] = rep
 		}
 	}
-	return e.finish(c, steps, map[string]any{
-		"name":   "savepoint",
-		"reason": "the nested scope uses the surface's ordinary savepoint API",
-	})
+	return e.finish(c, steps, e.DB.SavepointForm())
 }
 
 func (e *Env) reuse(ctx context.Context, kind string) (Result, error) {
@@ -442,10 +439,7 @@ func (e *Env) reuse(ctx context.Context, kind string) (Result, error) {
 			steps["fault"] = rep
 		}
 	}
-	return e.finish(c, steps, map[string]any{
-		"name":   "pool",
-		"reason": "unit 2 is the next transaction on the same pool of one connection",
-	})
+	return e.finish(c, steps, e.DB.NextUnitForm())
 }
 
 func (e *Env) unit2(name string) (map[string]any, int, error) {
@@ -532,10 +526,7 @@ func (e *Env) nested(ctx context.Context, variant string) (Result, error) {
 		return ErrOuter
 	})
 	steps := map[string]any{"nested": map[string]any{"caught": caught, "completed": completed}}
-	return e.finish(c, steps, map[string]any{
-		"name":   "savepoint",
-		"reason": "the nested scope uses the surface's ordinary savepoint API, not a second connection",
-	})
+	return e.finish(c, steps, e.DB.SavepointForm())
 }
 
 func (e *Env) isolation(ctx context.Context) (Result, error) {
@@ -586,6 +577,5 @@ func (e *Env) isolation(ctx context.Context) (Result, error) {
 		c.CommitErr = nil
 		c.BodyErr = nil
 	}
-	form := map[string]any{"name": e.DB.Surface(), "reason": e.DB.IsolationAPI()}
-	return e.finish(c, steps, form)
+	return e.finish(c, steps, e.DB.IsolationAPI()+". The marker is inserted and read back in that transaction.")
 }

@@ -1,6 +1,6 @@
 # Active Record findings
 
-Recording: [`reports/examples/2026-10-21T19-39-32Z-b559f2`](../../reports/examples/2026-10-21T19-39-32Z-b559f2/summary.md). Ruby 4.0.7 (`ruby 4.0.7 (2026-09-15 revision 229531a6cf)`), Active Record 8.1.4, pg 1.7.0, `PG.library_version` 180006, PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2). Three repetitions agreed on every row. CTL-01 passed. `pg-control` held its gate. The ruby-pg control in the same run matched its expectations. No row is a repetition disagreement.
+Recording: [`reports/examples/2026-10-23T21-46-47Z-b3b7bd`](../../reports/examples/2026-10-23T21-46-47Z-b3b7bd/summary.md). It re-records [`reports/examples/2026-10-21T19-39-32Z-b559f2`](../../reports/examples/2026-10-21T19-39-32Z-b559f2/summary.md), from which these findings were written, with `form` reported as a string. Every cell the two runs share has the same classification. The later catalog case `TX-01B.commit-reply-unseen` is NOT_RUN. Ruby 4.0.7 (`ruby 4.0.7 (2026-09-15 revision 229531a6cf)`), Active Record 8.1.4, pg 1.7.0, `PG.library_version` 180006, PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2). Three repetitions agreed on every row. CTL-01 passed. `pg-control` held its gate. The ruby-pg control in the same run matched its expectations. No row is a repetition disagreement.
 
 Rails 8.1.4 is the latest stable release (24 September 2026). Rails 8.2 is `8.2.0.alpha` on `main` and is not on RubyGems. The [maintenance policy](https://rubyonrails.org/maintenance) lists 8.1.x bugfix support through 10 October 2026 and security support through 10 October 2027. This run is after the bugfix date and inside the security window.
 
@@ -17,6 +17,7 @@ The scored path is `ActiveRecord::Base.transaction` and `create!`. Nested cases 
 | `TX-01A.caught-error-then-commit` | A | FAIL, mechanism exercised |
 | `TX-01B.conn-lost-before-commit` | B | PASS |
 | `TX-01B.commit-reply-discarded` | D | PASS, TX-01B.2 not exercised |
+| `TX-01B.commit-reply-unseen` | E | NOT_RUN |
 | `TX-02.savepoint-rollback-not-sent` | C | FAIL |
 | `TX-02.savepoint-rollback-rejected` | C | FAIL |
 | `TX-02.conn-lost-before-savepoint-rollback` | B | PASS |

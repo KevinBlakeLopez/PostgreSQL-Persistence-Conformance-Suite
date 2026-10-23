@@ -42,6 +42,12 @@ func (d *DB) Reconnected() bool   { return false }
 func (d *DB) IsolationAPI() string {
 	return "sql.DB.BeginTx with sql.TxOptions.Isolation"
 }
+func (d *DB) SavepointForm() string {
+	return "The outer transaction is sql.DB.BeginTx. The nested scope is SAVEPOINT, ROLLBACK TO SAVEPOINT, and RELEASE SAVEPOINT sent with sql.Tx.ExecContext, because sql.Tx has no savepoint method. There is no second connection."
+}
+func (d *DB) NextUnitForm() string {
+	return "Unit 2 is the next sql.DB.BeginTx on the same sql.DB, whose MaxOpenConns is the case's pool_max."
+}
 func (d *DB) Close() { _ = d.db.Close() }
 
 func (d *DB) Run(ctx context.Context, isolation string, fn func(run.Tx) error) run.Completion {

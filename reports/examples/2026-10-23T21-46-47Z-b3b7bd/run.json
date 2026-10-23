@@ -1,0 +1,885 @@
+{
+  "schema": "ppcs-run/1",
+  "run_id": "2026-10-23T21-46-47Z-b3b7bd",
+  "ppcs_version": "0.3.0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "runner_runtime": "v24.14.1",
+  "status": "completed",
+  "started_at": "2026-10-23T21:46:47.006Z",
+  "finished_at": "2026-10-23T21:52:14.035Z",
+  "duration_ms": 327029,
+  "filters": {
+    "adapters": [
+      "activerecord",
+      "ruby-pg-control"
+    ],
+    "cases": [],
+    "modes": []
+  },
+  "repetitions": 3,
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "catalog": {
+    "path": "specifications",
+    "sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "adapters": [
+    {
+      "name": "activerecord",
+      "manifest": "adapters/activerecord/adapter.json",
+      "source_sha256": "fce696f73fa19721fb659bf7a015e0328b8beaf7fc33372257c4a97651007202"
+    },
+    {
+      "name": "pg-control",
+      "manifest": "adapters/pg-control/adapter.json",
+      "source_sha256": "7afb3b256f25b5d99a29e66922fde39cc77b97293dc1589770ccab601357a489"
+    },
+    {
+      "name": "ruby-pg-control",
+      "manifest": "adapters/ruby-pg-control/adapter.json",
+      "source_sha256": "21b3ff445a14447d356546f2bbf03b282d24dd367941d53d761de5c399538fdc"
+    }
+  ],
+  "results": [
+    {
+      "case": "CTL-01.commit",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.activerecord.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.activerecord.native.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.activerecord.native.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.activerecord.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.activerecord.native.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/TX-01B.commit-reply-unseen.activerecord.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.activerecord.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.activerecord.native.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.activerecord.native.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.activerecord.native.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.activerecord.native.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.activerecord.native.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.activerecord.native.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.activerecord.native.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.activerecord.native.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.activerecord.native.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-05.explicit-serializable.activerecord.native.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-02.held.activerecord.native.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-02.first-deployment.activerecord.native.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-02.session-loss.activerecord.native.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "INCONCLUSIVE",
+      "file": "cases/MG-02.idle-session-timeout.activerecord.native.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-03.valid-reversal.activerecord.native.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-03.no-reversal.activerecord.native.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "activerecord",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/MG-03.failing-reversal.activerecord.native.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-discarded.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-unseen.pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-unseen.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.conn-lost-in-transaction.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-04.nested-failure-contained.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.managed-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.explicit-serializable.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.held.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.held.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.first-deployment.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.first-deployment.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.session-loss.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.session-loss.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.idle-session-timeout.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.valid-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.valid-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.no-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.no-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.failing-reversal.pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.failing-reversal.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01A.caught-error-then-commit.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-01A.caught-error-then-commit",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01A.caught-error-then-commit.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.conn-lost-before-commit",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-01B.conn-lost-before-commit.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-01B.commit-reply-discarded.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-discarded",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-01B.commit-reply-discarded.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-01B.commit-reply-unseen",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "NOT_RUN",
+      "file": "cases/TX-01B.commit-reply-unseen.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.rollback-not-sent.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.rollback-not-sent.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.statement-error-rollback-not-sent",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.statement-error-rollback-not-sent.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-03.conn-lost-in-transaction.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-03.conn-lost-in-transaction",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-03.conn-lost-in-transaction.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-failure-contained.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-failure-contained",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-04.nested-failure-contained.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-04.nested-released-outer-rollback",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-04.nested-released-outer-rollback.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-04.independent-inner",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "UNSUPPORTED",
+      "file": "cases/TX-04.independent-inner.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.managed-serializable.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.managed-serializable",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.managed-serializable.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-05.explicit-serializable.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "TX-05.explicit-serializable",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-05.explicit-serializable.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.held.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.held",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.held.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.first-deployment.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.first-deployment",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.first-deployment.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.session-loss.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.session-loss",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.session-loss.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-02.idle-session-timeout.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-02.idle-session-timeout",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-02.idle-session-timeout.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.valid-reversal.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.valid-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.valid-reversal.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.no-reversal.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.no-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.no-reversal.ruby-pg-control.unsafe.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/MG-03.failing-reversal.ruby-pg-control.correct.json"
+    },
+    {
+      "case": "MG-03.failing-reversal",
+      "adapter": "ruby-pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/MG-03.failing-reversal.ruby-pg-control.unsafe.json"
+    }
+  ],
+  "counts": {
+    "PASS": 72,
+    "FAIL": 38,
+    "UNSUPPORTED": 3,
+    "INCONCLUSIVE": 1,
+    "NOT_RUN": 2
+  }
+}

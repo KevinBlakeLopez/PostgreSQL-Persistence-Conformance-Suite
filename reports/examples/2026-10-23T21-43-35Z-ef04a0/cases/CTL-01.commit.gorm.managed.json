@@ -1,0 +1,307 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T21-43-35Z-ef04a0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "CTL-01.commit",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and commits",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx` through the framework's ordinary write API.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "End the transaction normally, so that the framework commits it.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "gorm",
+      "version": "0.1.0",
+      "source_sha256": "b1332ec148c820848ef55621daf0e611660023192d8739ed2f3e95c2acb2b925"
+    },
+    "framework": {
+      "name": "gorm.io/gorm",
+      "version": "v1.31.2"
+    },
+    "driver": {
+      "name": "gorm.io/driver/postgres",
+      "version": "v1.6.3"
+    },
+    "components": {
+      "database/sql": "go1.27.3",
+      "github.com/jackc/pgx/v5": "v5.11.0"
+    },
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "managed",
+    "kind": "native",
+    "description": "DB.Transaction. The callback catches the unique violation and returns nil, so GORM calls Commit. A nested DB.Transaction is a savepoint. sql.TxOptions.Isolation is passed to DB.Transaction for TX-05. SkipDefaultTransaction and DisableNestedTransaction keep their defaults.",
+    "configuration": {
+      "api": "db.Transaction. A nested db.Transaction is a savepoint. DisableNestedTransaction is left at its default, false.",
+      "connector": "postgres.Config.Conn is a *sql.DB opened with pgx stdlib. GORM's DSN path uses the same driver.",
+      "logger": "logger.Discard, so GORM does not write on the protocol stdout",
+      "pool": "database/sql pool under GORM, MaxOpenConns = pool_max. Not pgxpool."
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "PostgreSQL answers COMMIT with the command tag COMMIT, so the client knows that the transaction committed.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "db.Transaction returned nil",
+    "contract": "GORM v1.31.2 DB.Transaction (finisher_api.go) commits when the callback returns nil and returns tx.Commit().Error. Its comment says: return error will rollback, otherwise to commit. A nil return is GORM's report that the transaction committed. A non-nil return is not a successful commit. gorm.io/driver/postgres v1.6.3 opens the pool with pgx stdlib (postgres.go Initialize) unless Config.Conn is set. This adapter passes a *sql.DB opened on pgx stdlib, which is the supported Config.Conn path, so the pool limits and the tracer sit under GORM. A nested DB.Transaction is a savepoint when DisableNestedTransaction is false, which is the default. The postgres dialector's SavePoint and RollbackTo call Exec and return nil, ignoring the *gorm.DB that Exec returns.",
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 2444552,
+          "xid": "47676"
+        },
+        "session": {
+          "pid": 2444552,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "47676",
+          "xid_matches": true,
+          "backend_xmin": "47676",
+          "backend_start": "2026-10-23 21:44:12.577254+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "47676"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 2444552,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "47676",
+              "xid_matches": null,
+              "backend_xmin": "47676",
+              "backend_start": "2026-10-23 21:44:12.577254+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 2444552,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 21:44:12.577254+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "47676",
+        "pid": 2444552,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-23 21:44:12.577254+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "47676"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.1 held: xid 47676 committed at report time (`after-end`); marker visible: true",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [47676]"
+      },
+      {
+        "description": "the API reported \"committed\"",
+        "met": true,
+        "detail": "reported: committed"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.1",
+        "statement": "A transaction that the API reports as committed is committed: pg_xact_status() reports it committed, and an independent connection sees its marker.",
+        "holds": true,
+        "detail": "xid 47676 committed at report time (`after-end`); marker visible: true"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=gorm --mode=managed --case=CTL-01.commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "commit",
+          "command_tag": "COMMIT"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T21:44:11.242Z",
+    "finished_at": "2026-10-23T21:44:13.193Z",
+    "duration_ms": 1951
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 47676 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 1259
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 47680 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 468
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.1 held: xid 47684 committed at report time (`after-end`); marker visible: true",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 224
+      }
+    ]
+  }
+}

@@ -68,6 +68,24 @@ func (d *DB) IsolationAPI() string {
 	return "pgx.Conn.BeginTx or pgxpool.Pool.BeginTx with TxOptions.IsoLevel"
 }
 
+func (d *DB) beginAPI() string {
+	if d.pooled {
+		return "pgxpool.Pool.BeginTx"
+	}
+	return "pgx.Conn.BeginTx"
+}
+
+func (d *DB) SavepointForm() string {
+	return "The outer transaction is " + d.beginAPI() + ". The nested scope is Tx.Begin on that transaction, which pgx sends as SAVEPOINT. The nested Tx's Rollback is ROLLBACK TO SAVEPOINT and its Commit is RELEASE SAVEPOINT. There is no second connection."
+}
+
+func (d *DB) NextUnitForm() string {
+	if d.pooled {
+		return "Unit 2 is the next pgxpool.Pool.BeginTx on the same pool, whose MaxConns is the case's pool_max."
+	}
+	return "Unit 2 is the next pgx.Conn.BeginTx. The native mode is not a pool: unit 2 gets the same *pgx.Conn, or a replacement dialed after pgx closed the first one."
+}
+
 func (d *DB) Close() {
 	ctx := context.Background()
 	if d.conn != nil {

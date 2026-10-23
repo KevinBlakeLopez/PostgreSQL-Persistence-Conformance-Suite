@@ -27,6 +27,10 @@ type DB interface {
 	Surface() string
 	Reconnected() bool
 	IsolationAPI() string
+	// SavepointForm and NextUnitForm are the result's form for the savepoint
+	// cases and the next-unit cases, named in this surface's API.
+	SavepointForm() string
+	NextUnitForm() string
 }
 
 // Finish runs fn and then the explicit completion: rollback when fn returns an

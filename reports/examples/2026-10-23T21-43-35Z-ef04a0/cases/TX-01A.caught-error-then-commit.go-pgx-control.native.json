@@ -1,0 +1,385 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T21-43-35Z-ef04a0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-01A.caught-error-then-commit",
+    "version": "1.1",
+    "family": "TX-01A",
+    "family_title": "Commit of an aborted transaction",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A unique violation is caught inside the transaction, which then ends normally",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`, and make sure the write was sent to PostgreSQL.",
+      "Checkpoint `after-write`: report pg_current_xact_id() and pg_backend_pid(), read through the transaction's own connection.",
+      "Insert the value 'taken' into uniq through the framework's ordinary write API. It fails with unique_violation (23505). Catch the error and continue. After catching the error, the callback sends nothing else and returns.",
+      "Checkpoint `before-end`: report the same backend PID. The transaction is aborted, so it cannot run queries; the runner confirms the aborted state server-side.",
+      "End the transaction normally, so that the framework sends COMMIT.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01A.1",
+        "statement": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "go-pgx-control",
+      "version": "0.1.0",
+      "source_sha256": "80601706bec174ec09c187c1f9caaae2babb7c8b028d9b0f7ebb5ff60d41ed5c"
+    },
+    "framework": {
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0"
+    },
+    "driver": {
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0"
+    },
+    "components": {},
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "pgx.Conn.BeginTx, Tx.Commit, and Tx.Rollback on one connection. A nested Tx.Begin is a savepoint. Tx.Commit's return value is reported as the API result: nil is committed, pgx.ErrTxCommitRollback is rolled_back, and any other error is failed. Pooling is not used. After Conn.die closes the connection, the next transaction dials a replacement.",
+    "configuration": {
+      "api": "pgx.Tx.Begin, Commit, and Rollback",
+      "nested": "pgx.Tx.Begin is a savepoint",
+      "pgx": "v5.11.0",
+      "pool": "single *pgx.Conn, replaced only after pgx closes it"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "A",
+    "mechanism": "A unique_violation raised by PostgreSQL inside the transaction, and caught by the application.",
+    "injection_point": "After the first write, before the transaction ends.",
+    "preconditions": "The row 'taken' already exists in uniq (fixture).",
+    "expected_server": "The failed statement aborts the transaction. PostgreSQL answers the later COMMIT with the command tag ROLLBACK, without an error, and commits nothing.",
+    "expected_client": "The driver receives the command tag ROLLBACK as the reply to COMMIT.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The outcome reaches the client: PostgreSQL's reply to COMMIT carries the command tag ROLLBACK.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "pgx.Tx.Commit returned pgx.ErrTxCommitRollback",
+    "contract": "pgx v5.11.0 Tx.Commit (tx.go, dbTx.Commit) executes COMMIT and returns ErrTxCommitRollback when the command tag is ROLLBACK. The Tx interface documents that a commit which fails with a rollback status returns an error where errors.Is(ErrTxCommitRollback) is true. ErrTxCommitRollback's comment says PostgreSQL accepts COMMIT on an aborted transaction and treats it as ROLLBACK. A nil error is pgx's report that the transaction committed. dbTx.Rollback executes ROLLBACK and, on any error, calls Conn.die, which closes the connection. A nested Tx.Begin is a savepoint. Nested Rollback executes ROLLBACK TO SAVEPOINT and does not close the connection.",
+    "error": {
+      "class": "pgx.ErrTxCommitRollback",
+      "code": null,
+      "message": "commit unexpectedly resulted in rollback"
+    },
+    "steps": {
+      "violation": {
+        "class": "*pgconn.PgError",
+        "code": "23505",
+        "message": "ERROR: duplicate key value violates unique constraint \"uniq_code_key\" (SQLSTATE 23505)"
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-write": {
+        "reported": {
+          "pid": 2442976,
+          "xid": "47462"
+        },
+        "session": {
+          "pid": 2442976,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "47462",
+          "xid_matches": true,
+          "backend_xmin": "47462",
+          "backend_start": "2026-10-23 21:43:56.752018+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "47462"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 2442976,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "47462",
+              "xid_matches": null,
+              "backend_xmin": "47462",
+              "backend_start": "2026-10-23 21:43:56.752018+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "before-end": {
+        "reported": {
+          "pid": 2442976,
+          "xid": null
+        },
+        "session": {
+          "pid": 2442976,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-23 21:43:56.752018+00",
+          "query": "INSERT INTO uniq (code) VALUES ('taken')",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 2442976,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 21:43:56.752018+00",
+              "query": "INSERT INTO uniq (code) VALUES ('taken')",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 2442976,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 21:43:56.752018+00",
+              "query": "commit",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "47462",
+        "pid": 2442976,
+        "captured_at": "after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-23 21:43:56.752018+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": true,
+    "mechanism_detail": "after the API returned, the session was \"idle\", and its last statement was \"commit\"",
+    "classification": "PASS",
+    "reason": "TX-01A.1 held: the API reported: rolled_back",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-write`: item locked; transactionid [47462]"
+      },
+      {
+        "description": "the duplicate insert failed with unique_violation (23505), as reported by the adapter",
+        "met": true,
+        "detail": "caught: 23505"
+      },
+      {
+        "description": "the top-level transaction was aborted before it ended: at `before-end` the session was \"idle in transaction (aborted)\" and pg_xact_status() already reported it aborted",
+        "met": true,
+        "detail": "state: \"idle in transaction (aborted)\"; pg_xact_status: aborted"
+      },
+      {
+        "description": "PostgreSQL did not commit the transaction",
+        "met": true,
+        "detail": "pg_xact_status: aborted; marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01A.1",
+        "statement": "When PostgreSQL has aborted the transaction before it ends, so that its COMMIT is answered with ROLLBACK, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: rolled_back"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for go-pgx-control (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=go-pgx-control --mode=native --case=TX-01A.caught-error-then-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "commit",
+          "command_tag": "ROLLBACK"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T21:43:56.420Z",
+    "finished_at": "2026-10-23T21:43:57.172Z",
+    "duration_ms": 752
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01A.1 held: the API reported: rolled_back",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 252
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01A.1 held: the API reported: rolled_back",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 240
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01A.1 held: the API reported: rolled_back",
+        "mechanism_exercised": true,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 260
+      }
+    ]
+  }
+}

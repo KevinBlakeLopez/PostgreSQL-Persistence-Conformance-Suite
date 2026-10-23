@@ -1,6 +1,6 @@
 # Go persistence comparison
 
-Recording: [`reports/examples/2026-10-22T13-24-28Z-606909`](../reports/examples/2026-10-22T13-24-28Z-606909/summary.md). PostgreSQL 18.6, image `postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336`. Runner Node v24.14.1, PPCS 0.3.0. Every executed case ran three times on a fresh database, and the repetitions agreed. CTL-01 passed for every Go mode. `pg-control` held its case gate, including the expected `unsafe` FAILs. No Go result was gated.
+Recording: [`reports/examples/2026-10-23T21-43-35Z-ef04a0`](../reports/examples/2026-10-23T21-43-35Z-ef04a0/summary.md). It re-records [`reports/examples/2026-10-22T13-24-28Z-606909`](../reports/examples/2026-10-22T13-24-28Z-606909/summary.md), from which this comparison was first written, with each `form` reported as a string. Every classification is unchanged. PostgreSQL 18.6, image `postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336`. Runner Node v24.14.1, PPCS 0.3.0. Every executed case ran three times on a fresh database, and the repetitions agreed. CTL-01 passed for every Go mode. `pg-control` held its case gate, including the expected `unsafe` FAILs. No Go result was gated.
 
 This report compares three Go surfaces on the existing PPCS catalog. It does not change that catalog. There is no driver-capability schema in the harness. The capability table below is this study's classification of the calls this run made.
 

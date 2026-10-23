@@ -67,6 +67,20 @@ func (d *DB) IsolationAPI() string {
 	return "db.Begin with sql.TxOptions.Isolation"
 }
 
+func (d *DB) SavepointForm() string {
+	if d.managed {
+		return "The outer transaction is db.Transaction. The nested scope is a nested db.Transaction, which GORM sends as SAVEPOINT, and as ROLLBACK TO SAVEPOINT when the nested function returns an error. There is no second connection."
+	}
+	return "The outer transaction is db.Begin. The nested scope is SavePoint on that transaction, and RollbackTo when the nested function returns an error. There is no second connection."
+}
+
+func (d *DB) NextUnitForm() string {
+	if d.managed {
+		return "Unit 2 is the next db.Transaction on the same *gorm.DB, whose sql.DB has MaxOpenConns equal to the case's pool_max."
+	}
+	return "Unit 2 is the next db.Begin on the same *gorm.DB, whose sql.DB has MaxOpenConns equal to the case's pool_max."
+}
+
 func (d *DB) Run(ctx context.Context, isolation string, fn func(run.Tx) error) run.Completion {
 	if isolation != "" && isolation != "serializable" {
 		return run.Completion{BeginErr: fmt.Errorf("gorm adapter was asked for isolation %q", isolation)}

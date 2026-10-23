@@ -2,7 +2,7 @@
 
 Active Record 8.1.4 on the pg 1.7.0 adapter, without a Rails application. The scored API is `ActiveRecord::Base.transaction` and `create!`. Nested cases use `transaction(requires_new: true)`. Migrations use `ActiveRecord::MigrationContext`.
 
-The findings are [`FINDINGS.md`](FINDINGS.md). The three-repetition run is [`reports/examples/2026-10-21T19-39-32Z-b559f2`](../../reports/examples/2026-10-21T19-39-32Z-b559f2/summary.md).
+The findings are [`FINDINGS.md`](FINDINGS.md). The three-repetition run is [`reports/examples/2026-10-23T21-46-47Z-b3b7bd`](../../reports/examples/2026-10-23T21-46-47Z-b3b7bd/summary.md). It re-records [`reports/examples/2026-10-21T19-39-32Z-b559f2`](../../reports/examples/2026-10-21T19-39-32Z-b559f2/summary.md) with `form` reported as a string, and every cell the two runs share has the same classification.
 
 ## Versions
 

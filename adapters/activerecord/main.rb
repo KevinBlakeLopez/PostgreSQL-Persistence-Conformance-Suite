@@ -15,10 +15,8 @@ ActiveRecord::Base.logger = nil
 
 CONTRACT = 'ActiveRecord::Base.transaction commits when the block returns. It rolls back and re-raises when the block raises, except ActiveRecord::Rollback, which rolls back and is not re-raised. Rails documents that rescuing ActiveRecord::StatementInvalid inside the block does not roll the transaction back, and that on PostgreSQL a statement error aborts the transaction until the whole transaction is restarted. A nested transaction joins the parent unless requires_new: true, which is a savepoint. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Transactions/ClassMethods.html'
 
-SAVEPOINT_FORM = {
-  'name' => 'transaction(requires_new: true)',
-  'reason' => 'A nested transaction block joins the parent transaction. requires_new: true is the documented savepoint form.'
-}.freeze
+SAVEPOINT_FORM = 'Outer ActiveRecord::Base.transaction and a nested transaction(requires_new: true). ' \
+                 'A nested transaction block joins the parent transaction. requires_new: true is the documented savepoint form.'
 
 class Item < ActiveRecord::Base
   self.table_name = 'item'
