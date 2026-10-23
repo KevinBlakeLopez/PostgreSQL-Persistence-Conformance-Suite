@@ -21,7 +21,7 @@ On PostgreSQL, a statement error aborts the current transaction. If the applicat
 
 Prisma Client treats that `COMMIT` as success. `prisma.$transaction()` resolves.
 
-`_transactionWithCallback` calls `transaction("commit")` when the callback returns (`@prisma/client` `runtime/client.mjs`). For `@prisma/adapter-pg`, the transaction manager sends `{ sql: "COMMIT" }` through `executeRaw` and, if that promise resolves, calls `transaction.commit()`. `PgQueryable.executeRaw` returns `result.rowCount` and does not read `result.command` (`@prisma/adapter-pg` `dist/index.js`).
+`_transactionWithCallback` calls `transaction("commit")` when the callback returns (`@prisma/client` `runtime/client.mjs`). The transaction manager, bundled in that same `@prisma/client` file, sends `{ sql: "COMMIT" }` through the adapter's `executeRaw`, because `@prisma/adapter-pg` sets `usePhantomQuery: false`. If that promise resolves, the transaction manager calls `transaction.commit()`. `PgQueryable.executeRaw` returns `result.rowCount` and does not read `result.command` (`@prisma/adapter-pg` `dist/index.mjs`).
 
 On the first repetition, node-postgres recorded `Result.command` `ROLLBACK` for that `COMMIT`. The query compiler is not on this path. `$executeRaw` and the transaction manager's `COMMIT` go to the driver adapter as SQL.
 
@@ -48,12 +48,12 @@ await prisma.$transaction(async (tx) => {
 })
 ```
 
-Three repetitions agreed that `prisma.$transaction()` resolved, `pg_xact_status()` was `aborted`, and another connection did not see the `kept` row. On the first repetition:
+This snippet has the same shape as the recorded `prisma.$transaction()` callback. It is not the code that was executed. The recorded callback passes the first row's value as a parameter, and reads `pg_current_xact_id()` and `pg_backend_pid()` with `tx.$queryRaw` before the duplicate insert.
+
+Three repetitions agreed that `prisma.$transaction()` resolved, `pg_xact_status()` was `aborted`, and another connection did not see the row inserted before the error. On the first repetition:
 
 - the reply to `COMMIT` was command tag `ROLLBACK`
 - after the API returned, the session was idle and its last statement was `COMMIT`
-
-A nested `tx.$transaction()` around the duplicate insert, with that error caught by the outer callback, committed the `kept` row. On the first repetition the trace was `ROLLBACK TO SAVEPOINT`, `RELEASE SAVEPOINT`, then `COMMIT` with command tag `COMMIT`. That path is a real commit after a savepoint rollback.
 
 ### Expected
 
@@ -63,4 +63,4 @@ A callback that catches the error and returns resolves today. Reporting this rol
 
 ### Actual
 
-The call resolves, and the insert is not visible. The connection is not left aborted: the next transaction on that pool can commit its own row, so checking only the next request misses the lost write.
+The call resolves, and the insert is not visible. After `COMMIT`, the session is no longer in a transaction.

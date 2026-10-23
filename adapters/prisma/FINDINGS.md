@@ -16,7 +16,7 @@ Installed `@prisma/client@7.10.1`, `runtime/client.mjs`:
 
 The transaction manager's close path, for an adapter with `usePhantomQuery: false` (what `@prisma/adapter-pg` sets), sends `{ sql: "COMMIT" }` through `executeRaw` and, if that promise resolves, calls `transaction.commit()`. If `executeRaw` rejects, it calls `transaction.rollback()` and rethrows. A top-level rollback sends `{ sql: "ROLLBACK" }` and then always calls `transaction.rollback()`. A nested rollback calls `rollbackToSavepoint` and then `releaseSavepoint`. A nested commit calls `releaseSavepoint` only.
 
-Installed `@prisma/adapter-pg@7.10.1`, `dist/index.js`:
+Installed `@prisma/adapter-pg@7.10.1`, `dist/index.mjs` (the ESM build this adapter's `import` loads; the CommonJS `dist/index.js` has the same classes):
 
 `PgQueryable.executeRaw` returns `result.rowCount`. It does not read `result.command`. `PgTransaction.commit` and `PgTransaction.rollback` call `client.release()` with no argument. `startTransaction` checks a client out, listens for `'error'` on it, sends `BEGIN`, and if an isolation level was passed sends `SET TRANSACTION ISOLATION LEVEL …`. Savepoints are `SAVEPOINT prisma_sp_N`, `ROLLBACK TO SAVEPOINT prisma_sp_N`, and `RELEASE SAVEPOINT prisma_sp_N`.
 
@@ -47,11 +47,11 @@ pg-pool 3.14.0 `_release` removes the client when `release` is called with an er
 | MG-02 | | recorded in `reports/examples/2026-10-21T20-00-04Z-178fa4` | | `prisma migrate deploy` holds `pg_advisory_lock(72707369)`. `MG-02.held`, `MG-02.first-deployment`, and `MG-02.session-loss` pass. `MG-02.idle-session-timeout` is INCONCLUSIVE because the session inside the migration did not end |
 | MG-03 | | unsupported | | capability absent. A migration directory has no down file |
 
-Xids and pids above are from the last repetition, which agreed with the other two on classification.
+Xids, pids, traces, and command tags above are from the first repetition, the only one whose full record a case file keeps (`combineRepetitions` in `harness/lib/suite.mjs`). It agreed with the other two on classification. The per-repetition summaries keep the reported outcome, the transaction fates, and marker visibility, not the trace.
 
 ## Command tags, aborted state, pool, timeout
 
-**Command tags.** pg recorded `command tag ROLLBACK` for the `COMMIT` in TX-01A and in `TX-02.savepoint-rollback-rejected`. `@prisma/adapter-pg` `executeRaw` returned only `rowCount`. The transaction manager treated that resolved promise as a successful commit and released the connection. The query compiler was not on the path.
+**Command tags.** On the first repetition, pg recorded `command tag ROLLBACK` for the `COMMIT` in TX-01A and in `TX-02.savepoint-rollback-rejected`. `@prisma/adapter-pg` `executeRaw` returned only `rowCount`. The transaction manager treated that resolved promise as a successful commit and released the connection. The query compiler was not on the path.
 
 **Aborted state.** A caught `23505` did not make Prisma skip `COMMIT`. The callback returned, and the next statement Prisma sent was `COMMIT`. Prisma does not keep a client-side aborted flag that refuses further use of that connection. In `TX-03.statement-error-rollback-not-sent` the next unit's `BEGIN` was sent and PostgreSQL answered `25P02`. Prisma reported that as `P2039`.
 
@@ -63,7 +63,7 @@ Xids and pids above are from the last repetition, which agreed with the other tw
 
 These are observations. A PPCS FAIL is a counterexample to a PPCS invariant. It is not, by itself, a filed defect.
 
-1. **Confirmed framework defect: a resolved `COMMIT` is reported as success when PostgreSQL's command tag was `ROLLBACK`.** Seen in `TX-01A.caught-error-then-commit` and `TX-02.savepoint-rollback-rejected`, 3 of 3. pg returned the tag. `@prisma/adapter-pg` `executeRaw` dropped it. The transaction manager in `@prisma/client` treated the resolved call as a commit. The query compiler did not see the statement. Reproduction: `node harness/run.mjs --adapter=prisma --mode=native --case=TX-01A.caught-error-then-commit`.
+1. **Confirmed framework defect: a resolved `COMMIT` is reported as success when PostgreSQL's command tag was `ROLLBACK`.** Seen in `TX-01A.caught-error-then-commit` and `TX-02.savepoint-rollback-rejected`. Both cases failed 3 of 3. pg returned the tag on the first repetition, the only one whose trace is kept. `@prisma/adapter-pg` `executeRaw` dropped it. The transaction manager in `@prisma/client` treated the resolved call as a commit. The query compiler did not see the statement. Reproduction: `node harness/run.mjs --adapter=prisma --mode=native --case=TX-01A.caught-error-then-commit`.
 
 2. **Confirmed framework behavior, with pg-pool doing what `release()` asks: a failed `ROLLBACK` returns the connection to the pool.** `PgTransaction.rollback` and the commit-failure path call `client.release()` with no error. pg-pool 3.14.0 keeps a queryable client released that way. `TX-03.rollback-not-sent`: the next `$transaction` ran `BEGIN` on that connection, PostgreSQL stayed in xid 13412, and `COMMIT` made both markers visible. `TX-03.statement-error-rollback-not-sent`: the same connection was still idle in transaction (aborted), and the next `BEGIN` failed with `25P02`. The driver did not decide to discard. Prisma did not ask it to.
 
