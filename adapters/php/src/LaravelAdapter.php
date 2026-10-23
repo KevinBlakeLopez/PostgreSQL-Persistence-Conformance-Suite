@@ -101,8 +101,8 @@ final class LaravelAdapter
 
     private static function requireRuntime(): void
     {
-        if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 5) {
-            fwrite(STDERR, 'laravel adapter requires PHP 8.5; this runtime is '.PHP_VERSION."\n");
+        if (PHP_VERSION !== '8.5.12') {
+            fwrite(STDERR, 'laravel adapter requires PHP 8.5.12; this runtime is '.PHP_VERSION."\n");
             exit(2);
         }
         if (!extension_loaded('pdo_pgsql')) {

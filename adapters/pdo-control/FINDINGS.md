@@ -1,6 +1,6 @@
 # PDO control findings
 
-Recording: [`reports/examples/2026-10-21T16-24-17Z-231161`](../../reports/examples/2026-10-21T16-24-17Z-231161/summary.md). PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, PostgreSQL 18.6. Three repetitions agreed. CTL-01 passed in each mode. `pg-control` held its gate. No executed row is INCONCLUSIVE.
+Recording: [`reports/examples/2026-10-21T16-24-17Z-231161`](../../reports/examples/2026-10-21T16-24-17Z-231161/summary.md). Re-run on PHP 8.5.12, pdo_pgsql 8.5.12, and libpq 18.6: [`reports/examples/2026-10-23T14-18-35Z-5a6ff7`](../../reports/examples/2026-10-23T14-18-35Z-5a6ff7/summary.md), where every classification matched; the per-case notes below are from the first recording. PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, PostgreSQL 18.6. Three repetitions agreed. CTL-01 passed in each mode. `pg-control` held its gate. No executed row is INCONCLUSIVE.
 
 This adapter is a policy on PDO, not a claim that PDO is an oracle. `correct` passes the cases it executes. `unsafe` fails the cases it is built to fail. Neither policy can read a PostgreSQL command tag.
 

@@ -6,15 +6,17 @@ Shared Composer project for the PDO control and the Laravel adapter. It is not i
 
 Recorded on PostgreSQL 18.6 (`postgres:18.6`, Debian 18.6-1.pgdg13+2) with:
 
-| Piece | Transaction recordings | Laravel migration recording |
+| Piece | Current | First transaction recordings |
 | --- | --- | --- |
-| PHP | 8.5.6 | 8.5.12 |
-| pdo_pgsql | 8.5.6, bundled with that PHP | 8.5.12, bundled with that PHP |
-| libpq | 18.3, the library that PHP was built against | 18.6, the library that PHP was built against |
+| PHP | 8.5.12 | 8.5.6 |
+| pdo_pgsql | 8.5.12, bundled with that PHP | 8.5.6, bundled with that PHP |
+| libpq | 18.6, the library that PHP was built against | 18.3, the library that PHP was built against |
 | illuminate/database | v13.38.0 | v13.38.0 |
-| illuminate/filesystem | not installed | v13.38.0 |
+| illuminate/filesystem | v13.38.0 | not installed |
 
-The lockfile was written with Composer 2.8.11. It was regenerated on 2026-10-23 to add illuminate/filesystem, which brought in symfony/finder. `composer.json` sets the platform PHP to 8.5.6, so dependency resolution does not depend on the local PHP. The PDO control requires PHP 8.5.6 exactly. The Laravel adapter accepts 8.5.6 or a later 8.5 release.
+The PHP 8.5.12 recordings are `reports/examples/2026-10-23T13-03-36Z-03a5b5`, the Laravel migration cases, and `reports/examples/2026-10-23T14-18-35Z-5a6ff7`, every case of both adapters. The first transaction recordings are `reports/examples/2026-10-21T16-24-17Z-231161` and `reports/examples/2026-10-21T23-50-08Z-87af6a`.
+
+The lockfile was written with Composer 2.8.11. It was regenerated on 2026-10-23 to add illuminate/filesystem, which brought in symfony/finder. `composer.json` sets the platform PHP to 8.5.12, so dependency resolution does not depend on the local PHP. Both adapters require PHP 8.5.12 exactly.
 
 `composer.lock` pins illuminate/database, illuminate/filesystem, and the packages they require. The migrator reads migration files through illuminate/filesystem. `laravel/framework` and illuminate/console are not installed. There is no HTTP kernel, service provider boot, queue, or console command in the scored adapters. The Laravel migration cases call `Migrator` directly.
 
@@ -22,7 +24,7 @@ Capsule uses `Illuminate\Database\Connection` and `ManagesTransactions`, the sam
 
 ## Install
 
-From this directory, with PHP 8.5 and Composer:
+From this directory, with PHP 8.5.12 and Composer:
 
 ```sh
 composer install --no-interaction --no-scripts

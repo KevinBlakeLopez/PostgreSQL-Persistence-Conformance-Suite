@@ -1,6 +1,6 @@
 # Laravel findings
 
-Recording: [`reports/examples/2026-10-21T16-24-17Z-231161`](../../reports/examples/2026-10-21T16-24-17Z-231161/summary.md). PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, illuminate/database v13.38.0, PostgreSQL 18.6. Three repetitions agreed on every row. CTL-01 passed in each mode. `pg-control` held its gate. No row is INCONCLUSIVE.
+Recording: [`reports/examples/2026-10-21T16-24-17Z-231161`](../../reports/examples/2026-10-21T16-24-17Z-231161/summary.md). Re-run on PHP 8.5.12, pdo_pgsql 8.5.12, and libpq 18.6: [`reports/examples/2026-10-23T14-18-35Z-5a6ff7`](../../reports/examples/2026-10-23T14-18-35Z-5a6ff7/summary.md), where every classification matched; the per-case notes below are from the first recording. PHP 8.5.6, pdo_pgsql 8.5.6, libpq 18.3, illuminate/database v13.38.0, PostgreSQL 18.6. Three repetitions agreed on every row. CTL-01 passed in each mode. `pg-control` held its gate. No row is INCONCLUSIVE.
 
 `managed` and `explicit` produced the same classification on every case both modes ran. The tables below use `managed` for the shared rows. `explicit` matched it. `persistent` matched `managed` on the three TX-03 cases.
 

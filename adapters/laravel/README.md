@@ -1,6 +1,6 @@
 # Laravel adapter
 
-illuminate/database v13.38.0 through `Illuminate\Database\Capsule\Manager`. The transaction recordings are PHP 8.5.6, pdo_pgsql 8.5.6, and libpq 18.3. The migration recording is PHP 8.5.12, pdo_pgsql 8.5.12, and libpq 18.6. The adapter accepts PHP 8.5.6 or a later 8.5 release. Writes are Eloquent `Item::query()->create` and `Uniq::query()->create`. There is no Laravel application.
+illuminate/database v13.38.0 through `Illuminate\Database\Capsule\Manager`. The adapter requires PHP 8.5.12. [`reports/examples/2026-10-23T14-18-35Z-5a6ff7`](../../reports/examples/2026-10-23T14-18-35Z-5a6ff7/summary.md) re-ran every case on PHP 8.5.12, pdo_pgsql 8.5.12, and libpq 18.6, and every classification matched. The first transaction recordings are PHP 8.5.6, pdo_pgsql 8.5.6, and libpq 18.3. Writes are Eloquent `Item::query()->create` and `Uniq::query()->create`. There is no Laravel application.
 
 `managed` calls `Connection::transaction(Closure)`. `explicit` calls `beginTransaction()`, `commit()`, and `rollBack()`. A nested call is a savepoint (`SAVEPOINT transN`, `ROLLBACK TO SAVEPOINT transN`). A nested `commit()` decrements Laravel's counter and does not send `RELEASE SAVEPOINT`. `persistent` is the managed API with `PDO::ATTR_PERSISTENT` true, and it runs TX-03 only.
 

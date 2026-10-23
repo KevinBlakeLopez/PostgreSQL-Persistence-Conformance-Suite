@@ -1,0 +1,147 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T14-18-35Z-5a6ff7",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "MG-02.first-deployment",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Two runners released together against a database with no history storage",
+    "steps": [
+      "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
+      "Release both at once. A runner that executes m1 waits at the gate K.",
+      "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
+      "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pdo-control",
+      "version": "UNKNOWN",
+      "source_sha256": "7f092776945cfeb5c189dc873aaea9cafe24094f777c6472e24b8545c8770af0"
+    },
+    "framework": {
+      "name": "pdo_pgsql",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "native",
+    "description": "Positive control. PDO::beginTransaction, prepared inserts, then PDO::commit or PDO::rollBack. A caught statement error calls rollBack() and does not call commit(). A thrown rollBack() or commit() drops the handle and is reported as failed, not as a confirmed rollback. ATTR_PERSISTENT is false. One connection, not a pool. The command tag is not read.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "database": "uninitialized"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "PDO has no migration runner, migration history, or multi-process advisory-lock protocol. This adapter does not add one.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pdo-control --mode=correct --case=MG-02.first-deployment",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T14:20:02.525Z",
+    "finished_at": "2026-10-23T14:20:02.525Z",
+    "duration_ms": 0
+  }
+}

@@ -26,7 +26,7 @@ final class PdoControl
 
     private const CONTRACT_CORRECT = 'The correct pdo-control policy uses PDO::beginTransaction, PDO::commit, PDO::rollBack, and PDOStatement::execute. '
         .'PHP 8.5 PDO::commit() returns true on success and throws PDOException on failure. It does not return a PostgreSQL command tag. '
-        .'pdo_pgsql 8.5.6 (pgsql_handle_doer) treats PGRES_COMMAND_OK as success and discards PQcmdStatus. The deprecated Pdo\\Pgsql::TRANSACTION_* constants have no effect. '
+        .'pdo_pgsql 8.5.12 (pgsql_handle_commit through pdo_pgsql_transaction_cmd, and pgsql_handle_doer for exec()) treats PGRES_COMMAND_OK as success and does not read PQcmdStatus. The deprecated Pdo\\Pgsql::TRANSACTION_* constants have no effect. '
         .'Because no public PDO API reports the transaction status or the command tag, a statement error caught inside the transaction selects PDO::rollBack() and the policy does not call PDO::commit(). '
         .'That reports rolled_back. It does not claim that PDO::commit() observed a ROLLBACK tag. '
         .'If PDO::rollBack() throws, the policy drops the handle and reports failed. It does not report a confirmed rollback from a thrown rollback. '
@@ -92,8 +92,8 @@ final class PdoControl
 
     private static function requireRuntime(): void
     {
-        if (PHP_VERSION !== '8.5.6') {
-            fwrite(STDERR, 'pdo-control requires PHP 8.5.6; this runtime is '.PHP_VERSION."\n");
+        if (PHP_VERSION !== '8.5.12') {
+            fwrite(STDERR, 'pdo-control requires PHP 8.5.12; this runtime is '.PHP_VERSION."\n");
             exit(2);
         }
         if (!extension_loaded('pdo_pgsql')) {
