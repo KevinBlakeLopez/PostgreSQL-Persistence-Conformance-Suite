@@ -25,7 +25,7 @@ async function historyCount(pool) {
   return rows.rows[0].n
 }
 
-export async function runDrizzleMigration(connection, { markers, migration }) {
+export async function runDrizzleMigration(connection, { markers, migration, mode }) {
   const root = mkdtempSync(join(tmpdir(), 'ppcs-drizzle-mg-'))
   const folder = join(root, 'mig')
   mkdirSync(join(folder, 'meta'), { recursive: true })
@@ -46,10 +46,11 @@ export async function runDrizzleMigration(connection, { markers, migration }) {
     max: 1,
   })
   pool.on('error', () => {})
-  // pg-pool removes the client error listener while the client is checked out. A terminated
-  // backend emits 'error' on that client. The listener keeps the process alive so migrate()
-  // can reject. It does not roll the transaction back or discard the connection.
-  pool.on('connect', (client) => { client.on('error', () => {}) })
+  // pg-pool removes its client error listener while the client is checked out, and Drizzle adds none.
+  // In native mode a terminated backend's 'error' on that client ends the process before migrate()
+  // can reject. The configured mode adds the listener an application would add. It does not roll
+  // the transaction back or discard the connection.
+  if (mode === 'client-error-listener') pool.on('connect', (client) => { client.on('error', () => {}) })
   try {
     const before = await historyCount(pool)
     const db = drizzle(pool)

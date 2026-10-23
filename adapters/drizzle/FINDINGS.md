@@ -43,7 +43,7 @@ The adapter's `pool.on('error')` covers idle clients only. pg-pool forwards an i
 
 The xids and pids above are the repetition stored in each case file. The other two repetitions agreed on the classification and its qualifiers.
 
-`TX-04.independent-inner` is UNSUPPORTED, not applicable by design. `TX-05.explicit-serializable` is UNSUPPORTED, capability absent. MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples/2026-10-21T20-00-04Z-178fa4/summary.md). `migrate()` takes no advisory lock. `MG-02.held`, `MG-02.session-loss`, and `MG-02.idle-session-timeout` fail. `MG-02.first-deployment` is INCONCLUSIVE because the repetitions disagree. MG-03 is UNSUPPORTED, capability absent: there is no down migration.
+`TX-04.independent-inner` is UNSUPPORTED, not applicable by design. `TX-05.explicit-serializable` is UNSUPPORTED, capability absent. MG-02 is [`reports/examples/2026-10-23T14-12-26Z-e1679c`](../../reports/examples/2026-10-23T14-12-26Z-e1679c/summary.md), in both modes. `migrate()` takes no advisory lock. `MG-02.held` and `MG-02.idle-session-timeout` fail, and `MG-02.first-deployment` is INCONCLUSIVE because the repetitions disagree. `MG-02.session-loss` is INCONCLUSIVE in native mode and fails in `client-error-listener`. See [Migration tooling](#migration-tooling). MG-03 is UNSUPPORTED, capability absent: there is no down migration.
 
 ## Findings
 
@@ -123,7 +123,18 @@ These are one observation each, not three suite repetitions. They match the SQL 
 
 `drizzle-orm` 0.45.4 `PgDialect.migrate` (`pg-core/dialect.js`, lines 44–71) creates the history table, reads the latest `created_at` outside a transaction, then runs every pending migration's statements and the history insert inside one `session.transaction`. There is no advisory lock and no down migration. The recorded run sets `migrationsSchema` to `public` and `migrationsTable` to `drizzle_migrations` so the runner can count that identifier. The library default schema is `drizzle`. `drizzle-kit` was not installed and was not run.
 
-MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples/2026-10-21T20-00-04Z-178fa4/summary.md). Two migrators can both observe the same last row and both enter the transaction. `MG-02.held`, `MG-02.session-loss`, and `MG-02.idle-session-timeout` fail. `MG-02.first-deployment` is INCONCLUSIVE because the repetitions disagree. MG-03 is declared unsupported: this runtime has no reversal API.
+MG-02 is [`reports/examples/2026-10-23T14-12-26Z-e1679c`](../../reports/examples/2026-10-23T14-12-26Z-e1679c/summary.md), in native mode and in `client-error-listener`. Two migrators can both observe the same last row and both enter the transaction. Three repetitions agreed on every row except `MG-02.first-deployment`. CTL-01 passed in both modes, and `pg-control` held its gates.
+
+| Case | native | `client-error-listener` |
+| --- | --- | --- |
+| `MG-02.held` | FAIL. A and B were inside at once. Marker count 2, history count 2 | FAIL, the same |
+| `MG-02.first-deployment` | INCONCLUSIVE. Repetitions disagree: two PASS, one FAIL with both runners inside | INCONCLUSIVE, the same split |
+| `MG-02.session-loss` | INCONCLUSIVE. B entered while A was inside. After the termination, runner A's process exited on an unhandled `'error'` event, `Connection terminated unexpectedly`, without a result. B applied. Marker count 1 | FAIL, MG-02.5. A reported `failed` (`Failed query: rollback`). B applied. Marker count 1 |
+| `MG-02.idle-session-timeout` | FAIL. As `MG-02.held`. A had one session, and it did not end | FAIL, the same |
+
+From pg 8.23.1 `lib/client.js`: the backend's `57P01` goes to the active query (`_handleErrorMessage`, line 426), here A's `pg_advisory_xact_lock` wait. The socket close then emits `'error'` with `Connection terminated unexpectedly` (the `end` handler, line 203). In native mode the checked-out client has no listener for it. The recorded stderr is that event.
+
+`reports/examples/2026-10-21T20-00-04Z-178fa4` ran these cases with the listener installed in native mode, so its Drizzle rows match the configured column. It is kept as recorded. MG-03 is declared unsupported: this runtime has no reversal API.
 
 ## Architectural assessment
 

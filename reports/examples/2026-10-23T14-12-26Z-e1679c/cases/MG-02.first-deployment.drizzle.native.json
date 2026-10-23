@@ -1,0 +1,829 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T14-12-26Z-e1679c",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "MG-02.first-deployment",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "Two runners released together against a database with no history storage",
+    "steps": [
+      "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
+      "Release both at once. A runner that executes m1 waits at the gate K.",
+      "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
+      "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "drizzle",
+      "version": "0.1.0",
+      "source_sha256": "b3aba4590b60c61f0991c61e538078ab1d6d6fea9fb9ec87310344d467ff377d"
+    },
+    "framework": {
+      "name": "drizzle-orm",
+      "version": "0.45.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, no extra rollback, and no 'error' listener on pooled clients.",
+    "configuration": {
+      "client": "pg.Pool",
+      "transaction": "db.transaction(callback)"
+    },
+    "form": "migrate() from drizzle-orm/node-postgres/migrator, migrationsSchema public and migrationsTable drizzle_migrations, so the runner can count that identifier. The generated SQL inserts the marker and waits on pg_advisory_xact_lock inside the migrator transaction."
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "database": "uninitialized"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "migrate() threw",
+    "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal.",
+    "error": {
+      "class": "DrizzleQueryError",
+      "code": null,
+      "message": "Failed query: "
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "DrizzleQueryError",
+            "code": null,
+            "message": "Failed query: "
+          },
+          "basis": "migrate() threw",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+        },
+        "B": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "migrate() inserted a history row",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "B"
+    ],
+    "session_ended": false
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the repetitions disagree: #1 PASS; #2 PASS; #3 FAIL",
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 1; history 1"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "B"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "B"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": true,
+        "detail": "marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-02.2",
+        "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).",
+        "holds": true,
+        "detail": "A: failed (exit 1); B: applied (exit 0)"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": true,
+        "detail": "roles inside the migration at once: B"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for drizzle (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=MG-02.first-deployment",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 2221473): select to_regclass('drizzle_migrations') as rel",
+        "c1(pid 2221473): CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "c1(pid 2221473): CREATE TABLE IF NOT EXISTS \"public\".\"drizzle_migrations\" ( id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint )",
+        "c1(pid 2221473): -> ERROR 23505 duplicate key value violates unique constraint \"pg_class_relname_nsp_index\""
+      ],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T14:12:38.419Z",
+    "finished_at": "2026-10-23T14:12:45.455Z",
+    "duration_ms": 7036
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": false,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: failed (exit 1); B: applied (exit 0); MG-02.5 held: roles inside the migration at once: B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3241
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: failed (exit 1); B: applied (exit 0); MG-02.5 held: roles inside the migration at once: B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3263
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 532
+      }
+    ],
+    "records": [
+      {
+        "schema": "ppcs-result/1",
+        "run_id": "2026-10-23T14-12-26Z-e1679c",
+        "harness": {
+          "ppcs_version": "0.3.0",
+          "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+        },
+        "specification": {
+          "id": "MG-02.first-deployment",
+          "version": "1.0",
+          "family": "MG-02",
+          "family_title": "Concurrent runner coordination",
+          "family_version": "1.0",
+          "kind": "scenario",
+          "title": "Two runners released together against a database with no history storage",
+          "steps": [
+            "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
+            "Release both at once. A runner that executes m1 waits at the gate K.",
+            "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
+            "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
+          ],
+          "invariants": [
+            {
+              "id": "MG-02.1",
+              "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+            },
+            {
+              "id": "MG-02.2",
+              "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+            },
+            {
+              "id": "MG-02.5",
+              "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+            }
+          ],
+          "catalog": "specifications",
+          "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+        },
+        "subject": {
+          "adapter": {
+            "name": "drizzle",
+            "version": "0.1.0",
+            "source_sha256": "b3aba4590b60c61f0991c61e538078ab1d6d6fea9fb9ec87310344d467ff377d"
+          },
+          "framework": {
+            "name": "drizzle-orm",
+            "version": "0.45.4"
+          },
+          "driver": {
+            "name": "pg",
+            "version": "8.23.1"
+          },
+          "components": {
+            "pg-pool": "3.14.0"
+          },
+          "runtime": {
+            "name": "node",
+            "version": "v24.14.1"
+          }
+        },
+        "execution": {
+          "mode": "native",
+          "kind": "native",
+          "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, no extra rollback, and no 'error' listener on pooled clients.",
+          "configuration": {
+            "client": "pg.Pool",
+            "transaction": "db.transaction(callback)"
+          },
+          "form": "migrate() from drizzle-orm/node-postgres/migrator, migrationsSchema public and migrationsTable drizzle_migrations, so the runner can count that identifier. The generated SQL inserts the marker and waits on pg_advisory_xact_lock inside the migrator transaction."
+        },
+        "configuration": {
+          "runners": [
+            "A",
+            "B"
+          ],
+          "pool_max": 10,
+          "gate": "sql",
+          "bound_ms": 3000,
+          "database": "uninitialized"
+        },
+        "server": {
+          "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+          "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+          "server_version_num": 180006,
+          "settings": {
+            "default_transaction_isolation": "read committed",
+            "default_transaction_read_only": "off",
+            "fsync": "on",
+            "idle_in_transaction_session_timeout": "0 ms",
+            "lock_timeout": "0 ms",
+            "max_connections": "100",
+            "ssl": "off",
+            "statement_timeout": "0 ms",
+            "synchronous_commit": "on",
+            "synchronous_standby_names": "",
+            "track_activities": "on",
+            "transaction_timeout": "0 ms"
+          },
+          "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+        },
+        "fault": {
+          "category": "none"
+        },
+        "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so.",
+        "api_outcome": {
+          "reported": "failed",
+          "basis": "migrate() threw",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal.",
+          "error": {
+            "class": "DrizzleQueryError",
+            "code": null,
+            "message": "Failed query: "
+          },
+          "steps": {
+            "runners": {
+              "A": {
+                "reported": "failed",
+                "exit_code": 1,
+                "api_error": {
+                  "class": "DrizzleQueryError",
+                  "code": null,
+                  "message": "Failed query: "
+                },
+                "basis": "migrate() threw",
+                "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+              },
+              "B": {
+                "reported": "applied",
+                "exit_code": 0,
+                "api_error": null,
+                "basis": "migrate() inserted a history row",
+                "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+              }
+            },
+            "enumerations": 0,
+            "repetition": 2
+          }
+        },
+        "database_outcome": {
+          "checkpoints": {
+            "inside-A": {
+              "reported": {
+                "pid": null,
+                "xid": null
+              },
+              "adapter_sessions": 0,
+              "sessions": []
+            },
+            "after-end": {
+              "reported": {
+                "pid": null,
+                "xid": null
+              },
+              "adapter_sessions": 0,
+              "sessions": []
+            }
+          },
+          "transactions": {},
+          "markers": {
+            "m1": true
+          },
+          "marker_xmin": null,
+          "stray_rows": [],
+          "sessions_at_end": [],
+          "fixture": {
+            "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+            "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+          },
+          "marker_counts": {
+            "m1": 1
+          },
+          "history_counts": {
+            "m1": 1
+          },
+          "inside_migration": [
+            "B"
+          ],
+          "session_ended": false
+        },
+        "evaluation": {
+          "mechanism_exercised": null,
+          "classification": "PASS",
+          "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.2 held: A: failed (exit 1); B: applied (exit 0); MG-02.5 held: roles inside the migration at once: B",
+          "preconditions": [
+            {
+              "description": "the marker count and the history count were read after every runner finished",
+              "met": true,
+              "detail": "marker 1; history 1"
+            },
+            {
+              "description": "the runner recorded which roles were inside the migration at the same time",
+              "met": true,
+              "detail": "B"
+            },
+            {
+              "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+              "met": true,
+              "detail": "B"
+            }
+          ],
+          "invariants": [
+            {
+              "id": "MG-02.1",
+              "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+              "holds": true,
+              "detail": "marker count 1; history entries 1"
+            },
+            {
+              "id": "MG-02.2",
+              "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).",
+              "holds": true,
+              "detail": "A: failed (exit 1); B: applied (exit 0)"
+            },
+            {
+              "id": "MG-02.5",
+              "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+              "holds": true,
+              "detail": "roles inside the migration at once: B"
+            }
+          ],
+          "not_exercised": [],
+          "inconclusive_reason": null,
+          "contract_basis": null
+        },
+        "reproduction": {
+          "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=MG-02.first-deployment",
+          "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+        },
+        "diagnostics": {
+          "adapter": {
+            "trace": [
+              "c1(pid 2221565): select to_regclass('drizzle_migrations') as rel",
+              "c1(pid 2221565): CREATE SCHEMA IF NOT EXISTS \"public\"",
+              "c1(pid 2221565): CREATE TABLE IF NOT EXISTS \"public\".\"drizzle_migrations\" ( id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint )",
+              "c1(pid 2221565): -> ERROR 23505 duplicate key value violates unique constraint \"pg_class_relname_nsp_index\""
+            ],
+            "commit_replies": [],
+            "trace_sees_framework_pg": true
+          },
+          "stderr": null,
+          "stdout": [],
+          "protocol_errors": [],
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "timed_out": false
+        },
+        "timing": {
+          "started_at": "2026-10-23T14:12:41.660Z",
+          "finished_at": "2026-10-23T14:12:44.923Z",
+          "duration_ms": 3263
+        }
+      },
+      {
+        "schema": "ppcs-result/1",
+        "run_id": "2026-10-23T14-12-26Z-e1679c",
+        "harness": {
+          "ppcs_version": "0.3.0",
+          "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+        },
+        "specification": {
+          "id": "MG-02.first-deployment",
+          "version": "1.0",
+          "family": "MG-02",
+          "family_title": "Concurrent runner coordination",
+          "family_version": "1.0",
+          "kind": "scenario",
+          "title": "Two runners released together against a database with no history storage",
+          "steps": [
+            "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
+            "Release both at once. A runner that executes m1 waits at the gate K.",
+            "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
+            "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
+          ],
+          "invariants": [
+            {
+              "id": "MG-02.1",
+              "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+            },
+            {
+              "id": "MG-02.2",
+              "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status)."
+            },
+            {
+              "id": "MG-02.5",
+              "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+            }
+          ],
+          "catalog": "specifications",
+          "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+        },
+        "subject": {
+          "adapter": {
+            "name": "drizzle",
+            "version": "0.1.0",
+            "source_sha256": "b3aba4590b60c61f0991c61e538078ab1d6d6fea9fb9ec87310344d467ff377d"
+          },
+          "framework": {
+            "name": "drizzle-orm",
+            "version": "0.45.4"
+          },
+          "driver": {
+            "name": "pg",
+            "version": "8.23.1"
+          },
+          "components": {
+            "pg-pool": "3.14.0"
+          },
+          "runtime": {
+            "name": "node",
+            "version": "v24.14.1"
+          }
+        },
+        "execution": {
+          "mode": "native",
+          "kind": "native",
+          "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, no extra rollback, and no 'error' listener on pooled clients.",
+          "configuration": {
+            "client": "pg.Pool",
+            "transaction": "db.transaction(callback)"
+          },
+          "form": "migrate() from drizzle-orm/node-postgres/migrator, migrationsSchema public and migrationsTable drizzle_migrations, so the runner can count that identifier. The generated SQL inserts the marker and waits on pg_advisory_xact_lock inside the migrator transaction."
+        },
+        "configuration": {
+          "runners": [
+            "A",
+            "B"
+          ],
+          "pool_max": 10,
+          "gate": "sql",
+          "bound_ms": 3000,
+          "database": "uninitialized"
+        },
+        "server": {
+          "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+          "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+          "server_version_num": 180006,
+          "settings": {
+            "default_transaction_isolation": "read committed",
+            "default_transaction_read_only": "off",
+            "fsync": "on",
+            "idle_in_transaction_session_timeout": "0 ms",
+            "lock_timeout": "0 ms",
+            "max_connections": "100",
+            "ssl": "off",
+            "statement_timeout": "0 ms",
+            "synchronous_commit": "on",
+            "synchronous_standby_names": "",
+            "track_activities": "on",
+            "transaction_timeout": "0 ms"
+          },
+          "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+        },
+        "fault": {
+          "category": "none"
+        },
+        "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so.",
+        "api_outcome": {
+          "reported": "applied",
+          "basis": "migrate() inserted a history row",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal.",
+          "error": null,
+          "steps": {
+            "runners": {
+              "A": {
+                "reported": "applied",
+                "exit_code": 0,
+                "api_error": null,
+                "basis": "migrate() inserted a history row",
+                "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+              },
+              "B": {
+                "reported": "applied",
+                "exit_code": 0,
+                "api_error": null,
+                "basis": "migrate() inserted a history row",
+                "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+              }
+            },
+            "enumerations": 0,
+            "repetition": 3
+          }
+        },
+        "database_outcome": {
+          "checkpoints": {
+            "inside-A": {
+              "reported": {
+                "pid": null,
+                "xid": null
+              },
+              "adapter_sessions": 0,
+              "sessions": []
+            },
+            "after-end": {
+              "reported": {
+                "pid": null,
+                "xid": null
+              },
+              "adapter_sessions": 0,
+              "sessions": []
+            }
+          },
+          "transactions": {},
+          "markers": {
+            "m1": true
+          },
+          "marker_xmin": null,
+          "stray_rows": [],
+          "sessions_at_end": [],
+          "fixture": {
+            "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+            "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+          },
+          "marker_counts": {
+            "m1": 2
+          },
+          "history_counts": {
+            "m1": 2
+          },
+          "inside_migration": [
+            "A",
+            "B"
+          ],
+          "session_ended": false
+        },
+        "evaluation": {
+          "mechanism_exercised": null,
+          "classification": "FAIL",
+          "reason": "MG-02.1 violated: marker count 2; history entries 2; MG-02.5 violated: roles inside the migration at once: A, B",
+          "preconditions": [
+            {
+              "description": "the marker count and the history count were read after every runner finished",
+              "met": true,
+              "detail": "marker 2; history 2"
+            },
+            {
+              "description": "the runner recorded which roles were inside the migration at the same time",
+              "met": true,
+              "detail": "A, B"
+            },
+            {
+              "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+              "met": true,
+              "detail": "A, B"
+            }
+          ],
+          "invariants": [
+            {
+              "id": "MG-02.1",
+              "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+              "holds": false,
+              "detail": "marker count 2; history entries 2"
+            },
+            {
+              "id": "MG-02.2",
+              "statement": "A runner that did not apply the migration either waited and then found it applied, or reported failure (non-zero exit status).",
+              "holds": true,
+              "detail": "A: applied (exit 0); B: applied (exit 0)"
+            },
+            {
+              "id": "MG-02.5",
+              "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+              "holds": false,
+              "detail": "roles inside the migration at once: A, B"
+            }
+          ],
+          "not_exercised": [],
+          "inconclusive_reason": null,
+          "contract_basis": {
+            "invariants": [
+              "MG-02.1: After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+              "MG-02.5: No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+            ],
+            "framework": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+          }
+        },
+        "reproduction": {
+          "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=MG-02.first-deployment",
+          "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+        },
+        "diagnostics": {
+          "adapter": {
+            "trace": [
+              "c1(pid 2221652): select to_regclass('drizzle_migrations') as rel",
+              "c1(pid 2221652): CREATE SCHEMA IF NOT EXISTS \"public\"",
+              "c1(pid 2221652): CREATE TABLE IF NOT EXISTS \"public\".\"drizzle_migrations\" ( id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint )",
+              "c1(pid 2221652): select id, hash, created_at from \"public\".\"drizzle_migrations\" order by created_at desc limit 1",
+              "c1(pid 2221652): begin",
+              "c1(pid 2221652): -> command tag BEGIN for: begin",
+              "c1(pid 2221652): INSERT INTO item (name) VALUES ('m1-3x5ffe');",
+              "c1(pid 2221652): SELECT pg_advisory_xact_lock(77002002);",
+              "c1(pid 2221652): insert into \"public\".\"drizzle_migrations\" (\"hash\", \"created_at\") values($1, $2)",
+              "c1(pid 2221652): commit",
+              "c1(pid 2221652): -> command tag COMMIT for: commit",
+              "c1(pid 2221652): select to_regclass('drizzle_migrations') as rel",
+              "c1(pid 2221652): select count(*)::int as n from drizzle_migrations"
+            ],
+            "commit_replies": [
+              "COMMIT"
+            ],
+            "trace_sees_framework_pg": true
+          },
+          "stderr": null,
+          "stdout": [],
+          "protocol_errors": [],
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "timed_out": false
+        },
+        "timing": {
+          "started_at": "2026-10-23T14:12:44.923Z",
+          "finished_at": "2026-10-23T14:12:45.455Z",
+          "duration_ms": 532
+        }
+      }
+    ]
+  }
+}
