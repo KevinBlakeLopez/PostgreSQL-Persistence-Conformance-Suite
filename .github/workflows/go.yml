@@ -36,7 +36,9 @@ jobs:
       - name: Start the disposable server
         run: pnpm run pg:up
       - name: Go adapters
-        run: node harness/run.mjs --adapter=go-pgx-control,go-database-sql-control,gorm --repeat=3
+        # Compared with the recorded run, so an adapter that does not start, or any changed
+        # classification, fails the job instead of leaving INCONCLUSIVE rows in a passing run.
+        run: node harness/run.mjs --adapter=go-pgx-control,go-database-sql-control,gorm --repeat=3 --expect=reports/examples/2026-10-22T13-24-28Z-606909/run.json
       - name: Keep the Go evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
