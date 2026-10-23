@@ -70,7 +70,9 @@ jobs:
       - name: Start the disposable server
         run: pnpm run pg:up
       - name: PHP adapters
-        run: node harness/run.mjs --adapter=pdo-control,laravel --repeat=3
+        # Compared with the PHP 8.5.12 recording, so a runtime the adapters refuse, or any changed
+        # classification, fails the job instead of leaving INCONCLUSIVE rows in a passing run.
+        run: node harness/run.mjs --adapter=pdo-control,laravel --repeat=3 --expect=reports/examples/2026-10-23T14-18-35Z-5a6ff7/run.json
       - name: Keep the PHP evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
