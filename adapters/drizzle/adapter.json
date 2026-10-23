@@ -14,7 +14,13 @@
     {
       "id": "native",
       "kind": "native",
-      "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback."
+      "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback. The transaction cases add no 'error' listener on pooled clients. The migration cases run migrate() on a pool whose clients have one (migration.mjs)."
+    },
+    {
+      "id": "client-error-listener",
+      "kind": "configured",
+      "description": "The native mode plus an 'error' listener on every pooled client, added with pool.on('connect'). pg-pool removes its own client listener while a client is checked out, and Drizzle adds none, so in native mode a terminated backend's error event ends the process before db.transaction() can reject. The listener does nothing else: no rollback and no connection discard.",
+      "cases": ["TX-01B.conn-lost-before-commit", "TX-02.conn-lost-before-savepoint-rollback", "TX-03.conn-lost-in-transaction"]
     }
   ],
   "implements": [

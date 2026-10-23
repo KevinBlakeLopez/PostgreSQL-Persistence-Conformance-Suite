@@ -207,19 +207,24 @@ await main({
     driver: { name: 'pg', version: packageVersion(HERE, 'pg') },
     components: { 'pg-pool': packageVersion(packageDir(HERE, 'pg'), 'pg-pool') },
   }),
-  modes: { native: { configuration: { client: 'pg.Pool', transaction: 'db.transaction(callback)' } } },
+  modes: {
+    native: { configuration: { client: 'pg.Pool', transaction: 'db.transaction(callback)' } },
+    'client-error-listener': { configuration: { client: 'pg.Pool', transaction: 'db.transaction(callback)', client_error_listener: "pool.on('connect', (client) => client.on('error', () => {}))" } },
+  },
   open: async (message) => {
     const { host, port, user, password, database, application_name } = message.connection
     const pool = new pg.Pool({
       host, port, user, password, database, application_name,
       max: message.case.settings?.pool_max ?? 1,
     })
-    // node-postgres emits 'error' on the pool when an idle client fails. pg-pool removes that listener
-    // while a client is checked out, and a terminated backend then emits 'error' on the client. Without
-    // a listener the process dies before db.transaction() can reject. The listener does not roll back
-    // or discard the connection.
+    // pg-pool forwards an idle client's 'error' to the pool through a listener of its own on that client.
+    // Without a pool listener the process dies on that event. The listener does not roll back or discard.
     pool.on('error', () => {})
-    pool.on('connect', (client) => { client.on('error', () => {}) })
+    // pg-pool removes its client listener while the client is checked out, and Drizzle adds none. In native
+    // mode a terminated backend's 'error' on a checked-out client therefore ends the process before
+    // db.transaction() can reject. The configured mode adds the listener an application would add. It does
+    // not roll back or discard the connection.
+    if (message.mode === 'client-error-listener') pool.on('connect', (client) => { client.on('error', () => {}) })
     const db = drizzle(pool, { schema: { item, uniq } })
     return {
       context: { db, pool, connection: message.connection },

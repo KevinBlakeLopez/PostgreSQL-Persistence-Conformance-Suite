@@ -1,0 +1,284 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-23T13-55-28Z-620447",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ece507a7bb9fc8f5e8786cb11ab1dd1de6bd1bfb92ef47427976f59b51480a8e"
+  },
+  "specification": {
+    "id": "TX-03.conn-lost-in-transaction",
+    "version": "1.1",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "The backend of a failing transaction is terminated before its ROLLBACK; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend and waits until it has gone. Then wait settle_ms.",
+      "Raise an application error inside the transaction. The framework attempts ROLLBACK on the closed connection, which fails.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "46420e9460832dfff41bd724496e462ed5132292a829a6da440a71da14d6ab44"
+  },
+  "subject": {
+    "adapter": {
+      "name": "drizzle",
+      "version": "0.1.0",
+      "source_sha256": "9bd9548a118f543d31474b83511862f67e41cf4bf45b5fad10a7dc867f9fa7a4"
+    },
+    "framework": {
+      "name": "drizzle-orm",
+      "version": "0.45.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, and no extra rollback. The transaction cases add no 'error' listener on pooled clients. The migration cases run migrate() on a pool whose clients have one (migration.mjs).",
+    "configuration": {
+      "client": "pg.Pool",
+      "transaction": "db.transaction(callback)"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "Inside unit 1, after its write, before the framework's ROLLBACK.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and unit 1's transaction is rolled back.",
+    "expected_client": "An error from the framework's rollback; the pool holds a closed connection.",
+    "depends_on_internals": false
+  },
+  "knowledge": "The framework knows that its connection failed.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 2212391,
+          "xid": "40459"
+        },
+        "session": {
+          "pid": 2212391,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "40459",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-23 13:55:43.772546+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "40459"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 2212391,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "40459",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-23 13:55:43.772546+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 2212391,
+          "terminated": true,
+          "gone": true
+        }
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "40459",
+        "pid": 2212391,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-23 13:55:43.772546+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": false
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "preconditions": [],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the adapter exited without a result (exit code 1, signal none)",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for drizzle (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=TX-03.conn-lost-in-transaction",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": "node:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nerror: terminating connection due to administrator command\n    at parseErrorMessage (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:306:11)\n    at Parser.handlePacket (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:143:27)\n    at Parser.parse (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:37:38)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Readable.push (node:internal/streams/readable:394:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)\nEmitted 'error' event on Client instance at:\n    at Client._handleErrorEvent (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:422:10)\n    at Client._handleErrorMessage (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:433:12)\n    at Connection.emit (node:events:508:28)\n    at /Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection.js:143:12\n    at Parser.parse (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js:38:17)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Readable.push (node:internal/streams/readable:394:5) {\n  length: 116,\n  severity: 'FATAL',\n  code: '57P01',\n  detail: undefined,\n  hint: undefined,\n  position: undefined,\n  internalPosition: undefined,\n  internalQuery: undefined,\n  where: undefined,\n  schema: undefined,\n  table: undefined,\n  column: undefined,\n  dataType: undefined,\n  constraint: undefined,\n  file: 'postgres.c',\n  line: '3354',\n  routine: 'ProcessInterrupts'\n}\n\nNode.js v24.14.1\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-23T13:55:43.361Z",
+    "finished_at": "2026-10-23T13:55:44.702Z",
+    "duration_ms": 1341
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 502
+      },
+      {
+        "repetition": 2,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 407
+      },
+      {
+        "repetition": 3,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter exited without a result (exit code 1, signal none)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "UNKNOWN",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 432
+      }
+    ]
+  }
+}

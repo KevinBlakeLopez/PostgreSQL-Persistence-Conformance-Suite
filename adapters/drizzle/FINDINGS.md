@@ -20,7 +20,7 @@ pg 8.23.1 `Client.query` (`lib/client.js`, lines 702–730) starts `query_timeou
 
 pg-pool 3.14.0 `_acquireClient` (line 344) removes the pool's client `'error'` listener while the client is checked out. `_release` (line 392) destroys the client when called with an error, or when the client is not queryable. A release with no error returns it to the idle list.
 
-The adapter's `pool.on('error')` covers idle clients only. pg-pool forwards an idle client's `'error'` to the pool through a listener of its own on that client, and `_acquireClient` removes that client listener on checkout. The 2026-10-23 re-run below also listens for `'error'` on each connected client. That listener was not installed for the tables in this section.
+The adapter's `pool.on('error')` covers idle clients only. pg-pool forwards an idle client's `'error'` to the pool through a listener of its own on that client, and `_acquireClient` removes that client listener on checkout. The tables in this section are native mode, without a client listener. The configured mode below adds one.
 
 ## Cases
 
@@ -131,26 +131,32 @@ MG-02 is [`reports/examples/2026-10-21T20-00-04Z-178fa4`](../../reports/examples
 2. It does not safely handle a failed rollback. `release()` without an error puts the connection back. A later `db.transaction` can commit the abandoned rows. That happened under the synthetic withhold and under documented `query_timeout`. A failed `BEGIN` is outside the `try`, so that checkout is not released, and `pool.end()` waited out the adapter's 5 s close bound.
 3. The thin path is easier to inspect. The transaction implementation is one function, and the trace shows the SQL and the command tag. The repair, if one were authorized, would be local: read `Result.command`, and pass a rollback or connection failure to `release(err)`. Ease of inspection is not the same as a correct report.
 4. Against direct pg, the value that showed up here is the schema-aware statement builder and the small amount of code a reader has to audit. The transaction wrapper does not keep the fact pg already reported. Under a discipline that reviews the library instead of trusting it, that audit is short, and it fails the commit-tag check.
-5. The outcomes that block treating this as a reliable PostgreSQL transaction layer are the R1 false commit on an aborted transaction, the R2 commit of abandoned rows after `query_timeout`, and, in this recording, the R2 process crash when the backend is disconnected during a checked-out transaction. Nested savepoints and the isolation argument did what PostgreSQL was asked, in the runs where cleanup succeeded. The later category B run classifies that disconnect. It does not change the false commit or the abandoned-row commit.
+5. The outcomes that block treating this as a reliable PostgreSQL transaction layer are the R1 false commit on an aborted transaction, the R2 commit of abandoned rows after `query_timeout`, and the R2 process crash when the backend is disconnected during a checked-out transaction. The 2026-10-23 native re-run reproduced that crash. Nested savepoints and the isolation argument did what PostgreSQL was asked, in the runs where cleanup succeeded. In the configured mode below, where the application adds a client listener, the disconnect is reported as a failure. That does not change the false commit or the abandoned-row commit.
 
 ## 1.0.0-rc.4
 
-The same cases on Drizzle ORM 1.0.0-rc.4, with the same pg 8.23.1 and the same server, are in `reports/examples/2026-10-19T14-34-08Z-26b178` and `adapters/drizzle-rc/FINDINGS.md`. No classification changed. The transaction control flow in that package is the same sequence as the 0.45.4 function cited above. That package was not re-run with the checked-out client listener.
+The same cases on Drizzle ORM 1.0.0-rc.4, with the same pg 8.23.1 and the same server, are in `reports/examples/2026-10-19T14-34-08Z-26b178` and `adapters/drizzle-rc/FINDINGS.md`. No classification changed. The transaction control flow in that package is the same sequence as the 0.45.4 function cited above. That package has no `client-error-listener` mode and was not re-run.
 
-## Category B, with a checked-out client listener
+## Category B in native mode and with a client listener
 
-`reports/examples/2026-10-23T13-11-06Z-d7cd89`. Drizzle ORM 0.45.4, pg 8.23.1, pg-pool 3.14.0, Node.js v24.14.1, PostgreSQL 18.6. The adapter listens for `'error'` on each client as it connects. The listener does not roll back or discard the connection. Three repetitions agreed. CTL-01 and `pg-control` held their gates. The 2026-10-19 file is unchanged.
+`reports/examples/2026-10-23T13-55-28Z-620447`. Drizzle ORM 0.45.4, pg 8.23.1, pg-pool 3.14.0, Node.js v24.14.1, PostgreSQL 18.6. Both modes ran the three category B cases. Three repetitions agreed in each. CTL-01 passed in both modes, and `pg-control` held its gates.
+
+In native mode all three cases are INCONCLUSIVE, as on 2026-10-19. The adapter exited with code 1 before `db.transaction()` returned. stderr is an unhandled `'error'` event, `terminating connection due to administrator command`.
+
+The configured mode `client-error-listener` adds `pool.on('connect', (client) => client.on('error', () => {}))`. The listener does not roll back or discard the connection. pg-pool's `_release` destroys a client that is not queryable.
 
 | Case | Drizzle reported | PostgreSQL | Invariant |
 | --- | --- | --- | --- |
-| `TX-01B.conn-lost-before-commit` | failed (`DrizzleQueryError`: `Failed query: rollback`). Trace: `commit` then `Client has encountered a connection error and is not queryable`, then the same error on `rollback`. Process exit 0 | xid 40184 aborted; marker absent | TX-01B.1 held. PASS |
-| `TX-02.conn-lost-before-savepoint-rollback` | failed (`Failed query: rollback`). The nested scope raised `Failed query: rollback to savepoint sp1` | xid 40196 aborted; neither marker visible | TX-02.1 and TX-02.2 held. PASS |
-| `TX-03.conn-lost-in-transaction` | unit 1 failed (`Failed query: rollback`). Unit 2 reported committed after 52 ms | unit 1 xid 40211 aborted; doomed absent. Unit 2 xid 40212 committed on pid 2190831; next visible | TX-03.1 and TX-03.2 held. PASS. The dead backend was not reused |
+| `TX-01B.conn-lost-before-commit` | failed (`DrizzleQueryError`: `Failed query: rollback`). Trace: `commit`, then `Client has encountered a connection error and is not queryable`, then the same error on `rollback`. Process exit 0 | xid 40416 aborted; marker absent | TX-01B.1 held. PASS |
+| `TX-02.conn-lost-before-savepoint-rollback` | failed (`Failed query: rollback`). The nested scope raised `Failed query: rollback to savepoint sp1`. The callback caught it, and `commit` and `rollback` then failed with the same driver text | xid 40443 aborted; neither marker visible | TX-02.1 and TX-02.2 held. PASS |
+| `TX-03.conn-lost-in-transaction` | unit 1 failed (`Failed query: rollback`). Unit 2 reported committed after 45 ms | unit 1 xid 40471 aborted on pid 2212459; doomed absent. Unit 2 xid 40472 committed on pid 2212480; next visible | TX-03.1 and TX-03.2 held. PASS. The dead backend was not reused |
 
-The xids and pids are the repetition stored in each case file. The other two repetitions agreed on the classification.
+The xids, pids, and timings are the repetition stored in each case file. The other two repetitions agreed on the classification.
+
+`reports/examples/2026-10-23T13-11-06Z-d7cd89` ran the same three cases with this listener installed in native mode. Its case files say `native`, and its mode description does not mention the listener. It is kept as recorded. The 2026-10-23T13-55-28Z run supersedes it.
 
 ## Next actions
 
 1. Do not file an upstream issue unless that is authorized. The candidate is `NodePgSession.transaction`: it ignores the `COMMIT` result, and it calls `release()` with no error after a failed `ROLLBACK`. `BEGIN` before the `try` is the checkout leak.
-2. The 2026-10-19 category B rows stay INCONCLUSIVE in that file. The later recording, with a checked-out client `'error'` listener, classifies those three cases. It does not replace this file's measurements.
+2. Native mode stays without a client `'error'` listener, so the matrix keeps the process exit as INCONCLUSIVE. The configured mode measures the same cases with the listener an application would add. A classification for "the driver error killed the process before the call returned" would make the native rows comparable with adapters that return a failure. That is a harness change, not an adapter workaround.
 3. Leave `investigations/drizzle-followups/probe.mjs` as the `query_timeout` reproduction. Do not fold it into a catalog case in this pass, and do not start a Drizzle application port. Migration cases can wait on a separate adapter that drives `migrate()` and states that there is no reversal.
