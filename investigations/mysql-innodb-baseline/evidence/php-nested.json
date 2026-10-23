@@ -1,0 +1,1288 @@
+{
+  "finished_at": "2026-10-21T19:39:28.598Z",
+  "not_the_ppcs_harness": true,
+  "not_scored_as": "MX-04",
+  "does_not_replace": [
+    "evidence/suite.json",
+    "evidence/php-mx01.json",
+    "evidence/php-concurrency.json",
+    "evidence/php-update-batch.json",
+    "evidence/php-connection.json"
+  ],
+  "score_meaning": "matched_expectation compares CodeIgniter depth with a mysqli SAVEPOINT. It is not a defect verdict. The user guide says only the outermost transaction commands are executed.",
+  "server_version": "8.4.11",
+  "versions": {
+    "php": "8.5.6",
+    "mysqli_client": "mysqlnd 8.5.6",
+    "pdo_client": "mysqlnd 8.5.6",
+    "ci4": "v4.7.5",
+    "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+  },
+  "repetitions": 3,
+  "mismatched": [],
+  "runs": [
+    {
+      "scenario": "mysqli-savepoint-rollback",
+      "repetition": 1,
+      "schema": "mxnest_mysqli_savepoint_rollback_r1",
+      "expectation_basis": "mysqli SAVEPOINT, then ROLLBACK TO SAVEPOINT. The inner marker is undone. The outer commit keeps the outer marker and the marker inserted after the rollback. This is the MySQL savepoint behavior. It is not the CodeIgniter nested-call contract.",
+      "matched_expectation": true,
+      "reason": "ROLLBACK TO SAVEPOINT removed the inner marker and the outer commit kept the rest",
+      "final_names": [
+        "outer",
+        "after"
+      ],
+      "api": {
+        "scenario": "mysqli-savepoint-rollback",
+        "subject_after_rollback_to": [
+          "outer"
+        ],
+        "other_before_outer_end": [],
+        "other_after_outer_end": [
+          "after",
+          "outer"
+        ],
+        "connection_id": 4780,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK TO SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "mysqli-savepoint-rollback",
+      "repetition": 2,
+      "schema": "mxnest_mysqli_savepoint_rollback_r2",
+      "expectation_basis": "mysqli SAVEPOINT, then ROLLBACK TO SAVEPOINT. The inner marker is undone. The outer commit keeps the outer marker and the marker inserted after the rollback. This is the MySQL savepoint behavior. It is not the CodeIgniter nested-call contract.",
+      "matched_expectation": true,
+      "reason": "ROLLBACK TO SAVEPOINT removed the inner marker and the outer commit kept the rest",
+      "final_names": [
+        "outer",
+        "after"
+      ],
+      "api": {
+        "scenario": "mysqli-savepoint-rollback",
+        "subject_after_rollback_to": [
+          "outer"
+        ],
+        "other_before_outer_end": [],
+        "other_after_outer_end": [
+          "after",
+          "outer"
+        ],
+        "connection_id": 4784,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK TO SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "mysqli-savepoint-rollback",
+      "repetition": 3,
+      "schema": "mxnest_mysqli_savepoint_rollback_r3",
+      "expectation_basis": "mysqli SAVEPOINT, then ROLLBACK TO SAVEPOINT. The inner marker is undone. The outer commit keeps the outer marker and the marker inserted after the rollback. This is the MySQL savepoint behavior. It is not the CodeIgniter nested-call contract.",
+      "matched_expectation": true,
+      "reason": "ROLLBACK TO SAVEPOINT removed the inner marker and the outer commit kept the rest",
+      "final_names": [
+        "outer",
+        "after"
+      ],
+      "api": {
+        "scenario": "mysqli-savepoint-rollback",
+        "subject_after_rollback_to": [
+          "outer"
+        ],
+        "other_before_outer_end": [],
+        "other_after_outer_end": [
+          "after",
+          "outer"
+        ],
+        "connection_id": 4788,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK TO SAVEPOINT sp1",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-success",
+      "repetition": 1,
+      "schema": "mxnest_ci4_managed_nested_success_r1",
+      "expectation_basis": "CodeIgniter user guide, Nested Transactions: an inner transStart/transComplete does not start or end a server transaction. The outer commit keeps the inner insert. No SAVEPOINT is sent.",
+      "matched_expectation": true,
+      "reason": "the inner transComplete did not end a server transaction; the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside",
+        "after"
+      ],
+      "api": {
+        "scenario": "ci4-managed-nested-success",
+        "outer_start": true,
+        "outer_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "inner_start": true,
+        "inner_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ]
+        },
+        "after_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "other_before_outer_end": [],
+        "outer_complete": true,
+        "state_after": {
+          "trans_status": true,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [
+          "after",
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4792,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-success",
+      "repetition": 2,
+      "schema": "mxnest_ci4_managed_nested_success_r2",
+      "expectation_basis": "CodeIgniter user guide, Nested Transactions: an inner transStart/transComplete does not start or end a server transaction. The outer commit keeps the inner insert. No SAVEPOINT is sent.",
+      "matched_expectation": true,
+      "reason": "the inner transComplete did not end a server transaction; the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside",
+        "after"
+      ],
+      "api": {
+        "scenario": "ci4-managed-nested-success",
+        "outer_start": true,
+        "outer_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "inner_start": true,
+        "inner_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ]
+        },
+        "after_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "other_before_outer_end": [],
+        "outer_complete": true,
+        "state_after": {
+          "trans_status": true,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [
+          "after",
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4796,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-success",
+      "repetition": 3,
+      "schema": "mxnest_ci4_managed_nested_success_r3",
+      "expectation_basis": "CodeIgniter user guide, Nested Transactions: an inner transStart/transComplete does not start or end a server transaction. The outer commit keeps the inner insert. No SAVEPOINT is sent.",
+      "matched_expectation": true,
+      "reason": "the inner transComplete did not end a server transaction; the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside",
+        "after"
+      ],
+      "api": {
+        "scenario": "ci4-managed-nested-success",
+        "outer_start": true,
+        "outer_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "inner_start": true,
+        "inner_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ]
+        },
+        "after_insert": {
+          "threw": false,
+          "returned": true,
+          "error_code": 0,
+          "error_message": null,
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          }
+        },
+        "other_before_outer_end": [],
+        "outer_complete": true,
+        "state_after": {
+          "trans_status": true,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [
+          "after",
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4800,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('after')",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-failure",
+      "repetition": 1,
+      "schema": "mxnest_ci4_managed_nested_failure_r1",
+      "expectation_basis": "A failed statement sets the one transStatus flag. The inner transComplete only decrements depth, so the same connection still sees the inner insert. The outer transComplete then sends ROLLBACK and removes both markers. That is not a savepoint rollback of the inner write alone.",
+      "matched_expectation": true,
+      "reason": "the inner failure did not undo only the inner write; the outer rollback removed both",
+      "final_names": [],
+      "api": {
+        "scenario": "ci4-managed-nested-failure",
+        "inner_start": true,
+        "duplicate": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1062,
+          "error_message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": false,
+        "after_inner": {
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_complete": false,
+        "state_after": {
+          "trans_status": false,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [],
+        "connection_id": 4804,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-failure",
+      "repetition": 2,
+      "schema": "mxnest_ci4_managed_nested_failure_r2",
+      "expectation_basis": "A failed statement sets the one transStatus flag. The inner transComplete only decrements depth, so the same connection still sees the inner insert. The outer transComplete then sends ROLLBACK and removes both markers. That is not a savepoint rollback of the inner write alone.",
+      "matched_expectation": true,
+      "reason": "the inner failure did not undo only the inner write; the outer rollback removed both",
+      "final_names": [],
+      "api": {
+        "scenario": "ci4-managed-nested-failure",
+        "inner_start": true,
+        "duplicate": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1062,
+          "error_message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": false,
+        "after_inner": {
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_complete": false,
+        "state_after": {
+          "trans_status": false,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [],
+        "connection_id": 4808,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-managed-nested-failure",
+      "repetition": 3,
+      "schema": "mxnest_ci4_managed_nested_failure_r3",
+      "expectation_basis": "A failed statement sets the one transStatus flag. The inner transComplete only decrements depth, so the same connection still sees the inner insert. The outer transComplete then sends ROLLBACK and removes both markers. That is not a savepoint rollback of the inner write alone.",
+      "matched_expectation": true,
+      "reason": "the inner failure did not undo only the inner write; the outer rollback removed both",
+      "final_names": [],
+      "api": {
+        "scenario": "ci4-managed-nested-failure",
+        "inner_start": true,
+        "duplicate": {
+          "threw": false,
+          "returned": false,
+          "error_code": 1062,
+          "error_message": "Duplicate entry 'taken' for key 'uniq_row.uniq_code'",
+          "state": {
+            "trans_status": false,
+            "trans_depth": 2,
+            "trans_failure": false
+          }
+        },
+        "inner_complete": false,
+        "after_inner": {
+          "state": {
+            "trans_status": false,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_complete": false,
+        "state_after": {
+          "trans_status": false,
+          "trans_depth": 0,
+          "trans_failure": false
+        },
+        "other_after_outer_end": [],
+        "connection_id": 4812,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO uniq_row (code) VALUES ('taken')",
+            "errno": 1062
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "ROLLBACK",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-rollback",
+      "repetition": 1,
+      "schema": "mxnest_ci4_manual_inner_rollback_r1",
+      "expectation_basis": "Inner transRollback, while depth is greater than 1, returns true and does not send ROLLBACK. The inner insert remains and the outer transCommit keeps it.",
+      "matched_expectation": true,
+      "reason": "the inner transRollback returned true and the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-rollback",
+        "inner_begin": true,
+        "inner_rollback": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4816,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-rollback",
+      "repetition": 2,
+      "schema": "mxnest_ci4_manual_inner_rollback_r2",
+      "expectation_basis": "Inner transRollback, while depth is greater than 1, returns true and does not send ROLLBACK. The inner insert remains and the outer transCommit keeps it.",
+      "matched_expectation": true,
+      "reason": "the inner transRollback returned true and the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-rollback",
+        "inner_begin": true,
+        "inner_rollback": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4820,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-rollback",
+      "repetition": 3,
+      "schema": "mxnest_ci4_manual_inner_rollback_r3",
+      "expectation_basis": "Inner transRollback, while depth is greater than 1, returns true and does not send ROLLBACK. The inner insert remains and the outer transCommit keeps it.",
+      "matched_expectation": true,
+      "reason": "the inner transRollback returned true and the outer commit kept the inner marker",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-rollback",
+        "inner_begin": true,
+        "inner_rollback": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4824,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-commit",
+      "repetition": 1,
+      "schema": "mxnest_ci4_manual_inner_commit_r1",
+      "expectation_basis": "Inner transCommit, while depth is greater than 1, returns true and does not send COMMIT. Another connection sees nothing until the outer transCommit. That commit keeps both markers.",
+      "matched_expectation": true,
+      "reason": "the inner transCommit returned true without committing; the outer commit kept both markers",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-commit",
+        "inner_begin": true,
+        "inner_commit": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4828,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-commit",
+      "repetition": 2,
+      "schema": "mxnest_ci4_manual_inner_commit_r2",
+      "expectation_basis": "Inner transCommit, while depth is greater than 1, returns true and does not send COMMIT. Another connection sees nothing until the outer transCommit. That commit keeps both markers.",
+      "matched_expectation": true,
+      "reason": "the inner transCommit returned true without committing; the outer commit kept both markers",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-commit",
+        "inner_begin": true,
+        "inner_commit": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4832,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    },
+    {
+      "scenario": "ci4-manual-inner-commit",
+      "repetition": 3,
+      "schema": "mxnest_ci4_manual_inner_commit_r3",
+      "expectation_basis": "Inner transCommit, while depth is greater than 1, returns true and does not send COMMIT. Another connection sees nothing until the outer transCommit. That commit keeps both markers.",
+      "matched_expectation": true,
+      "reason": "the inner transCommit returned true without committing; the outer commit kept both markers",
+      "final_names": [
+        "outer",
+        "inside"
+      ],
+      "api": {
+        "scenario": "ci4-manual-inner-commit",
+        "inner_begin": true,
+        "inner_commit": true,
+        "after_inner": {
+          "state": {
+            "trans_status": true,
+            "trans_depth": 1,
+            "trans_failure": false
+          },
+          "subject": [
+            "inside",
+            "outer"
+          ],
+          "other": []
+        },
+        "outer_commit": true,
+        "other_after_outer_end": [
+          "inside",
+          "outer"
+        ],
+        "connection_id": 4836,
+        "versions": {
+          "php": "8.5.6",
+          "mysqli_client": "mysqlnd 8.5.6",
+          "pdo_client": "mysqlnd 8.5.6",
+          "ci4": "v4.7.5",
+          "ci4_reference": "a1f129d56df3278702a8d1048af955d0ebf68c03"
+        },
+        "statements": [
+          {
+            "sql_text": "SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(\n                                        @@sql_mode,\n                                        'STRICT_ALL_TABLES,', ''),\n                                    ',STRICT_ALL_TABLES', ''),\n                                'STRICT_ALL_TABLES', ''),\n                            'STRICT_TRANS_TABLES,', ''),\n                        ',STRICT_TRANS_TABLES', ''),\n                    'STRICT_TRANS_TABLES', '')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SET NAMES utf8mb4",
+            "errno": 0
+          },
+          {
+            "sql_text": "START TRANSACTION",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('outer')",
+            "errno": 0
+          },
+          {
+            "sql_text": "INSERT INTO marker (name) VALUES ('inside')",
+            "errno": 0
+          },
+          {
+            "sql_text": "SELECT name FROM marker ORDER BY name",
+            "errno": 0
+          },
+          {
+            "sql_text": "COMMIT",
+            "errno": 0
+          }
+        ]
+      },
+      "php_exit": 1
+    }
+  ]
+}

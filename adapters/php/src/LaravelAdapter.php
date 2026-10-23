@@ -101,8 +101,8 @@ final class LaravelAdapter
 
     private static function requireRuntime(): void
     {
-        if (PHP_VERSION !== '8.5.6') {
-            fwrite(STDERR, 'laravel adapter requires PHP 8.5.6; this runtime is '.PHP_VERSION."\n");
+        if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 5) {
+            fwrite(STDERR, 'laravel adapter requires PHP 8.5; this runtime is '.PHP_VERSION."\n");
             exit(2);
         }
         if (!extension_loaded('pdo_pgsql')) {
@@ -136,6 +136,7 @@ final class LaravelAdapter
             'prefix' => '',
             'schema' => 'public',
             'application_name' => (string) $c['application_name'],
+            'server_options' => self::serverOptions($c),
             'options' => [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_PERSISTENT => $this->mode === 'persistent',
@@ -158,6 +159,25 @@ final class LaravelAdapter
         }
         $this->capsule = $capsule;
         $this->connection = $connection;
+    }
+
+    /** @param array<string, mixed> $connection
+     *  @return array<string, string>
+     */
+    private static function serverOptions(array $connection): array
+    {
+        $raw = $connection['options'] ?? null;
+        if (!is_string($raw) || $raw === '') {
+            return [];
+        }
+        $server = [];
+        if (preg_match_all('/-c\s+([A-Za-z0-9_]+)=([^\s]+)/', $raw, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $server[$match[1]] = $match[2];
+            }
+        }
+
+        return $server;
     }
 
     /** @param array<string, mixed> $message
@@ -227,6 +247,14 @@ final class LaravelAdapter
         $this->case = $case;
         $this->markers = is_array($message['markers'] ?? null) ? $message['markers'] : [];
         $id = (string) $case['id'];
+        if (str_starts_with($id, 'MG-')) {
+            $capsule = $this->capsule;
+            if ($capsule === null) {
+                throw new \RuntimeException('the Capsule connection is not open');
+            }
+
+            return LaravelMigration::run($capsule, $message);
+        }
         if ($id === 'TX-05.managed-serializable' || $id === 'TX-05.explicit-serializable') {
             return $this->isolation();
         }

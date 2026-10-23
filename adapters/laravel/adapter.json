@@ -2,7 +2,7 @@
   "manifest": "ppcs-adapter/1",
   "name": "laravel",
   "framework": "illuminate/database",
-  "description": "Laravel Illuminate database 13.38.0 through Capsule, without a full application. Writes use Eloquent. managed calls Connection::transaction(). explicit calls beginTransaction(), commit(), and rollBack(). Nested calls are savepoints. persistent is the managed API with PDO::ATTR_PERSISTENT, for TX-03. Category C faults withhold or rewrite statements on the PDO Laravel uses, once, before Laravel sees the error. The command tag is not visible through PDO.",
+  "description": "Laravel Illuminate database 13.38.0 through Capsule, without a full application. Writes use Eloquent. managed calls Connection::transaction(). explicit calls beginTransaction(), commit(), and rollBack(). Nested calls are savepoints. persistent is the managed API with PDO::ATTR_PERSISTENT, for TX-03. MG-02 and MG-03 call Migrator::run() and Migrator::rollback() on the managed mode. There is no advisory lock. Category C faults withhold or rewrite statements on the PDO Laravel uses, once, before Laravel sees the error. The command tag is not visible through PDO.",
   "command": ["php", "main.php"],
   "shared": ["../php/src", "../php/composer.json", "../php/composer.lock"],
   "modes": [
@@ -22,7 +22,14 @@
         "TX-03.conn-lost-in-transaction",
         "TX-04.nested-failure-contained",
         "TX-04.nested-released-outer-rollback",
-        "TX-05.managed-serializable"
+        "TX-05.managed-serializable",
+        "MG-02.held",
+        "MG-02.first-deployment",
+        "MG-02.session-loss",
+        "MG-02.idle-session-timeout",
+        "MG-03.valid-reversal",
+        "MG-03.no-reversal",
+        "MG-03.failing-reversal"
       ]
     },
     {
@@ -70,8 +77,16 @@
     "TX-04.nested-failure-contained",
     "TX-04.nested-released-outer-rollback",
     "TX-05.managed-serializable",
-    "TX-05.explicit-serializable"
+    "TX-05.explicit-serializable",
+    "MG-02.held",
+    "MG-02.first-deployment",
+    "MG-02.session-loss",
+    "MG-02.idle-session-timeout",
+    "MG-03.valid-reversal",
+    "MG-03.no-reversal",
+    "MG-03.failing-reversal"
   ],
+  "history": { "table": "migrations", "column": "migration" },
   "rollback_claim_channels": [],
   "unsupported": {
     "TX-04.independent-inner": {

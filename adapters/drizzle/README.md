@@ -10,7 +10,7 @@ Implemented cases: `CTL-01.commit`, `CTL-01.rollback`, `TX-01A.caught-error-then
 
 Category C and D faults are injected in `pg.Client.prototype.query`, once, through `adapters/node-kit/pg-instrument.mjs`. Drizzle 0.45.4 and this adapter resolve the same `pg@8.23.1`. The native mode does not read `Result.command`, does not pass an error to `client.release()`, and does not add a rollback.
 
-The pool has an `'error'` listener so an idle client's error does not kill the process. pg-pool removes that listener while a client is checked out. Drizzle does not add one. The category B cases exit on the checked-out client's `'error'` event. The listener does not cover that.
+The pool has an `'error'` listener so an idle client's error does not kill the process. pg-pool removes that listener while a client is checked out. The adapter adds an `'error'` listener on each connected client so a terminated backend does not kill the process before `db.transaction()` can reject. The listener does not roll back or discard the connection.
 
 ## Setup
 
@@ -28,4 +28,4 @@ The controls that gate these cases, including `pg-control`, run in the same comm
 
 The run [`reports/examples/2026-10-19T13-38-47Z-39ea07`](../../reports/examples/2026-10-19T13-38-47Z-39ea07/summary.md) is the recording. [`FINDINGS.md`](FINDINGS.md) is the per-case report.
 
-`investigations/drizzle-followups/probe.mjs` is not part of the suite. It checks `query_timeout`, `statement_timeout`, isolation options, and a backend termination after a client error listener the adapter does not install.
+`investigations/drizzle-followups/probe.mjs` is not part of the suite. It checks `query_timeout`, `statement_timeout`, isolation options, and a backend termination. The category B recording with the adapter's checked-out client listener is [`reports/examples/2026-10-23T13-11-06Z-d7cd89`](../../reports/examples/2026-10-23T13-11-06Z-d7cd89/summary.md). The earlier transaction recording, in which those three cases exited before the call returned, is unchanged.
