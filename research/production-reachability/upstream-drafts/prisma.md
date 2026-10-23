@@ -1,6 +1,6 @@
 # Draft: Prisma, comment on prisma/orm#20496
 
-**Not posted.**
+Posted 2026-10-23 as `KevinBlakeLopez`: https://github.com/prisma/orm/issues/20496#issuecomment-6372520392 The posted body matches the comment below.
 
 This is tracker item PI1. It is a comment on https://github.com/prisma/orm/issues/20496, not a new issue. `prisma/prisma` redirects to `prisma/orm`.
 
@@ -25,6 +25,7 @@ Everything between the two rules below is the proposed comment. The rest of this
 3. Check the current 7.x release. On 2026-10-23 the latest stable release was 7.10.1 (2026-10-19), and the `v7` branch head was its tag commit `97ea359`. If a newer release exists, re-check the four linked lines.
 4. Comment only. A callback that catches an error and returns resolves today, and reporting the rollback would make that call reject. No pull request until the maintainers agree on that change.
 5. The comment is the command tag only. It leaves out a failed `ROLLBACK` returned through `client.release()` with no error, and an outer callback that catches a failed savepoint rollback and then commits.
+6. Posted 2026-10-23, after checks 1 to 3. #20496 was still open with 5 comments. The `v7` head was still `97ea359`. npm `latest` was 7.10.1 for `@prisma/client` and `@prisma/adapter-pg`. A search of issues and pull requests created since 2026-10-22 found no newer report.
 
 **Duplicate search (2026-10-23), not exhaustive.** 24 queries over issues and pull requests in `prisma/orm`, open and closed. #20496 is the same symptom. The 2026-10-21 search looked for the command tag, which #20496 never mentions. No open pull request reads `result.command` (checked #30413, #30716, #30650, #29468, #29979, #29954). Nearby and different:
 
