@@ -30,7 +30,7 @@ pg-pool 3.14.0 `_release` removes the client when `release` is called with an er
 | --- | --- | --- | --- | --- |
 | `CTL-01.commit` | none | committed | xid 13307 committed; marker visible. Command tag `COMMIT` | CTL-01.1 held |
 | `CTL-01.rollback` | none | rolled back (callback error) | xid 13319 aborted; marker absent. Last statement `ROLLBACK` | CTL-01.2 held |
-| `TX-01A.caught-error-then-commit` | A, caught `23505` (`P2010`) | committed | xid 13331 aborted before the end and after exit; marker absent. After the API returned the session was idle and its last statement was `COMMIT`. The reply was command tag `ROLLBACK` | TX-01A.1 failed. Mechanism exercised. 3 of 3 |
+| `TX-01A.caught-error-then-commit` | A, caught `23505` (`P2010`) | committed | xid 13331 aborted before the end and after exit; marker absent. After the API returned the session was idle and its last statement was `COMMIT`. On the first repetition, the reply was command tag `ROLLBACK` | TX-01A.1 failed in 3 of 3 repetitions. Mechanism exercised. |
 | `TX-01B.conn-lost-before-commit` | B | failed | xid 13343 aborted; marker absent. Trace: `COMMIT`, then `Client has encountered a connection error and is not queryable` | TX-01B.1 held |
 | `TX-01B.commit-reply-discarded` | D, reply-lost, fired once | failed | xid 13355 committed; marker visible. The reply was discarded in the driver | TX-01B.1 held. TX-01B.2 not exercised |
 | `TX-02.savepoint-rollback-not-sent` | C, client-reject, fired once | committed. The outer callback caught the nested error and returned | xid 13367 committed; both markers visible. Command tag `COMMIT`. The withheld statement was `ROLLBACK TO SAVEPOINT prisma_sp_0` | TX-02.1 failed. TX-02.2 held |

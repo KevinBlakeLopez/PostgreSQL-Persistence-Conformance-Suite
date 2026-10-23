@@ -23,7 +23,7 @@ Prisma Client treats that `COMMIT` as success. `prisma.$transaction()` resolves.
 
 `_transactionWithCallback` calls `transaction("commit")` when the callback returns (`@prisma/client` `runtime/client.mjs`). The transaction manager, bundled in that same `@prisma/client` file, sends `{ sql: "COMMIT" }` through the adapter's `executeRaw`, because `@prisma/adapter-pg` sets `usePhantomQuery: false`. If that promise resolves, the transaction manager calls `transaction.commit()`. `PgQueryable.executeRaw` returns `result.rowCount` and does not read `result.command` (`@prisma/adapter-pg` `dist/index.mjs`).
 
-On the first repetition, node-postgres recorded `Result.command` `ROLLBACK` for that `COMMIT`. The query compiler is not on this path. `$executeRaw` and the transaction manager's `COMMIT` go to the driver adapter as SQL.
+On the first repetition, a wrapper around `pg.Client.prototype.query` logged `Result.command` `ROLLBACK` for that `COMMIT`. The query compiler is not on this path. `$executeRaw` and the transaction manager's `COMMIT` go to the driver adapter as SQL.
 
 ### Versions
 
