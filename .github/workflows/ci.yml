@@ -117,7 +117,11 @@ jobs:
       - name: Start the disposable server
         run: pnpm run pg:up
       - name: jOOQ adapter
-        run: node harness/run.mjs --adapter=jooq --repeat=3
+        # Compared with the recorded jOOQ run, so an adapter that does not start, or any changed
+        # classification, fails the job instead of leaving INCONCLUSIVE rows in a passing run.
+        # MG-02.first-deployment stays in. jOOQ declares the migration cases unsupported, and the harness
+        # creates pg-control's history table before runners A and B start, so they cannot collide creating it.
+        run: node harness/run.mjs --adapter=jooq --repeat=3 --expect=reports/examples/2026-10-22T12-58-46Z-d4a7fc/run.json
       - name: Keep the jOOQ evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
