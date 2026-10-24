@@ -64,6 +64,18 @@ export class Observer {
       order by a.pid`, [key, runner.pids, runner.applicationName])
   }
 
+  /**
+   * The roles that have a client session waiting on a lock another backend holds (pg_blocking_pids). That covers a
+   * runner waiting on the runner's uncommitted creation of a table, on another runner's creation, or on the
+   * framework's own coordination lock.
+   */
+  async blockedRoles(database, roles) {
+    const rows = await this.instance.query(database, `select distinct application_name from pg_stat_activity
+      where datname = current_database() and backend_type = 'client backend'
+        and application_name = any($1::text[]) and cardinality(pg_blocking_pids(pid)) > 0`, [roles.map((r) => `ppcs-${r}`)])
+    return rows.map((r) => r.application_name.slice('ppcs-'.length)).sort()
+  }
+
   /** Client sessions of one role. The role's application_name is `ppcs-` plus the role. */
   async roleSessions(database, role) {
     return this.instance.query(database, `select pid, state from pg_stat_activity

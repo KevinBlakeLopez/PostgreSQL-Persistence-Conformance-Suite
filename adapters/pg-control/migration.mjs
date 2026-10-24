@@ -2,13 +2,19 @@
 // connection before it looks at history, so a second runner waits outside the migration. `unsafe` takes no lock, so
 // both runners can be inside the migration at once. The SQL gate is the runner's lock, which the migration waits on
 // after inserting its marker; it is not the control's coordination lock.
+//
+// History storage. The harness creates ppcs_history for every migration case except MG-02.first-deployment, whose
+// database starts with none. `correct` creates the table inside its migration transaction, after taking its lock.
+// `unsafe` creates it outside the migration and, when a concurrent creation fails with a unique violation, carries
+// on as if the table had existed: the mistake MG-02.first-deployment looks for.
 import pg from 'pg'
 import { errInfo } from '../node-kit/util.mjs'
 
 const FRAMEWORK_LOCK = 77002001
+const CREATE_HISTORY = 'create table if not exists ppcs_history (name text not null)'
 const CONTRACT = {
-  correct: 'The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises.',
-  unsafe: 'The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker.',
+  correct: 'The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock, then creates its history table if it is missing, before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises.',
+  unsafe: 'The unsafe control takes no coordination lock. It creates its history table outside the migration and, when a concurrent creation fails with a unique violation, carries on as if the table had existed. It reports a revert as reverted after deleting the history entry, and it does not delete the marker.',
 }
 
 const clientOf = (connection) => {
@@ -36,9 +42,17 @@ async function apply(connection, { mode, marker, migrationId, gate, hold }) {
   const spare = mode === 'correct' ? await spareSession(connection) : null
   try {
     return await withClient(connection, async (c) => {
+      if (mode === 'unsafe') {
+        try {
+          await c.query(CREATE_HISTORY)
+        } catch (e) {
+          if (e.code !== '23505' && e.code !== '42P07') return { reported: 'failed', exit_code: 1, basis: 'creating the history table raised', contract, api_error: errInfo(e) }
+        }
+      }
       await c.query('BEGIN')
       try {
         if (mode === 'correct') await c.query('select pg_advisory_xact_lock($1)', [FRAMEWORK_LOCK])
+        if (mode === 'correct') await c.query(CREATE_HISTORY)
         const existing = await c.query('select 1 from ppcs_history where name = $1', [migrationId])
         if (existing.rowCount) {
           await c.query('COMMIT')

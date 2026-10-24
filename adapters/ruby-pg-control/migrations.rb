@@ -3,15 +3,25 @@
 # MG-02 and MG-03 for the ruby-pg control. correct takes a transaction-scoped
 # advisory lock before it reads history. unsafe takes none. The SQL gate is the
 # runner's lock, which the migration waits on after inserting its marker.
+#
+# History storage. The harness creates ppcs_history for every migration case
+# except MG-02.first-deployment, whose database starts with none. correct
+# creates the table inside its migration transaction, after taking its lock.
+# unsafe creates it outside the migration and, when a concurrent creation fails
+# with a unique violation, carries on as if the table had existed: the mistake
+# MG-02.first-deployment looks for.
 FRAMEWORK_LOCK = 77_002_001
+CREATE_HISTORY = 'create table if not exists ppcs_history (name text not null)'
 
 MIGRATION_CONTRACT = {
-  'correct' => 'The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises.',
-  'unsafe' => 'The unsafe control takes no coordination lock. It reports a revert as reverted after deleting the history entry, and it does not delete the marker.'
+  'correct' => 'The correct control runs a migration in one transaction. It takes a transaction-scoped advisory lock, then creates its history table if it is missing, before it reads history, applies the migration only when history has no entry, and commits the marker and the history entry together. A reversal deletes the marker and the history entry, refuses a migration that has no reversal, and rolls back a reversal that raises.',
+  'unsafe' => 'The unsafe control takes no coordination lock. It creates its history table outside the migration and, when a concurrent creation fails with a unique violation, carries on as if the table had existed. It reports a revert as reverted after deleting the history entry, and it does not delete the marker.'
 }.freeze
 
 def with_migration_client(spec)
   conn = Ppcs.connect(spec)
+  # CREATE TABLE IF NOT EXISTS sends a NOTICE when the table exists. Keep it off stderr.
+  conn.set_notice_processor { |_message| nil }
   begin
     yield conn
   ensure
@@ -44,9 +54,19 @@ def apply_migration(spec, mode:, marker:, migration_id:, gate:, hold:)
   spare = mode == 'correct' ? spare_session(spec) : nil
   begin
     with_migration_client(spec) do |conn|
+      if mode == 'unsafe'
+        begin
+          conn.exec(CREATE_HISTORY)
+        rescue PG::UniqueViolation, PG::DuplicateTable
+          nil
+        rescue StandardError => e
+          return migration_failure(contract, e)
+        end
+      end
       conn.exec('BEGIN')
       begin
         conn.exec_params('select pg_advisory_xact_lock($1)', [FRAMEWORK_LOCK]) if mode == 'correct'
+        conn.exec(CREATE_HISTORY) if mode == 'correct'
         existing = conn.exec_params('select 1 from ppcs_history where name = $1', [migration_id])
         if existing.ntuples.positive?
           conn.exec('COMMIT')

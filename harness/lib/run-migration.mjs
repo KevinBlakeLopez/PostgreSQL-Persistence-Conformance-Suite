@@ -6,6 +6,10 @@
 //
 // Session-loss repeats the scenario once per session of A that was connected at the gate, each time on a fresh
 // database, and keeps the worst result. The session is chosen by its place in PID order.
+//
+// First-deployment starts with no history storage. The runner creates a table with the adapter's history-table name
+// in its own transaction and holds it uncommitted, so both runners find no history storage and wait on that creation,
+// or on the framework's own coordination. Rolling it back makes their creations collide, whatever their start times.
 import { runAdapter } from './adapter-process.mjs'
 import { classify } from './classify.mjs'
 import { RESULT_SCHEMA } from './run-case.mjs'
@@ -44,7 +48,8 @@ async function oneDatabase({ instance, observer, catalog, adapter, mode, kase, r
   try {
     await instance.query(database, catalog.fixture.sql)
     await instance.query(database, 'create table if not exists ppcs_undo (id bigserial primary key, name text not null)')
-    await instance.query(database, 'create table if not exists ppcs_history (name text not null)')
+    // An uninitialized database has no history storage, not even the controls' (MG-02.first-deployment).
+    if (kase.settings?.database !== 'uninitialized') await instance.query(database, 'create table if not exists ppcs_history (name text not null)')
     const observed = {
       checkpoints: {}, transactions: {}, markers: null, marker_xmin: null, stray_rows: null, sessions_at_end: null,
       fixture: { before: await observer.fixtureFingerprint(database), after: null },
@@ -69,7 +74,17 @@ async function oneDatabase({ instance, observer, catalog, adapter, mode, kase, r
       if (kase.id !== 'MG-03.failing-reversal') childRecords.push(await launch('A', 'apply'))
       runners.A = outcomeOf(reverted)
     } else if (kase.id === 'MG-02.first-deployment') {
-      const pending = kase.settings.runners.map((role) => launch(role, 'apply'))
+      const hold = kase.settings?.hold === 'history-table' ? await holdCreation(instance, database, adapter.history?.table) : null
+      const finished = {}
+      const pending = kase.settings.runners.map((role) => launch(role, 'apply').then((record) => { finished[role] = record; return record }))
+      if (hold) {
+        try {
+          observed.creation_hold = { table: adapter.history.table, ...await awaitHold(observer, database, kase.settings.runners, finished, kase.settings.hold_ms ?? 10000) }
+        } finally {
+          await hold.query('rollback').catch(() => {})
+          await hold.end().catch(() => {})
+        }
+      }
       observed.inside_migration = await watchRoles(observer, database, bound)
       await unlock(held)
       const gate = held
@@ -121,6 +136,39 @@ async function oneDatabase({ instance, observer, catalog, adapter, mode, kase, r
     await held?.end().catch(() => {})
     if (!process.env.PPCS_KEEP_DB) await instance.dropDatabase(database)
   }
+}
+
+/** A transaction on the runner's own connection that creates `table` and stays open, uncommitted. */
+async function holdCreation(instance, database, table) {
+  if (!/^[a-z_][a-z0-9_]*$/.test(table ?? '')) throw new Error(`history table is not an identifier: ${JSON.stringify(table)}`)
+  const c = await instance.borrow(database)
+  try {
+    await c.query('begin')
+    await c.query(`create table ${table} (ppcs_creation_hold integer)`)
+    return c
+  } catch (e) {
+    await c.end().catch(() => {})
+    throw e
+  }
+}
+
+/**
+ * Waits until each role has a session waiting on a lock or has already reported failure, with at least one role
+ * waiting, or until `waitMs` has passed. A runner that the framework's coordination refuses outright exits with a
+ * failure instead of waiting.
+ */
+async function awaitHold(observer, database, roles, finished, waitMs) {
+  const started = Date.now()
+  let blocked = []
+  let failed = []
+  const established = () => blocked.length > 0 && roles.every((r) => blocked.includes(r) || failed.includes(r))
+  while (Date.now() - started < waitMs) {
+    blocked = await observer.blockedRoles(database, roles)
+    failed = roles.filter((r) => finished[r] && outcomeOf(finished[r]).exit_code !== 0)
+    if (established()) break
+    await sleep(50)
+  }
+  return { blocked_roles: blocked, failed_before_release: failed, established: established(), waited_ms: Date.now() - started }
 }
 
 async function unlock(held) {
