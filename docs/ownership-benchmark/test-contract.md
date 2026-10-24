@@ -1,6 +1,6 @@
 # Test contract
 
-Status: V1 to V6 written and reviewed on 2026-10-24. Not frozen. V7 is a sketch at the end.
+Status: V1 to V7 written and reviewed on 2026-10-24. Not frozen.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -9,6 +9,7 @@ This document is the contract between the application and its acceptance tests. 
 - The application is a Python package with a synchronous service interface. The tests call that interface in their own process and read PostgreSQL over their own connection.
 - The tables and columns below are fixed. An implementation may add tables, columns, indexes, and constraints. The tests never read what it adds.
 - The schema is created and changed with Alembic. The tests run `alembic upgrade head` from the repository root.
+- Dependencies are declared in `pyproject.toml` with exact versions and locked with `uv`. Python stays at one version from V1 to V7, chosen to support the persistence stack at both ends of V7's window.
 - Identifiers are `bigint` columns generated as identity.
 - Timestamps are `timestamptz` columns set by PostgreSQL through a default of `now()`. The application never writes them.
 - The user table is named `app_user`, because `user` is reserved in PostgreSQL.
@@ -207,6 +208,16 @@ A revision is under review while a reviewer counted for it has not recorded a de
 
 When a revision is archived, all of its events are archived in the same statement or transaction, whatever their own age. An event is never archived on its own.
 
+## The V7 upgrade
+
+V7 adds no tables and no service calls. It changes versions.
+
+1. The harness replaces the pinned versions of psycopg, `psycopg_pool`, SQLAlchemy, and Alembic, wherever each is installed, with the versions current at the end of V7's window, and updates the lock. It changes nothing else.
+2. Before the agent changes anything, the harness runs the full suite on the new versions and records which checks fail.
+3. The agent then makes every earlier check pass on the new versions.
+
+Pinning a package back to an older version, or copying old library code into the application, is a departure.
+
 ## Service interface
 
 The application provides the module `claims_app.service`. The result types come from a small package the benchmark provides, `claims_contract`, pinned like any other dependency.
@@ -325,6 +336,7 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 - **S4.** On a V3 database that holds data, `alembic upgrade head` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
 - **S5.** The same holds for V5's migration on a V4 database.
 - **S6.** On a V5 database that holds data, `alembic upgrade head` creates `retention_policy` and adds `archived_at` to `evidence_revision` and `event`, null on every existing row.
+- **S7.** On the new versions, `alembic upgrade head` builds the V6 schema from an empty database, and runs on a V6 database that holds data without changing any fixed table, column, or row.
 
 ### V1
 
@@ -438,6 +450,17 @@ Expected counts come from the fixture's plan. Expected latest event times come f
   - every reference still resolving.
 - Every V1 to V5 check still passes.
 
+### V7
+
+- **V7-1.** Every V1 to V6 check passes on the new versions.
+- **V7-2.** The lock holds the window-end version of every persistence package the application installs.
+
+Recorded, not checked:
+
+- which checks failed right after the version change, before the agent changed anything;
+- the deprecation warnings the persistence libraries emit during a full suite run, before and after the agent's work;
+- the transaction-probe records on the new versions, beside the V6 records.
+
 ### Transaction probes
 
 These are recorded, not asserted. No result here fails the suite.
@@ -448,13 +471,3 @@ The test first attaches `duplicate_ref` to the claim. It then calls each probe o
 - whether the evidence row for `first_ref` exists, read on the test's own connection;
 - `pg_xact_status()` of the reported `transaction_id`;
 - for the follow-up, whether its row exists, and whether its `backend_pid` matches the probe's.
-
-## Later stages: sketch
-
-Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check that V1 and V2 do not block later stages.
-
-V3 to V6 are written in full above.
-
-### V7
-
-No new tables. On the upgraded stack, `alembic upgrade head` still builds the schema from an empty database, and every earlier check passes.

@@ -1,6 +1,6 @@
 # Application evolution specification
 
-Status: requirements draft, revised after the 2026-10-23 design review. Not frozen. Items marked **Open before freeze** are listed in [`research-questions.md`](research-questions.md). The acceptance tests read tables and columns that this document fixes, and call a Python service interface that it defines. Neither is written yet. Beyond them, this document does not contain a schema, an API, or an implementation. Do not build the application from it until the benchmark program is approved and the pilot scope below is the assigned task.
+Status: requirements draft, revised after the 2026-10-23 design review. Not frozen. Anything still open is listed in [`research-questions.md`](research-questions.md). The acceptance tests read the tables and columns, and call the Python service interface, that [`test-contract.md`](test-contract.md) defines. Beyond those, this document does not contain a schema, an API, or an implementation. Do not build the application from it until the benchmark program is approved and the pilot scope below is the assigned task.
 
 The representative application is a small claims-and-evidence review workflow. An organization records claims, collects evidence for them, and reviewers decide whether that evidence is sufficient. It has the same shape as evidence collection in governance, risk, and compliance (GRC) work, where the claims are controls.
 
@@ -133,7 +133,7 @@ The age threshold is set when the fixtures are frozen.
 
 ## V7 — Persistence dependency upgrade
 
-**Requirement.** Upgrade the persistence stack to a newer supported version chosen before the trajectories start. The application must meet the V1–V6 acceptance tests on the new version. The version gap is selected so the comparison is honest about release cadence: a library that ships many small releases is not graded as if it had stood still, and a library that ships a breaking major version is not graded as if the change were cosmetic. The frozen spec names the from-version and the to-version for each architecture and states why those two versions are comparable events.
+**Requirement.** Upgrade the persistence stack to a newer supported version chosen before the trajectories start. The harness changes the pinned versions and the lock, and changes nothing else. The application must then meet the V1–V6 acceptance tests on the new version. The version gap is selected so the comparison is honest about release cadence: a library that ships many small releases is not graded as if it had stood still, and a library that ships a breaking major version is not graded as if the change were cosmetic. The frozen spec names the from-version and the to-version for each architecture and states why those two versions are comparable events.
 
 **What moves, and over what window.** The persistence stack is every persistence dependency an arm installs: psycopg, its connection pool, SQLAlchemy, and Alembic, wherever each is installed. They all move together. One calendar window sets the versions for every arm. It is fixed before the pilot: it ends on the date it is fixed and starts 24 months earlier. V1–V6 pin the versions that were current at the start of the window. V7 moves to the versions current at its end.
 
@@ -161,9 +161,7 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V6 are written in [`test-contract.md`](test-contract.md). V7 is not.
-
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V6 are written in [`test-contract.md`](test-contract.md). V7 is not.
+**Test contract.** The service interface, the assertions, and the fixed tables and columns for every stage are in [`test-contract.md`](test-contract.md). Capability wording in the requirements is not that interface.
 
 ## Out of scope for the application
 

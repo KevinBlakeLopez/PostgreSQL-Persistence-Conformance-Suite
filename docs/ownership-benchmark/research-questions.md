@@ -145,16 +145,16 @@ Later on 2026-10-23 the maintainer decided:
 - The V4 contract is written and reviewed. V4 adds `list_claims`. Organization B's rows get identifiers of at least 9,000,000,000 and a per-run token in every text value, and checks run in one direction only. In an organization-wide read, any of B's values crossing to the application fails. In a call that names a record, they are recorded per call, because loading the named record and checking its organization in code is a legitimate way to refuse it. The transaction probes are outside V4's checks.
 - The V5 contract is written and reviewed. `report` returns the claims with current evidence, the evidence items in each approval state with all three states always present, and each item's latest event time. Each fixture is a fresh database built through the service, with claims that have no evidence. Expected values come from the fixture's plan and the test's own SQL. The proxy counts every statement of one `report` call, on a pool of one connection after a discarded first call.
 - The V6 contract is written and reviewed. An event is archived together with its revision, whatever its own age, and never on its own. Any user of the organization may set the retention policy. `run_archival` runs in one transaction, archives nothing without a policy, and is an organization-wide read. Archived revisions read as not found for decisions and approval state, and revision views gain `archived_at`. The tests age rows by moving their timestamps back, with a 30-day policy and rows aged 60 days.
+- In V7 the harness performs the version change: it swaps the persistence packages to the window-end versions and updates the lock, then runs the full suite once before the agent starts and records which checks the upgrade broke. That breakage profile depends on the libraries and the code, not on the agent.
+- Dependencies are declared in `pyproject.toml` with exact versions and locked with `uv`, and Python stays at one version from V1 to V7. Pinning a package back, or copying old library code into the application, is a departure. V7 also records the persistence libraries' deprecation warnings before and after the agent's work, and the transaction-probe records on the new versions beside V6's. The V1–V7 test contract is complete.
 
-V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
+V1–V7 are necessary as a set of stages, and they were not replaced or extended to cover the review's gaps. Since the review, the requirements, the acceptance tests, and the transaction task have been written: see the decisions above and [`test-contract.md`](test-contract.md). Whether the design can now be frozen is the maintainer's decision, after a review of that text.
 
 ## Open before freeze
 
-These remain before the design can be frozen. Each is also marked where it applies.
+One item remains. It blocks a freeze only if the measure is to be scored.
 
-1. **The service interface and the assertions for V7.** V1 to V6 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
-2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-3. **The fixed tables and columns for V7.** V1 to V6 are written in [`test-contract.md`](test-contract.md).
+1. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 
