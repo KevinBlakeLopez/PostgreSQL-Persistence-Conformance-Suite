@@ -77,6 +77,7 @@ Human help is recorded on its own line. Repairing one architecture and leaving a
 - Whether a framework's conformance failure means agents are worse at that framework. Those are different measurements. The methodology plan keeps them apart.
 - Production incident rates.
 - Ten-year cost from a single laboratory trajectory. The stages are a designed sample of ownership work, not a calendar decade.
+- Results for any model or agent other than the one recorded. A different model is a different experiment.
 
 ## How PPCS fits
 
@@ -92,6 +93,7 @@ A useful result is a set of repeated trajectories, with frozen requirements, fro
 - where they differed in correctness
 - how large the differences were relative to the run-to-run spread
 - which differences survived a change of stage
+- which differences persisted across models, where more than one model was run
 - which differences are exploratory
 
 One trajectory is an anecdote. The pilot is a method check. Confirmatory claims wait until the repetition and analysis rules in the methodology plan are met.
@@ -121,7 +123,13 @@ Later on 2026-10-23 the maintainer decided:
 - The acceptance tests call a fixed Python service interface: named functions with defined result types, called in the test process. A later cohort in another language needs its own suite.
 - The pilot runs the transaction task. V1 or V2 gains one uniqueness rule, fixed in the spec as a constraint the authoritative tests violate. The rule is chosen with the product rules.
 - The authoritative suite asserts nothing in the transaction task's scripted scenarios. All of part A's signals are recorded, including what the operation told its caller. The product's own handling of the uniqueness rule is tested like any other feature.
-- Audit is dropped. No later measurement needed it. Controls belong directly to an organization, and V5 reports per organization.
+- Audit is dropped. No later measurement needed it. Claims belong directly to an organization, and V5 reports per organization.
+- The workload is a neutral claims-and-evidence review workflow. Claims replace GRC controls, and events replace audit events. It is shaped so that one implementation, forked after the study, can become a tool for this research program. The methodology plan holds the rules that keep that reuse out of the experiment.
+- A claim can have several evidence items. Each carries an external reference unique within its claim, and that constraint is the pilot's uniqueness rule. V5 counts evidence items by the approval state of their current revision.
+- A user belongs to one organization. V4's isolation is keyed to the user's organization.
+- All three arms manage the schema with Alembic. Core and the ORM may autogenerate migrations from the tables they declare. The psycopg arm writes its migrations by hand in explicit SQL, and its application code never imports SQLAlchemy. Migration scripts are outside the adherence rule.
+- All three arms and the service interface are synchronous. Async is a possible later variable, not part of the first comparison.
+- Each arm uses its usual connection pool, with identical settings fixed by the spec.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
@@ -130,14 +138,15 @@ V1–V7 are necessary as a set of stages. As written they are not sufficient to 
 These are the maintainer's to write. The review did not fill them, and this draft does not either. Each is also marked where it applies.
 
 1. **V5 fixture.** Row counts, what makes an N+1 load visible in the query log, and whether there is a performance bound.
-2. **V7 comparability.** The from-version and to-version for each arm, what "similar significance" means, and whether the shared driver is inside the upgraded stack.
-3. **The pilot's uniqueness rule.** Which rule V1 or V2 gains for the transaction task, chosen with the product rules. Also whether V3's decision constraint hosts a second instance of the task.
-4. **The service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. That includes what "successful" and "failed" mean in the V1 invariants, and the V2 invariants. The kind of interface, and how the tests read the database, are decided above.
+2. **V7 comparability.** The from-version and to-version for each arm, what "similar significance" means, whether the shared driver is inside the upgraded stack, and whether Alembic moves with SQLAlchemy.
+3. **A second transaction-task instance.** Whether V3's decision constraint also hosts the transaction task.
+4. **The service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. That includes what "successful" and "failed" mean in the V1 invariants, the V2 invariants, and the pool settings, including whether part B pins the pool to one connection. The kind of interface, and how the tests read the database, are decided above.
 5. **V4's observation.** How a test sees another organization's rows cross the persistence boundary when the response is correct.
-6. **Product rules.** Whether a user belongs to one organization, how many evidence items a control has, what approval means with zero reviewers, and which rows count as under review in V6.
-7. **Migration tooling.** Whether a migration tool is part of an arm. psycopg has none, and Alembic is a separate project from SQLAlchemy Core and the ORM.
-8. **ORM-arm adherence.** Whether, in the ORM arm, a Core construct or textual SQL used for an ordinary write is a recorded escape hatch or a departure.
-9. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-10. **The fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the pilot's uniqueness rule and the product rules.
+6. **Product rules.** What approval means with zero reviewers, and which rows count as under review in V6.
+7. **ORM-arm adherence.** Whether, in the ORM arm, a Core construct or textual SQL used for an ordinary write is a recorded escape hatch or a departure. Migration scripts are already outside the rule.
+8. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
+9. **The fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the remaining product rules.
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
+
+Two decisions about models wait until the pilot has measured what a trajectory costs: whether the confirmatory run uses two models of different capability, and whether the frozen benchmark is re-run on later model generations. See "Models over time" in the methodology plan.

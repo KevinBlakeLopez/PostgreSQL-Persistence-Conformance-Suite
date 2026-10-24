@@ -2,7 +2,7 @@
 
 Status: requirements draft, revised after the 2026-10-23 design review. Not frozen. Items marked **Open before freeze** are listed in [`research-questions.md`](research-questions.md). The acceptance tests read tables and columns that this document fixes, and call a Python service interface that it defines. Neither is written yet. Beyond them, this document does not contain a schema, an API, or an implementation. Do not build the application from it until the benchmark program is approved and the pilot scope below is the assigned task.
 
-The representative application is a small GRC-style audit evidence workflow. GRC here means governance, risk, and compliance: an organization collects evidence that a control was met, and reviewers decide whether that evidence is sufficient.
+The representative application is a small claims-and-evidence review workflow. An organization records claims, collects evidence for them, and reviewers decide whether that evidence is sufficient. It has the same shape as evidence collection in governance, risk, and compliance (GRC) work, where the claims are controls.
 
 Every entity exists because a later measurement needs it. Do not add entities to make the domain look larger.
 
@@ -16,11 +16,11 @@ The pilot uses only the V1 to V2 transition. V3 through V7 are specified so the 
 
 | Concept | Introduced | Why it is required |
 | --- | --- | --- |
-| Organization | V1 | Every durable record belongs to one organization, so V4 can test isolation on data that already exists |
+| Organization | V1 | Separate teams share the application but not their data. Every durable record belongs to one organization, so V4 can test isolation on data that already exists |
 | User | V1 | Evidence has an author. V3 adds reviewers from the same population |
-| Control | V1 | The statement that evidence is meant to support. V5 counts controls with current evidence, so the population of controls has to exist before the report |
+| Claim | V1 | A statement that evidence is meant to support. V5 counts claims with current evidence, so the population of claims has to exist before the report |
 | Evidence | V1 | The artifact under review. This is the record the other stages revise, approve, isolate, report, and retain |
-| Audit event | V1, one event type | An append-only record that evidence was created. V5 reports over it and V6 retains it. Starting with one event type keeps V1 small and gives later stages a log to evolve |
+| Event | V1, one event type | An append-only record that evidence was created. V5 reports over it and V6 retains it. Starting with one event type keeps V1 small and gives later stages a log to evolve |
 | Evidence revision | V2 | Immutable history. The pilot's only feature transition |
 | Review assignment | V3 | More than one required reviewer |
 | Review decision | V3 | An approval rule, a uniqueness constraint, and a conflicting-update case |
@@ -28,11 +28,11 @@ The pilot uses only the V1 to V2 transition. V3 through V7 are specified so the 
 
 No other tables are required by this specification. A report in V5 is a query over these records unless an accepted revision of this spec adds a stored report and says why.
 
-An earlier draft had an Audit entity that grouped controls for one engagement. It was dropped on 2026-10-23, because its only later use was as the grouping key of the V5 report and no measurement needed it. Controls belong directly to an organization.
+Earlier drafts framed the application as a GRC audit-evidence workflow. Claims were called controls, events were called audit events, and an Audit entity grouped controls for one engagement. Audit was dropped on 2026-10-23, because its only later use was as the grouping key of the V5 report and no measurement needed it. Claims belong directly to an organization.
 
-## V1 — Basic audit evidence
+## V1 — Basic claims and evidence
 
-**Requirement.** A user in an organization adds controls to that organization and attaches one current evidence item to a control. Another user in the same organization can read that evidence. The evidence records its author and the time it was created. Creating evidence appends one audit event, which records the time it was appended. V5 reports the latest event time and V6 archives by age, so the time has to exist from V1.
+**Requirement.** Each user belongs to one organization. A user in an organization adds claims to that organization and attaches evidence items to a claim. A claim can have several evidence items. Each evidence item carries an external reference, such as a document identifier, that is unique within its claim. Attaching a reference the claim already has fails, and the application reports the duplicate. Another user in the same organization can read that evidence. The evidence records its author and the time it was created. Creating evidence appends one event, which records the time it was appended. V5 reports the latest event time and V6 archives by age, so the time has to exist from V1.
 
 **Measure.**
 
@@ -49,16 +49,19 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 
 - An evidence item is readable after a successful create.
 - An evidence item is absent after a failed create.
-- A control belongs to one organization.
+- A claim belongs to one organization, and so does a user.
 - The creation event refers to an evidence item that exists.
+- No claim has two evidence items with the same external reference.
+
+**Transaction task.** The PPCS-derived transaction task uses the external-reference rule as its unique constraint, so the pilot can run it.
 
 **Open before freeze: what "successful" and "failed" mean.** The invariants do not say whether they mean the application's response or the independent database read. The methodology counts a green functional suite with a wrong database outcome as a correctness failure, so those two observations can disagree.
 
-**Open before freeze: V1 product rules.** Whether a user belongs to one organization. How many evidence items a control has. Whether a migration tool is part of each arm. psycopg has no migration framework, and Alembic is a separate project from SQLAlchemy Core and the ORM. The choice changes V1's schema cost and V7's migration measurement.
+**Migrations.** Every arm creates and changes its schema with Alembic. The methodology plan's Python cohort section says how each arm uses it.
 
 ## V2 — Evidence revision history
 
-**Requirement.** Evidence content is no longer updated in place. A change adds an immutable revision. Each revision records the time it was created, because V6 archives revisions by age. Previous revisions remain readable. The evidence item points at one current revision. Creating a revision is atomic with the pointer change and with an audit event for that revision. Two concurrent revision attempts must not leave two different revisions both marked current.
+**Requirement.** Evidence content is no longer updated in place. A change adds an immutable revision. Each revision records the time it was created, because V6 archives revisions by age. Previous revisions remain readable. The evidence item points at one current revision. Creating a revision is atomic with the pointer change and with an event for that revision. Two concurrent revision attempts must not leave two different revisions both marked current.
 
 **Measure.**
 
@@ -68,8 +71,6 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 - preservation of V1 behavior for records that have only their original revision
 
 **Open before freeze: V2 invariants.** V2 has no invariant list. V3 requires the stored decision to match the application's response. V2 does not say the same of the current-revision pointer.
-
-**Open before freeze: the pilot's uniqueness rule.** The pilot runs the PPCS-derived transaction task, so V1 or V2 gains one uniqueness rule that this spec fixes as a constraint and the authoritative tests violate. Which rule, and on which stage, is chosen with the product rules.
 
 This is the pilot transition. The pilot stops here.
 
@@ -85,13 +86,15 @@ This is the pilot transition. The pilot stops here.
 - where the transaction boundary sits
 - correctness when two operations conflict
 
-The unique constraint on a review decision is a product rule. It is also a natural place for the PPCS-derived transaction task to catch a unique violation. The task first runs in the pilot, on the uniqueness rule added to V1 or V2. The task's primary scenario still follows the methodology plan: catch the violation, finish the transaction normally, and do not add a savepoint in that primary scenario. The product's happy path may use a savepoint or a retry. The scored primary scenario does not.
+The unique constraint on a review decision is a product rule. It is also a natural place for the PPCS-derived transaction task to catch a unique violation. The task first runs in the pilot, on V1's external-reference rule. The task's primary scenario still follows the methodology plan: catch the violation, finish the transaction normally, and do not add a savepoint in that primary scenario. The product's happy path may use a savepoint or a retry. The scored primary scenario does not.
+
+**Open before freeze: a second instance of the task.** Whether this constraint also hosts the transaction task.
 
 **Open before freeze: zero reviewers.** What approval means for a revision with no assigned reviewer.
 
 ## V4 — Organization-level isolation
 
-**Requirement.** A user authenticated for organization A cannot read or write controls, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
+**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
 
 **Open before freeze: how the tests observe that failure.** The acceptance tests observe the application and PostgreSQL. A correct response can hide an unscoped fetch. V5 mentions a query log; V4 does not say its tests use one.
 
@@ -107,7 +110,7 @@ This stage adds no entity. It strengthens access to entities that have had an or
 
 ## V5 — Reporting and aggregation
 
-**Requirement.** Produce a report for one organization: counts of controls with current evidence, counts by approval state, and the latest event time for each evidence item. The report matches a fixture whose expected totals are computed independently of the application. The implementation may use the framework's query API. If it cannot express the report there, an escape hatch is allowed and is recorded.
+**Requirement.** Produce a report for one organization: counts of claims with current evidence, counts of evidence items by the approval state of their current revision, and the latest event time for each evidence item. A claim has current evidence when at least one of its evidence items has a current revision. The report matches a fixture whose expected totals are computed independently of the application. The implementation may use the framework's query API. If it cannot express the report there, an escape hatch is allowed and is recorded.
 
 **Measure.**
 
@@ -154,11 +157,11 @@ Frameworks do not have to move the same number of version numbers. They have to 
 
 SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take one shared SQLAlchemy version move, not two independent upgrade samples.
 
-**Open before freeze: V7 comparability.** The from-version and to-version for each arm. What "similar significance" means. Whether the upgraded persistence stack includes the database driver, and whether that driver is the psycopg arm's library.
+**Open before freeze: V7 comparability.** The from-version and to-version for each arm. What "similar significance" means. Whether the upgraded persistence stack includes the database driver, and whether that driver is the psycopg arm's library. Whether Alembic moves with SQLAlchemy.
 
 ## Acceptance-test rules
 
-- Tests are architecture-neutral. They call the application through a fixed Python service interface: named functions with defined result types, called in the test process. They query PostgreSQL through the tables and columns this spec fixes. They do not read tables or columns an implementation added.
+- Tests are architecture-neutral. They call the application through a fixed, synchronous Python service interface: named functions with defined result types, called in the test process. They query PostgreSQL through the tables and columns this spec fixes. They do not read tables or columns an implementation added.
 - They do not import the application's persistence objects unless a test double would hide the behavior under study. The default is a black-box application interface plus SQL.
 - Agents cannot edit the authoritative tests.
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
@@ -166,11 +169,11 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 
 **Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the pilot's uniqueness rule and the product rules above.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the remaining product rules above.
 
 ## Out of scope for the application
 
-- A general GRC product: risk registers, policy libraries, asset inventories, or workflow designers.
+- A general claims-management or compliance product: risk registers, policy libraries, asset inventories, or workflow designers.
 - Multi-region deployment, authentication providers, and a production user interface. A minimal interface the tests can call is enough.
 - Throughput benchmarking as a goal.
 - Extra entities whose only role is to make one architecture's relationship features look necessary.

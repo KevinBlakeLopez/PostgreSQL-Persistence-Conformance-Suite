@@ -39,6 +39,7 @@ Every trajectory records:
 - temperature or seed, when the agent exposes them
 - dependency versions and lockfiles
 - environment configuration, including PostgreSQL version and image digest
+- the model's stated training cutoff, and the release date of each pinned persistence library
 
 Changing any of these starts a different experiment. Runs that differ in model or prompt are not pooled into one confirmatory sample.
 
@@ -59,6 +60,26 @@ Do not draw a ranking from one run.
 Within a repetition, all three architectures use the same model, prompt, tools, execution limits, document set, and PostgreSQL image. Only the assigned persistence technology changes, with its library documentation. The order of the three architectures inside a repetition is randomized, and the assigned order is recorded.
 
 Record the calendar time of each trajectory so that a model change during the study can be seen. If the provider changes the model mid-study, stop and record the break. Do not treat the before and after as one sample.
+
+## Models over time
+
+Agent results are a snapshot of one model, one agent implementation, and one period. A better model can change every cost field and every agent-attributed correctness result. The design does not assume that a comparison holds for other or later models.
+
+Measures differ in how much they depend on the model:
+
+- Results that the transaction task attributes to the framework or to PostgreSQL, and the API changes a V7 upgrade forces, are properties of the library version and the database. They should not change with the model.
+- Cost fields, human review and repair time, and agent-attributed correctness results depend on the model.
+
+The pre-registration in the frozen spec labels every measure as model-sensitive or not. Reports keep the two groups separate.
+
+Models usually know older library versions better than new ones. The configuration record includes the model's stated training cutoff and each pinned library's release date, so a recency effect can be seen.
+
+Two decisions wait until the pilot has measured what a trajectory costs:
+
+- whether the confirmatory run uses two models of clearly different capability, to show whether the differences between architectures grow or shrink as models improve;
+- whether the frozen benchmark is re-run on later model generations. A re-run is a new experiment. It is compared with earlier runs, not pooled with them.
+
+The frozen specification, the frozen tests, and the preserved artifacts are what make a re-run mechanical.
 
 ## Human intervention
 
@@ -153,9 +174,7 @@ A framework-level mismatch that matches PPCS is reported as framework behavior. 
 
 **What the suite asserts.** Nothing in the task's scripted scenarios. All of part A's signals are recorded, including what the operation told its caller, and so are parts B and C. The product's own handling of the same uniqueness rule is a separate path. It may use a savepoint or a retry, and the functional tests assert it like any other feature.
 
-**Pilot host.** The pilot runs this task. The spec's natural constraint is on V3's review decision, outside the pilot, so V1 or V2 gains one uniqueness rule, fixed in the spec as a constraint the authoritative tests violate. A test that used whatever constraint an implementation happened to create would depend on that implementation. The pilot is not widened into V3–V7.
-
-**Open before freeze: the pilot's uniqueness rule.** Which rule, and on which stage. It is chosen with the product rules.
+**Pilot host.** The pilot runs this task. The spec's natural constraint is on V3's review decision, outside the pilot, so the task uses a V1 rule instead: an evidence item's external reference is unique within its claim. The spec fixes that rule as a constraint the authoritative tests violate. A test that used whatever constraint an implementation happened to create would depend on that implementation. The pilot is not widened into V3–V7.
 
 ## Evidence preservation
 
@@ -188,7 +207,7 @@ The pilot compares:
 2. SQLAlchemy Core
 3. SQLAlchemy ORM
 
-One feature transition: V1 to V2, adding evidence revision history, as specified in the application-evolution document. The pilot also runs the PPCS-derived transaction task, on the uniqueness rule the spec adds to V1 or V2.
+One feature transition: V1 to V2, adding evidence revision history, as specified in the application-evolution document. The pilot also runs the PPCS-derived transaction task, on V1's external-reference rule.
 
 The pilot establishes whether:
 
@@ -239,9 +258,15 @@ Cross-language expansion waits until this method is stable. The goal is a credib
 | Query abstraction | SQLAlchemy Core |
 | Full ORM | SQLAlchemy ORM |
 
-Reasons to start here: one language, one PostgreSQL server, a comparable application shape, less confounding from unrelated frameworks, and direct relevance to Python development. SQLAlchemy Core and the ORM share a project and a driver, which makes the abstraction difference easier to see. It also means a Core-versus-ORM difference cannot be blamed on an unrelated ecosystem. The psycopg arm is what shows whether leaving SQLAlchemy entirely changes the cost.
+Reasons to start here: one language, one PostgreSQL server, a comparable application shape, less confounding from unrelated frameworks, and direct relevance to Python development. SQLAlchemy Core and the ORM share a project and a driver, which makes the abstraction difference easier to see. It also means a Core-versus-ORM difference cannot be blamed on an unrelated ecosystem. The psycopg arm is what shows whether leaving SQLAlchemy at runtime changes the cost.
 
-**Adherence to the assigned API.** The cohort labels measure the assigned APIs only if a departure is defined before the first trajectory. Implementing the ORM assignment through psycopg, or the psycopg assignment through the ORM, is a departure, and it removes that trajectory from the confirmatory comparison. Ordinary writes and transaction completion use the assigned API. A lower layer used because the assigned query API cannot express a required report is the escape hatch V5 records. It is not a departure. The requirement is still not rewritten to avoid an escape hatch or to force one.
+**Adherence to the assigned API.** The cohort labels measure the assigned APIs only if a departure is defined before the first trajectory. Implementing the ORM assignment through psycopg, or the psycopg assignment through the ORM, is a departure, and it removes that trajectory from the confirmatory comparison. Ordinary writes and transaction completion use the assigned API. A lower layer used because the assigned query API cannot express a required report is the escape hatch V5 records. It is not a departure. The requirement is still not rewritten to avoid an escape hatch or to force one. Migration scripts are outside this rule: SQL inside a migration is not a departure in any arm.
+
+**Migrations.** All three arms create and change the schema with Alembic, so the migration tool is not a difference between them. Core and the ORM may generate migrations from the tables they already declare (Alembic's autogenerate). The psycopg arm writes its migrations by hand as explicit SQL, and it does not declare SQLAlchemy tables in order to use autogenerate. Its application code never imports SQLAlchemy. SQLAlchemy is installed in that arm only because Alembic depends on it. The difference autogenerate makes belongs to the architecture: explicit SQL has no table declarations to generate from.
+
+**Synchronous code.** All three arms and the service interface are synchronous. Concurrency tests use threads or processes. Async is a separate variable for a later study, not part of this comparison. PPCS's existing Python evidence is synchronous too.
+
+**Connection pooling.** Each arm uses its usual pool: `psycopg_pool` in the psycopg arm, and the engine's built-in pool in the SQLAlchemy arms. The spec fixes identical pool settings for all three. Differences in how the pools reset and check connections are library behavior, and part B of the transaction task records them as such. The exact settings, and whether part B pins the pool to one connection so reuse is certain, are set with the assertions.
 
 **Test interface.** The Python cohort's acceptance tests call a fixed Python service interface in the test process, and read PostgreSQL on their own connection. A cohort in another language needs its own suite.
 
@@ -278,6 +303,16 @@ This cohort waits until the Python method has been validated.
 ### Node, not first
 
 PPCS already holds Node correctness evidence for node-postgres, Kysely, Knex, Lucid, MikroORM, TypeORM, Drizzle, and Prisma. A Node ownership cohort may use those stacks. It is not opened in order to complete the eight-row hypothesis. If it is opened, it uses the same longitudinal rules as the Python cohort, including fresh application trajectories rather than a rescoring of PPCS.
+
+## Reusing the application after the study
+
+The workload is shaped so that one implementation, forked after the study, can become a claims-and-evidence tool for this research program. The reuse must not touch the experiment:
+
+- Agents never see it. Stage requirements, prompts, fixtures, and sample data stay neutral and synthetic. The reuse plan appears only in planning documents outside the agents' context.
+- The benchmark's own evidence never lives in agent-built code. The harness, the authoritative tests, and the recorded artifacts stay independent of every trajectory.
+- The tool is a fork. A product need may decide only a product rule that no measurement depends on. Any other change waits for the fork, and the frozen spec changes only through the approval the roadmap already requires.
+- No fork is taken before the pilot's results are recorded. Which implementation to fork is chosen only after its results are recorded, so expectations about the fork cannot shape the spec.
+- A usable tool needs work the benchmark does not do: an interface beyond the Python service layer, and removal of the transaction task's deliberately unsafe operation. Building it is a separate approval.
 
 ## Explicitly out of the first implementation
 
