@@ -1,6 +1,6 @@
 # Test contract
 
-Status: V1 to V4 written and reviewed on 2026-10-24. Not frozen. V5–V7 are a sketch at the end.
+Status: V1 to V5 written and reviewed on 2026-10-24. Not frozen. V6 and V7 are a sketch at the end.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -180,7 +180,7 @@ A revision's approval state is derived from assignments and decisions. It is not
 The application provides the module `claims_app.service`. The result types come from a small package the benchmark provides, `claims_contract`, pinned like any other dependency.
 
 ```python
-from claims_contract import ApprovalState, ClaimView, EvidenceView, Failure, Ok, ProbeReport, RevisionView
+from claims_contract import ApprovalState, ClaimView, EvidenceView, Failure, Ok, ProbeReport, Report, RevisionView
 
 def open_service(dsn: str, pool_max_size: int) -> "Service": ...
 
@@ -209,6 +209,9 @@ class Service:
     # V4
     def list_claims(self, actor: int) -> Ok[list[ClaimView]] | Failure: ...
 
+    # V5
+    def report(self, actor: int) -> Ok[Report] | Failure: ...
+
     # Transaction probes, from V1
     def probe_caught_violation(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
     def probe_savepoint_recovery(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
@@ -226,6 +229,12 @@ class Service:
 - `approval_state` returns `approved`, `rejected`, or `pending` for a revision, as defined above. `ApprovalState` is that set of three strings.
 - From V4, every call that takes an `actor` is scoped to the actor's organization. A record of another organization is reported as `NOT_FOUND`, exactly like a record that does not exist. The setup calls take no actor and are not scoped.
 - `list_claims` returns the claims of the actor's organization. `ClaimView` has `id` and `statement`.
+- `report` describes the actor's organization. `Report` has three fields:
+  - `claims_with_current_evidence`: the number of claims with at least one evidence item that has a current revision;
+  - `evidence_by_state`: a mapping from `approved`, `rejected`, and `pending` to the number of evidence items whose current revision is in that state. All three keys are always present;
+  - `latest_event_at`: a mapping from each evidence item's identifier to the latest `occurred_at` among its events.
+
+  `report` is an organization-wide read. The number of statements it sends must not grow with the number of evidence items.
 
 ### Connection pool
 
@@ -273,6 +282,7 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 - **S2.** On a V1 database that holds data, `alembic upgrade head` produces the V2 tables and columns. `evidence.content` no longer exists.
 - **S3.** On a V2 database that holds data, `alembic upgrade head` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
 - **S4.** On a V3 database that holds data, `alembic upgrade head` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
+- **S5.** The same holds for V5's migration on a V4 database.
 
 ### V1
 
@@ -347,6 +357,26 @@ Each check runs as a user of organization A against identifiers of organization 
 
 **Proxy controls.** Before V4's checks are trusted, the harness runs them against two reference implementations the benchmark keeps. In the first, `list_claims` fetches every organization's claims and filters them in application code, and named-record calls fetch by identifier and check the organization in code. It must fail V4-4, and its V4-1 to V4-3 calls must show recorded values of B. The second scopes every query. It must pass V4-4 and record no value of B.
 
+### V5
+
+**Fixtures.** Each fixture is a fresh database built through the service.
+
+- The reporting organization has 30 evidence items in the small fixture and 300 in the large one: 10 or 100 claims with three items each, plus 5 claims with no evidence.
+- Items have one to three revisions. Their current revisions cover all three approval states, and at least one current revision belongs to an item with no assigned reviewer, so it is pending.
+- A second organization has the same shape, marked as in V4.
+
+Expected counts come from the fixture's plan. Expected latest event times come from the test's own query over `event`. Both are independent of the application.
+
+**Counting statements.** The proxy counts every statement the application sends during one `report` call, as simple-query and extended-protocol execute messages, including transaction control. The service is opened with `pool_max_size` 1, and the first `report` call after opening is not counted, so connection setup does not enter the count.
+
+- **V5-1.** On the small fixture, `report` returns exactly the expected `claims_with_current_evidence`, `evidence_by_state`, and `latest_event_at`.
+- **V5-2.** The same on the large fixture.
+- **V5-3.** The statement count is the same on both fixtures. A difference is an N+1 load and fails. There is no time limit.
+- **V5-4.** The item with no assigned reviewer is counted as pending.
+- **V5-5.** After `revise_evidence` on an item whose current revision was approved, the report counts that item as pending, and its latest event time is the new revision's event.
+- **V5-6.** `report` is an organization-wide read: the proxy saw no value of the second organization.
+- Every V1 to V4 check still passes.
+
 ### Transaction probes
 
 These are recorded, not asserted. No result here fails the suite.
@@ -362,13 +392,7 @@ The test first attaches `duplicate_ref` to the claim. It then calls each probe o
 
 Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check that V1 and V2 do not block later stages.
 
-V3 is written in full above.
-
-V4 is written in full above.
-
-### V5
-
-No new tables. `report(actor)` returns the count of claims with current evidence, the count of evidence items in each approval state, and the latest event time for each evidence item. Once V6 exists, it reads only rows that are not archived.
+V3 to V5 are written in full above.
 
 ### V6
 

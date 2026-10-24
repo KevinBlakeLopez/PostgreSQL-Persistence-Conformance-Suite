@@ -161,9 +161,9 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V4 are written in [`test-contract.md`](test-contract.md). V5–V7 are not.
+**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V5 are written in [`test-contract.md`](test-contract.md). V6 and V7 are not.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V4 are written in [`test-contract.md`](test-contract.md). V5–V7 are not.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V5 are written in [`test-contract.md`](test-contract.md). V6 and V7 are not.
 
 ## Out of scope for the application
 

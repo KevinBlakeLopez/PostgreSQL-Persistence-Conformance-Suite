@@ -143,6 +143,7 @@ Later on 2026-10-23 the maintainer decided:
 - The V3–V7 sketch in `test-contract.md` is reviewed. V3 adds a `decision_recorded` event, a record of another organization reads as not found in V4, and the V5 report leaves archived rows out.
 - The V3 contract is written and reviewed. Any user of the organization may assign reviewers, and an author may review their own item. A duplicate assignment fails with `CONFLICT`, a decision by an unassigned user fails with `NOT_FOUND`, and a decision may be recorded on any revision of the item.
 - The V4 contract is written and reviewed. V4 adds `list_claims`. Organization B's rows get identifiers of at least 9,000,000,000 and a per-run token in every text value, and checks run in one direction only. In an organization-wide read, any of B's values crossing to the application fails. In a call that names a record, they are recorded per call, because loading the named record and checking its organization in code is a legitimate way to refuse it. The transaction probes are outside V4's checks.
+- The V5 contract is written and reviewed. `report` returns the claims with current evidence, the evidence items in each approval state with all three states always present, and each item's latest event time. Each fixture is a fresh database built through the service, with claims that have no evidence. Expected values come from the fixture's plan and the test's own SQL. The proxy counts every statement of one `report` call, on a pool of one connection after a discarded first call.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
@@ -150,9 +151,9 @@ V1–V7 are necessary as a set of stages. As written they are not sufficient to 
 
 These remain before the design can be frozen. Each is also marked where it applies.
 
-1. **The service interface and the assertions for V5–V7.** V1 to V4 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
+1. **The service interface and the assertions for V6 and V7.** V1 to V5 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
 2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-3. **The fixed tables and columns for V5–V7.** V1 to V4 are written in [`test-contract.md`](test-contract.md).
+3. **The fixed tables and columns for V6 and V7.** V1 to V5 are written in [`test-contract.md`](test-contract.md).
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 
