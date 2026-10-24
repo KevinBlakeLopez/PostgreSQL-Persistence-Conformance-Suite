@@ -1,0 +1,31 @@
+# psql inside ppcs-chk2-asyncpg-pg (no asyncpg involved), run 2026-10-24T16:28:14Z
+# command: docker exec ppcs-chk2-asyncpg-pg psql -U postgres -d postgres -c "<query below>"
+# query: select run, arm, xid, pg_xact_status(xid::text::xid8) as fate from (values ('asyncio.rep1','managed',757),('asyncio.rep1','explicit',758),('asyncio.rep1','raw',759),('asyncio.rep1','control',760),('asyncio.rep2','managed',767),('asyncio.rep2','explicit',768),('asyncio.rep2','raw',769),('asyncio.rep2','control',770),('asyncio.rep3','managed',777),('asyncio.rep3','explicit',778),('asyncio.rep3','raw',779),('asyncio.rep3','control',780),('uvloop.rep1','managed',787),('uvloop.rep1','explicit',788),('uvloop.rep1','raw',789),('uvloop.rep1','control',790),('uvloop.rep2','managed',797),('uvloop.rep2','explicit',798),('uvloop.rep2','raw',799),('uvloop.rep2','control',800),('uvloop.rep3','managed',807),('uvloop.rep3','explicit',808),('uvloop.rep3','raw',809),('uvloop.rep3','control',810)) as t(run, arm, xid) order by xid
+     run      |   arm    | xid |   fate    
+--------------+----------+-----+-----------
+ asyncio.rep1 | managed  | 757 | aborted
+ asyncio.rep1 | explicit | 758 | aborted
+ asyncio.rep1 | raw      | 759 | aborted
+ asyncio.rep1 | control  | 760 | committed
+ asyncio.rep2 | managed  | 767 | aborted
+ asyncio.rep2 | explicit | 768 | aborted
+ asyncio.rep2 | raw      | 769 | aborted
+ asyncio.rep2 | control  | 770 | committed
+ asyncio.rep3 | managed  | 777 | aborted
+ asyncio.rep3 | explicit | 778 | aborted
+ asyncio.rep3 | raw      | 779 | aborted
+ asyncio.rep3 | control  | 780 | committed
+ uvloop.rep1  | managed  | 787 | aborted
+ uvloop.rep1  | explicit | 788 | aborted
+ uvloop.rep1  | raw      | 789 | aborted
+ uvloop.rep1  | control  | 790 | committed
+ uvloop.rep2  | managed  | 797 | aborted
+ uvloop.rep2  | explicit | 798 | aborted
+ uvloop.rep2  | raw      | 799 | aborted
+ uvloop.rep2  | control  | 800 | committed
+ uvloop.rep3  | managed  | 807 | aborted
+ uvloop.rep3  | explicit | 808 | aborted
+ uvloop.rep3  | raw      | 809 | aborted
+ uvloop.rep3  | control  | 810 | committed
+(24 rows)
+
