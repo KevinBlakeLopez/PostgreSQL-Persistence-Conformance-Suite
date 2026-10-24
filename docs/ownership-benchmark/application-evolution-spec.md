@@ -76,7 +76,7 @@ This is the pilot transition. The pilot stops here.
 
 ## V3 — Multiple reviewers and approval rules
 
-**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. A revision is in one of three approval states. It is approved when it has at least one assigned reviewer and every assigned reviewer has approved it. It is rejected when any assigned reviewer has rejected it. Otherwise it is pending, including when no reviewer is assigned. A rejection is recorded and does not delete the revision. Recording a decision appends a `decision_recorded` event for the decided revision. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
+**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. A revision is in one of three approval states. It is approved when it has at least one assigned reviewer and every assigned reviewer has approved it. It is rejected when any assigned reviewer has rejected it. Otherwise it is pending, including when no reviewer is assigned. A rejection is recorded and does not delete the revision. Recording a decision appends a `decision_recorded` event for the decided revision. Any user of the organization may assign reviewers, and an item's author may review it. A decision may be recorded on any revision of the item. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
 
 **Measure.**
 
@@ -161,9 +161,9 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 and V2 are written in [`test-contract.md`](test-contract.md). V3–V7 are not.
+**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V3 are written in [`test-contract.md`](test-contract.md). V4–V7 are not.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 and V2 are written in [`test-contract.md`](test-contract.md). V3–V7 are not.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V3 are written in [`test-contract.md`](test-contract.md). V4–V7 are not.
 
 ## Out of scope for the application
 

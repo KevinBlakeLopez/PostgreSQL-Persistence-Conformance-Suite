@@ -1,6 +1,6 @@
-# Test contract: V1 and V2
+# Test contract
 
-Status: V1 and V2 written and reviewed on 2026-10-24. Not frozen. Later stages are not written yet.
+Status: V1 to V3 written and reviewed on 2026-10-24. Not frozen. V4–V7 are a sketch at the end.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -120,12 +120,66 @@ The current revision is a pointer on the evidence item, not a flag on the revisi
 | `revision_id` | `bigint` | Set on every event after V2's migration. (`revision_id`, `organization_id`) references `evidence_revision` (`id`, `organization_id`) |
 | `kind` | `text` | `evidence_created` or `revision_created` |
 
+## Tables after V3
+
+V3's migration creates two tables. Existing revisions have no reviewers, so they are pending.
+
+### `review_assignment`
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `id` | `bigint` | Primary key, generated always as identity |
+| `organization_id` | `bigint` | Not null |
+| `evidence_id` | `bigint` | Not null |
+| `reviewer_id` | `bigint` | Not null |
+| `assigned_at` | `timestamptz` | Not null, default `now()` |
+
+Foreign keys: (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`), and (`reviewer_id`, `organization_id`) references `app_user` (`id`, `organization_id`).
+
+Unique: (`evidence_id`, `reviewer_id`).
+
+An assignment belongs to the evidence item, so it applies to every revision of that item.
+
+### `review_decision`
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `id` | `bigint` | Primary key, generated always as identity |
+| `organization_id` | `bigint` | Not null |
+| `evidence_id` | `bigint` | Not null |
+| `revision_id` | `bigint` | Not null |
+| `reviewer_id` | `bigint` | Not null |
+| `outcome` | `text` | Not null, `approved` or `rejected` |
+| `decided_at` | `timestamptz` | Not null, default `now()` |
+
+Foreign keys: (`evidence_id`, `revision_id`) references `evidence_revision` (`evidence_id`, `id`); (`evidence_id`, `reviewer_id`) references `review_assignment` (`evidence_id`, `reviewer_id`); (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`).
+
+Unique: (`revision_id`, `reviewer_id`).
+
+A decision is never updated or deleted.
+
+### `event`, changed
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `kind` | `text` | `evidence_created`, `revision_created`, or `decision_recorded` |
+
+A `decision_recorded` event's `revision_id` names the decided revision.
+
+### Approval state
+
+A revision's approval state is derived from assignments and decisions. It is not stored.
+
+- **Approved:** the item has at least one assigned reviewer, and every assigned reviewer has approved this revision.
+- **Rejected:** at least one assigned reviewer has rejected this revision.
+- **Pending:** otherwise, including when the item has no assigned reviewer.
+
 ## Service interface
 
 The application provides the module `claims_app.service`. The result types come from a small package the benchmark provides, `claims_contract`, pinned like any other dependency.
 
 ```python
-from claims_contract import EvidenceView, Failure, Ok, ProbeReport, RevisionView
+from claims_contract import ApprovalState, EvidenceView, Failure, Ok, ProbeReport, RevisionView
 
 def open_service(dsn: str, pool_max_size: int) -> "Service": ...
 
@@ -146,6 +200,11 @@ class Service:
     def revise_evidence(self, actor: int, evidence_id: int, based_on_revision_id: int, content: str) -> Ok[int] | Failure: ...
     def list_revisions(self, actor: int, evidence_id: int) -> Ok[list[RevisionView]] | Failure: ...
 
+    # V3
+    def assign_reviewer(self, actor: int, evidence_id: int, reviewer_id: int) -> Ok[int] | Failure: ...
+    def record_decision(self, actor: int, revision_id: int, outcome: str) -> Ok[int] | Failure: ...
+    def approval_state(self, actor: int, revision_id: int) -> Ok[ApprovalState] | Failure: ...
+
     # Transaction probes, from V1
     def probe_caught_violation(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
     def probe_savepoint_recovery(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
@@ -158,6 +217,9 @@ class Service:
 - `RevisionView` has `id`, `evidence_id`, `content`, `created_by`, and `created_at`.
 - In V2, `attach_evidence` also creates the item's first revision, points `current_revision_id` at it, and appends one `evidence_created` event that refers to both.
 - `revise_evidence` succeeds only when `based_on_revision_id` is the item's current revision. Otherwise it fails with `CONFLICT`.
+- `assign_reviewer` assigns a user of the actor's organization to an evidence item. Any user of the organization may assign, and an item's author may be its reviewer. Assigning a reviewer who is already assigned fails with `CONFLICT`. An item or a reviewer that is not found, including one in another organization, fails with `NOT_FOUND`.
+- `record_decision` records the actor's decision, `approved` or `rejected`, on a revision. The actor must be assigned to the revision's evidence item; otherwise the call fails with `NOT_FOUND`. A decision may be recorded on any revision of the item, not only the current one. A second decision by the same reviewer on the same revision fails with `CONFLICT`. Recording a decision and appending its `decision_recorded` event happen in one transaction.
+- `approval_state` returns `approved`, `rejected`, or `pending` for a revision, as defined above. `ApprovalState` is that set of three strings.
 
 ### Connection pool
 
@@ -203,6 +265,7 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 
 - **S1.** On an empty database, `alembic upgrade head` creates every V1 table and column above, with these types, nullability, keys, references, and the unique constraint.
 - **S2.** On a V1 database that holds data, `alembic upgrade head` produces the V2 tables and columns. `evidence.content` no longer exists.
+- **S3.** On a V2 database that holds data, `alembic upgrade head` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
 
 ### V1
 
@@ -229,6 +292,29 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 - **V2-7.** After every V2 check, every evidence item's `current_revision_id` names one of its own revisions, and every event refers to an existing revision of its evidence item.
 - Every V1 check still passes. V1-2 now also expects the first revision.
 
+### V3
+
+- **V3-1.** `assign_reviewer` succeeds. One assignment row exists with the organization, the item, and the reviewer.
+- **V3-2.** Assigning the same reviewer to the same item again fails with `CONFLICT`. No row is added.
+- **V3-3.** Assigning to an item that does not exist, or assigning a user of another organization, fails with `NOT_FOUND`. No row is added.
+- **V3-4.** An assigned reviewer's `record_decision` on a revision succeeds. One decision row exists with the revision, the reviewer, and the outcome. Exactly one `decision_recorded` event refers to the revision.
+- **V3-5.** Approval states, read through `approval_state` and recomputed by the test from the decision rows:
+  - an item with no assigned reviewer: pending;
+  - two assigned reviewers, one approval: pending;
+  - two assigned reviewers, two approvals: approved;
+  - two assigned reviewers, one approval and one rejection: rejected.
+- **V3-6.** A second decision by the same reviewer on the same revision fails with `CONFLICT`. No decision and no event are added, and the first decision is unchanged.
+- **V3-7.** A decision by a user who is not assigned to the item fails with `NOT_FOUND`. No decision and no event are added.
+- **V3-8.** After `revise_evidence`, the new revision is pending, even when the previous revision was approved. Assignments carry over; decisions do not.
+- **V3-9.** Concurrency. The same reviewer submits `approved` and `rejected` on the same revision from two threads, released together, for 20 rounds. In each round exactly one call succeeds and the other fails with `CONFLICT`. The stored outcome is the successful call's outcome, and there is one `decision_recorded` event for it.
+- **V3-10.** Atomicity. The test arms a trigger on `event` that rejects the next `decision_recorded` insert. `record_decision` fails, and no decision row was added.
+- **V3-11.** After every V3 check, the database holds:
+  - every decision's reviewer assigned to the decision's evidence item;
+  - every decision's revision belonging to that evidence item;
+  - at most one decision per reviewer per revision;
+  - as many `decision_recorded` events on each revision as decisions on it.
+- Every V1 and V2 check still passes.
+
 ### Transaction probes
 
 These are recorded, not asserted. No result here fails the suite.
@@ -244,37 +330,7 @@ The test first attaches `duplicate_ref` to the claim. It then calls each probe o
 
 Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check that V1 and V2 do not block later stages.
 
-### V3
-
-`review_assignment`:
-
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | `bigint` | Primary key, generated always as identity |
-| `organization_id` | `bigint` | Not null |
-| `evidence_id` | `bigint` | Not null |
-| `reviewer_id` | `bigint` | Not null |
-| `assigned_at` | `timestamptz` | Not null, default `now()` |
-
-Foreign keys: (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`), and (`reviewer_id`, `organization_id`) references `app_user` (`id`, `organization_id`). Unique: (`evidence_id`, `reviewer_id`).
-
-`review_decision`:
-
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | `bigint` | Primary key, generated always as identity |
-| `organization_id` | `bigint` | Not null |
-| `evidence_id` | `bigint` | Not null |
-| `revision_id` | `bigint` | Not null |
-| `reviewer_id` | `bigint` | Not null |
-| `outcome` | `text` | Not null, `approved` or `rejected` |
-| `decided_at` | `timestamptz` | Not null, default `now()` |
-
-Foreign keys: (`evidence_id`, `revision_id`) references `evidence_revision` (`evidence_id`, `id`); (`evidence_id`, `reviewer_id`) references `review_assignment` (`evidence_id`, `reviewer_id`); (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`). Unique: (`revision_id`, `reviewer_id`).
-
-A revision's approval state is derived from assignments and decisions. It is not stored. A new event kind, `decision_recorded`, refers to the decided revision.
-
-Service additions: `assign_reviewer(actor, evidence_id, reviewer_id)`, `record_decision(actor, revision_id, outcome)`, where the actor is the reviewer, and `approval_state(actor, revision_id)`. A second decision by the same reviewer on the same revision fails with `CONFLICT`.
+V3 is written in full above.
 
 ### V4
 

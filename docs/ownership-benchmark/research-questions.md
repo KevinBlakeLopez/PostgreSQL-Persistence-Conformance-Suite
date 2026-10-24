@@ -141,6 +141,7 @@ Later on 2026-10-23 the maintainer decided:
 - The V1 and V2 test contract is written in [`test-contract.md`](test-contract.md), reviewed on 2026-10-24. Revisions conflict on a stale base, the current revision is a pointer with a composite foreign key, identifiers are `bigint` identity columns, PostgreSQL sets the timestamps, the result types come from a benchmark-provided package, and atomicity is checked with a trigger the test arms.
 - V6 marks archived revisions and events with an `archived_at` column. A revision is immutable in its content, author, and creation time; archival is the only change to a revision or an event. An event is archived only together with its revision.
 - The V3–V7 sketch in `test-contract.md` is reviewed. V3 adds a `decision_recorded` event, a record of another organization reads as not found in V4, and the V5 report leaves archived rows out.
+- The V3 contract is written and reviewed. Any user of the organization may assign reviewers, and an author may review their own item. A duplicate assignment fails with `CONFLICT`, a decision by an unassigned user fails with `NOT_FOUND`, and a decision may be recorded on any revision of the item.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
@@ -148,9 +149,9 @@ V1–V7 are necessary as a set of stages. As written they are not sufficient to 
 
 These remain before the design can be frozen. Each is also marked where it applies.
 
-1. **The service interface and the assertions for V3–V7.** V1 and V2 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
+1. **The service interface and the assertions for V4–V7.** V1 to V3 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
 2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-3. **The fixed tables and columns for V3–V7.** V1 and V2 are written in [`test-contract.md`](test-contract.md).
+3. **The fixed tables and columns for V4–V7.** V1 to V3 are written in [`test-contract.md`](test-contract.md).
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 
