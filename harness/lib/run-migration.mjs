@@ -238,7 +238,7 @@ async function counts(observer, database, adapter, markers) {
   const marker_counts = {}
   for (const [label, value] of Object.entries(markers)) marker_counts[label] = await observer.markerCount(database, value)
   const history_counts = {}
-  for (const label of Object.keys(markers)) history_counts[label] = await observer.historyCount(database, adapter.history.table)
+  for (const label of Object.keys(markers)) history_counts[label] = await observer.historyCount(database, adapter.history.table, adapter.history)
   return { marker_counts, history_counts }
 }
 

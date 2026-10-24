@@ -41,13 +41,18 @@ export class Observer {
 
   /**
    * How many rows the framework's history table holds. A missing table is zero: the database has no history yet.
-   * `table` is the adapter's declared history table, and it must be a plain identifier.
+   * `table` is the adapter's declared history table, and it must be a plain identifier. Rows whose `column` holds one of
+   * `exclude` are not counted: a baseline entry the adapter records before the case's migration (Prisma's 0_baseline).
    */
-  async historyCount(database, table) {
-    if (!/^[a-z_][a-z0-9_]*$/.test(table ?? '')) throw new Error(`history table is not an identifier: ${JSON.stringify(table)}`)
+  async historyCount(database, table, { column, exclude = [] } = {}) {
+    const ident = /^[a-z_][a-z0-9_]*$/
+    if (!ident.test(table ?? '')) throw new Error(`history table is not an identifier: ${JSON.stringify(table)}`)
+    if (exclude.length && !ident.test(column ?? '')) throw new Error(`history column is not an identifier: ${JSON.stringify(column)}`)
     const rel = await this.instance.query(database, 'select to_regclass($1) as rel', [table])
     if (!rel[0].rel) return 0
-    const rows = await this.instance.query(database, `select count(*)::int as n from ${table}`)
+    const rows = exclude.length
+      ? await this.instance.query(database, `select count(*)::int as n from ${table} where ${column} <> all($1::text[])`, [exclude])
+      : await this.instance.query(database, `select count(*)::int as n from ${table}`)
     return rows[0].n
   }
 

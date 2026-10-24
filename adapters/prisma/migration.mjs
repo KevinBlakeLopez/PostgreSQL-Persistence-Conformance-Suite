@@ -1,28 +1,24 @@
 // MG-02 through `prisma migrate deploy`. The migration directory is generated for the case.
 // The schema engine takes a session advisory lock, pg_advisory_lock(72707369), before it applies SQL.
+// The PPCS fixture tables make the database non-empty, and deploy refuses a non-empty database that has no
+// _prisma_migrations (P3005). Each runner baselines it the way Prisma documents for an existing database: an empty
+// 0_baseline migration, marked applied with `prisma migrate resolve --applied`, which creates _prisma_migrations.
+// A runner that finds the baseline already recorded (P3008) carries on to deploy.
 // Migration files are forward SQL only. This module does not invent a down migration.
 import { spawn } from 'node:child_process'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import pg from 'pg'
 import { errInfo } from '../node-kit/util.mjs'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 const PRISMA_BIN = fileURLToPath(new URL('./node_modules/prisma/build/index.js', import.meta.url))
-const CONTRACT = 'Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. A migration directory contains migration.sql and no down file.'
-const FORM = 'prisma migrate deploy on a generated migration. migration.sql inserts the marker and waits on pg_advisory_xact_lock. The schema engine holds pg_advisory_lock(72707369) for the deploy. An empty _prisma_migrations table is created first when it is absent, because deploy returns P3005 when item already exists and that table does not.'
-const HISTORY_DDL = `CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
-  id varchar(36) PRIMARY KEY NOT NULL,
-  checksum varchar(64) NOT NULL,
-  finished_at timestamptz,
-  migration_name varchar(255) NOT NULL,
-  logs text,
-  rolled_back_at timestamptz,
-  started_at timestamptz NOT NULL DEFAULT now(),
-  applied_steps_count integer NOT NULL DEFAULT 0
-)`
+const CONTRACT = 'Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. `migrate resolve --applied` records a migration as applied without running it, creating _prisma_migrations when it is absent, and returns P3008 when the migration is already recorded. A migration directory contains migration.sql and no down file.'
+const FORM = 'prisma migrate resolve --applied 0_baseline, then prisma migrate deploy on a generated migration. The empty 0_baseline migration is the documented baseline for an existing database: deploy returns P3005 when the schema is not empty and has no _prisma_migrations. A P3008 answer to resolve, baseline already recorded, is not an error. migration.sql inserts the marker and waits on pg_advisory_xact_lock. The schema engine holds pg_advisory_lock(72707369) for the deploy.'
+const BASELINE = '0_baseline'
+// Prisma's answer when a migration is already recorded as applied (prisma.io/docs, baselining).
+const ALREADY_BASELINED = /\bP3008\b/
 
 function databaseUrl(connection) {
   const user = encodeURIComponent(connection.user)
@@ -39,6 +35,8 @@ function writeProject(root, { marker, gate, hold }) {
   const sql = hold ? `${insert}\nSELECT pg_advisory_xact_lock(${Number(gate)});\n` : `${insert}\n`
   const migrations = join(root, 'prisma', 'migrations')
   mkdirSync(join(migrations, '20200101000000_m1'), { recursive: true })
+  mkdirSync(join(migrations, BASELINE), { recursive: true })
+  writeFileSync(join(migrations, BASELINE, 'migration.sql'), '-- The PPCS fixture tables exist before Prisma Migrate runs. This migration is marked applied, never executed.\n')
   writeFileSync(join(migrations, 'migration_lock.toml'), 'provider = "postgresql"\n')
   writeFileSync(join(migrations, '20200101000000_m1', 'migration.sql'), sql)
   writeFileSync(join(root, 'schema.prisma'), 'datasource db {\n  provider = "postgresql"\n}\n')
@@ -52,9 +50,9 @@ export default defineConfig({
 `)
 }
 
-function deploy(cwd, env) {
+function prismaCli(cwd, env, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [PRISMA_BIN, 'migrate', 'deploy'], {
+    const child = spawn(process.execPath, [PRISMA_BIN, ...args], {
       cwd,
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -68,27 +66,6 @@ function deploy(cwd, env) {
   })
 }
 
-async function withClient(connection, fn) {
-  const client = new pg.Client({
-    host: connection.host,
-    port: connection.port,
-    user: connection.user,
-    password: connection.password,
-    database: connection.database,
-    application_name: 'ppcs-count',
-  })
-  await client.connect()
-  try {
-    return await fn(client)
-  } finally {
-    await client.end()
-  }
-}
-
-async function ensureHistory(connection) {
-  await withClient(connection, (client) => client.query(HISTORY_DDL))
-}
-
 function redact(text, password) {
   return password ? text.split(password).join('[redacted]') : text
 }
@@ -98,12 +75,14 @@ export async function runPrismaMigration(connection, { markers, migration }) {
   const url = databaseUrl(connection)
   try {
     writeProject(root, { marker: markers.m1, gate: migration.gate, hold: migration.hold === true })
-    await ensureHistory(connection)
-    const result = await deploy(root, {
-      ...process.env,
-      DATABASE_URL: url,
-      NODE_PATH: join(HERE, 'node_modules'),
-    })
+    const env = { ...process.env, DATABASE_URL: url, NODE_PATH: join(HERE, 'node_modules') }
+    const baseline = await prismaCli(root, env, ['migrate', 'resolve', '--applied', BASELINE])
+    if (baseline.code !== 0 && !ALREADY_BASELINED.test(`${baseline.stdout}\n${baseline.stderr}`)) {
+      const message = redact(baseline.stderr, connection.password).trim().split('\n').filter(Boolean).slice(-3).join(' ').slice(0, 500)
+      return { reported: 'failed', exit_code: baseline.code, basis: 'prisma migrate resolve --applied 0_baseline exited non-zero', contract: CONTRACT, form: FORM, api_error: { class: 'PrismaMigrateError', code: null, message: message || `exit ${baseline.code}` } }
+    }
+    const baselined = baseline.code === 0 ? 'migrate resolve recorded 0_baseline' : 'migrate resolve found 0_baseline already recorded (P3008)'
+    const result = await prismaCli(root, env, ['migrate', 'deploy'])
     if (result.code !== 0) {
       const message = redact(result.stderr, connection.password).trim().split('\n').filter(Boolean).slice(-3).join(' ').slice(0, 500)
       return {
@@ -119,7 +98,7 @@ export async function runPrismaMigration(connection, { markers, migration }) {
     return {
       reported: applied ? 'applied' : 'nothing_to_do',
       exit_code: 0,
-      basis: applied ? 'prisma migrate deploy applied the migration' : 'prisma migrate deploy reported no pending migration',
+      basis: `${applied ? 'prisma migrate deploy applied the migration' : 'prisma migrate deploy reported no pending migration'}; ${baselined}`,
       contract: CONTRACT,
       form: FORM,
     }
