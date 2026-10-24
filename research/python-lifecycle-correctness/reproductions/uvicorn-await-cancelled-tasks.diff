@@ -1,0 +1,14 @@
+diff --git a/uvicorn/server.py b/uvicorn/server.py
+index 380e70a..73d75a3 100644
+--- a/uvicorn/server.py
++++ b/uvicorn/server.py
+@@ -302,6 +302,9 @@ class Server:
+             )
+             for t in self.server_state.tasks:
+                 t.cancel(msg="Task cancelled, timeout graceful shutdown exceeded")
++            # Let the cancelled tasks finish unwinding before the lifespan shutdown.
++            if self.server_state.tasks:
++                await asyncio.wait(self.server_state.tasks)
+ 
+         # Send the lifespan shutdown event, and wait for application shutdown.
+         if not self.force_exit:
