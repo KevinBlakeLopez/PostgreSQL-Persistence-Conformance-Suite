@@ -1,0 +1,142 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-25-38Z-b2394a",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-03.no-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A migration that provides no reversal is reverted",
+    "steps": [
+      "Runner A applies { m1 }. m1 inserts marker m1 and provides no reversal.",
+      "Revert with the framework's default selection.",
+      "Apply { m1 } again.",
+      "Checkpoint `after-end`, as soon as the revert has returned and the reapply has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent."
+      },
+      {
+        "id": "MG-03.2",
+        "statement": "If a migration provides no reversal, a revert does not report it as reverted while its marker remains: it refuses before changing history, or follows a documented irreversible-migration contract that keeps history and database consistent."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pdo-control",
+      "version": "UNKNOWN",
+      "source_sha256": "aa269b57d3ed69f85e370439d4f38a2549ba1f2f172eacdb4fa3668da557e7f9"
+    },
+    "framework": {
+      "name": "pdo_pgsql",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "correct",
+    "kind": "native",
+    "description": "Positive control. PDO::beginTransaction, prepared inserts, then PDO::commit or PDO::rollBack. A caught statement error calls rollBack() and does not call commit(). A thrown rollBack() or commit() drops the handle and is reported as failed, not as a confirmed rollback. ATTR_PERSISTENT is false. One connection, not a pool. The command tag is not read.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "none"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller of revert learns only what the operation reports. If that report says the migration was reverted, the caller treats its effects as gone.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "PDO has no migration runner or reversible migration history. This adapter does not add one.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pdo-control --mode=correct --case=MG-03.no-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:26:47.014Z",
+    "finished_at": "2026-10-24T14:26:47.014Z",
+    "duration_ms": 0
+  }
+}

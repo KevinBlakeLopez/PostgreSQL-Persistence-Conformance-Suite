@@ -1,0 +1,370 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-28-18Z-d11ad8",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "jooq",
+      "version": "0.1.0",
+      "source_sha256": "cabb28669315e7c55c1433408a5433c9d7f203c306000555eb359c0584d0268f"
+    },
+    "framework": {
+      "name": "jooq",
+      "version": "3.21.9"
+    },
+    "driver": {
+      "name": "postgresql",
+      "version": "42.7.14"
+    },
+    "components": {
+      "jooq": "3.21.9",
+      "postgresql": "42.7.14"
+    },
+    "runtime": {
+      "name": "java",
+      "version": "21.0.12.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "DSL.using(DataSource, SQLDialect.POSTGRES) and DSLContext.transaction. No TransactionProvider is installed, so Configuration.transactionProvider() supplies DefaultTransactionProvider, whose default nested flag is true. The callback uses the Configuration it is given. A nested scope is configuration.dsl().transaction, which DefaultTransactionProvider implements with Connection.setSavepoint. Isolation for TX-05.managed-serializable is the Isolation.SERIALIZABLE transaction property, applied by DefaultTransactionProvider.brace before setAutoCommit(false). The DataSource calls DriverManager.getConnection and closes that connection when jOOQ releases it. No pool. TX-03 is not run in this mode. TX-05.explicit-serializable is not run in this mode: transaction() does not return a handle.",
+    "configuration": {
+      "dataSource": "org.ppcs.jooq.Connections.DriverDataSource",
+      "pool": false,
+      "transaction": "DSLContext.transaction",
+      "transactionProvider": "org.jooq.impl.DefaultTransactionProvider",
+      "transactionProviderInstalled": false,
+      "nestedSavepoints": true,
+      "dialect": "POSTGRES",
+      "sql": "DSL table and field names, no generated catalog",
+      "edition": "org.jooq:jooq Open Source Edition"
+    },
+    "form": "Top-level transaction, then an insert into item through the DSL. Native mode is DSLContext.transaction. JDBC mode is Connection.setAutoCommit(false) and Connection.commit, with the same DSL insert."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "DSLContext.transaction threw an exception the callback did not throw",
+    "contract": "jOOQ 3.21 manual, Transaction management: a callback that returns is an implicit commit, and an uncaught exception rolls the transactional scope back. DSLContext.transaction javadoc: a runtime exception thrown by the transactional logic indicates that a rollback has occurred, and a checked exception is wrapped in DataAccessException with the same meaning. DefaultTransactionProvider.commit calls Connection.commit when the savepoint stack is empty. Connection.commit() is void and does not return a command tag. DefaultTransactionProvider models a nested transaction() as a JDBC Savepoint. It does not open a second connection.",
+    "error": {
+      "class": "DataAccessException",
+      "code": "57P01",
+      "message": "Cannot commit transaction: FATAL: terminating connection due to administrator command"
+    },
+    "steps": {
+      "transaction_owner": "jooq",
+      "completion": {
+        "commit_calls": 1,
+        "rollback_calls": 1,
+        "savepoint_rollback_calls": 0,
+        "set_autocommit_calls": 1,
+        "set_isolation_calls": 0,
+        "commit": [
+          "Connection.commit OPEN autoCommit=false -> closed threw 57P01"
+        ]
+      },
+      "suppressed": [
+        {
+          "class": "DataAccessException",
+          "code": "08003",
+          "message": "Cannot set autoCommit: This connection has been closed."
+        }
+      ],
+      "listeners": [
+        "beginStart",
+        "commitStart",
+        "commitEnd",
+        "rollbackStart",
+        "rollbackEnd"
+      ]
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 46589,
+          "xid": "6351"
+        },
+        "session": {
+          "pid": 46589,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "6351",
+          "xid_matches": true,
+          "backend_xmin": "6351",
+          "backend_start": "2026-10-24 14:28:35.879376+00",
+          "query": "select pg_backend_pid(), pg_current_xact_id()::text, current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "6351"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 46589,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "6351",
+              "xid_matches": null,
+              "backend_xmin": "6351",
+              "backend_start": "2026-10-24 14:28:35.879376+00",
+              "query": "select pg_backend_pid(), pg_current_xact_id()::text, current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 46589,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 46589,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "6351",
+        "pid": 46589,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:28:35.879376+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [6351]"
+      },
+      {
+        "description": "the runner terminated the backend at `before-end`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (aborted), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 6351 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for jooq (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=jooq --mode=native --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "jdbc": [
+        "Connection.setAutoCommit(false) IDLE autoCommit=true -> IDLE autoCommit=false",
+        "Connection.commit OPEN autoCommit=false -> closed threw 57P01",
+        "Connection.rollback closed -> closed threw 08003",
+        "Connection.close state=closed"
+      ],
+      "sql": [
+        "insert into \"item\" (\"name\", \"qty\") values (?, ?)",
+        "select pg_backend_pid(), pg_current_xact_id()::text, current_setting('transaction_isolation')"
+      ],
+      "listeners": [
+        "beginStart",
+        "commitStart",
+        "commitEnd",
+        "rollbackStart",
+        "rollbackEnd"
+      ]
+    },
+    "stderr": "SLF4J(W): No SLF4J providers were found.\nSLF4J(W): Defaulting to no-operation (NOP) logger implementation\nSLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:28:35.425Z",
+    "finished_at": "2026-10-24T14:28:37.498Z",
+    "duration_ms": 2073
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 762
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 657
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 654
+      }
+    ]
+  }
+}

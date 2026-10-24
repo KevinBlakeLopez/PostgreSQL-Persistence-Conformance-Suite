@@ -1,0 +1,319 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-30-51Z-855e81",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "CTL-01.rollback",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and fails with an application error",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Raise an application error inside the transaction, so that the framework rolls it back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "npgsql-control",
+      "version": "0.1.0",
+      "source_sha256": "0f9d99213019ca06f3fa349f6ca64635c13a61998a7133bee0afa9443a6157f8"
+    },
+    "framework": {
+      "name": "npgsql-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "Npgsql",
+      "version": "10.0.3"
+    },
+    "components": {
+      "Npgsql": "10.0.3",
+      "runtime": "10.0.13"
+    },
+    "runtime": {
+      "name": "dotnet",
+      "version": "10.0.13"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "configured",
+    "description": "Negative control. CommitAsync returning is reported as committed, with no probe. A thrown CommitAsync is reported as rolled_back. A failed RollbackAsync(savepoint) is ignored and the outer transaction is committed. A thrown RollbackAsync is followed by CommitAsync, and the connection is kept. IsolationLevel is not passed. A write made before a savepoint is executed inside that savepoint. Pooling is off.",
+    "configuration": {
+      "commit_outcome": "committed whenever CommitAsync returns",
+      "commit_error": "reported as rolled_back",
+      "failed_savepoint_rollback": "ignored; CommitAsync",
+      "failed_rollback": "CommitAsync; connection kept",
+      "isolation_level": "not passed",
+      "write_before_savepoint": "sent inside the savepoint",
+      "command_tag": "not exposed by NpgsqlTransaction.CommitAsync",
+      "connections": "one NpgsqlConnection, pooling off"
+    },
+    "form": "NpgsqlConnection.BeginTransactionAsync, parameterized commands, then CommitAsync or RollbackAsync. One connection is held until the case's after-end checkpoint, unless the policy disposed it."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The framework rolls the transaction back, and PostgreSQL confirms the ROLLBACK, so the client knows that nothing committed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw and NpgsqlTransaction.RollbackAsync returned",
+    "contract": "The unsafe npgsql-control policy reports committed whenever NpgsqlTransaction.CommitAsync returns. It does not probe the session and does not read a command tag. It reports rolled_back when CommitAsync throws. It calls CommitAsync after RollbackAsync(savepoint) has thrown. When RollbackAsync throws, it calls CommitAsync and keeps the connection. That is the mistake of clearing an open transaction by committing it. It does not pass an IsolationLevel to BeginTransactionAsync. A write made before a nested savepoint is executed inside that savepoint.",
+    "error": {
+      "class": "AppException",
+      "code": null,
+      "message": "application error: the request fails"
+    },
+    "steps": {
+      "body_error": {
+        "class": "AppException",
+        "code": null,
+        "message": "application error: the request fails"
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 57945,
+          "xid": "7920"
+        },
+        "session": {
+          "pid": 57945,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "7920",
+          "xid_matches": true,
+          "backend_xmin": "7920",
+          "backend_start": "2026-10-24 14:32:18.386717+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "7920"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 57945,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "7920",
+              "xid_matches": null,
+              "backend_xmin": "7920",
+              "backend_start": "2026-10-24 14:32:18.386717+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 57945,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:32:18.386717+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "7920",
+        "pid": 57945,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:32:18.386717+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.2 held: xid 7920 rolled back at report time (`after-end`); marker visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [7920]"
+      },
+      {
+        "description": "the API reported \"rolled_back\"",
+        "met": true,
+        "detail": "reported: rolled_back"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker.",
+        "holds": true,
+        "detail": "xid 7920 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=npgsql-control --mode=unsafe --case=CTL-01.rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "notes": [
+        "opened backend",
+        "BEGIN"
+      ],
+      "trace": [
+        "ROLLBACK"
+      ],
+      "pooled": false
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:32:18.146Z",
+    "finished_at": "2026-10-24T14:32:18.803Z",
+    "duration_ms": 657
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 7920 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 215
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 7924 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 220
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 7928 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 222
+      }
+    ]
+  }
+}

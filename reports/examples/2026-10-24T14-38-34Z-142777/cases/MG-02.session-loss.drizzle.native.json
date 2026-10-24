@@ -1,0 +1,281 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-38-34Z-142777",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-02.session-loss",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "One session of runner A ends while A is inside the migration",
+    "steps": [
+      "As MG-02.held, until checkpoint inside-A.",
+      "List runner A's sessions by application_name ppcs-A. Terminate one of them with pg_terminate_backend. The choice does not depend on which session holds the framework's lock.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "drizzle",
+      "version": "0.1.0",
+      "source_sha256": "515d761b95035d92f48f1403883cba1be8d54033b9d5f39d619f2ec8783e8991"
+    },
+    "framework": {
+      "name": "drizzle-orm",
+      "version": "0.45.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "Drizzle's db.transaction(callback) on a pg.Pool (the driver default when given a connection string). The pool max is the case's pool_max. No command-tag check, no connection discard, no extra rollback, and no 'error' listener on pooled clients.",
+    "configuration": {
+      "client": "pg.Pool",
+      "transaction": "db.transaction(callback)"
+    },
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "enumerate": "sessions-of-A"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend() of one session of runner A, chosen by application_name ppcs-A, without knowing which session coordinates.",
+    "injection_point": "While A's migration waits at the gate, after its marker insert.",
+    "expected_server": "The session ends. Session-scoped locks it held are released. Its open transaction, if any, aborts.",
+    "expected_client": "The client of that session sees the connection drop."
+  },
+  "knowledge": "The runner whose session ended can see the connection error. Another runner cannot see, from the database alone, that the ended session was the one holding coordination.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": null,
+    "contract": null,
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "the runner did not complete"
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "Error",
+            "code": null,
+            "message": "the runner did not complete"
+          }
+        },
+        "B": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "migrate() inserted a history row",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+        },
+        "C": {
+          "reported": "nothing_to_do",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "migrate() left the history count unchanged",
+          "contract": "drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration's statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal."
+        }
+      },
+      "enumerations": 1,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "A",
+      "B"
+    ],
+    "session_ended": true,
+    "terminated": {
+      "pid": 91986,
+      "gone": true
+    }
+  },
+  "evaluation": {
+    "preconditions": [],
+    "invariants": [],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "the adapter reported an error: no detail",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for drizzle (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=drizzle --mode=native --case=MG-02.session-loss",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": "node:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nError: Connection terminated unexpectedly\n    at Connection.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:204:73)\n    at Object.onceWrapper (node:events:622:28)\n    at Connection.emit (node:events:508:28)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection.js:64:12)\n    at Socket.emit (node:events:508:28)\n    at TCP.<anonymous> (node:net:346:12)\nEmitted 'error' event on Client instance at:\n    at Client._handleErrorEvent (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:422:10)\n    at Connection.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js:222:16)\n    at Object.onceWrapper (node:events:622:28)\n    at Connection.emit (node:events:508:28)\n    at Socket.<anonymous> (/Users/kevinlopez/code/postgres-persistence-conformance/adapters/drizzle/node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection.js:64:12)\n    at Socket.emit (node:events:508:28)\n    at TCP.<anonymous> (node:net:346:12)\n\nNode.js v24.14.1\n",
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:40:47.455Z",
+    "finished_at": "2026-10-24T14:40:49.811Z",
+    "duration_ms": 2356
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter reported an error: no detail",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 792
+      },
+      {
+        "repetition": 2,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter reported an error: no detail",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 779
+      },
+      {
+        "repetition": 3,
+        "classification": "INCONCLUSIVE",
+        "reason": "the adapter reported an error: no detail",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 785
+      }
+    ]
+  }
+}

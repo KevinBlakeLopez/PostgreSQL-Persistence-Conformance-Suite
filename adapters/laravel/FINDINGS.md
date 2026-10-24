@@ -85,7 +85,7 @@ The adapter writes the case's migration file to a temporary directory, creates `
 | Case | Result | Observed |
 | --- | --- | --- |
 | `MG-02.held` | FAIL | A and B were inside the migration at once. Marker count 2, history count 2. C found nothing to do. |
-| `MG-02.first-deployment` | PASS (history-table collision, no lock) | One runner failed creating `migrations` (`pg_class_relname_nsp_index`, on `migrations_id_seq`). The other applied. B failed in the first repetition, A in the other two. |
+| `MG-02.first-deployment` | PASS (history-table collision, no lock), case version 1.0 | One runner failed creating `migrations` (`pg_class_relname_nsp_index`, on `migrations_id_seq`). The other applied. B failed in the first repetition, A in the other two. |
 | `MG-02.session-loss` | FAIL, MG-02.5 | B entered while A was still inside. The terminated runner reported `SQLSTATE[HY000]` "no connection to the server", and B applied. Marker count 1. |
 | `MG-02.idle-session-timeout` | FAIL | As `MG-02.held`. A had one session, inside the migration's transaction, and it did not end. |
 | `MG-03.valid-reversal` | PASS | The revert deleted the marker and the history row. The reapply ran the migration again. |
@@ -94,7 +94,7 @@ The adapter writes the case's migration file to a temporary directory, creates `
 
 Source reading of `Migrations/Migrator.php` at v13.38.0: the migrator takes no advisory lock. `runUp()` calls `runMigration()`, which wraps `up()` in `Connection::transaction()`, and then calls `repository->log()`. `runDown()` calls `runMigration()`, which skips a missing `down()`, and then calls `repository->delete()`. The `CREATE TABLE` in the recorded first-deployment error has no unique constraint on `migration`, so two runners leave two history rows.
 
-The first-deployment pass is not coordination. Both runners started at once against a database with no history table, and one `CREATE TABLE` collided. When B starts after the table exists and A is still inside the migration, both runners execute it, as `MG-02.held` shows.
+The first-deployment pass is not coordination. In version 1.0 of the case, both runners started at once against a database with no history table, and one `CREATE TABLE` collided. Version 1.1 holds an uncommitted creation of `migrations` until both runners wait on it, so they always collide. In [`reports/examples/2026-10-24T14-38-34Z-142777`](../../reports/examples/2026-10-24T14-38-34Z-142777/summary.md) all three repetitions passed: one runner applied, and the other failed and did not execute the migration. In the repetition the case file records in full, the error is `UniqueConstraintViolationException` (`23505` on `pg_class_relname_nsp_index`). When B starts after the table exists and A is still inside the migration, both runners execute it, as `MG-02.held` shows.
 
 `MigrateCommand`, in the same package, implements `Isolatable`. In the illuminate/console v13.38.0 source, `php artisan migrate --isolated` takes a lock in the application's cache store before the command runs. The lock expires after an hour by default. A run that cannot get it prints that the command is already running and exits 0, unless `--isolated` is given a status code. `migrate:rollback` is not `Isolatable`. This adapter does not run the console command, so `--isolated` is not measured.
 

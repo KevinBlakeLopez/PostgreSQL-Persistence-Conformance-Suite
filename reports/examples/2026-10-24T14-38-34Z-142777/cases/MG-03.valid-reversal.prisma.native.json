@@ -1,0 +1,138 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-38-34Z-142777",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-03.valid-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A migration whose reversal deletes its marker",
+    "steps": [
+      "Runner A applies { m1 }. m1 inserts marker m1.",
+      "Revert with the framework's default selection. m1's reversal deletes marker m1.",
+      "Apply { m1 } again.",
+      "Checkpoint `after-end`, as soon as the revert has returned and the reapply has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.1",
+        "statement": "If a revert reports a migration as reverted, its history entry is absent and its marker is absent."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "prisma",
+      "version": "UNKNOWN",
+      "source_sha256": "bad3f2a7258ae4fcbb6a94fc66cd5670c2b5239cf3a78fd6a40178edc79396d4"
+    },
+    "framework": {
+      "name": "@prisma/client",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "PrismaClient with a PrismaPg adapter around a pg.Pool. The pool max is the case's pool_max. Interactive transactions use prisma.$transaction(async (tx) => ...), and a nested tx.$transaction() where the case asks for a nested scope. Isolation is the documented isolationLevel option. Prisma's default interactive-transaction timeout (5000 ms) and maxWait (2000 ms) are left in place. No command-tag check, no connection discard, and no extra rollback.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "valid"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A reported revert says the migration's effects are gone. The next apply is what shows that history and the database agree: the migration runs again.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "Prisma Migrate 7.10.1 reads migration.sql and migration_lock.toml. migrate deploy applies that forward SQL and records _prisma_migrations. A migration directory has no down file, and deploy does not run a reversal. This adapter does not add one.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=prisma --mode=native --case=MG-03.valid-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:47:11.406Z",
+    "finished_at": "2026-10-24T14:47:11.406Z",
+    "duration_ms": 0
+  }
+}

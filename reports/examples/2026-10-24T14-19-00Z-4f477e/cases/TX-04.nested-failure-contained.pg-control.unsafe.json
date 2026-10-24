@@ -1,0 +1,338 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-19-00Z-4f477e",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-04.nested-failure-contained",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope fails; the caller handles the failure and commits",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() (the top-level transaction's ID) and pg_backend_pid().",
+      "Raise an application error in the nested scope.",
+      "The outer scope catches the error and ends normally.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "1e833df8af22fd61c75bacc508ea0dc2cc05d3f95b40372541b5cccaf62d5f1a"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "control",
+    "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, ignoring a requested isolation level.",
+    "configuration": {
+      "commit_reply": "ignored",
+      "commit_error": "reported as a rollback",
+      "failed_savepoint_rollback": "ignored",
+      "failed_rollback": "connection returned to the pool",
+      "write_before_nested_scope": "deferred into the nested scope's savepoint",
+      "isolation_level": "ignored: plain BEGIN"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope failed: its error reached the caller. PostgreSQL answers the final COMMIT with COMMIT.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "COMMIT did not raise (command tag COMMIT)",
+    "contract": "The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, whatever isolation level is requested of it.",
+    "error": null,
+    "steps": {
+      "nested": {
+        "caught": true,
+        "completed": false
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 29380,
+          "xid": "3797"
+        },
+        "session": {
+          "pid": 29380,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "3797",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:23:43.367544+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "3797",
+            "3798"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 29380,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "3797",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:23:43.367544+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 29380,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:23:43.367544+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "3797",
+        "pid": 29380,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-24 14:23:43.367544+00"
+      }
+    },
+    "markers": {
+      "outer": false,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": null,
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "FAIL",
+    "reason": "TX-04.1 violated: the API reported: committed; xid 3797 committed at report time (`after-end`); outer visible: false; inner (failed scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [3797, 3798]"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
+        "holds": false,
+        "detail": "the API reported: committed; xid 3797 committed at report time (`after-end`); outer visible: false; inner (failed scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": {
+      "invariants": [
+        "TX-04.1: When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes."
+      ],
+      "framework": "The unsafe control reports committed whenever COMMIT does not raise, whatever the command tag, and reports a rollback whenever COMMIT raises. It ignores failed savepoint rollbacks, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, whatever isolation level is requested of it."
+    },
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for pg-control (unsafe)"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=unsafe --case=TX-04.nested-failure-contained",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 29380): BEGIN",
+        "c1(pid 29380): -> command tag BEGIN for: BEGIN",
+        "c1(pid 29380): SAVEPOINT ppcs_nested",
+        "c1(pid 29380): -> command tag SAVEPOINT for: SAVEPOINT ppcs_nested",
+        "c1(pid 29380): insert into item (name) values ($1)",
+        "c1(pid 29380): insert into item (name) values ($1)",
+        "c1(pid 29380): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 29380): ROLLBACK TO SAVEPOINT ppcs_nested",
+        "c1(pid 29380): -> command tag ROLLBACK for: ROLLBACK TO SAVEPOINT ppcs_nested",
+        "c1(pid 29380): COMMIT",
+        "c1(pid 29380): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:23:43.181Z",
+    "finished_at": "2026-10-24T14:23:43.631Z",
+    "duration_ms": 450
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "FAIL",
+        "reason": "TX-04.1 violated: the API reported: committed; xid 3797 committed at report time (`after-end`); outer visible: false; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 137
+      },
+      {
+        "repetition": 2,
+        "classification": "FAIL",
+        "reason": "TX-04.1 violated: the API reported: committed; xid 3802 committed at report time (`after-end`); outer visible: false; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 142
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "TX-04.1 violated: the API reported: committed; xid 3807 committed at report time (`after-end`); outer visible: false; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": false,
+          "inner": false
+        },
+        "duration_ms": 171
+      }
+    ]
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-36-42Z-a550ea",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "sqlx",
+      "version": "0.1.0",
+      "source_sha256": "71626a19b77084148566c832ff2a38be46b23fa0d0e4e194232a897f7a2c6af3"
+    },
+    "framework": {
+      "name": "sqlx",
+      "version": "unknown"
+    },
+    "driver": {
+      "name": "sqlx-postgres",
+      "version": "unknown"
+    },
+    "components": {
+      "serde_json": "unknown",
+      "sqlx-core": "unknown",
+      "tokio": "unknown"
+    },
+    "runtime": {
+      "name": "rustc",
+      "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+    }
+  },
+  "execution": {
+    "mode": "explicit",
+    "kind": "native",
+    "description": "PgPool begin, Transaction::commit, and Transaction::rollback. A nested Transaction::begin is SAVEPOINT _sqlx_savepoint_N. max_connections is pool_max, min_connections is 0, and test_before_acquire is false. No after_release hook is installed. SQLx still calls ping before returning a connection to the pool; that is the pool, not an adapter mitigation.",
+    "configuration": {
+      "compile_time_macros": false,
+      "connection": "PgPool",
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "min_connections": 0,
+      "pool_max": 1,
+      "rollback": "Transaction::commit and Transaction::rollback",
+      "sslmode": "disable",
+      "statement_logging": false,
+      "test_before_acquire": false
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "Transaction::commit returned an error, which asserts neither commit nor rollback",
+    "contract": "sqlx 0.9.0 Transaction::commit (sqlx-core/src/transaction.rs) returns Ok after PgTransactionManager::commit returns. That method (sqlx-postgres/src/transaction.rs) executes COMMIT, or RELEASE SAVEPOINT when nested, and returns Ok when execute returns Ok. PgConnection::run records CommandComplete only as rows_affected (sqlx-postgres/src/connection/executor.rs). A command tag of ROLLBACK is not an error. Transaction::rollback returns Ok when ROLLBACK or ROLLBACK TO SAVEPOINT returns Ok, and returns that statement's error otherwise. On that error the Transaction is still open, so Drop calls start_rollback, which queues a second rollback and does not wait.",
+    "error": {
+      "class": "sqlx::Error",
+      "message": "error communicating with database: expected to read 5 bytes, got 0 bytes at EOF"
+    },
+    "steps": {
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "INSERT 0 1",
+          "SELECT 1"
+        ],
+        "rewritten": [],
+        "simple_queries": [
+          "BEGIN",
+          "COMMIT"
+        ],
+        "withheld": []
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 84136,
+          "xid": "11682"
+        },
+        "session": {
+          "pid": 84136,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11682",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:38:14.798604+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11682"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 84136,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11682",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:14.798604+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 84136,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 84136,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "11682",
+        "pid": 84136,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:38:14.798604+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: failed",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [11682]"
+      },
+      {
+        "description": "the runner terminated the backend at `before-end`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (aborted), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 11682 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: failed"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for sqlx (explicit)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=sqlx --mode=explicit --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "compile_time_macros": false,
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "INSERT 0 1",
+          "SELECT 1"
+        ],
+        "rewritten": [],
+        "simple_queries": [
+          "BEGIN",
+          "COMMIT"
+        ],
+        "withheld": []
+      },
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "sqlx": "unknown",
+      "sqlx_core": "unknown",
+      "sqlx_postgres": "unknown",
+      "tokio": "unknown"
+    },
+    "stderr": "sqlx-proxy: session ended: early eof\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:38:14.624Z",
+    "finished_at": "2026-10-24T14:38:15.288Z",
+    "duration_ms": 664
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 220
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 225
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: failed",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 219
+      }
+    ]
+  }
+}

@@ -371,7 +371,10 @@ const FAMILIES = {
     const appliedClaims = reports.filter((r) => r.reported === 'applied' && r.exit_code === 0)
     const inside = ev.observed?.inside_migration
     const sessionEnded = ev.observed?.session_ended === true
+    const hold = ev.observed?.creation_hold
     const preconditions = []
+    // MG-02.first-deployment: the collision is established only if both runners were waiting when the runner let go.
+    if (ev.case.settings?.hold === 'history-table') preconditions.push(check('when the runner released its creation of the history table, each runner was waiting on a lock or had reported failure, and at least one was waiting', hold?.established === true, hold ? `waiting: ${hold.blocked_roles.join(', ') || 'none'}; reported failure before the release: ${hold.failed_before_release?.join(', ') || 'none'}; after ${hold.waited_ms} ms` : 'not observed'))
     if (ev.case.invariants.includes('MG-02.1')) preconditions.push(check('the marker count and the history count were read after every runner finished', counted, `marker ${count ?? 'not read'}; history ${history ?? 'not read'}`, 'evidence-missing'))
     if (ev.case.invariants.includes('MG-02.5')) {
       preconditions.push(check('the runner recorded which roles were inside the migration at the same time', Array.isArray(inside), Array.isArray(inside) ? (inside.join(', ') || 'none') : 'not observed', 'evidence-missing'))

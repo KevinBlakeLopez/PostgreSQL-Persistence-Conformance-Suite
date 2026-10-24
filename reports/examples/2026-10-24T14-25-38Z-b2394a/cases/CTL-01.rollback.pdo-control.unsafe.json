@@ -1,0 +1,326 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-25-38Z-b2394a",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "CTL-01.rollback",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and fails with an application error",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Raise an application error inside the transaction, so that the framework rolls it back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pdo-control",
+      "version": "0.1.0",
+      "source_sha256": "aa269b57d3ed69f85e370439d4f38a2549ba1f2f172eacdb4fa3668da557e7f9"
+    },
+    "framework": {
+      "name": "pdo_pgsql",
+      "version": "8.5.12"
+    },
+    "driver": {
+      "name": "libpq",
+      "version": "18.6"
+    },
+    "components": {
+      "pdo_pgsql": "8.5.12",
+      "libpq": "18.6",
+      "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)"
+    },
+    "runtime": {
+      "name": "php",
+      "version": "8.5.12"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "configured",
+    "description": "Negative control. PDO::commit() returning true is reported as committed, including after a caught unique violation. A thrown commit() is reported as rolled_back. A thrown rollBack() keeps the handle. The next unit continues on that handle when beginTransaction reports an active transaction. ATTR_PERSISTENT is false.",
+    "configuration": {
+      "commit_outcome": "committed when PDO::commit returns true",
+      "commit_error": "reported as rolled_back",
+      "failed_rollback": "handle kept; next beginTransaction may continue on it",
+      "persistent": "PDO::ATTR_PERSISTENT false",
+      "connections": "one PDO handle at a time, not a pool",
+      "command_tag": "not exposed by pdo_pgsql"
+    },
+    "form": "PDO::beginTransaction(), prepared inserts against item and uniq, then PDO::commit() or PDO::rollBack(). One connection is held. It is not a pool."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The framework rolls the transaction back, and PostgreSQL confirms the ROLLBACK, so the client knows that nothing committed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw and PDO::rollBack() returned",
+    "contract": "The unsafe pdo-control policy reports committed when PDO::commit() returns true, including after a unique violation was caught in the same transaction. It does not read a command tag, and PDO::commit() does not return one. A true return is the success signal. When PDO::commit() throws, the policy reports rolled_back. When the body throws and PDO::rollBack() throws, the policy reports failed and keeps the PDO handle. The next unit calls PDO::beginTransaction(). If that throws \"already an active transaction\", the policy writes and calls PDO::commit() on the same handle. There is no Connection.setAutoCommit. This is not the JDBC unsafe policy's setAutoCommit(true) call.",
+    "error": {
+      "class": "Ppcs\\AppException",
+      "code": null,
+      "message": "application error: the request fails"
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 38821,
+          "xid": "5268"
+        },
+        "session": {
+          "pid": 38821,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "5268",
+          "xid_matches": true,
+          "backend_xmin": "5268",
+          "backend_start": "2026-10-24 14:26:31.551317+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "5268"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 38821,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "5268",
+              "xid_matches": null,
+              "backend_xmin": "5268",
+              "backend_start": "2026-10-24 14:26:31.551317+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 38821,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:26:31.551317+00",
+              "query": "ROLLBACK",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "5268",
+        "pid": 38821,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:26:31.551317+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.2 held: xid 5268 rolled back at report time (`after-end`); marker visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [5268]"
+      },
+      {
+        "description": "the API reported \"rolled_back\"",
+        "met": true,
+        "detail": "reported: rolled_back"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker.",
+        "holds": true,
+        "detail": "xid 5268 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pdo-control --mode=unsafe --case=CTL-01.rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "new FaultingPdo",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid"
+      ],
+      "fault_trace": [
+        "BEGIN via PDO::beginTransaction",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "ROLLBACK via PDO::rollBack"
+      ],
+      "commit": {
+        "commit_calls": 0,
+        "commit_return": null,
+        "commit_sqlstate": null,
+        "in_transaction_before_commit": null,
+        "in_transaction_after_commit": null,
+        "command_tag_visible": false
+      },
+      "persistent": false,
+      "command_tag": null,
+      "command_tag_note": "pdo_pgsql does not expose PQcmdStatus. PDO::commit() return value is not a command tag."
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:26:31.335Z",
+    "finished_at": "2026-10-24T14:26:32.408Z",
+    "duration_ms": 1073
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 5268 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 167
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 5272 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 504
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 5276 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 402
+      }
+    ]
+  }
+}

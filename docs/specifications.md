@@ -198,7 +198,7 @@ The runner holds an advisory lock on its own session. The migration waits on tha
 | Case | What it does |
 | --- | --- |
 | `MG-02.held` (none) | A is inside the migration, held at the gate. B starts. Then C, after both have finished. |
-| `MG-02.first-deployment` (none) | A and B are released together against a database with no history storage. |
+| `MG-02.first-deployment` (none) | Neither the framework's history table nor `ppcs_history` exists. The runner creates a table with the adapter's history-table name in its own transaction and holds it uncommitted, so both A and B find no history storage. Each waits on the creation or on the framework's coordination, or is refused by that coordination and reports failure. The runner then rolls back, and the creations of the runners that were waiting collide. A second runner that starts after the table exists is `MG-02.held`. Case version 1.1; version 1.0 started both runners at once and depended on their timing. |
 | `MG-02.session-loss` (B) | While A is inside the migration, one of A's sessions, chosen by `application_name`, is terminated. Then B, then C. |
 | `MG-02.idle-session-timeout` (none) | A's connections set `idle_session_timeout = 1s`. A session busy inside the migration's transaction is not idle, so the setting does not end it. |
 

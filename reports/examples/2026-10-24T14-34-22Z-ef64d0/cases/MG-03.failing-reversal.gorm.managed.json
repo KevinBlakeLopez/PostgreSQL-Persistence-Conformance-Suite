@@ -1,0 +1,138 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-34-22Z-ef64d0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-03.failing-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A transactional migration's reversal deletes its marker and then fails",
+    "steps": [
+      "Runner A applies { m1 }.",
+      "Revert. m1's reversal deletes its marker and then raises an error. The migration is transactional, so the deletion is in the reversal's transaction.",
+      "Checkpoint `after-end`, as soon as the revert has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "gorm",
+      "version": "UNKNOWN",
+      "source_sha256": "512fe52e10465dda4d9ffbf5dda46e2c439f99307fb4c771821b3d33bcd6f81e"
+    },
+    "framework": {
+      "name": "gorm.io/gorm",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "managed",
+    "kind": "native",
+    "description": "DB.Transaction. The callback catches the unique violation and returns nil, so GORM calls Commit. A nested DB.Transaction is a savepoint. sql.TxOptions.Isolation is passed to DB.Transaction for TX-05. SkipDefaultTransaction and DisableNestedTransaction keep their defaults.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "partial-then-error"
+    },
+    "transactional": true
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A reported failure says the revert did not complete. For a transactional migration, the caller can treat the migration as still applied.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "This adapter does not use GORM's AutoMigrate. There is no reversible migration history under test. This adapter does not add one.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=gorm --mode=managed --case=MG-03.failing-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:35:13.251Z",
+    "finished_at": "2026-10-24T14:35:13.251Z",
+    "duration_ms": 0
+  }
+}

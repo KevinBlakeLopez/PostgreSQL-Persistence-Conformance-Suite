@@ -72,6 +72,38 @@ test('MG-02.held is INCONCLUSIVE when no runner reached the gate', () => {
   assert.match(result.reason, /reached the migration/)
 })
 
+const collision = (blocked = ['A', 'B'], failed = []) => ({ table: 'migrations', blocked_roles: blocked, failed_before_release: failed, established: blocked.length > 0 && blocked.length + failed.length === 2, waited_ms: 420 })
+const firstRunners = { A: done('applied'), B: failed('duplicate key value violates unique constraint "pg_class_relname_nsp_index"') }
+
+test('MG-02.first-deployment passes when both runners waited on the creation and the loser of the collision failed', () => {
+  const result = classify(evidence('MG-02.first-deployment', { runners: firstRunners, observed: { creation_hold: collision() } }), catalog.statements)
+  assert.equal(result.classification, 'PASS')
+})
+
+test('MG-02.first-deployment fails when the loser of the collision carries on and executes the migration', () => {
+  const runners = { A: done('applied'), B: done('applied') }
+  const observed = { creation_hold: collision(), marker_counts: { m1: 2 }, history_counts: { m1: 2 }, inside_migration: ['A', 'B'] }
+  const result = classify(evidence('MG-02.first-deployment', { runners, observed }), catalog.statements)
+  assert.equal(result.classification, 'FAIL')
+  assert.match(result.reason, /MG-02\.5/)
+})
+
+test('MG-02.first-deployment passes when the framework refused the second runner before the release', () => {
+  const result = classify(evidence('MG-02.first-deployment', { runners: { A: done('applied'), B: failed('unable to acquire lock') }, observed: { creation_hold: collision(['A'], ['B']) } }), catalog.statements)
+  assert.equal(result.classification, 'PASS')
+})
+
+test('MG-02.first-deployment is INCONCLUSIVE when a runner neither waited nor reported failure before the release', () => {
+  const result = classify(evidence('MG-02.first-deployment', { runners: firstRunners, observed: { creation_hold: collision(['A']) } }), catalog.statements)
+  assert.equal(result.classification, 'INCONCLUSIVE')
+  assert.match(result.reason, /waiting on a lock/)
+})
+
+test('MG-02.first-deployment is INCONCLUSIVE when the creation hold was not observed', () => {
+  const result = classify(evidence('MG-02.first-deployment', { runners: firstRunners }), catalog.statements)
+  assert.equal(result.classification, 'INCONCLUSIVE')
+})
+
 test('MG-02.idle-session-timeout is INCONCLUSIVE when no session of A ended, and the other invariants are recorded', () => {
   const result = classify(evidence('MG-02.idle-session-timeout', { runners: heldRunners, observed: { session_ended: false } }), catalog.statements)
   assert.equal(result.classification, 'INCONCLUSIVE')

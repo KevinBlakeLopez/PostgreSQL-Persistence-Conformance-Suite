@@ -1,0 +1,369 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-38-34Z-142777",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-02.session-loss",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "One session of runner A ends while A is inside the migration",
+    "steps": [
+      "As MG-02.held, until checkpoint inside-A.",
+      "List runner A's sessions by application_name ppcs-A. Terminate one of them with pg_terminate_backend. The choice does not depend on which session holds the framework's lock.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "activerecord",
+      "version": "0.1.0",
+      "source_sha256": "53f8737f66cd1b0d623f93e646fc9e370e50e37ad8531faa8fea881e129c532c"
+    },
+    "framework": {
+      "name": "activerecord",
+      "version": "8.1.4"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "1.7.0"
+    },
+    "components": {
+      "ruby": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin25]",
+      "activerecord": "8.1.4",
+      "pg": "1.7.0",
+      "libpq": "180006"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "4.0.7"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "ActiveRecord::Base.transaction on the connection pool. Pool size is the case pool_max. A nested transaction(requires_new: true) is a savepoint named active_record_N. create! writes the markers. MigrationContext applies and rolls back files under a temporary path. No full Rails application, no database.yml, and no callback is registered on the scored path.",
+    "configuration": {
+      "api": "ActiveRecord::Base.transaction",
+      "nested": "transaction(requires_new: true) savepoint",
+      "pool": "connection pool size from the case pool_max",
+      "faults": "category C and D faults are injected on PG::Connection before Active Record sees the error",
+      "migrations": "ActiveRecord::MigrationContext"
+    },
+    "form": null
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "enumerate": "sessions-of-A"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend() of one session of runner A, chosen by application_name ppcs-A, without knowing which session coordinates.",
+    "injection_point": "While A's migration waits at the gate, after its marker insert.",
+    "expected_server": "The session ends. Session-scoped locks it held are released. Its open transaction, if any, aborts.",
+    "expected_client": "The client of that session sees the connection drop."
+  },
+  "knowledge": "The runner whose session ended can see the connection error. Another runner cannot see, from the database alone, that the ended session was the one holding coordination.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "Migrator#with_advisory_lock raised ConcurrentMigrationError",
+    "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html",
+    "error": {
+      "class": "ActiveRecord::ConcurrentMigrationError",
+      "code": null,
+      "message": ""
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "ActiveRecord::ConcurrentMigrationError",
+            "code": null,
+            "message": ""
+          },
+          "basis": "Migrator#with_advisory_lock raised ConcurrentMigrationError",
+          "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html"
+        },
+        "B": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "ActiveRecord::ConcurrentMigrationError",
+            "code": null,
+            "message": ""
+          },
+          "basis": "Migrator#with_advisory_lock raised ConcurrentMigrationError",
+          "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html"
+        },
+        "C": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "MigrationContext#migrate returned",
+          "contract": "ActiveRecord::MigrationContext runs migrations from files. On PostgreSQL the migration and its schema_migrations change share a transaction unless disable_ddl_transaction is set. Migrator#with_advisory_lock calls PostgreSQLAdapter#get_advisory_lock, which is pg_try_advisory_lock. A second process that does not get the lock raises ActiveRecord::ConcurrentMigrationError instead of waiting. https://api.rubyonrails.org/v8.1.4/classes/ActiveRecord/Migration.html"
+        }
+      },
+      "enumerations": 1,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "A"
+    ],
+    "session_ended": true,
+    "terminated": {
+      "pid": 88471,
+      "gone": true
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.4 held: a session of runner A ended; marker count 1; MG-02.5 held: roles inside the migration at once: A",
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 1; history 1"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "A"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "A"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": true,
+        "detail": "marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE.",
+        "holds": true,
+        "detail": "a session of runner A ended; marker count 1"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": true,
+        "detail": "roles inside the migration at once: A"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for activerecord (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=activerecord --mode=native --case=MG-02.session-loss",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 88471): SET client_min_messages TO 'warning'",
+        "c1(pid 88471): SET standard_conforming_strings = on",
+        "c1(pid 88471): SET intervalstyle = iso_8601",
+        "c1(pid 88471): SELECT t.oid, t.typname FROM pg_type as t WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'numeric', 'bool', 'timestamp', 'timestamptz')",
+        "c1(pid 88471): SET SESSION timezone TO 'UTC'",
+        "c1(pid 88471): SHOW search_path",
+        "c1(pid 88471): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'text', 'varchar', 'char', 'name', 'bpchar', 'bool', 'bit', 'varbit', ",
+        "c1(pid 88471): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typtype IN ('r', 'e', 'd')",
+        "c1(pid 88471): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typelem IN (16, 17, 18, 19, 20, 21, 23, 25, 26, 114, 142, 600, 601, 602, 603, 604, 628, 700, 701, 718, 790, 829, 869, 650, 1042, 1043",
+        "c1(pid 88471): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'schema_migrations' AND c.relkind IN ('r','v','m','p','f')",
+        "c1(pid 88471): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'schema_migrations' AND c.relkind IN ('r','p')",
+        "c1(pid 88471): SHOW max_identifier_length",
+        "c1(pid 88471): CREATE TABLE \"schema_migrations\" (\"version\" character varying NOT NULL PRIMARY KEY)",
+        "c1(pid 88471): SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = ANY (current_schemas(false)) AND c.relname = 'ar_internal_metadata' AND c.relkind IN ('r','p')",
+        "c1(pid 88471): CREATE TABLE \"ar_internal_metadata\" (\"key\" character varying NOT NULL PRIMARY KEY, \"value\" character varying, \"created_at\" timestamp(6) NOT NULL, \"updated_at\" timestamp(6) NOT NULL)",
+        "c1(pid 88471): SELECT current_database()",
+        "c1(pid 88471): SELECT pg_try_advisory_lock(359214089218170585)",
+        "c1(pid 88471): SELECT * FROM \"ar_internal_metadata\" WHERE \"ar_internal_metadata\".\"key\" = $1 ORDER BY \"ar_internal_metadata\".\"key\" ASC LIMIT 1",
+        "c1(pid 88471): INSERT INTO \"ar_internal_metadata\" (\"key\", \"value\", \"created_at\", \"updated_at\") VALUES ('environment', 'default_env', '2026-10-24 14:38:59.614732', '2026-10-24 14:38:59.614734') RETURNING \"key\"",
+        "c1(pid 88471): BEGIN",
+        "c1(pid 88471): -> command tag BEGIN for: BEGIN",
+        "c1(pid 88471): INSERT INTO item (name) VALUES ('m1-109f8a')",
+        "c1(pid 88471): SELECT pg_advisory_xact_lock(77002002)",
+        "c2(pid 0): -> ERROR PQconsumeInput() FATAL: terminating connection due to administrator command",
+        "c2(pid 0): ROLLBACK",
+        "c2(pid 0): -> ERROR PQsocket() can't get socket descriptor",
+        "c2(pid 0): SELECT pg_advisory_unlock(359214089218170585)",
+        "c2(pid 0): -> ERROR PQsocket() can't get socket descriptor",
+        "c3(pid 88553): SET client_min_messages TO 'warning'",
+        "c3(pid 88553): SET standard_conforming_strings = on",
+        "c3(pid 88553): SET intervalstyle = iso_8601",
+        "c3(pid 88553): SELECT t.oid, t.typname FROM pg_type as t WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'numeric', 'bool', 'timestamp', 'timestamptz')",
+        "c3(pid 88553): SET SESSION timezone TO 'UTC'",
+        "c3(pid 88553): SHOW search_path",
+        "c3(pid 88553): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typname IN ('int2', 'int4', 'int8', 'oid', 'float4', 'float8', 'text', 'varchar', 'char', 'name', 'bpchar', 'bool', 'bit', 'varbit', ",
+        "c3(pid 88553): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typtype IN ('r', 'e', 'd')",
+        "c3(pid 88553): SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype FROM pg_type as t LEFT JOIN pg_range as r ON oid = rngtypid WHERE t.typelem IN (16, 17, 18, 19, 20, 21, 23, 25, 26, 114, 142, 600, 601, 602, 603, 604, 628, 700, 701, 718, 790, 829, 869, 650, 1042, 1043",
+        "c3(pid 88553): SELECT pg_advisory_unlock(359214089218170585)"
+      ],
+      "commit_replies": []
+    },
+    "stderr": "WARNING:  you don't own a lock of type ExclusiveLock\n",
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:38:59.252Z",
+    "finished_at": "2026-10-24T14:39:10.709Z",
+    "duration_ms": 11457
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.4 held: a session of runner A ended; marker count 1; MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3811
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.4 held: a session of runner A ended; marker count 1; MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3828
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-02.1 held: marker count 1; history entries 1; MG-02.4 held: a session of runner A ended; marker count 1; MG-02.5 held: roles inside the migration at once: A",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 3818
+      }
+    ]
+  }
+}

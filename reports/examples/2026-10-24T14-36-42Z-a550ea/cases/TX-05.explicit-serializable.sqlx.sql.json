@@ -1,0 +1,407 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-36-42Z-a550ea",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-05.explicit-serializable",
+    "version": "1.0",
+    "family": "TX-05",
+    "family_title": "Requested isolation level",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "An explicit transaction requests SERIALIZABLE",
+    "steps": [
+      "Start a transaction with the framework's explicit transaction API, the one that returns a transaction handle which the application commits with an explicit call, requesting the isolation level in settings.isolation_level (SERIALIZABLE). The server's default is READ COMMITTED. If the API raises instead of starting the transaction, record its error and go to step 6.",
+      "Write the marker `tx` through the framework's ordinary write API, using the handle, and make sure that write was sent.",
+      "Read the marker back through the framework's ordinary query API, using the handle, and make sure the read reached PostgreSQL: a query, not a lookup in the framework's identity map or cache. The runner confirms it by the transaction's AccessShareLock on item.",
+      "Checkpoint `after-read`: in one statement, through the transaction's own connection, read pg_current_xact_id(), pg_backend_pid() and current_setting('transaction_isolation'), and report all three.",
+      "Commit with the handle's explicit commit call. Then go to the last step.",
+      "Only if the API raised at step 1: start a plain transaction through the same explicit API, with no isolation level. Inside it, at checkpoint `baseline`, report pg_current_xact_id() and pg_backend_pid(), then end it normally. If the plain transaction fails too, report its error in steps.baseline. Report the outcome failed, with step 1's error as api_error.",
+      "Checkpoint `after-end`, as soon as the API has returned (after step 6, when it ran): the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one."
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "sqlx",
+      "version": "0.1.0",
+      "source_sha256": "71626a19b77084148566c832ff2a38be46b23fa0d0e4e194232a897f7a2c6af3"
+    },
+    "framework": {
+      "name": "sqlx",
+      "version": "unknown"
+    },
+    "driver": {
+      "name": "sqlx-postgres",
+      "version": "unknown"
+    },
+    "components": {
+      "serde_json": "unknown",
+      "sqlx-core": "unknown",
+      "tokio": "unknown"
+    },
+    "runtime": {
+      "name": "rustc",
+      "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+    }
+  },
+  "execution": {
+    "mode": "sql",
+    "kind": "configured",
+    "description": "TX-05 only, plus the observation controls. begin and transaction take no isolation argument. The first statement is SET TRANSACTION ISOLATION LEVEL SERIALIZABLE. That is application SQL, not a transaction-API option. The explicit case then calls Transaction::commit. The managed case uses Connection::transaction.",
+    "configuration": {
+      "compile_time_macros": false,
+      "connection": "PgPool",
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "min_connections": 0,
+      "pool_max": 1,
+      "rollback": "Transaction::commit or Connection::transaction, with SET TRANSACTION first for TX-05",
+      "sslmode": "disable",
+      "statement_logging": false,
+      "test_before_acquire": false
+    },
+    "form": "Connection::begin, then SET TRANSACTION ISOLATION LEVEL as the first statement, then Transaction::commit. begin takes no isolation argument."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "isolation_level": "serializable"
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A successful start does not tell the application which level PostgreSQL applied; only current_setting('transaction_isolation'), read inside the transaction, does. An application that requested SERIALIZABLE and got no error relies on its guarantee: concurrent transactions behave as if they had run one at a time. A rejected request reaches the application as an error, so it can decide what to do instead.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "Transaction::commit returned Ok",
+    "contract": "Pool::begin, Connection::begin, and Connection::transaction take no isolation argument in sqlx 0.9.0. This mode sends SET TRANSACTION ISOLATION LEVEL as the first statement of the transaction. That is application SQL, not a transaction-API option. The rest of the boundary is Transaction::commit or Connection::transaction, as in the explicit and managed modes.",
+    "error": null,
+    "steps": {
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "SET",
+          "INSERT 0 1",
+          "SELECT 1",
+          "SELECT 1",
+          "COMMIT"
+        ],
+        "rewritten": [],
+        "simple_queries": [
+          "BEGIN",
+          "COMMIT"
+        ],
+        "withheld": []
+      },
+      "isolation_api": "SET TRANSACTION",
+      "requested": "serializable"
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "after-read": {
+        "reported": {
+          "pid": 87599,
+          "xid": "12201",
+          "transaction_isolation": "serializable"
+        },
+        "session": {
+          "pid": 87599,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "12201",
+          "xid_matches": true,
+          "backend_xmin": "12201",
+          "backend_start": "2026-10-24 14:38:33.033321+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "12201"
+          ],
+          "read_item": true,
+          "siread": [
+            {
+              "locktype": "relation",
+              "relation": "item",
+              "page": null,
+              "tuple": null,
+              "on_item": true
+            }
+          ]
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 87599,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "12201",
+              "xid_matches": null,
+              "backend_xmin": "12201",
+              "backend_start": "2026-10-24 14:38:33.033321+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 87599,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:33.033321+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "12201",
+        "pid": 87599,
+        "captured_at": "after-read",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-24 14:38:33.033321+00"
+      }
+    },
+    "markers": {
+      "tx": true
+    },
+    "marker_xmin": {
+      "tx": "12201"
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `after-read` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `after-read`: item locked; transactionid [12201]"
+      },
+      {
+        "description": "the case requests SERIALIZABLE, the one level whose effect the runner can corroborate",
+        "met": true,
+        "detail": "requested: serializable"
+      },
+      {
+        "description": "at `after-read` the transaction's session was idle in its transaction (\"idle in transaction\"), so its locks show the statements it had run",
+        "met": true,
+        "detail": "session: \"idle in transaction\""
+      },
+      {
+        "description": "the transaction's read of item reached PostgreSQL: its backend held an AccessShareLock on item at `after-read`",
+        "met": true,
+        "detail": "AccessShareLock on item: held"
+      },
+      {
+        "description": "PostgreSQL's own report of the level, current_setting('transaction_isolation'), came with the captured ID at `after-read`",
+        "met": true,
+        "detail": "reported: serializable"
+      },
+      {
+        "description": "PostgreSQL's report and the runner's lock evidence agree: SERIALIZABLE with an SIReadLock on item or one of its indexes, or a weaker level with no SIReadLock at all",
+        "met": true,
+        "detail": "reported: serializable; SIReadLocks: relation:item"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-05.1",
+        "statement": "On PostgreSQL, a transaction that the API started at a requested isolation level runs at that level or a stricter one, never at a weaker one.",
+        "holds": true,
+        "detail": "requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item"
+      },
+      {
+        "id": "TX-05.2",
+        "statement": "An API whose documentation accepts an isolation level that PostgreSQL supports does not reject a valid request for that level: it starts the transaction.",
+        "holds": true,
+        "detail": "the API started the transaction"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for sqlx (sql)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=sqlx --mode=sql --case=TX-05.explicit-serializable",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "compile_time_macros": false,
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "SET",
+          "INSERT 0 1",
+          "SELECT 1",
+          "SELECT 1",
+          "COMMIT"
+        ],
+        "rewritten": [],
+        "simple_queries": [
+          "BEGIN",
+          "COMMIT"
+        ],
+        "withheld": []
+      },
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "sqlx": "unknown",
+      "sqlx_core": "unknown",
+      "sqlx_postgres": "unknown",
+      "tokio": "unknown"
+    },
+    "stderr": "sqlx-proxy: COMMIT -> COMMIT\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:38:32.860Z",
+    "finished_at": "2026-10-24T14:38:33.162Z",
+    "duration_ms": 302
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 101
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 100
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-05.1 held: requested serializable; PostgreSQL reported serializable, and the backend held an SIReadLock on relation:item after its read of item; TX-05.2 held: the API started the transaction",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "tx": true
+        },
+        "duration_ms": 101
+      }
+    ]
+  }
+}

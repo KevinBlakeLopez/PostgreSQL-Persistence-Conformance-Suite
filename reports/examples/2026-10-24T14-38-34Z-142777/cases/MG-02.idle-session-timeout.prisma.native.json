@@ -1,0 +1,318 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-38-34Z-142777",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-02.idle-session-timeout",
+    "version": "1.0",
+    "family": "MG-02",
+    "family_title": "Concurrent runner coordination",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "PostgreSQL ends runner A's idle sessions while A is inside the migration",
+    "steps": [
+      "Runner A's connections set idle_session_timeout = 1s.",
+      "As MG-02.held, until checkpoint inside-A.",
+      "Wait until one of A's sessions has ended, or 4 s have passed.",
+      "Runner B applies { m1 }. For the bound, B may exit, reach the gate, or stay blocked on the framework's own coordination.",
+      "Release K. A and B finish within the deadline. Runner C applies { m1 }.",
+      "Checkpoint `after-end`, as soon as the last runner has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it."
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE."
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "prisma",
+      "version": "0.1.0",
+      "source_sha256": "bad3f2a7258ae4fcbb6a94fc66cd5670c2b5239cf3a78fd6a40178edc79396d4"
+    },
+    "framework": {
+      "name": "@prisma/client",
+      "version": "7.10.1"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@prisma/adapter-pg": "7.10.1",
+      "prisma": "7.10.1",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "PrismaClient with a PrismaPg adapter around a pg.Pool. The pool max is the case's pool_max. Interactive transactions use prisma.$transaction(async (tx) => ...), and a nested tx.$transaction() where the case asks for a nested scope. Isolation is the documented isolationLevel option. Prisma's default interactive-transaction timeout (5000 ms) and maxWait (2000 ms) are left in place. No command-tag check, no connection discard, and no extra rollback.",
+    "configuration": {
+      "client": "PrismaClient",
+      "adapter": "PrismaPg(pg.Pool)",
+      "transaction": "prisma.$transaction(async (tx) => ...)",
+      "query_compiler": "client",
+      "compilerBuild": "fast",
+      "engine": "no Rust query engine",
+      "pool": "pg.Pool, max = case pool_max, external pool not disposed by the adapter",
+      "interactive_transaction_timeout_ms": 5000,
+      "interactive_transaction_max_wait_ms": 2000
+    },
+    "form": "prisma migrate resolve --applied 0_baseline, then prisma migrate deploy on a generated migration. The empty 0_baseline migration is the documented baseline for an existing database: deploy returns P3005 when the schema is not empty and has no _prisma_migrations. A P3008 answer to resolve, baseline already recorded, is not an error. migration.sql inserts the marker and waits on pg_advisory_xact_lock. The schema engine holds pg_advisory_lock(72707369) for the deploy."
+  },
+  "configuration": {
+    "runners": [
+      "A",
+      "B",
+      "C"
+    ],
+    "pool_max": 10,
+    "gate": "sql",
+    "bound_ms": 3000,
+    "connection_options": {
+      "A": "-c idle_session_timeout=1000"
+    }
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "idle_session_timeout ends a session that is idle outside a transaction. A session busy inside the migration's transaction is not idle, so the setting does not end that session.",
+  "api_outcome": {
+    "reported": "applied",
+    "basis": "prisma migrate deploy applied the migration; migrate resolve recorded 0_baseline",
+    "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. `migrate resolve --applied` records a migration as applied without running it, creating _prisma_migrations when it is absent, and returns P3008 when the migration is already recorded. A migration directory contains migration.sql and no down file.",
+    "error": null,
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "applied",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "prisma migrate deploy applied the migration; migrate resolve recorded 0_baseline",
+          "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. `migrate resolve --applied` records a migration as applied without running it, creating _prisma_migrations when it is absent, and returns P3008 when the migration is already recorded. A migration directory contains migration.sql and no down file."
+        },
+        "B": {
+          "reported": "nothing_to_do",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "prisma migrate deploy reported no pending migration; migrate resolve found 0_baseline already recorded (P3008)",
+          "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. `migrate resolve --applied` records a migration as applied without running it, creating _prisma_migrations when it is absent, and returns P3008 when the migration is already recorded. A migration directory contains migration.sql and no down file."
+        },
+        "C": {
+          "reported": "nothing_to_do",
+          "exit_code": 0,
+          "api_error": null,
+          "basis": "prisma migrate deploy reported no pending migration; migrate resolve found 0_baseline already recorded (P3008)",
+          "contract": "Prisma Migrate 7.10.1 `migrate deploy` applies pending migration.sql files and records them in _prisma_migrations. The schema engine takes SELECT pg_advisory_lock(72707369) before applying. `migrate resolve --applied` records a migration as applied without running it, creating _prisma_migrations when it is absent, and returns P3008 when the migration is already recorded. A migration directory contains migration.sql and no down file."
+        }
+      },
+      "enumerations": 1,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [
+      "A"
+    ],
+    "session_ended": false
+  },
+  "evaluation": {
+    "preconditions": [
+      {
+        "description": "the marker count and the history count were read after every runner finished",
+        "met": true,
+        "detail": "marker 1; history 1"
+      },
+      {
+        "description": "the runner recorded which roles were inside the migration at the same time",
+        "met": true,
+        "detail": "A"
+      },
+      {
+        "description": "a runner reached the migration and waited at the gate, so mutual exclusion could be observed",
+        "met": true,
+        "detail": "A"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-02.1",
+        "statement": "After every runner has finished, the migration's marker count is 1 and history holds one entry for it.",
+        "holds": true,
+        "detail": "marker count 1; history entries 1"
+      },
+      {
+        "id": "MG-02.4",
+        "statement": "If any single session of runner A ends while A is inside the migration, either A's execution of it does not commit, or no other runner executes it before A finishes: its marker count is 1. Judged only when the session actually ended; otherwise the case is INCONCLUSIVE.",
+        "holds": null,
+        "detail": "no session of runner A ended, so the fault did not happen"
+      },
+      {
+        "id": "MG-02.5",
+        "statement": "No runner starts executing the migration while another runner's execution of it is still live (its session still inside the migration): two live sessions inside it at once is a violation.",
+        "holds": true,
+        "detail": "roles inside the migration at once: A"
+      }
+    ],
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "inconclusive_reason": null,
+    "classification": "INCONCLUSIVE",
+    "reason": "an invariant could not be evaluated: MG-02.4 (no session of runner A ended, so the fault did not happen)",
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for prisma (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=prisma --mode=native --case=MG-02.idle-session-timeout",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [],
+      "commit_replies": [],
+      "trace_sees_framework_pg": true,
+      "external_pool": true
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:46:43.369Z",
+    "finished_at": "2026-10-24T14:47:11.402Z",
+    "duration_ms": 28033
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "INCONCLUSIVE",
+        "reason": "an invariant could not be evaluated: MG-02.4 (no session of runner A ended, so the fault did not happen)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 9377
+      },
+      {
+        "repetition": 2,
+        "classification": "INCONCLUSIVE",
+        "reason": "an invariant could not be evaluated: MG-02.4 (no session of runner A ended, so the fault did not happen)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 9592
+      },
+      {
+        "repetition": 3,
+        "classification": "INCONCLUSIVE",
+        "reason": "an invariant could not be evaluated: MG-02.4 (no session of runner A ended, so the fault did not happen)",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "applied",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 9064
+      }
+    ]
+  }
+}
