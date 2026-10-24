@@ -137,16 +137,18 @@ Later on 2026-10-23 the maintainer decided:
 - V5's report runs against fixtures of 30 and 300 evidence items, each matched in a second organization. It must send the same number of statements for both, counted by the proxy. There is no time limit.
 - V7 moves the whole persistence stack (psycopg, its pool, SQLAlchemy, and Alembic, wherever installed) across one 24-month calendar window. V1–V6 and the pilot pin the versions current at the window's start. V7 moves to the versions current at its end.
 - The transaction task runs only on V1's external-reference rule. It is not repeated on V3's decision constraint. The cumulative tests re-run it at every later stage.
+- Every table carries `organization_id`, kept equal to the claim's (and the author's) by composite foreign keys. Each architecture can then use its natural scoping tool: a condition on each query, or the ORM's automatic filter. PostgreSQL row-level security is not used, because it would enforce isolation the same way in every arm and erase the difference V4 measures.
+- The V1 and V2 test contract is written in [`test-contract.md`](test-contract.md), reviewed on 2026-10-24. Revisions conflict on a stale base, the current revision is a pointer with a composite foreign key, identifiers are `bigint` identity columns, PostgreSQL sets the timestamps, the result types come from a benchmark-provided package, and atomicity is checked with a trigger the test arms.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
 ## Open before freeze
 
-These are the maintainer's to write. The review did not fill them, and this draft does not either. Each is also marked where it applies.
+These remain before the design can be frozen. Each is also marked where it applies.
 
-1. **The service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. That includes what "successful" and "failed" mean in the V1 invariants, the V2 invariants, and the pool settings, including whether part B pins the pool to one connection. The kind of interface, and how the tests read the database, are decided above.
+1. **The service interface and the assertions for V3–V7.** V1 and V2 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
 2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-3. **The fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. The product rules they depend on are now decided, so they can be drafted with the service interface.
+3. **The fixed tables and columns for V3–V7.** V1 and V2 are written in [`test-contract.md`](test-contract.md).
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 

@@ -55,7 +55,7 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 
 **Transaction task.** The PPCS-derived transaction task uses the external-reference rule as its unique constraint, so the pilot can run it.
 
-**Open before freeze: what "successful" and "failed" mean.** The invariants do not say whether they mean the application's response or the independent database read. The methodology counts a green functional suite with a wrong database outcome as a correctness failure, so those two observations can disagree.
+**"Successful" and "failed".** A call succeeds when it returns `Ok`, and fails when it returns a `Failure` or raises. Each check also reads PostgreSQL on its own connection, and a disagreement between the response and the database fails the check. The checks are in [`test-contract.md`](test-contract.md).
 
 **Migrations.** Every arm creates and changes its schema with Alembic. The methodology plan's Python cohort section says how each arm uses it.
 
@@ -70,7 +70,7 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 - relationship changes
 - preservation of V1 behavior for records that have only their original revision
 
-**Open before freeze: V2 invariants.** V2 has no invariant list. V3 requires the stored decision to match the application's response. V2 does not say the same of the current-revision pointer.
+**Invariants.** V2's checks are V2-1 to V2-7 in [`test-contract.md`](test-contract.md). They include a stale-base conflict and a concurrency check whose stored pointer must match the application's responses.
 
 This is the pilot transition. The pilot stops here.
 
@@ -90,7 +90,7 @@ The unique constraint on a review decision is a product rule. The PPCS-derived t
 
 ## V4 — Organization-level isolation
 
-**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
+**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. The application enforces the rule. PostgreSQL row-level security is not used. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
 
 **How the tests observe it.** A correct response can hide an unscoped fetch, so the V4 tests also watch the wire. They run through a proxy between the application and PostgreSQL that records the rows each query returns. Organization B's fixture rows carry known identifiers. A test fails if any of them reaches the application, whatever the response says.
 
@@ -161,9 +161,9 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface.
+**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 and V2 are written in [`test-contract.md`](test-contract.md). V3–V7 are not.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. The product rules they depend on are now decided.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 and V2 are written in [`test-contract.md`](test-contract.md). V3–V7 are not.
 
 ## Out of scope for the application
 
