@@ -1,0 +1,44 @@
+{
+ "versions": {
+  "sqlalchemy": "2.1.5",
+  "psycopg": "3.3.6"
+ },
+ "results": [
+  {
+   "variant": "default (reset_on_return rollback)",
+   "same_backend": true,
+   "invalidations": [],
+   "unit2_saw": {
+    "role": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table": true
+   }
+  },
+  {
+   "variant": "documented recipe on psycopg 3",
+   "same_backend": true,
+   "invalidations": [],
+   "unit2_saw": {
+    "role": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table": true
+   }
+  },
+  {
+   "variant": "corrected: rollback, then DISCARD ALL in autocommit",
+   "same_backend": true,
+   "invalidations": [],
+   "unit2_saw": {
+    "role": "app_login",
+    "app.tenant_id": "",
+    "search_path": "\"$user\", public",
+    "statement_timeout": "0",
+    "temp_table": false
+   }
+  }
+ ]
+}

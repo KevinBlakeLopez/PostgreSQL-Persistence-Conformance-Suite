@@ -1,0 +1,103 @@
+{
+ "versions": {
+  "asyncpg": "0.32.0",
+  "psycopg": "3.3.6",
+  "psycopg_pool": "3.3.3",
+  "sqlalchemy": "2.1.5",
+  "django": "6.1.2",
+  "python": "3.13.11"
+ },
+ "unit1_sets": "SET ROLE tenant_a; SET app.tenant_id = 'a'; SET search_path = tenant_s, public; SET statement_timeout = '54321'; SELECT pg_advisory_lock({key}); CREATE TEMP TABLE IF NOT EXISTS scratch_tmp (x int)",
+ "results": [
+  {
+   "flavor": "asyncpg Pool (reset: RESET ALL etc.)",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "",
+    "search_path": "\"$user\", public",
+    "statement_timeout": "0",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "public.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 0
+  },
+  {
+   "flavor": "psycopg_pool ConnectionPool (default, no reset)",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "tenant_s.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 1
+  },
+  {
+   "flavor": "SQLAlchemy QueuePool + psycopg (reset_on_return rollback)",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "tenant_s.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 1
+  },
+  {
+   "flavor": "SQLAlchemy AsyncAdaptedQueuePool + asyncpg",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "tenant_s.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 1
+  },
+  {
+   "flavor": "Django persistent connection (CONN_MAX_AGE None)",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "tenant_s.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 1
+  },
+  {
+   "flavor": "Django native pool (OPTIONS pool, psycopg_pool)",
+   "same_backend": true,
+   "unit2_saw": {
+    "current_user": "tenant_a",
+    "app.tenant_id": "a",
+    "search_path": "tenant_s, public",
+    "statement_timeout": "54321ms",
+    "temp_table_visible": true
+   },
+   "unit2_row": [
+    "tenant_s.item by tenant_a"
+   ],
+   "advisory_locks_after_unit1": 1
+  }
+ ]
+}
