@@ -90,9 +90,9 @@ The unique constraint on a review decision is a product rule. The PPCS-derived t
 
 ## V4 — Organization-level isolation
 
-**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. The application enforces the rule. PostgreSQL row-level security is not used. A record of another organization is reported as not found. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
+**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. The application enforces the rule. PostgreSQL row-level security is not used. A record of another organization is reported as not found. In an organization-wide read, such as a list of the organization's claims or the report, a query that fetches another organization's rows and drops them in application code is a failure, even when the response is correct. In a call that names a record by identifier, fetching that record to find that it belongs to another organization is allowed, and it is recorded.
 
-**How the tests observe it.** A correct response can hide an unscoped fetch, so the V4 tests also watch the wire. They run through a proxy between the application and PostgreSQL that records the rows each query returns. Organization B's fixture rows carry known identifiers. A test fails if any of them reaches the application, whatever the response says.
+**How the tests observe it.** A correct response can hide an unscoped fetch, so the V4 tests also watch the wire. They run through a proxy between the application and PostgreSQL that records the rows each query returns. Organization B's fixture rows carry known identifiers. In an organization-wide read, a test fails if any of them reaches the application, whatever the response says. In a call that names a record, they are recorded.
 
 **Measure.**
 
@@ -161,9 +161,9 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V3 are written in [`test-contract.md`](test-contract.md). V4–V7 are not.
+**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V4 are written in [`test-contract.md`](test-contract.md). V5–V7 are not.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V3 are written in [`test-contract.md`](test-contract.md). V4–V7 are not.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V4 are written in [`test-contract.md`](test-contract.md). V5–V7 are not.
 
 ## Out of scope for the application
 

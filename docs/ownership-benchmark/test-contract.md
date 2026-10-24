@@ -1,6 +1,6 @@
 # Test contract
 
-Status: V1 to V3 written and reviewed on 2026-10-24. Not frozen. V4–V7 are a sketch at the end.
+Status: V1 to V4 written and reviewed on 2026-10-24. Not frozen. V5–V7 are a sketch at the end.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -14,6 +14,7 @@ This document is the contract between the application and its acceptance tests. 
 - The user table is named `app_user`, because `user` is reserved in PostgreSQL.
 - Every table carries `organization_id`. Composite foreign keys keep it equal to the organization of the row's parent and author.
 - Isolation between organizations is the application's job. PostgreSQL row-level security is not used.
+- From V4, the DSN passed to `open_service` points at a proxy the tests run. The application must not require TLS.
 
 ## Tables after V1
 
@@ -179,7 +180,7 @@ A revision's approval state is derived from assignments and decisions. It is not
 The application provides the module `claims_app.service`. The result types come from a small package the benchmark provides, `claims_contract`, pinned like any other dependency.
 
 ```python
-from claims_contract import ApprovalState, EvidenceView, Failure, Ok, ProbeReport, RevisionView
+from claims_contract import ApprovalState, ClaimView, EvidenceView, Failure, Ok, ProbeReport, RevisionView
 
 def open_service(dsn: str, pool_max_size: int) -> "Service": ...
 
@@ -205,6 +206,9 @@ class Service:
     def record_decision(self, actor: int, revision_id: int, outcome: str) -> Ok[int] | Failure: ...
     def approval_state(self, actor: int, revision_id: int) -> Ok[ApprovalState] | Failure: ...
 
+    # V4
+    def list_claims(self, actor: int) -> Ok[list[ClaimView]] | Failure: ...
+
     # Transaction probes, from V1
     def probe_caught_violation(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
     def probe_savepoint_recovery(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
@@ -220,6 +224,8 @@ class Service:
 - `assign_reviewer` assigns a user of the actor's organization to an evidence item. Any user of the organization may assign, and an item's author may be its reviewer. Assigning a reviewer who is already assigned fails with `CONFLICT`. An item or a reviewer that is not found, including one in another organization, fails with `NOT_FOUND`.
 - `record_decision` records the actor's decision, `approved` or `rejected`, on a revision. The actor must be assigned to the revision's evidence item; otherwise the call fails with `NOT_FOUND`. A decision may be recorded on any revision of the item, not only the current one. A second decision by the same reviewer on the same revision fails with `CONFLICT`. Recording a decision and appending its `decision_recorded` event happen in one transaction.
 - `approval_state` returns `approved`, `rejected`, or `pending` for a revision, as defined above. `ApprovalState` is that set of three strings.
+- From V4, every call that takes an `actor` is scoped to the actor's organization. A record of another organization is reported as `NOT_FOUND`, exactly like a record that does not exist. The setup calls take no actor and are not scoped.
+- `list_claims` returns the claims of the actor's organization. `ClaimView` has `id` and `statement`.
 
 ### Connection pool
 
@@ -266,6 +272,7 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 - **S1.** On an empty database, `alembic upgrade head` creates every V1 table and column above, with these types, nullability, keys, references, and the unique constraint.
 - **S2.** On a V1 database that holds data, `alembic upgrade head` produces the V2 tables and columns. `evidence.content` no longer exists.
 - **S3.** On a V2 database that holds data, `alembic upgrade head` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
+- **S4.** On a V3 database that holds data, `alembic upgrade head` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
 
 ### V1
 
@@ -315,6 +322,31 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
   - as many `decision_recorded` events on each revision as decisions on it.
 - Every V1 and V2 check still passes.
 
+### V4
+
+**Fixture.** Each V4 check starts with two organizations. Organization A has two users, claims, evidence with several revisions, assignments, and decisions, created through the service. The test then restarts every identity column at 9,000,000,000 and creates the same shape for organization B, so every identifier of B is at least that value. Every text value of B, including the organization's and users' names, contains a token the test generates for the run. The test then restarts the identity columns below 9,000,000,000 again.
+
+**The proxy.** The application's DSN points at a proxy between the application and PostgreSQL. The proxy records every row PostgreSQL returns to the application, decoding text and binary formats. A *value of B* is an integer of at least 9,000,000,000, or a text containing B's token.
+
+- In an organization-wide read, any value of B fails the check, whatever the response says. A query that fetches B's rows and drops them in application code therefore fails, even when the response is correct. `list_claims` is such a read, and from V5 so is the report.
+- In a call that names a record by identifier, values of B may cross: fetching the named record to find that it belongs to B is an accepted way to answer `NOT_FOUND`. The check records the values of B that crossed, and passes when the response is right and nothing was written.
+
+Each check runs as a user of organization A against identifiers of organization B, in one direction only.
+
+- **V4-1.** Detail reads. `get_evidence`, `list_revisions`, and `approval_state` on identifiers of B fail with `NOT_FOUND`.
+- **V4-2.** Lists. `list_evidence` on a claim of B fails with `NOT_FOUND`. `list_claims` returns exactly A's claims.
+- **V4-3.** Writes. Each of these fails with `NOT_FOUND`, and no row of A or B is added or changed:
+  - `attach_evidence` to a claim of B;
+  - `revise_evidence` on an evidence item of B, based on its current revision;
+  - `assign_reviewer` of a user of B to an item of A, and of a user of A to an item of B;
+  - `record_decision` on a revision of B.
+- **V4-4.** For `list_claims`, the proxy saw no value of B. For each call in V4-1 to V4-3, the values of B that crossed are recorded. They do not fail the check.
+- **V4-5.** An identifier that exists in no organization fails with `NOT_FOUND`, the same failure as an identifier of B.
+- The transaction probes run with A's claim and are not part of V4's checks.
+- Every V1 to V3 check still passes inside one organization.
+
+**Proxy controls.** Before V4's checks are trusted, the harness runs them against two reference implementations the benchmark keeps. In the first, `list_claims` fetches every organization's claims and filters them in application code, and named-record calls fetch by identifier and check the organization in code. It must fail V4-4, and its V4-1 to V4-3 calls must show recorded values of B. The second scopes every query. It must pass V4-4 and record no value of B.
+
 ### Transaction probes
 
 These are recorded, not asserted. No result here fails the suite.
@@ -332,11 +364,7 @@ Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check t
 
 V3 is written in full above.
 
-### V4
-
-No new tables. Every operation is scoped to the actor's organization. A record of another organization is reported as `NOT_FOUND`.
-
-The tests create organization B's rows after restarting the identity columns at a reserved high range, and put a canary token in every text column of those rows. The proxy flags any returned value in that range or containing the token.
+V4 is written in full above.
 
 ### V5
 
