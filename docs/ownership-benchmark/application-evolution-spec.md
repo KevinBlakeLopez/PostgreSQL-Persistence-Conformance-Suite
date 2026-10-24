@@ -61,7 +61,7 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 
 ## V2 — Evidence revision history
 
-**Requirement.** Evidence content is no longer updated in place. A change adds an immutable revision. Each revision records the time it was created, because V6 archives revisions by age. Previous revisions remain readable. The evidence item points at one current revision. Creating a revision is atomic with the pointer change and with an event for that revision. Two concurrent revision attempts must not leave two different revisions both marked current.
+**Requirement.** Evidence content is no longer updated in place. A change adds an immutable revision: its content, author, and creation time never change. Each revision records the time it was created, because V6 archives revisions by age. Previous revisions remain readable. The evidence item points at one current revision. Creating a revision is atomic with the pointer change and with an event for that revision. Two concurrent revision attempts must not leave two different revisions both marked current.
 
 **Measure.**
 
@@ -76,7 +76,7 @@ This is the pilot transition. The pilot stops here.
 
 ## V3 — Multiple reviewers and approval rules
 
-**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. A revision is in one of three approval states. It is approved when it has at least one assigned reviewer and every assigned reviewer has approved it. It is rejected when any assigned reviewer has rejected it. Otherwise it is pending, including when no reviewer is assigned. A rejection is recorded and does not delete the revision. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
+**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. A revision is in one of three approval states. It is approved when it has at least one assigned reviewer and every assigned reviewer has approved it. It is rejected when any assigned reviewer has rejected it. Otherwise it is pending, including when no reviewer is assigned. A rejection is recorded and does not delete the revision. Recording a decision appends a `decision_recorded` event for the decided revision. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
 
 **Measure.**
 
@@ -90,7 +90,7 @@ The unique constraint on a review decision is a product rule. The PPCS-derived t
 
 ## V4 — Organization-level isolation
 
-**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. The application enforces the rule. PostgreSQL row-level security is not used. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
+**Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. The application enforces the rule. PostgreSQL row-level security is not used. A record of another organization is reported as not found. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
 
 **How the tests observe it.** A correct response can hide an unscoped fetch, so the V4 tests also watch the wire. They run through a proxy between the application and PostgreSQL that records the rows each query returns. Organization B's fixture rows carry known identifiers. A test fails if any of them reaches the application, whatever the response says.
 
@@ -120,7 +120,7 @@ This stage adds no entity. It strengthens access to entities that have had an or
 
 ## V6 — Retention and archival
 
-**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. A revision is under review while at least one assigned reviewer has not recorded a decision on it, and an event about such a revision is under review too. The current revision of an evidence item is never archived. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The operation is safe to rerun.
+**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. A revision is under review while at least one assigned reviewer has not recorded a decision on it, and an event about such a revision is under review too. The current revision of an evidence item is never archived. An event is archived only together with its revision. Archival marks rows with the time they were archived; it does not move or delete them. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The V5 report leaves archived rows out. The operation is safe to rerun.
 
 **Measure.**
 

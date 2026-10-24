@@ -139,6 +139,8 @@ Later on 2026-10-23 the maintainer decided:
 - The transaction task runs only on V1's external-reference rule. It is not repeated on V3's decision constraint. The cumulative tests re-run it at every later stage.
 - Every table carries `organization_id`, kept equal to the claim's (and the author's) by composite foreign keys. Each architecture can then use its natural scoping tool: a condition on each query, or the ORM's automatic filter. PostgreSQL row-level security is not used, because it would enforce isolation the same way in every arm and erase the difference V4 measures.
 - The V1 and V2 test contract is written in [`test-contract.md`](test-contract.md), reviewed on 2026-10-24. Revisions conflict on a stale base, the current revision is a pointer with a composite foreign key, identifiers are `bigint` identity columns, PostgreSQL sets the timestamps, the result types come from a benchmark-provided package, and atomicity is checked with a trigger the test arms.
+- V6 marks archived revisions and events with an `archived_at` column. A revision is immutable in its content, author, and creation time; archival is the only change to a revision or an event. An event is archived only together with its revision.
+- The V3–V7 sketch in `test-contract.md` is reviewed. V3 adds a `decision_recorded` event, a record of another organization reads as not found in V4, and the V5 report leaves archived rows out.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 

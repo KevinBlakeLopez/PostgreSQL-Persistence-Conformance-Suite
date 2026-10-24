@@ -72,7 +72,7 @@ Unique: (`claim_id`, `external_ref`), and (`id`, `organization_id`).
 
 Foreign key: (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`).
 
-Events are append-only. The application never updates or deletes one.
+Events are append-only. The application never deletes one, and never updates one except to mark it archived in V6.
 
 ## Tables after V2
 
@@ -98,6 +98,8 @@ V2's migration does five things, in one Alembic revision:
 Foreign keys: (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`), and (`created_by`, `organization_id`) references `app_user` (`id`, `organization_id`).
 
 Unique: (`id`, `organization_id`), and (`evidence_id`, `id`).
+
+A revision's content, author, and creation time never change. From V6, archival can mark a revision archived.
 
 ### `evidence`, changed
 
@@ -237,3 +239,68 @@ The test first attaches `duplicate_ref` to the claim. It then calls each probe o
 - whether the evidence row for `first_ref` exists, read on the test's own connection;
 - `pg_xact_status()` of the reported `transaction_id`;
 - for the follow-up, whether its row exists, and whether its `backend_pid` matches the probe's.
+
+## Later stages: sketch
+
+Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check that V1 and V2 do not block later stages.
+
+### V3
+
+`review_assignment`:
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `id` | `bigint` | Primary key, generated always as identity |
+| `organization_id` | `bigint` | Not null |
+| `evidence_id` | `bigint` | Not null |
+| `reviewer_id` | `bigint` | Not null |
+| `assigned_at` | `timestamptz` | Not null, default `now()` |
+
+Foreign keys: (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`), and (`reviewer_id`, `organization_id`) references `app_user` (`id`, `organization_id`). Unique: (`evidence_id`, `reviewer_id`).
+
+`review_decision`:
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `id` | `bigint` | Primary key, generated always as identity |
+| `organization_id` | `bigint` | Not null |
+| `evidence_id` | `bigint` | Not null |
+| `revision_id` | `bigint` | Not null |
+| `reviewer_id` | `bigint` | Not null |
+| `outcome` | `text` | Not null, `approved` or `rejected` |
+| `decided_at` | `timestamptz` | Not null, default `now()` |
+
+Foreign keys: (`evidence_id`, `revision_id`) references `evidence_revision` (`evidence_id`, `id`); (`evidence_id`, `reviewer_id`) references `review_assignment` (`evidence_id`, `reviewer_id`); (`evidence_id`, `organization_id`) references `evidence` (`id`, `organization_id`). Unique: (`revision_id`, `reviewer_id`).
+
+A revision's approval state is derived from assignments and decisions. It is not stored. A new event kind, `decision_recorded`, refers to the decided revision.
+
+Service additions: `assign_reviewer(actor, evidence_id, reviewer_id)`, `record_decision(actor, revision_id, outcome)`, where the actor is the reviewer, and `approval_state(actor, revision_id)`. A second decision by the same reviewer on the same revision fails with `CONFLICT`.
+
+### V4
+
+No new tables. Every operation is scoped to the actor's organization. A record of another organization is reported as `NOT_FOUND`.
+
+The tests create organization B's rows after restarting the identity columns at a reserved high range, and put a canary token in every text column of those rows. The proxy flags any returned value in that range or containing the token.
+
+### V5
+
+No new tables. `report(actor)` returns the count of claims with current evidence, the count of evidence items in each approval state, and the latest event time for each evidence item. Once V6 exists, it reads only rows that are not archived.
+
+### V6
+
+`retention_policy`:
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `organization_id` | `bigint` | Primary key, references `organization` |
+| `max_age` | `interval` | Not null |
+
+Archival state: a nullable `archived_at` (`timestamptz`) column on `evidence_revision` and on `event`, set once when the row is archived. It is the only column archival changes.
+
+An event is archived only together with its revision, so the events of a current revision or of a revision under review stay.
+
+Service additions: `set_retention_policy(actor, max_age_days)`, `run_archival(actor)`, which returns the numbers archived, and `list_archived_revisions(actor, evidence_id)`. Ordinary reads leave archived revisions out.
+
+### V7
+
+No new tables. On the upgraded stack, `alembic upgrade head` still builds the schema from an empty database, and every earlier check passes.
