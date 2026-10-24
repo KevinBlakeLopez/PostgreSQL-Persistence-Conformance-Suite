@@ -98,7 +98,9 @@ There is no documented call that returns a handle for a later `commit`. `Transac
 
 On `MG-02.held`, three times: A reported `applied` and waited on the runner's gate; B reported `failed` with `ConcurrentMigrationError` and did not reach the gate; C reported `nothing_to_do` because `schema_migrations` already had the version. Marker count 1, history count 1, only A inside the migration. PASS. The lock prevents a second process from applying the migration. It does not wait. The second process fails, which the case allows.
 
-`MG-02.first-deployment` and `MG-02.session-loss` pass on the same shape: one apply, and a loser that either fails the try-lock or finds the version already recorded. Session loss aborts A's open transaction because the gate wait is inside it. The marker is not left behind for a second apply to duplicate.
+`MG-02.session-loss`, and version 1.0 of `MG-02.first-deployment`, pass on the same shape: one apply, and a loser that either fails the try-lock or finds the version already recorded. Session loss aborts A's open transaction because the gate wait is inside it. The marker is not left behind for a second apply to duplicate.
+
+Version 1.1 of `MG-02.first-deployment` holds an uncommitted creation of `schema_migrations` until both runners wait on it. In [`reports/examples/2026-10-24T14-38-34Z-142777`](../../reports/examples/2026-10-24T14-38-34Z-142777/summary.md), in each repetition one runner applied and the other failed. In the repetition the case file records in full, both runners were waiting on a lock at the release, and the error is `ActiveRecord::RecordNotUnique` (`23505` on `pg_type_typname_nsp_index`), not `ConcurrentMigrationError`. Marker count 1. PASS.
 
 `MG-02.idle-session-timeout` is INCONCLUSIVE on MG-02.4. No session of A ended. The migration session was inside a transaction waiting on the gate, so `idle_session_timeout` did not end it, and the pool had not opened an idle extra connection. Marker count stayed 1. The same inconclusive shape is recorded for Lucid when the session inside the migration is not idle.
 

@@ -128,9 +128,11 @@ MG-02 is [`reports/examples/2026-10-23T14-12-26Z-e1679c`](../../reports/examples
 | Case | native | `client-error-listener` |
 | --- | --- | --- |
 | `MG-02.held` | FAIL. A and B were inside at once. Marker count 2, history count 2 | FAIL, the same |
-| `MG-02.first-deployment` | INCONCLUSIVE. Repetitions disagree: two PASS, one FAIL with both runners inside | INCONCLUSIVE, the same split |
+| `MG-02.first-deployment` | INCONCLUSIVE, case version 1.0. Repetitions disagree: two PASS, one FAIL with both runners inside | INCONCLUSIVE, the same split |
 | `MG-02.session-loss` | INCONCLUSIVE. B entered while A was inside. After the termination, runner A's process exited on an unhandled `'error'` event, `Connection terminated unexpectedly`, without a result. B applied. Marker count 1 | FAIL, MG-02.5. A reported `failed` (`Failed query: rollback`). B applied. Marker count 1 |
 | `MG-02.idle-session-timeout` | FAIL. As `MG-02.held`. A had one session, and it did not end | FAIL, the same |
+
+Version 1.1 of `MG-02.first-deployment` holds an uncommitted creation of `drizzle_migrations` until both runners wait on it, so their creations collide. In [`reports/examples/2026-10-24T14-38-34Z-142777`](../../reports/examples/2026-10-24T14-38-34Z-142777/summary.md) both modes pass, and the three repetitions agree: one runner applied, and the other reported `failed` and did not execute the migration. In the repetition the case file records in full, the error is `DrizzleQueryError` with the message `Failed query: `. The adapter does not record the driver error under it.
 
 From pg 8.23.1 `lib/client.js`: the backend's `57P01` goes to the active query (`_handleErrorMessage`, line 426), here A's `pg_advisory_xact_lock` wait. The socket close then emits `'error'` with `Connection terminated unexpectedly` (the `end` handler, line 203). In native mode the checked-out client has no listener for it. The recorded stderr is that event.
 
