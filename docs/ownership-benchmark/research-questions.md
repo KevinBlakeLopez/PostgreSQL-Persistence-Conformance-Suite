@@ -115,7 +115,7 @@ The 2026-10-23 design review decided:
 - No component has a weight, as stated above.
 - The question, the scoring split, and the non-claims are accepted with the revision now in this document.
 - The agent-configuration, repetition, randomization, human-intervention, and cost fields are accepted with the definitions now in the methodology plan.
-- The Python cohort and the deferred cohorts are accepted with the adherence rule now in the methodology plan. One question in that rule is still open: ORM-arm adherence, below.
+- The Python cohort and the deferred cohorts are accepted with the adherence rule now in the methodology plan. The question it left open is decided below.
 
 Later on 2026-10-23 the maintainer decided:
 
@@ -130,6 +130,13 @@ Later on 2026-10-23 the maintainer decided:
 - All three arms manage the schema with Alembic. Core and the ORM may autogenerate migrations from the tables they declare. The psycopg arm writes its migrations by hand in explicit SQL, and its application code never imports SQLAlchemy. Migration scripts are outside the adherence rule.
 - All three arms and the service interface are synchronous. Async is a possible later variable, not part of the first comparison.
 - Each arm uses its usual connection pool, with identical settings fixed by the spec.
+- The adherence line sits at the Session. In the ORM arm, anything run through the Session against mapped classes is the assigned API. Core statements on plain tables or textual SQL through the Session are recorded escape hatches. Bypassing the Session is a departure. The Core arm follows the same line at its Connection.
+- A revision has three approval states. It is approved when it has at least one assigned reviewer and all of them approved, rejected when any assigned reviewer rejected, and pending otherwise, including with no reviewers.
+- In V6, a revision is under review while an assigned reviewer has not decided on it, and events about it are kept with it. The current revision is never archived.
+- V4's tests watch the wire. A proxy between the application and PostgreSQL records the rows each query returns, and a test fails if a row of another organization reaches the application. A deliberately unscoped implementation is the proxy's control.
+- V5's report runs against fixtures of 30 and 300 evidence items, each matched in a second organization. It must send the same number of statements for both, counted by the proxy. There is no time limit.
+- V7 moves the whole persistence stack (psycopg, its pool, SQLAlchemy, and Alembic, wherever installed) across one 24-month calendar window. V1–V6 and the pilot pin the versions current at the window's start. V7 moves to the versions current at its end.
+- The transaction task runs only on V1's external-reference rule. It is not repeated on V3's decision constraint. The cumulative tests re-run it at every later stage.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
@@ -137,15 +144,9 @@ V1–V7 are necessary as a set of stages. As written they are not sufficient to 
 
 These are the maintainer's to write. The review did not fill them, and this draft does not either. Each is also marked where it applies.
 
-1. **V5 fixture.** Row counts, what makes an N+1 load visible in the query log, and whether there is a performance bound.
-2. **V7 comparability.** The from-version and to-version for each arm, what "similar significance" means, whether the shared driver is inside the upgraded stack, and whether Alembic moves with SQLAlchemy.
-3. **A second transaction-task instance.** Whether V3's decision constraint also hosts the transaction task.
-4. **The service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. That includes what "successful" and "failed" mean in the V1 invariants, the V2 invariants, and the pool settings, including whether part B pins the pool to one connection. The kind of interface, and how the tests read the database, are decided above.
-5. **V4's observation.** How a test sees another organization's rows cross the persistence boundary when the response is correct.
-6. **Product rules.** What approval means with zero reviewers, and which rows count as under review in V6.
-7. **ORM-arm adherence.** Whether, in the ORM arm, a Core construct or textual SQL used for an ordinary write is a recorded escape hatch or a departure. Migration scripts are already outside the rule.
-8. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-9. **The fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the remaining product rules.
+1. **The service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. That includes what "successful" and "failed" mean in the V1 invariants, the V2 invariants, and the pool settings, including whether part B pins the pool to one connection. The kind of interface, and how the tests read the database, are decided above.
+2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
+3. **The fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. The product rules they depend on are now decided, so they can be drafted with the service interface.
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 

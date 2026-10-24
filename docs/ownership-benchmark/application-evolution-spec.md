@@ -76,7 +76,7 @@ This is the pilot transition. The pilot stops here.
 
 ## V3 — Multiple reviewers and approval rules
 
-**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. The revision becomes approved only when every assigned reviewer has approved it. A rejection is recorded and does not delete the revision. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
+**Requirement.** An evidence item can be assigned to more than one reviewer. Each reviewer records at most one decision for a given revision. A revision is in one of three approval states. It is approved when it has at least one assigned reviewer and every assigned reviewer has approved it. It is rejected when any assigned reviewer has rejected it. Otherwise it is pending, including when no reviewer is assigned. A rejection is recorded and does not delete the revision. Two decisions from the same reviewer for the same revision cannot both persist. Conflicting decisions submitted concurrently must leave one stored decision and a database state that matches the application's response.
 
 **Measure.**
 
@@ -86,17 +86,13 @@ This is the pilot transition. The pilot stops here.
 - where the transaction boundary sits
 - correctness when two operations conflict
 
-The unique constraint on a review decision is a product rule. It is also a natural place for the PPCS-derived transaction task to catch a unique violation. The task first runs in the pilot, on V1's external-reference rule. The task's primary scenario still follows the methodology plan: catch the violation, finish the transaction normally, and do not add a savepoint in that primary scenario. The product's happy path may use a savepoint or a retry. The scored primary scenario does not.
-
-**Open before freeze: a second instance of the task.** Whether this constraint also hosts the transaction task.
-
-**Open before freeze: zero reviewers.** What approval means for a revision with no assigned reviewer.
+The unique constraint on a review decision is a product rule. The PPCS-derived transaction task does not use it. The task runs on V1's external-reference rule, and because each stage's tests include the earlier stages' tests, it runs again at V3 and at every later stage, including after V7's upgrade. The product's own handling of a duplicate decision is tested like any other feature, and it may use a savepoint or a retry.
 
 ## V4 — Organization-level isolation
 
 **Requirement.** A user authenticated for organization A cannot read or write claims, evidence, revisions, assignments, decisions, or events that belong to organization B. The rule holds for list endpoints, detail reads, and writes. From V5 it also holds for the report. A query that filters in application memory after fetching another organization's rows is a failure if those rows crossed the persistence boundary.
 
-**Open before freeze: how the tests observe that failure.** The acceptance tests observe the application and PostgreSQL. A correct response can hide an unscoped fetch. V5 mentions a query log; V4 does not say its tests use one.
+**How the tests observe it.** A correct response can hide an unscoped fetch, so the V4 tests also watch the wire. They run through a proxy between the application and PostgreSQL that records the rows each query returns. Organization B's fixture rows carry known identifiers. A test fails if any of them reaches the application, whatever the response says.
 
 **Measure.**
 
@@ -110,23 +106,21 @@ This stage adds no entity. It strengthens access to entities that have had an or
 
 ## V5 — Reporting and aggregation
 
-**Requirement.** Produce a report for one organization: counts of claims with current evidence, counts of evidence items by the approval state of their current revision, and the latest event time for each evidence item. A claim has current evidence when at least one of its evidence items has a current revision. The report matches a fixture whose expected totals are computed independently of the application. The implementation may use the framework's query API. If it cannot express the report there, an escape hatch is allowed and is recorded.
+**Requirement.** Produce a report for one organization: counts of claims with current evidence, counts of evidence items by the approval state of their current revision, and the latest event time for each evidence item. A claim has current evidence when at least one of its evidence items has a current revision. The report matches a fixture whose expected totals are computed independently of the application. The implementation may use the framework's query API. If it cannot express the report there, an escape hatch is allowed and is recorded. The number of statements a report call sends to PostgreSQL must not grow with the number of evidence items.
 
 **Measure.**
 
 - query composition
 - whether the SQL is visible to the implementer and to the reviewer, not scored until an observation is defined
 - aggregation correctness
-- query performance against a documented fixture size, as a correctness-and-cost observation rather than a throughput contest
+- the number of statements a report call sends, at both fixture sizes
 - whether an escape hatch was required
 
-The fixture size is part of the frozen spec. It has to be large enough that an N+1 load is visible in the query log, and small enough for the pilot's successor to run repeatedly.
-
-**Open before freeze: the V5 fixture.** The row counts, what makes an N+1 load visible, and whether there is a performance bound. Until those are set, V5 has no explicit performance requirement.
+**Fixtures.** The report runs against two fixtures: 30 and 300 evidence items in the reporting organization, with as many in a second organization. Both include a revision with no assigned reviewer, which the report must count as pending. The V4 proxy counts the statements each report call sends. A count that differs between the two fixtures is an N+1 load and fails the test. There is no time limit. This statement-count rule is V5's explicit performance requirement, and it is not a throughput contest.
 
 ## V6 — Retention and archival
 
-**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The operation is safe to rerun. It does not delete the current revision or an open review.
+**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. A revision is under review while at least one assigned reviewer has not recorded a decision on it, and an event about such a revision is under review too. The current revision of an evidence item is never archived. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The operation is safe to rerun.
 
 **Measure.**
 
@@ -137,11 +131,11 @@ The fixture size is part of the frozen spec. It has to be large enough that an N
 
 The age threshold is set when the fixtures are frozen.
 
-**Open before freeze: what counts as under review.** Which revisions and events are currently under review, and so are not archived.
-
 ## V7 — Persistence dependency upgrade
 
 **Requirement.** Upgrade the persistence stack to a newer supported version chosen before the trajectories start. The application must meet the V1–V6 acceptance tests on the new version. The version gap is selected so the comparison is honest about release cadence: a library that ships many small releases is not graded as if it had stood still, and a library that ships a breaking major version is not graded as if the change were cosmetic. The frozen spec names the from-version and the to-version for each architecture and states why those two versions are comparable events.
+
+**What moves, and over what window.** The persistence stack is every persistence dependency an arm installs: psycopg, its connection pool, SQLAlchemy, and Alembic, wherever each is installed. They all move together. One calendar window sets the versions for every arm. It is fixed before the pilot: it ends on the date it is fixed and starts 24 months earlier. V1–V6 pin the versions that were current at the start of the window. V7 moves to the versions current at its end.
 
 **Measure.**
 
@@ -153,15 +147,15 @@ The age threshold is set when the fixtures are frozen.
 - agent corrective work
 - human intervention
 
-Frameworks do not have to move the same number of version numbers. They have to move across a change of similar significance, and the spec has to say what "similar" means before the runs start.
+Frameworks do not have to move the same number of version numbers. They move across the same calendar window, and that is what "similar significance" means here. A library that released a lot in those 24 months carries that churn into V7. One that barely changed does not.
 
 SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take one shared SQLAlchemy version move, not two independent upgrade samples.
 
-**Open before freeze: V7 comparability.** The from-version and to-version for each arm. What "similar significance" means. Whether the upgraded persistence stack includes the database driver, and whether that driver is the psycopg arm's library. Whether Alembic moves with SQLAlchemy.
+**Versions.** The exact versions follow from the window's dates. They are looked up and recorded when the window is fixed.
 
 ## Acceptance-test rules
 
-- Tests are architecture-neutral. They call the application through a fixed, synchronous Python service interface: named functions with defined result types, called in the test process. They query PostgreSQL through the tables and columns this spec fixes. They do not read tables or columns an implementation added.
+- Tests are architecture-neutral. They call the application through a fixed, synchronous Python service interface: named functions with defined result types, called in the test process. They query PostgreSQL through the tables and columns this spec fixes. They do not read tables or columns an implementation added. From V4 on, they also record the rows each query returns, through a proxy between the application and PostgreSQL, so the application connects without TLS in the test environment.
 - They do not import the application's persistence objects unless a test double would hide the behavior under study. The default is a black-box application interface plus SQL.
 - Agents cannot edit the authoritative tests.
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
@@ -169,7 +163,7 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 
 **Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. They depend on the remaining product rules above.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage, V1 and V2 first. The product rules they depend on are now decided.
 
 ## Out of scope for the application
 

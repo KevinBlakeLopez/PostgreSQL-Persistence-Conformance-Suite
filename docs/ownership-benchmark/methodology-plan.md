@@ -18,7 +18,7 @@ If a requirement can only be met through an escape hatch, the escape hatch is a 
 
 Acceptance tests are specified and stored apart from agent-generated implementations. Agents may read the tests. Agents may not modify them, skip them, or replace them with tests they wrote. A trajectory that changes the authoritative suite is invalid.
 
-Tests include functional checks, database invariant checks, concurrency checks where the stage requires them, migration checks, and the PPCS-derived transaction task. The tests observe the database from a connection the application does not own. Of the application's data, they read only the tables and columns the application-evolution spec fixes.
+Tests include functional checks, database invariant checks, concurrency checks where the stage requires them, migration checks, and the PPCS-derived transaction task. The tests observe the database from a connection the application does not own. Of the application's data, they read only the tables and columns the application-evolution spec fixes. From V4 on, a wire-protocol proxy between the application and PostgreSQL also records the rows each query returns, so a test can see another organization's rows cross the persistence boundary even when the response is correct. In V5 the same proxy counts the statements each report call sends. PPCS's cleartext proxy, `harness/lib/pg-wire-proxy.mjs`, is the starting point. The proxy has its own control: a deliberately unscoped implementation must be caught.
 
 ## Equivalent starting conditions
 
@@ -174,7 +174,7 @@ A framework-level mismatch that matches PPCS is reported as framework behavior. 
 
 **What the suite asserts.** Nothing in the task's scripted scenarios. All of part A's signals are recorded, including what the operation told its caller, and so are parts B and C. The product's own handling of the same uniqueness rule is a separate path. It may use a savepoint or a retry, and the functional tests assert it like any other feature.
 
-**Pilot host.** The pilot runs this task. The spec's natural constraint is on V3's review decision, outside the pilot, so the task uses a V1 rule instead: an evidence item's external reference is unique within its claim. The spec fixes that rule as a constraint the authoritative tests violate. A test that used whatever constraint an implementation happened to create would depend on that implementation. The pilot is not widened into V3–V7.
+**Pilot host.** The pilot runs this task. The spec's natural constraint is on V3's review decision, outside the pilot, so the task uses a V1 rule instead: an evidence item's external reference is unique within its claim. The spec fixes that rule as a constraint the authoritative tests violate. A test that used whatever constraint an implementation happened to create would depend on that implementation. The pilot is not widened into V3–V7. The task is not repeated on V3's constraint. Each stage's tests include the earlier stages' tests, so the task runs again at every later stage, including after V7's upgrade.
 
 ## Evidence preservation
 
@@ -270,9 +270,9 @@ Reasons to start here: one language, one PostgreSQL server, a comparable applica
 
 **Test interface.** The Python cohort's acceptance tests call a fixed Python service interface in the test process, and read PostgreSQL on their own connection. A cohort in another language needs its own suite.
 
-**Open before freeze: ORM-arm adherence.** Whether, in the ORM arm, a Core construct or textual SQL used for an ordinary write is a recorded escape hatch or a departure.
+**Where the line sits.** In the ORM arm, the assigned API is the Session working on mapped classes: its unit of work (adding, changing, deleting, flushing, committing) and ORM-enabled select, insert, update, and delete statements run through the Session. A Core statement on a plain table, or textual SQL, run through the Session for an ordinary write is a recorded escape hatch. Each one is counted, and the trajectory stays in the comparison. A write or a transaction completion that bypasses the Session, through a driver cursor or a separate connection, is a departure. The Core arm follows the same line: its assigned API is Core statements run through a Connection, textual SQL for an ordinary write is a recorded escape hatch, and a write or completion that bypasses the Connection is a departure.
 
-Versions are pinned at the start of the pilot and recorded. The upgrade stage, V7, is the planned version move. An unplanned upgrade during V1–V6 invalidates those stages.
+Versions are pinned at the start of the pilot and recorded. They are the versions current at the start of V7's calendar window (see the application-evolution spec), so the pilot runs on the same versions as V1–V6 of the full study, and its costs carry over. The upgrade stage, V7, is the planned version move. An unplanned upgrade during V1–V6 invalidates those stages.
 
 ### Django, later
 
