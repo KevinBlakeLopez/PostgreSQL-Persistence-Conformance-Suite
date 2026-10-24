@@ -1,0 +1,310 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-34-22Z-ef64d0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "CTL-01.rollback",
+    "version": "1.1",
+    "family": "CTL-01",
+    "family_title": "Observation controls",
+    "family_version": "1.0",
+    "kind": "control",
+    "title": "A transaction writes a marker and fails with an application error",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Raise an application error inside the transaction, so that the framework rolls it back.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "go-database-sql-control",
+      "version": "0.1.0",
+      "source_sha256": "f2175524e4fa21fd276077eb8b59b918256ab525928657da0cc561d09de3d7f6"
+    },
+    "framework": {
+      "name": "database/sql",
+      "version": "go1.27.3"
+    },
+    "driver": {
+      "name": "github.com/jackc/pgx/v5/stdlib",
+      "version": "v5.11.0"
+    },
+    "components": {
+      "github.com/jackc/pgx/v5": "v5.11.0"
+    },
+    "runtime": {
+      "name": "go",
+      "version": "go1.27.3"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "sql.DB.BeginTx, sql.Tx.Commit, and sql.Tx.Rollback. sql.TxOptions.Isolation is set for TX-05. A nil Commit error is reported as committed. pgx.ErrTxCommitRollback is reported as rolled_back. Any other Commit or Rollback error is reported as failed. The pool is database/sql, not pgxpool. stdlib ResetSession still returns driver.ErrBadConn when the pgx transaction status is not idle.",
+    "configuration": {
+      "api": "sql.DB.BeginTx, sql.Tx.Commit, and sql.Tx.Rollback",
+      "driver": "pgx stdlib wrapTx.Commit calls pgx.Tx.Commit",
+      "nested": "SAVEPOINT / ROLLBACK TO SAVEPOINT / RELEASE SAVEPOINT as SQL. database/sql has no savepoint type.",
+      "pool": "database/sql pool, MaxOpenConns = pool_max"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The framework rolls the transaction back, and PostgreSQL confirms the ROLLBACK, so the client knows that nothing committed.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body returned an error and sql.Tx.Rollback returned nil",
+    "contract": "Go database/sql Tx.Commit returns the error from driver.Tx.Commit and does not add a command tag (database/sql/sql.go). pgx stdlib v5.11.0 wrapTx.Commit calls pgx.Tx.Commit and returns that error (stdlib/sql.go). A nil error is database/sql's report that the transaction committed. pgx.ErrTxCommitRollback therefore reaches the caller as a non-nil error. stdlib Conn.ResetSession returns driver.ErrBadConn when pgx's transaction status is not idle, so the pool discards that connection before the next checkout. database/sql has no savepoint type. This control sends SAVEPOINT, ROLLBACK TO SAVEPOINT, and RELEASE SAVEPOINT as SQL.",
+    "error": {
+      "class": "*errors.errorString",
+      "code": null,
+      "message": "application error: the request fails"
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 66752,
+          "xid": "9159"
+        },
+        "session": {
+          "pid": 66752,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "9159",
+          "xid_matches": true,
+          "backend_xmin": "9159",
+          "backend_start": "2026-10-24 14:34:25.064853+00",
+          "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "9159"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 66752,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "9159",
+              "xid_matches": null,
+              "backend_xmin": "9159",
+              "backend_start": "2026-10-24 14:34:25.064853+00",
+              "query": "SELECT pg_current_xact_id()::text, pg_backend_pid(), current_setting('transactio",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 66752,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:34:25.064853+00",
+              "query": "rollback",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "9159",
+        "pid": 66752,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:34:25.064853+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "CTL-01.2 held: xid 9159 rolled back at report time (`after-end`); marker visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [9159]"
+      },
+      {
+        "description": "the API reported \"rolled_back\"",
+        "met": true,
+        "detail": "reported: rolled_back"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "CTL-01.2",
+        "statement": "A transaction that the API reports as rolled back is not committed: pg_xact_status() reports it aborted, and an independent connection does not see its marker.",
+        "holds": true,
+        "detail": "xid 9159 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=go-database-sql-control --mode=native --case=CTL-01.rollback",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "statements": [
+        {
+          "sql": "begin",
+          "command_tag": "BEGIN"
+        },
+        {
+          "sql": "rollback",
+          "command_tag": "ROLLBACK"
+        }
+      ]
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:34:24.794Z",
+    "finished_at": "2026-10-24T14:34:25.369Z",
+    "duration_ms": 575
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 9159 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 193
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 9163 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 194
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "CTL-01.2 held: xid 9167 rolled back at report time (`after-end`); marker visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 188
+      }
+    ]
+  }
+}

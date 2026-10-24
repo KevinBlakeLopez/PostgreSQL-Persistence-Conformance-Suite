@@ -1,0 +1,307 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-19-00Z-4f477e",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-03.failing-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A transactional migration's reversal deletes its marker and then fails",
+    "steps": [
+      "Runner A applies { m1 }.",
+      "Revert. m1's reversal deletes its marker and then raises an error. The migration is transactional, so the deletion is in the reversal's transaction.",
+      "Checkpoint `after-end`, as soon as the revert has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "mikroorm",
+      "version": "0.1.0",
+      "source_sha256": "8805029c4e73d88d7aceea82cf265226e4785acabd7fc989699179e1a3017c5b"
+    },
+    "framework": {
+      "name": "@mikro-orm/core",
+      "version": "7.2.5"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "@mikro-orm/migrations": "7.2.5",
+      "@mikro-orm/postgresql": "7.2.5",
+      "@mikro-orm/sql": "7.2.5",
+      "kysely": "0.29.6",
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "MikroORM's defaults: em.transactional(callback) in a RequestContext, allowGlobalContext false. One non-default option is part of a case's form, not of the mode: the TX-02 cases call the nested em.transactional() with { clear: true }, as the reused experiments did, and each result records that form and its reason.",
+    "configuration": {},
+    "form": "orm.migrator.up() and orm.migrator.down(), table mikro_orm_migrations, migrationsList of one in-memory Migration. snapshot and snapshotOnMigrate are false."
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "partial-then-error"
+    },
+    "transactional": true
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A reported failure says the revert did not complete. For a transactional migration, the caller can treat the migration as still applied.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "migrator.down() threw",
+    "contract": "MikroORM 7.2.5 Migrator.up() and Migrator.down() run pending migrations and revert the last one (AbstractMigrator). Migration.down() throws \"This migration cannot be reverted\" unless a migration overrides it. Each migration runs in a transaction by default (migrations.transactional and allOrNothing), and the history insert or delete is inside that transaction (MigrationRunner and MigrationStorage). There is no advisory lock.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "the reversal failed on purpose after deleting the marker"
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "Error",
+            "code": null,
+            "message": "the reversal failed on purpose after deleting the marker"
+          },
+          "basis": "migrator.down() threw",
+          "contract": "MikroORM 7.2.5 Migrator.up() and Migrator.down() run pending migrations and revert the last one (AbstractMigrator). Migration.down() throws \"This migration cannot be reverted\" unless a migration overrides it. Each migration runs in a transaction by default (migrations.transactional and allOrNothing), and the history insert or delete is inside that transaction (MigrationRunner and MigrationStorage). There is no advisory lock."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 1
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported failed"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 1"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains.",
+        "holds": true,
+        "detail": "revert reported failed; marker count 1; history entries 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for mikroorm (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=mikroorm --mode=native --case=MG-03.failing-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 27041): select 1 from pg_database where datname = 'ppcs_mg_03_failing_reversal_mvmhoby4_258f48'",
+        "c1(pid 27041): select 1 from information_schema.tables where table_schema = 'public' and table_name = 'mikro_orm_migrations'",
+        "c1(pid 27041): select schema_name from information_schema.schemata where \"schema_name\" not like 'pg_%' and \"schema_name\" not like 'crdb_%' and \"schema_name\" not like '_timescaledb_%' and \"schema_name\" not in ('information_schema', 'tiger', 'topology') order by schema_name",
+        "c1(pid 27041): create table \"mikro_orm_migrations\" (\"id\" serial primary key, \"name\" varchar(255) not null, \"executed_at\" timestamptz(6) not null default current_timestamp(6));",
+        "c1(pid 27041): begin",
+        "c1(pid 27041): -> command tag BEGIN for: begin",
+        "c1(pid 27041): select \"m0\".* from \"mikro_orm_migrations\" as \"m0\" order by \"m0\".\"id\" asc",
+        "c1(pid 27041): savepoint \"trx1\"",
+        "c1(pid 27041): -> command tag SAVEPOINT for: savepoint \"trx1\"",
+        "c1(pid 27041): set names 'utf8';",
+        "c1(pid 27041): insert into item (name) values ('m1-1xa432')",
+        "c1(pid 27041): insert into \"mikro_orm_migrations\" (\"name\") values ('Migration20200101000000') returning \"executed_at\"",
+        "c1(pid 27041): release \"trx1\"",
+        "c1(pid 27041): -> command tag RELEASE for: release \"trx1\"",
+        "c1(pid 27041): commit",
+        "c1(pid 27041): -> command tag COMMIT for: commit"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": [
+        "\u001b[90m[migrator] \u001b[39mProcessing 'Migration20200101000000'",
+        "\u001b[90m[migrator] \u001b[39mApplied 'Migration20200101000000'"
+      ]
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:23:27.100Z",
+    "finished_at": "2026-10-24T14:23:28.139Z",
+    "duration_ms": 1039
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 347
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 344
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 348
+      }
+    ]
+  }
+}
