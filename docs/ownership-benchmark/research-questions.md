@@ -132,7 +132,7 @@ Later on 2026-10-23 the maintainer decided:
 - Each arm uses its usual connection pool, with identical settings fixed by the spec.
 - The adherence line sits at the Session. In the ORM arm, anything run through the Session against mapped classes is the assigned API. Core statements on plain tables or textual SQL through the Session are recorded escape hatches. Bypassing the Session is a departure. The Core arm follows the same line at its Connection.
 - A revision has three approval states. It is approved when it has at least one assigned reviewer and all of them approved, rejected when any assigned reviewer rejected, and pending otherwise, including with no reviewers.
-- In V6, a revision is under review while an assigned reviewer has not decided on it, and events about it are kept with it. The current revision is never archived.
+- In V6, a revision is under review while a reviewer counted for it has not decided on it, and events about it are kept with it. The current revision is never archived. Because V3 assigns reviewers to the evidence item, a replaced revision counts only reviewers assigned before it was replaced; otherwise one new assignment would keep an item's whole history from ever being archived (refined 2026-10-24, while writing the V6 contract).
 - V4's tests watch the wire. A proxy between the application and PostgreSQL records the rows each query returns, and a test fails if a row of another organization reaches the application. A deliberately unscoped implementation is the proxy's control.
 - V5's report runs against fixtures of 30 and 300 evidence items, each matched in a second organization. It must send the same number of statements for both, counted by the proxy. There is no time limit.
 - V7 moves the whole persistence stack (psycopg, its pool, SQLAlchemy, and Alembic, wherever installed) across one 24-month calendar window. V1–V6 and the pilot pin the versions current at the window's start. V7 moves to the versions current at its end.
@@ -144,6 +144,7 @@ Later on 2026-10-23 the maintainer decided:
 - The V3 contract is written and reviewed. Any user of the organization may assign reviewers, and an author may review their own item. A duplicate assignment fails with `CONFLICT`, a decision by an unassigned user fails with `NOT_FOUND`, and a decision may be recorded on any revision of the item.
 - The V4 contract is written and reviewed. V4 adds `list_claims`. Organization B's rows get identifiers of at least 9,000,000,000 and a per-run token in every text value, and checks run in one direction only. In an organization-wide read, any of B's values crossing to the application fails. In a call that names a record, they are recorded per call, because loading the named record and checking its organization in code is a legitimate way to refuse it. The transaction probes are outside V4's checks.
 - The V5 contract is written and reviewed. `report` returns the claims with current evidence, the evidence items in each approval state with all three states always present, and each item's latest event time. Each fixture is a fresh database built through the service, with claims that have no evidence. Expected values come from the fixture's plan and the test's own SQL. The proxy counts every statement of one `report` call, on a pool of one connection after a discarded first call.
+- The V6 contract is written and reviewed. An event is archived together with its revision, whatever its own age, and never on its own. Any user of the organization may set the retention policy. `run_archival` runs in one transaction, archives nothing without a policy, and is an organization-wide read. Archived revisions read as not found for decisions and approval state, and revision views gain `archived_at`. The tests age rows by moving their timestamps back, with a 30-day policy and rows aged 60 days.
 
 V1–V7 are necessary as a set of stages. As written they are not sufficient to freeze. They are not replaced or extended to cover the gaps. The acceptance tests and the transaction task are not ready either. The design stays unfrozen until the items below are written.
 
@@ -151,9 +152,9 @@ V1–V7 are necessary as a set of stages. As written they are not sufficient to 
 
 These remain before the design can be frozen. Each is also marked where it applies.
 
-1. **The service interface and the assertions for V6 and V7.** V1 to V5 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
+1. **The service interface and the assertions for V7.** V1 to V6 are written in [`test-contract.md`](test-contract.md), including what "successful" and "failed" mean, the V2 invariants, and the pool settings.
 2. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
-3. **The fixed tables and columns for V6 and V7.** V1 to V5 are written in [`test-contract.md`](test-contract.md).
+3. **The fixed tables and columns for V7.** V1 to V6 are written in [`test-contract.md`](test-contract.md).
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 

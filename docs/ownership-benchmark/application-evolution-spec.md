@@ -120,7 +120,7 @@ This stage adds no entity. It strengthens access to entities that have had an or
 
 ## V6 — Retention and archival
 
-**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. A revision is under review while at least one assigned reviewer has not recorded a decision on it, and an event about such a revision is under review too. The current revision of an evidence item is never archived. An event is archived only together with its revision. Archival marks rows with the time they were archived; it does not move or delete them. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The V5 report leaves archived rows out. The operation is safe to rerun.
+**Requirement.** An organization has a retention policy: revisions and events older than a stated age, and not currently under review, are archived. A revision is under review while a reviewer counted for it has not recorded a decision on it, and an event about such a revision is under review too. For the current revision, every assigned reviewer counts. For a revision that has been replaced, only reviewers assigned before it was replaced count, so a reviewer assigned later does not put old revisions back under review. The current revision of an evidence item is never archived. An event is archived only together with its revision. Archival marks rows with the time they were archived; it does not move or delete them. Archival keeps referential integrity. Archived revisions remain readable through an explicit archive read and disappear from the ordinary current-evidence read. The V5 report leaves archived rows out. The operation is safe to rerun.
 
 **Measure.**
 
@@ -161,9 +161,9 @@ SQLAlchemy Core and the ORM ship as one project. In the Python cohort they take 
 - Each stage's tests include the previous stages' tests. A V4 implementation that breaks V2 history fails.
 - The suite asserts nothing in the transaction task's scripted scenarios. The task's three scores are recorded whether the functional tests pass or fail.
 
-**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V5 are written in [`test-contract.md`](test-contract.md). V6 and V7 are not.
+**Open before freeze: the service interface and the assertions.** The interface's functions and result types, and the architecture-neutral assertions. Capability wording in the requirements is not that interface. V1 to V6 are written in [`test-contract.md`](test-contract.md). V7 is not.
 
-**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V5 are written in [`test-contract.md`](test-contract.md). V6 and V7 are not.
+**Open before freeze: the fixed tables and columns.** The tables and columns the tests read at each stage. V1 to V6 are written in [`test-contract.md`](test-contract.md). V7 is not.
 
 ## Out of scope for the application
 

@@ -1,6 +1,6 @@
 # Test contract
 
-Status: V1 to V5 written and reviewed on 2026-10-24. Not frozen. V6 and V7 are a sketch at the end.
+Status: V1 to V6 written and reviewed on 2026-10-24. Not frozen. V7 is a sketch at the end.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -175,12 +175,44 @@ A revision's approval state is derived from assignments and decisions. It is not
 - **Rejected:** at least one assigned reviewer has rejected this revision.
 - **Pending:** otherwise, including when the item has no assigned reviewer.
 
+## Tables after V6
+
+V4 and V5 add no tables. V6's migration creates `retention_policy` and adds `archived_at` to `evidence_revision` and `event`. Every existing row starts with `archived_at` null.
+
+### `retention_policy`
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `organization_id` | `bigint` | Primary key, references `organization` |
+| `max_age` | `interval` | Not null, greater than zero |
+
+An organization has at most one policy.
+
+### `evidence_revision` and `event`, changed
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `archived_at` | `timestamptz` | Null until the row is archived. The archiving statement sets it to `now()`, once. It is the only column archival changes |
+
+### Archival rules
+
+A revision is archived by `run_archival` when all of these hold:
+
+1. it is not archived yet;
+2. its `created_at` is older than `now()` minus the organization's `max_age`;
+3. it is not its evidence item's current revision;
+4. it is not under review.
+
+A revision is under review while a reviewer counted for it has not recorded a decision on it. For the current revision, every assigned reviewer counts. For a revision that has been replaced, only reviewers assigned before the next revision of the item was created count.
+
+When a revision is archived, all of its events are archived in the same statement or transaction, whatever their own age. An event is never archived on its own.
+
 ## Service interface
 
 The application provides the module `claims_app.service`. The result types come from a small package the benchmark provides, `claims_contract`, pinned like any other dependency.
 
 ```python
-from claims_contract import ApprovalState, ClaimView, EvidenceView, Failure, Ok, ProbeReport, Report, RevisionView
+from claims_contract import ApprovalState, ArchivalSummary, ClaimView, EvidenceView, Failure, Ok, ProbeReport, Report, RevisionView
 
 def open_service(dsn: str, pool_max_size: int) -> "Service": ...
 
@@ -212,6 +244,11 @@ class Service:
     # V5
     def report(self, actor: int) -> Ok[Report] | Failure: ...
 
+    # V6
+    def set_retention_policy(self, actor: int, max_age_days: int) -> Ok[None] | Failure: ...
+    def run_archival(self, actor: int) -> Ok[ArchivalSummary] | Failure: ...
+    def list_archived_revisions(self, actor: int, evidence_id: int) -> Ok[list[RevisionView]] | Failure: ...
+
     # Transaction probes, from V1
     def probe_caught_violation(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
     def probe_savepoint_recovery(self, actor: int, claim_id: int, first_ref: str, duplicate_ref: str) -> ProbeReport: ...
@@ -235,6 +272,10 @@ class Service:
   - `latest_event_at`: a mapping from each evidence item's identifier to the latest `occurred_at` among its events.
 
   `report` is an organization-wide read. The number of statements it sends must not grow with the number of evidence items.
+- `set_retention_policy` creates or replaces the actor's organization's policy. Any user of the organization may set it.
+- `run_archival` applies the archival rules to the actor's organization in one transaction, so a failure archives nothing. It returns an `ArchivalSummary` with the numbers of `revisions` and `events` it archived. Without a policy, it archives nothing. It is an organization-wide read.
+- From V6, ordinary reads leave archived revisions out. `list_revisions` does not list them, and `record_decision` and `approval_state` on an archived revision fail with `NOT_FOUND`. `list_archived_revisions` lists an item's archived revisions. `RevisionView` gains `archived_at`, which ordinary reads always report as `None`.
+- The V5 report leaves archived events out of `latest_event_at`.
 
 ### Connection pool
 
@@ -283,6 +324,7 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 - **S3.** On a V2 database that holds data, `alembic upgrade head` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
 - **S4.** On a V3 database that holds data, `alembic upgrade head` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
 - **S5.** The same holds for V5's migration on a V4 database.
+- **S6.** On a V5 database that holds data, `alembic upgrade head` creates `retention_policy` and adds `archived_at` to `evidence_revision` and `event`, null on every existing row.
 
 ### V1
 
@@ -377,6 +419,25 @@ Expected counts come from the fixture's plan. Expected latest event times come f
 - **V5-6.** `report` is an organization-wide read: the proxy saw no value of the second organization.
 - Every V1 to V4 check still passes.
 
+### V6
+
+**Making rows old.** The tests age rows by updating their `created_at`, `occurred_at`, and `assigned_at` directly. Each check sets a 30-day policy and ages the rows it needs by 60 days.
+
+- **V6-1.** An aged revision that is not current and not under review is archived by `run_archival`. Its `archived_at` is set, all of its events are archived, and the summary's counts match the rows that changed.
+- **V6-2.** The current revision is never archived, however old, and its events stay.
+- **V6-3.** An aged, replaced revision with a reviewer, assigned before it was replaced, who has not decided on it, is not archived. After that reviewer records a decision on it, the next run archives it.
+- **V6-4.** A reviewer assigned after a revision was replaced does not keep it under review.
+- **V6-5.** After archival, `list_revisions` leaves the archived revision out, `record_decision` and `approval_state` on it fail with `NOT_FOUND`, and `list_archived_revisions` lists it with its `archived_at`. The report leaves its events out of `latest_event_at`.
+- **V6-6.** A second run archives nothing, and every `archived_at` set by the first run is unchanged.
+- **V6-7.** Without a policy, `run_archival` archives nothing.
+- **V6-8.** Atomicity. The test arms a trigger that rejects the next update setting `event.archived_at`. `run_archival` fails, and no revision or event is archived.
+- **V6-9.** Isolation. `run_archival` archives only the actor's organization's rows, and, as an organization-wide read, lets no value of the second organization cross.
+- **V6-10.** After every V6 check, the database holds:
+  - every event archived exactly when its revision is archived;
+  - no archived current revision;
+  - every reference still resolving.
+- Every V1 to V5 check still passes.
+
 ### Transaction probes
 
 These are recorded, not asserted. No result here fails the suite.
@@ -392,22 +453,7 @@ The test first attaches `duplicate_ref` to the claim. It then calls each probe o
 
 Status: sketch, reviewed on 2026-10-24. Not yet a contract. It exists to check that V1 and V2 do not block later stages.
 
-V3 to V5 are written in full above.
-
-### V6
-
-`retention_policy`:
-
-| Column | Type | Rule |
-| --- | --- | --- |
-| `organization_id` | `bigint` | Primary key, references `organization` |
-| `max_age` | `interval` | Not null |
-
-Archival state: a nullable `archived_at` (`timestamptz`) column on `evidence_revision` and on `event`, set once when the row is archived. It is the only column archival changes.
-
-An event is archived only together with its revision, so the events of a current revision or of a revision under review stay.
-
-Service additions: `set_retention_policy(actor, max_age_days)`, `run_archival(actor)`, which returns the numbers archived, and `list_archived_revisions(actor, evidence_id)`. Ordinary reads leave archived revisions out.
+V3 to V6 are written in full above.
 
 ### V7
 
