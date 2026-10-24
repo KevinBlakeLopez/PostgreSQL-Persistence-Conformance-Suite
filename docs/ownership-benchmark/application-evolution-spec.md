@@ -53,7 +53,7 @@ Schema design is not a V1 measure either. This spec fixes the tables and columns
 - The creation event refers to an evidence item that exists.
 - No claim has two evidence items with the same external reference.
 
-**Transaction task.** The PPCS-derived transaction task uses the external-reference rule as its unique constraint, so the pilot can run it.
+**Transaction task.** The transaction task uses the external-reference rule as its unique constraint, so the pilot can run it.
 
 **"Successful" and "failed".** A call succeeds when it returns `Ok`, and fails when it returns a `Failure` or raises. Each check also reads PostgreSQL on its own connection, and a disagreement between the response and the database fails the check. The checks are in [`test-contract.md`](test-contract.md).
 
@@ -86,7 +86,7 @@ This is the pilot transition. The pilot stops here.
 - where the transaction boundary sits
 - correctness when two operations conflict
 
-The unique constraint on a review decision is a product rule. The PPCS-derived transaction task does not use it. The task runs on V1's external-reference rule, and because each stage's tests include the earlier stages' tests, it runs again at V3 and at every later stage, including after V7's upgrade. The product's own handling of a duplicate decision is tested like any other feature, and it may use a savepoint or a retry.
+The unique constraint on a review decision is a product rule. The transaction task does not use it. The task runs on V1's external-reference rule, and because each stage's tests include the earlier stages' tests, it runs again at V3 and at every later stage, including after V7's upgrade. The product's own handling of a duplicate decision is tested like any other feature, and it may use a savepoint or a retry.
 
 ## V4 — Organization-level isolation
 
