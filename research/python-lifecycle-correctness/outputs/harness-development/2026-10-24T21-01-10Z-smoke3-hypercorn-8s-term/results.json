@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "case": "smoke3-hypercorn-8s-term",
+    "argv": [
+      "--case",
+      "smoke3-hypercorn-8s-term",
+      "--python",
+      "<venvs>/venv-313/bin/python",
+      "--server",
+      "hypercorn",
+      "--timeout",
+      "2",
+      "--work-delay",
+      "8",
+      "--reps",
+      "1"
+    ],
+    "started_utc": "2026-10-24T21-01-10Z",
+    "host": {
+      "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64"
+    },
+    "versions": {
+      "python": "3.13.11",
+      "implementation": "CPython",
+      "uvicorn": "0.54.0",
+      "starlette": "1.10.0",
+      "fastapi": "0.162.0",
+      "hypercorn": "0.18.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0"
+    },
+    "settings": {
+      "server": "hypercorn",
+      "app": "asgi",
+      "signal": "TERM",
+      "timeout": 2,
+      "work_delay": 8.0,
+      "release_delay": 0.5,
+      "hold_startup": false,
+      "shield": false,
+      "hard_limit": 20.0,
+      "reps": 1
+    },
+    "summary": [
+      {
+        "rep": 1,
+        "returncode": 0,
+        "hung": false,
+        "leftover_processes": false,
+        "signal_to_exit_s": 8.567,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": -0.51,
+        "client": {
+          "ended": "eof",
+          "ended_at": 8.0086,
+          "status_line": "HTTP/1.1 200 ",
+          "bytes": 164
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "rep": 1,
+      "command": [
+        "<venvs>/venv-313/bin/python",
+        "-m",
+        "hypercorn",
+        "asgi_app:app",
+        "--bind",
+        "127.0.0.1:60103",
+        "--graceful-timeout",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": 0,
+      "hung": false,
+      "leftover_processes": false,
+      "startup_to_signal_s": 0.151,
+      "signal_to_exit_s": 8.567,
+      "client": {
+        "ended": "eof",
+        "ended_at": 8.0086,
+        "status_line": "HTTP/1.1 200 ",
+        "bytes": 164
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": -0.51,
+      "backend_events": [
+        [
+          -0.0022,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0,
+          2,
+          "CALL work request"
+        ],
+        [
+          8.0089,
+          2,
+          "CALL release request"
+        ],
+        [
+          8.5177,
+          2,
+          "NOTE released request"
+        ],
+        [
+          8.5182,
+          2,
+          "EOF"
+        ],
+        [
+          8.5186,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          8.5193,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792875670.484550 9428 lifespan.startup.begin",
+        "1792875670.485332 9428 lifespan.startup.done",
+        "1792875670.487126 9428 request.begin",
+        "1792875678.494847 9428 request.worked",
+        "1792875678.495974 9428 request.cleanup.begin",
+        "1792875679.004972 9428 request.cleanup.done",
+        "1792875679.005709 9428 lifespan.shutdown.begin",
+        "1792875679.006279 9428 lifespan.shutdown.done"
+      ]
+    }
+  ]
+}

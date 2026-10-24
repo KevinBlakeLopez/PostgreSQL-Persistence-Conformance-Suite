@@ -1,0 +1,523 @@
+{
+  "meta": {
+    "case": "e1-14-fix-fastapi-bg-exceeds-term",
+    "argv": [
+      "--reps",
+      "5",
+      "--case",
+      "e1-14-fix-fastapi-bg-exceeds-term",
+      "--python",
+      "<venvs>/venv-313-fix/bin/python",
+      "--app",
+      "fastapi",
+      "--timeout",
+      "2",
+      "--signal",
+      "TERM"
+    ],
+    "started_utc": "2026-10-24T18-51-38Z",
+    "host": {
+      "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64"
+    },
+    "versions": {
+      "python": "3.13.11",
+      "implementation": "CPython",
+      "uvicorn": "0.54.0",
+      "starlette": "1.10.0",
+      "fastapi": "0.162.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0"
+    },
+    "settings": {
+      "server": "uvicorn",
+      "app": "fastapi",
+      "signal": "TERM",
+      "timeout": 2,
+      "work_delay": 60.0,
+      "release_delay": 0.5,
+      "hold_startup": false,
+      "hard_limit": 20.0,
+      "reps": 5
+    },
+    "summary": [
+      {
+        "rep": 1,
+        "returncode": -15,
+        "hung": false,
+        "signal_to_exit_s": 2.767,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "client": {
+          "ended": "eof",
+          "status_line": "HTTP/1.1 202 Accepted",
+          "bytes": 167
+        }
+      },
+      {
+        "rep": 2,
+        "returncode": -15,
+        "hung": false,
+        "signal_to_exit_s": 2.691,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "client": {
+          "ended": "eof",
+          "status_line": "HTTP/1.1 202 Accepted",
+          "bytes": 167
+        }
+      },
+      {
+        "rep": 3,
+        "returncode": -15,
+        "hung": false,
+        "signal_to_exit_s": 2.7,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "client": {
+          "ended": "eof",
+          "status_line": "HTTP/1.1 202 Accepted",
+          "bytes": 167
+        }
+      },
+      {
+        "rep": 4,
+        "returncode": -15,
+        "hung": false,
+        "signal_to_exit_s": 2.689,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "client": {
+          "ended": "eof",
+          "status_line": "HTTP/1.1 202 Accepted",
+          "bytes": 167
+        }
+      },
+      {
+        "rep": 5,
+        "returncode": -15,
+        "hung": false,
+        "signal_to_exit_s": 2.792,
+        "cleanup_started": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "client": {
+          "ended": "eof",
+          "status_line": "HTTP/1.1 202 Accepted",
+          "bytes": 167
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "rep": 1,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "fastapi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "59064",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "startup_to_signal_s": 0.561,
+      "signal_to_exit_s": 2.767,
+      "client": {
+        "ended": "eof",
+        "status_line": "HTTP/1.1 202 Accepted",
+        "bytes": 167
+      },
+      "backend_events": [
+        [
+          -0.0029,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0001,
+          2,
+          "CALL work job"
+        ],
+        [
+          2.2013,
+          2,
+          "CALL release job"
+        ],
+        [
+          2.7059,
+          2,
+          "NOTE released job"
+        ],
+        [
+          2.7154,
+          2,
+          "EOF"
+        ],
+        [
+          2.7157,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.7162,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792867898.968920 97994 lifespan.startup.begin",
+        "1792867898.969551 97994 lifespan.startup.done",
+        "1792867898.972134 97994 job.begin",
+        "1792867901.172824 97994 job.cancelled",
+        "1792867901.173013 97994 job.cleanup.begin",
+        "1792867901.678250 97994 job.cleanup.done",
+        "1792867901.687844 97994 lifespan.shutdown.begin",
+        "1792867901.688264 97994 lifespan.shutdown.done"
+      ]
+    },
+    {
+      "rep": 2,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "fastapi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "59073",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "startup_to_signal_s": 0.211,
+      "signal_to_exit_s": 2.691,
+      "client": {
+        "ended": "eof",
+        "status_line": "HTTP/1.1 202 Accepted",
+        "bytes": 167
+      },
+      "backend_events": [
+        [
+          -0.0562,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0,
+          2,
+          "CALL work job"
+        ],
+        [
+          2.1475,
+          2,
+          "CALL release job"
+        ],
+        [
+          2.6531,
+          2,
+          "NOTE released job"
+        ],
+        [
+          2.6575,
+          2,
+          "EOF"
+        ],
+        [
+          2.6578,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.6582,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792867901.895023 98008 lifespan.startup.begin",
+        "1792867901.895551 98008 lifespan.startup.done",
+        "1792867901.951480 98008 job.begin",
+        "1792867904.098933 98008 job.cancelled",
+        "1792867904.099053 98008 job.cleanup.begin",
+        "1792867904.604705 98008 job.cleanup.done",
+        "1792867904.609360 98008 lifespan.shutdown.begin",
+        "1792867904.609693 98008 lifespan.shutdown.done"
+      ]
+    },
+    {
+      "rep": 3,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "fastapi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "59085",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "startup_to_signal_s": 0.22,
+      "signal_to_exit_s": 2.7,
+      "client": {
+        "ended": "eof",
+        "status_line": "HTTP/1.1 202 Accepted",
+        "bytes": 167
+      },
+      "backend_events": [
+        [
+          -0.0568,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0001,
+          2,
+          "CALL work job"
+        ],
+        [
+          2.1484,
+          2,
+          "CALL release job"
+        ],
+        [
+          2.6519,
+          2,
+          "NOTE released job"
+        ],
+        [
+          2.658,
+          2,
+          "EOF"
+        ],
+        [
+          2.6582,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.6585,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792867904.806272 98329 lifespan.startup.begin",
+        "1792867904.806818 98329 lifespan.startup.done",
+        "1792867904.863309 98329 job.begin",
+        "1792867907.011411 98329 job.cancelled",
+        "1792867907.011669 98329 job.cleanup.begin",
+        "1792867907.515391 98329 job.cleanup.done",
+        "1792867907.521583 98329 lifespan.shutdown.begin",
+        "1792867907.521872 98329 lifespan.shutdown.done"
+      ]
+    },
+    {
+      "rep": 4,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "fastapi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "59097",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "startup_to_signal_s": 0.274,
+      "signal_to_exit_s": 2.689,
+      "client": {
+        "ended": "eof",
+        "status_line": "HTTP/1.1 202 Accepted",
+        "bytes": 167
+      },
+      "backend_events": [
+        [
+          -0.0542,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0001,
+          2,
+          "CALL work job"
+        ],
+        [
+          2.1515,
+          2,
+          "CALL release job"
+        ],
+        [
+          2.6561,
+          2,
+          "NOTE released job"
+        ],
+        [
+          2.662,
+          2,
+          "EOF"
+        ],
+        [
+          2.6622,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.6626,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792867907.794655 98341 lifespan.startup.begin",
+        "1792867907.795303 98341 lifespan.startup.done",
+        "1792867907.849179 98341 job.begin",
+        "1792867909.999779 98341 job.cancelled",
+        "1792867909.999980 98341 job.cleanup.begin",
+        "1792867910.505563 98341 job.cleanup.done",
+        "1792867910.511449 98341 lifespan.shutdown.begin",
+        "1792867910.511816 98341 lifespan.shutdown.done"
+      ]
+    },
+    {
+      "rep": 5,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "fastapi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "59105",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "startup_to_signal_s": 0.449,
+      "signal_to_exit_s": 2.792,
+      "client": {
+        "ended": "eof",
+        "status_line": "HTTP/1.1 202 Accepted",
+        "bytes": 167
+      },
+      "backend_events": [
+        [
+          -0.0555,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0,
+          2,
+          "CALL work job"
+        ],
+        [
+          2.1517,
+          2,
+          "CALL release job"
+        ],
+        [
+          2.662,
+          2,
+          "NOTE released job"
+        ],
+        [
+          2.7461,
+          2,
+          "EOF"
+        ],
+        [
+          2.7465,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.7472,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792867910.995345 98344 lifespan.startup.begin",
+        "1792867910.996361 98344 lifespan.startup.done",
+        "1792867911.051450 98344 job.begin",
+        "1792867913.202821 98344 job.cancelled",
+        "1792867913.202957 98344 job.cleanup.begin",
+        "1792867913.713670 98344 job.cleanup.done",
+        "1792867913.797903 98344 lifespan.shutdown.begin",
+        "1792867913.798487 98344 lifespan.shutdown.done"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,416 @@
+{
+  "meta": {
+    "case": "e3-21-fix-long-cleanup-int-int",
+    "argv": [
+      "--timeout",
+      "2",
+      "--hard-limit",
+      "20",
+      "--reps",
+      "3",
+      "--case",
+      "e3-21-fix-long-cleanup-int-int",
+      "--python",
+      "<venvs>/venv-313-fix/bin/python",
+      "--release-delay",
+      "5",
+      "--signal",
+      "INT",
+      "--second-signal",
+      "INT"
+    ],
+    "started_utc": "2026-10-24T21-39-09Z",
+    "host": {
+      "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64"
+    },
+    "versions": {
+      "python": "3.13.11",
+      "implementation": "CPython",
+      "uvicorn": "0.54.0",
+      "starlette": "1.10.0",
+      "fastapi": "0.162.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0"
+    },
+    "settings": {
+      "server": "uvicorn",
+      "app": "asgi",
+      "signal": "INT",
+      "timeout": 2,
+      "work_delay": 60.0,
+      "release_delay": 5.0,
+      "hold_startup": false,
+      "shield": false,
+      "shared": false,
+      "stubborn": false,
+      "second_signal": "INT",
+      "hard_limit": 20.0,
+      "reps": 3
+    },
+    "summary": [
+      {
+        "rep": 1,
+        "returncode": 0,
+        "hung": false,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 7.273,
+        "second_signal_after_s": 2.202,
+        "cleanup_started": true,
+        "cleanup_acknowledged_by_backend": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 7.213,
+          "status_line": "HTTP/1.1 500 Internal Server Error",
+          "bytes": 212
+        }
+      },
+      {
+        "rep": 2,
+        "returncode": 0,
+        "hung": false,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 7.214,
+        "second_signal_after_s": 2.149,
+        "cleanup_started": true,
+        "cleanup_acknowledged_by_backend": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 7.1575,
+          "status_line": "HTTP/1.1 500 Internal Server Error",
+          "bytes": 212
+        }
+      },
+      {
+        "rep": 3,
+        "returncode": 0,
+        "hung": false,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 7.202,
+        "second_signal_after_s": 2.15,
+        "cleanup_started": true,
+        "cleanup_acknowledged_by_backend": true,
+        "cleanup_finished": true,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 7.1571,
+          "status_line": "HTTP/1.1 500 Internal Server Error",
+          "bytes": 212
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "rep": 1,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65430",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "INT",
+      "returncode": 0,
+      "hung": false,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.068,
+      "signal_to_exit_s": 7.273,
+      "second_signal_after_s": 2.202,
+      "client": {
+        "ended": "eof",
+        "ended_at": 7.213,
+        "status_line": "HTTP/1.1 500 Internal Server Error",
+        "bytes": 212
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.002,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0017,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.2013,
+          3,
+          "CALL release request"
+        ],
+        [
+          7.2067,
+          3,
+          "REPLY release request"
+        ],
+        [
+          7.2073,
+          3,
+          "NOTE released request"
+        ],
+        [
+          7.2129,
+          3,
+          "EOF"
+        ],
+        [
+          7.213,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          7.2266,
+          1,
+          "EOF"
+        ],
+        [
+          7.2267,
+          2,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_acknowledged_by_backend": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877949.676998 27453 lifespan.startup.begin",
+        "1792877949.677708 27453 lifespan.startup.done",
+        "1792877949.679358 27453 request.begin",
+        "1792877951.880372 27453 request.cancelled",
+        "1792877951.880551 27453 request.cleanup.begin",
+        "1792877956.886884 27453 request.cleanup.done"
+      ]
+    },
+    {
+      "rep": 2,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65437",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "INT",
+      "returncode": 0,
+      "hung": false,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.135,
+      "signal_to_exit_s": 7.214,
+      "second_signal_after_s": 2.149,
+      "client": {
+        "ended": "eof",
+        "ended_at": 7.1575,
+        "status_line": "HTTP/1.1 500 Internal Server Error",
+        "bytes": 212
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.0563,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0562,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.1485,
+          3,
+          "CALL release request"
+        ],
+        [
+          7.1539,
+          3,
+          "REPLY release request"
+        ],
+        [
+          7.1541,
+          3,
+          "NOTE released request"
+        ],
+        [
+          7.1574,
+          3,
+          "EOF"
+        ],
+        [
+          7.1575,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          7.1647,
+          1,
+          "EOF"
+        ],
+        [
+          7.1648,
+          2,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_acknowledged_by_backend": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877957.032529 27468 lifespan.startup.begin",
+        "1792877957.033274 27468 lifespan.startup.done",
+        "1792877957.089262 27468 request.begin",
+        "1792877959.237633 27468 request.cancelled",
+        "1792877959.237731 27468 request.cleanup.begin",
+        "1792877964.243516 27468 request.cleanup.done"
+      ]
+    },
+    {
+      "rep": 3,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65449",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "INT",
+      "returncode": 0,
+      "hung": false,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.127,
+      "signal_to_exit_s": 7.202,
+      "second_signal_after_s": 2.15,
+      "client": {
+        "ended": "eof",
+        "ended_at": 7.1571,
+        "status_line": "HTTP/1.1 500 Internal Server Error",
+        "bytes": 212
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.0558,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0558,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.1495,
+          3,
+          "CALL release request"
+        ],
+        [
+          7.1549,
+          3,
+          "REPLY release request"
+        ],
+        [
+          7.1551,
+          3,
+          "NOTE released request"
+        ],
+        [
+          7.157,
+          3,
+          "EOF"
+        ],
+        [
+          7.157,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          7.1646,
+          1,
+          "EOF"
+        ],
+        [
+          7.1646,
+          2,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_acknowledged_by_backend": true,
+      "cleanup_finished": true,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877964.373883 27681 lifespan.startup.begin",
+        "1792877964.374626 27681 lifespan.startup.done",
+        "1792877964.430186 27681 request.begin",
+        "1792877966.579315 27681 request.cancelled",
+        "1792877966.579531 27681 request.cleanup.begin",
+        "1792877971.585416 27681 request.cleanup.done"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+[2026-10-24 11:46:04 -0700] [95559] [INFO] Running on http://127.0.0.1:58829 (CTRL + C to quit)
+[2026-10-24 11:47:05 -0700] [95559] [ERROR] Error in ASGI Framework
+Traceback (most recent call last):
+  File "<venvs>/venv-313/lib/python3.13/site-packages/hypercorn/asyncio/task_group.py", line 28, in _handle
+    await app(scope, receive, send, sync_spawn, call_soon)
+  File "<venvs>/venv-313/lib/python3.13/site-packages/hypercorn/app_wrappers.py", line 34, in __call__
+    await self.app(scope, receive, send)
+  File "<research>/reproductions/asgi_app.py", line 24, in app
+    await unit_of_work("request", on_done=respond)
+  File "<research>/reproductions/backend_link.py", line 78, in unit_of_work
+    await link.call("release")
+  File "<research>/reproductions/backend_link.py", line 48, in call
+    raise ConnectionError("backend closed the connection")
+ConnectionError: backend closed the connection
+[2026-10-24 11:47:05 -0700] [95559] [ERROR] ASGI Framework Lifespan error, shutdown without Lifespan support
+Traceback (most recent call last):
+  File "<venvs>/venv-313/lib/python3.13/site-packages/hypercorn/asyncio/lifespan.py", line 56, in handle_lifespan
+    await self.app(
+    ...<5 lines>...
+    )
+  File "<venvs>/venv-313/lib/python3.13/site-packages/hypercorn/app_wrappers.py", line 34, in __call__
+    await self.app(scope, receive, send)
+  File "<research>/reproductions/asgi_app.py", line 16, in app
+    await resource.stop()
+  File "<research>/reproductions/backend_link.py", line 99, in stop
+    await self.link.call("shutdown")
+  File "<research>/reproductions/backend_link.py", line 48, in call
+    raise ConnectionError("backend closed the connection")
+ConnectionError: backend closed the connection
+<python-3.13>/lib/python3.13/multiprocessing/resource_tracker.py:400: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-8yo3r88_', '/mp-dcj5e7g9', '/mp-0tcrtr3y', '/mp-ag2i8lty', '/mp-q_oxmb5u'}
+  warnings.warn(
