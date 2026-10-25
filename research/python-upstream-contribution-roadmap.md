@@ -2,6 +2,11 @@
 
 Investigation date: 2026-10-24. Written by: Claude Opus 5.5 (max).
 
+**Corrected later on 2026-10-24.** An outside adversarial review found two false claims about upstream tests. The passages are corrected in place, each marked "(corrected 2026-10-24)". The earlier search looked only for `try`/`except`. It missed tests that catch with `pytest.raises` or `assertRaises`.
+
+- **psycopg.** `tests/test_pipeline.py::test_outer_transaction_error`, and its async copy, catches a database error inside `transaction()` and expects the block to exit normally. A run of its pattern found the transaction aborted and `status` reading `committed` ([`python-upstream-contribution/psycopg-pipeline-test-check/`](python-upstream-contribution/psycopg-pipeline-test-check/README.md)). So a `transaction()` fix that raises conflicts with that test, and a fix that only corrects `status` does not.
+- **asyncpg.** `tests/test_timeout.py::test_timeout_06`, and `test_timeout_04`, exit a transaction block normally after a caught error that aborted it. A fix that raises conflicts with them.
+
 This roadmap orders the upstream contributions that PPCS's Python research supports. It synthesizes two completed investigations:
 
 - [`python-ecosystem-contribution-audit.md`](python-ecosystem-contribution-audit.md), "the audit";
@@ -62,7 +67,7 @@ The working tracker is [`python-upstream-contribution-tracker.md`](python-upstre
   - **P5a (PY-7)** is the pool consequence. It is ready for its author.
   - **PY-4** is the event consequence: `after_rollback` after a cancelled `COMMIT`. Its contract is uncertain. One check (CHK-4) decides whether it is specific to cancellation.
 - **New in this synthesis.** Neither report has these:
-  1. **psycopg's own suite asserts today's `commit()` behaviour** (`test_auto_transaction_fail`). A `commit()` that raises therefore has a known compatibility cost. The `transaction()` path has documented semantics and no conflicting test.
+  1. **psycopg's own suite asserts today's `commit()` behaviour** (`test_auto_transaction_fail`). A `commit()` that raises therefore has a known compatibility cost. The `transaction()` path has documented semantics. Its suite also exits a block normally after a caught error (`test_outer_transaction_error`), so a block that raises has a compatibility cost too. A corrected `status` alone conflicts with neither test (corrected 2026-10-24).
   2. **psycopg's docs define `Transaction.status` as the final outcome, for retry logic.** That settles "exit path or outcome?" against the current behaviour.
   3. **SQLAlchemy's `after_rollback` follows every failed root `COMMIT`** without a DBAPI rollback (Src). The cancellation result is one instance of this.
   4. **SQLAlchemy's recipe mixes two drivers.** It shows a `postgresql+psycopg2://` URL but calls `dbapi_connection.execute()`, a psycopg 3 method.
@@ -173,13 +178,14 @@ The working tracker is [`python-upstream-contribution-tracker.md`](python-upstre
 - **#967 (2024-12-16).** The maintainer wrote: "you can understand if there was a rollback because an exception will be thrown as well". The `try`/`except`/`else` that followed reads "there was a commit" in its `else` branch.
 - **`tests/test_connection_async.py:401`** (`test_auto_transaction_fail`; sync copy `tests/test_connection.py:405`). It runs a failing statement and asserts `INERROR`. It then calls `commit()`, and asserts `IDLE` and that the row is gone.
 - **`test_transaction_status`** (`tests/test_transaction_async.py:533`). No case catches an error inside the block.
+- **`test_outer_transaction_error`** (`tests/test_pipeline.py:506`; async copy `tests/test_pipeline_async.py:507`). It catches a database error inside `transaction()` with `pytest.raises`, and expects the block to exit normally. In its pattern the transaction is aborted at exit, and `status` reads `committed` (corrected 2026-10-24; `python-upstream-contribution/psycopg-pipeline-test-check/`).
 
 **Answers to the brief:**
 
 1. **Does #1453 cover both APIs?** No. Its body covers `Connection.commit()` and asks that it raise. It does not mention `transaction()` or `Transaction.status`.
 2. **A follow-up comment, or a separate issue?** A comment on #1453. It is one driver behaviour, one maintainer and one fix area. A separate issue would split a single decision across two threads.
 3. **The narrowest fix.** In `BaseTransaction._commit_gen`, keep the outer `COMMIT`'s result. Set `COMMITTED` only after it succeeds, and raise when its command status is `ROLLBACK`.
-   - That breaks no existing test.
+   - Raising breaks `test_outer_transaction_error`. Setting a non-committed `status` without raising breaks no test found (corrected 2026-10-24).
    - The same check in `BaseConnection._commit_gen` would cover `commit()`, and with it SQLAlchemy and Django. It changes `test_auto_transaction_fail`, though.
    - Details are in §7.
 4. **Regression tests:** §8.
@@ -199,7 +205,7 @@ The working tracker is [`python-upstream-contribution-tracker.md`](python-upstre
 - **A misread of the attribute?** #969's request text asks "whether the block was exited with a commit or a rollback", which could mean the exit path. The shipped docs say "final outcome" and "retry logic", so the documented reading is the outcome.
 - **Regression risk of the fix?**
   - A `commit()` that raises changes behaviour that an existing test encodes.
-  - A fix in `transaction()` only avoids that, but leaves SQLAlchemy and Django exposed: both call `Connection.commit()`.
+  - A fix in `transaction()` only avoids that only if it does not raise. A block that raises fails `test_outer_transaction_error` (corrected 2026-10-24). Either way it leaves SQLAlchemy and Django exposed: both call `Connection.commit()`.
 - **Maintainer position?** None on #1453 yet. The last commit on `master` was 2026-10-12.
 
 **Classification.** PY-1b is CONFIRMED. PY-1a is CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
@@ -236,7 +242,7 @@ The working tracker is [`python-upstream-contribution-tracker.md`](python-upstre
 4. **Exception behaviour and compatibility.**
    - **The class** is the maintainers' choice. SQLAlchemy's `_handle_exception` must be able to map it to a DBAPI error. It must not imitate a SQLSTATE the server never sent.
    - **Compatibility.** Code that catches an error inside `async with conn.transaction()` and exits normally would raise, where today it rolls back silently.
-   - **Existing tests.** No asyncpg test commits after a caught error (Src: `tests/test_transaction.py` on `master`).
+   - **Existing tests.** `tests/test_timeout.py::test_timeout_06`, and `test_timeout_04`, exit a transaction block normally after a caught error that aborted it. `test_timeout_06` asserts `InFailedSQLTransactionError` first. A fix that raises changes them (corrected 2026-10-24).
 5. **Regression tests:** §8.
 
 **Downstream frameworks are secondary.** Tortoise's only independent defect here is exception translation (PY-8). SQLAlchemy's ORM `after_commit` (PY-9) goes away if the driver raises (H-f).
@@ -533,11 +539,11 @@ Receptiveness is what was observed on 2026-10-24. Acceptance is Judg.
 
 | Rank | ID | Vehicle | Reproducibility | Ownership | Size | Regression tests | Receptiveness | Acceptance | Impact per effort |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | PY-1b | A comment on #1453 | 3 of 3, with a control | psycopg alone | A comment | Designed; none conflicts | One maintainer writes most of the code. No reply on #1453 in three days | A comment needs no acceptance. A fix to `transaction()` conflicts with no test | High |
+| 1 | PY-1b | A comment on #1453 | 3 of 3, with a control | psycopg alone | A comment | Designed; a raising fix conflicts with `test_outer_transaction_error` (corrected 2026-10-24) | One maintainer writes most of the code. No reply on #1453 in three days | A comment needs no acceptance. A `status`-only fix to `transaction()` conflicts with no test found | High |
 | 2 | PY-8 | A pull request | 3 of 3 | Tortoise alone | One decorator per backend | Easy | Very high: "just create a PR"; six merges on 2026-10-24 | High | Low impact |
 | 3 | PY-5 | A docs change, written by its author | 3 of 3 on psycopg 3 | SQLAlchemy docs | Rewrite one example | A demonstration program | Very high; fixes land fast | High | Medium |
 | 4 | PY-3 | An issue, then a PR | 3 of 3, with cross-framework controls | Tortoise alone | Moderate; needs a design choice | Must cover several backends | Very high | Moderate | High |
-| 5 | PY-2 | An issue, then a PR | 3 of 3 with a control; a PPCS FAIL | asyncpg | Small | Easy; none conflicts | Low for issues. Outside PRs do get merged | Moderate | High |
+| 5 | PY-2 | An issue, then a PR | 3 of 3 with a control; a PPCS FAIL | asyncpg | Small | Easy; a raising fix conflicts with `test_timeout_06` (corrected 2026-10-24) | Low for issues. Outside PRs do get merged | Moderate | High |
 | 6 | PY-7 | A discussion, written by its author | Ext, adversarially reviewed | SQLAlchemy Core | Small | Existing test classes | Very high | Moderate: reachability will be questioned | Medium |
 | 7 | PY-6 | An issue | 3 of 3, plus psql | asyncpg | One statement and a capability flag | The pattern of #1392 | Low; #1392 is unreviewed | Moderate: compatibility | Medium |
 | 8 | PY-4 | A discussion, written by its author, after CHK-4 | 3 of 3, two releases | Shared with the driver and runtime | Docs, or an event change | Hard to test | Very high | Low to moderate (#12728) | Medium |
@@ -582,7 +588,7 @@ This is a priority order, not a strict queue. Prerequisites set the calendar (§
 - **Its timing matters.**
   - No fix for #1453 has been designed yet. The maintainer should see both commit paths before deciding, because they are separate code.
   - A fix in `Connection._commit_gen` alone would leave `Transaction.status` wrong.
-  - The `transaction()` path is also where a fix conflicts with no existing test, which may make the first step easier.
+  - On the `transaction()` path, a fix that only corrects `status` conflicts with no existing test, which may make the first step easier. A fix that raises conflicts with `test_outer_transaction_error` (corrected 2026-10-24).
 - **It frames PY-2.**
   - The asyncpg report can point to #1453 for the same PostgreSQL behaviour.
   - If psycopg's maintainer answers first, for example on the exception class, PY-2 can use that answer.
@@ -700,6 +706,7 @@ Each entry gives the location, the incorrect assumption, the smallest correction
 1. **A caught error, then a normal exit from the block.**
    - Before: no exception, and `COMMITTED` (Audit).
    - After: the exit raises; `tx.status` is not `COMMITTED`; `aconn.pgconn.transaction_status` is `IDLE`; a second connection sees no row.
+   - An exit that raises also changes `test_outer_transaction_error` (`tests/test_pipeline.py:506`) and its async copy (corrected 2026-10-24).
 2. **Control: an inner `transaction()` catches the error.** The outer block commits, `status` is `COMMITTED`, and the row is visible, before and after.
 3. **`COMMIT` itself raises** (a deferred FK) inside `transaction()`.
    - Before: `COMMITTED`, predicted by Src (H-a; CHK-1).
@@ -708,7 +715,7 @@ Each entry gives the location, the incorrect assumption, the smallest correction
    - rewrite `test_auto_transaction_fail` (`tests/test_connection_async.py:401`) to expect the error, keeping its `IDLE` and row-absent assertions;
    - add a pipeline-mode case to `tests/test_pipeline_async.py`.
 
-**PY-2: asyncpg.** In `tests/test_transaction.py`.
+**PY-2: asyncpg.** In `tests/test_transaction.py`. A fix that raises also changes `tests/test_timeout.py::test_timeout_06` and `test_timeout_04`, which exit a transaction block normally after a caught timeout (corrected 2026-10-24).
 
 1. **`async with con.transaction():`** insert, then catch the `UniqueViolationError` from a duplicate.
    - Before: the block exits normally (P1).
@@ -770,6 +777,7 @@ Each entry gives the location, the incorrect assumption, the smallest correction
 - **No policy on AI-written text was found** in the paths checked: the repository root and `.github/`.
 - **Compatibility:**
   - `test_auto_transaction_fail`;
+  - `test_outer_transaction_error` and its async copy, for a block that raises (corrected 2026-10-24);
   - code that follows psycopg 2 habits. Judg: psycopg2's `commit()` behaves the same way, but this was not checked here;
   - pipeline mode;
   - the exception class. A `DatabaseError` makes Django's `atomic()` roll back and drop `on_commit`, and the class decides how SQLAlchemy wraps the error.
@@ -785,7 +793,7 @@ Each entry gives the location, the incorrect assumption, the smallest correction
   Expect silence on issues. A well-tested PR may move faster than an issue.
 - **No security policy or AI policy was found.**
 - **Compatibility:**
-  - PY-2 changes `commit()` for code that swallows errors;
+  - PY-2 changes `commit()` for code that swallows errors, including `test_timeout_06` and `test_timeout_04` (corrected 2026-10-24);
   - PY-6 changes roles set in `init`;
   - server capabilities (CockroachDB, Redshift, CrateDB) must gate any new reset statement;
   - `DISCARD ALL` is off the table (#270).
@@ -830,7 +838,7 @@ Each entry gives the vehicle, an outline of the content (not the prose), the pre
      1. The second surface: `transaction()` exits normally and `tx.status` is `committed`, while PostgreSQL aborted. Three repetitions, with a savepoint control.
      2. One sentence each, quoting the documented block contract and the `status` docs ("final outcome", "retry logic").
      3. The two commit paths are separate (`Connection._commit_gen`, `BaseTransaction._commit_gen`), so a fix in one does not reach the other.
-     4. An observation: `test_auto_transaction_fail` expects `commit()` to return after an error. The `transaction()` path has no such test.
+     4. An observation: `test_auto_transaction_fail` expects `commit()` to return after an error. `test_outer_transaction_error` does the same for the block. A `status`-only fix conflicts with neither (corrected 2026-10-24).
      5. A conditional offer of tests or a PR.
      6. Appendix A's program and output, in `<details>`.
    - **Prerequisites:**
@@ -850,7 +858,7 @@ Each entry gives the vehicle, an outline of the content (not the prose), the pre
      - the expected behaviour: raise when the server completes `COMMIT` with `ROLLBACK`, without prescribing the implementation;
      - one line each:
        - where the status is dropped (`Transaction.__commit`);
-       - that `40001`, `40P01` and `57014`, caught at statement level, end the same way;
+       - that `40001`, `40P01` and `57014`, caught at statement level, end the same way (dropped from the draft on 2026-10-24, after the outside review);
        - that Tortoise's `in_transaction()` and SQLAlchemy's asyncpg dialect are callers;
      - a reference to #1453, the psycopg counterpart.
    - **Prerequisites:** CHK-2 (run the exact script to be posted, three times, including on uvloop); a fresh duplicate search.
