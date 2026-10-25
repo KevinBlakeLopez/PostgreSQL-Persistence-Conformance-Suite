@@ -40,7 +40,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | READY_FOR_HUMAN_REVIEW | Write and run the standalone script; draft the issue |
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6 | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
-| PY-4 | SQLAlchemy | `after_rollback` fires after a cancelled `COMMIT` that PostgreSQL then commits | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | 8 (A7, B8) | NEEDS_VERIFICATION | Run CHK-4, or PP-3 |
+| PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
 | PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — | DEFERRED | Revisit after PY-1 and PY-2 |
 | PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
 | PY-11 | psycopg_pool, SQLAlchemy pools, Django | Session state carries over by default | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
@@ -270,21 +270,27 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 ### PY-4: SQLAlchemy `after_rollback` during a cancelled `COMMIT`
 
-- **Project:** SQLAlchemy 2.1.5 and 2.1.6 ORM. `main` `10f4d1e2d` is unchanged.
+- **Project:** SQLAlchemy 2.1.5 and 2.1.6 ORM. `main` `10f4d1e2d` is unchanged on this path: re-read 2026-10-25, it is three commits past `rel_2_1_6`, none touching rollback, commit or event dispatch.
 - **Finding:** under anyio level-triggered cancellation, `after_rollback` fires. PostgreSQL then commits.
+  - **CHK-4: the same without cancellation.** When the reply to `COMMIT` is lost and PostgreSQL commits, `after_rollback` and `after_soft_rollback` fire, and no DBAPI rollback is attempted.
+  - **A rejected `COMMIT`** (`23503`, so PostgreSQL rolls back) fires the same events.
+  - **So the event follows any root `COMMIT` that raised,** whatever PostgreSQL decided. It conflicts with the database when the outcome was unknown and PostgreSQL committed. In the roadmap's words (§D), "the finding concerns unknown outcomes in general, not anyio, and it should be reported that way."
 - **Evidence:**
   - `research/python-production-failure-gap-analysis/p3_cancellation.py` and `output/p3.jsonl`, `p3b.jsonl`, `p3c-sa216.jsonl`;
   - added 2026-10-25: `research/python-production-failure-gap-analysis/p8-uvicorn-shutdown/` (P8). The same claim without anyio, from Uvicorn's graceful-shutdown timeout under SIGINT; it does not replace CHK-4;
-  - Src: `orm/session.py:1377-1380` and `engine/base.py:2697-2742`. This code path is shared with PY-7.
-- **Upstream:** none found. Precedent: #12728.
+  - **CHK-4,** [`python-upstream-contribution/chk-4-sa-lost-commit-reply/`](python-upstream-contribution/chk-4-sa-lost-commit-reply/README.md), on SQLAlchemy 2.1.6 and 2.1.5:
+    - `Session` on psycopg, and `AsyncSession` on asyncpg and on psycopg, 3 of 3 per cell, with the server's statement log and `psql`;
+    - [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) there is the package for the author;
+  - Src: `orm/session.py:1377-1380` and `engine/base.py:2697-2742`. These are 2.1.5's lines; CHK-4's `FACTS.md` gives 2.1.6's. This code path is shared with PY-7.
+- **Upstream:** none found. Precedent: #12728. Not re-checked for CHK-4.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
 - **Priority:** 8.
 - **Proposed action:** a documentation clarification; a change to event delivery is optional (roadmap §7). The author writes a discussion.
 - **Prerequisites:**
-  - CHK-4, or PP-3: does a lost `COMMIT` reply give the same claim?
+  - CHK-4, done 2026-10-25 (UTC): a lost `COMMIT` reply gives the same claim;
   - P5a's reception.
-- **Status:** NEEDS_VERIFICATION
-- **Next concrete step:** run CHK-4.
+- **Status:** READY_FOR_HUMAN_REVIEW
+- **Next concrete step:** after P5a's reception, the author reads CHK-4's `FACTS.md` and writes the discussion in their own words. No agent drafts or posts the text.
 
 ## Unscheduled items
 
@@ -314,7 +320,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-1 | PY-1b | Optional | NOT_STARTED. Not run for the PY-1b draft |
 | CHK-2 | PY-2 | Required before posting | DONE 2026-10-24. Reproduced, with no discrepancy from P1: [`python-upstream-contribution/chk-2-asyncpg/`](python-upstream-contribution/chk-2-asyncpg/README.md) |
 | CHK-3 | PY-5 | Required | DONE 2026-10-25 (UTC). The measured arms reproduced on both drivers, and the corrected example reset all five measured items. A supplement after the outside review narrowed "resets nothing": [`python-upstream-contribution/chk-3-sa-reset-recipe/`](python-upstream-contribution/chk-3-sa-reset-recipe/README.md) |
-| CHK-4 | PY-4 | Required (or PP-3) | NOT_STARTED |
+| CHK-4 | PY-4 | Required (or PP-3) | DONE 2026-10-25 (UTC). H-b holds: with no cancellation, a lost `COMMIT` reply fires `after_rollback` while PostgreSQL commits, on 2.1.6 and 2.1.5 and all three stacks, 3 of 3: [`python-upstream-contribution/chk-4-sa-lost-commit-reply/`](python-upstream-contribution/chk-4-sa-lost-commit-reply/README.md) |
 | CHK-5 | PY-3 | Recommended before the issue; required before a PR | DONE 2026-10-25 (UTC). Reproduced on both PostgreSQL backends, the savepoint variant included, with no discrepancy from P4: [`python-upstream-contribution/chk-5-tortoise/`](python-upstream-contribution/chk-5-tortoise/README.md) |
 | CHK-6 | PY-6 | Optional | NOT_STARTED |
 | CHK-7 | PY-7 | Required | DONE 2026-10-25 (UTC). Reproduced on SQLAlchemy 2.1.6, 3 of 3, with output byte-identical to the recorded run: `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (commit `3c9758b`) |
@@ -411,6 +417,32 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
   The v2 script's own 2026-10-18 stderr was not saved.
 - **Independent confirmation.** In the server log, the next checkout's insert and `COMMIT` share the `doomed` insert's virtual transaction, with no `ROLLBACK` between them. `psql` reads those transactions as `committed`.
 
+### CHK-4 result (2026-10-25)
+
+**The setup:**
+
+- container `ppcs-chk4-pg`, PPCS's pinned 18.6 digest, `127.0.0.1:55494`, with tmpfs, `log_statement=all` and connection logging. Removed afterwards. `ppcs-postgres` was not touched;
+- SQLAlchemy 2.1.6 and 2.1.5, each in a virtualenv with psycopg 3.3.6, asyncpg 0.32.0 and greenlet 3.5.6, on Python 3.13.11;
+- the login `chk4_app`, not a superuser, and a pool of one, as in P3;
+- the lost reply: PPCS's category-E proxy, `harness/lib/pg-wire-proxy.mjs`, run unchanged, on the engine's first connection only.
+
+**The results.** Each cell ran 3 of 3, with byte-identical output per cell. Both versions gave the same output, apart from the version field.
+
+| Arm | PostgreSQL | ORM events | DBAPI rollback after the failed `COMMIT` |
+| --- | --- | --- | --- |
+| Lost reply | `committed` when the block raised; the row visible, `xmin` = its xid | `after_rollback`, `after_soft_rollback` | None: not called, and the backend logged only its disconnection |
+| Added: a rejected `COMMIT` (deferred foreign key, `23503`) | `aborted` | `after_rollback`, `after_soft_rollback` | No `ROLLBACK` reached the server |
+| Control: no fault | `committed` | `after_commit` | — |
+
+- **The sequence.** The lost-reply sequence is P3's level-triggered one, with the lost reply in place of the cancellation.
+- **The error.** Every stack raised a disconnect error with `connection_invalidated` true: `OperationalError` on psycopg, `DBAPIError` on asyncpg.
+- **The next unit.** The next unit of work committed normally in all 54 runs.
+
+**Agreement.**
+- The observer, the server's statement log and `psql` (all 108 xids, and every marker row) agree.
+- The scripts' hashes were recorded before the matrix, and are unchanged.
+- 28 smoke runs before the matrix found one apparatus error, fixed before recording (README, "Apparatus incidents").
+
 ## Evidence preservation (PP-1)
 
 **Status: committed and pushed on 2026-10-24.**
@@ -499,6 +531,10 @@ The rest of this section is the plan as it stood before the commits.
 - **PY-8 (2026-10-25 UTC). No conclusion changed.** PY-8 stays CONFIRMED, now on three backends.
   - **A correction.** Not every backend decorates `begin()` (see PY-8).
   - **A new item.** Check 2 found PY-20, which is independent of PY-8. It is the reason the PR leaves SQLite alone.
+- **CHK-4 (2026-10-25 UTC). One framing changed.** PY-4 stays CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN, but it is not specific to cancellation.
+  - **H-b holds** (roadmap §3.1). A lost `COMMIT` reply, with no cancellation, gives the same `after_rollback`, and PostgreSQL commits. In §D's words, "the finding concerns unknown outcomes in general, not anyio, and it should be reported that way."
+  - **A Src claim is now observed.** The event also follows a server-rejected `COMMIT` (the added arm), with no `ROLLBACK` sent.
+  - **Not covered:** an explicit `session.commit()`, and a reused connection in the recorded runs (CHK-4's README, "Limits").
 
 ## Change log
 
@@ -557,3 +593,8 @@ The rest of this section is the plan as it stood before the commits.
   - Committed and pushed at the maintainer's request: the evidence as `2757a35`, a correction of three times in its READMEs as `ed8e236`, and this tracker update in the commit after it. The Tortoise branch is not committed, and nothing is filed.
   - New: PY-20 and CHK-8.
   - **PY-3 recorded as SUBMITTED** ([#2383](https://github.com/tortoise/tortoise-orm/issues/2383), filed 2026-10-25 by another session and logged in `docs/upstream-submissions.md` in `38bf2a7`): the header list, the summary row and PY-3's status. This tracker had not been updated when it was filed.
+- **2026-10-25, about 15:35 UTC.**
+  - **Ran CHK-4.** H-b holds on SQLAlchemy 2.1.6 and 2.1.5: [`python-upstream-contribution/chk-4-sa-lost-commit-reply/`](python-upstream-contribution/chk-4-sa-lost-commit-reply/README.md), with `FACTS.md`.
+  - **Status.** PY-4 moved to READY_FOR_HUMAN_REVIEW. Its post still waits on P5a's reception.
+  - **Committed and pushed** at the maintainer's request: the evidence as `190173c`, and this tracker update in the commit after it.
+  - **Nothing posted or filed.** The roadmap was not edited.
