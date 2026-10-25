@@ -1,0 +1,8 @@
+scenario: sync-normal-close
+A         committed SET search_path; insert left uncommitted                                   done
+A         close()                                                                              returned
+observer  A's uncommitted insert after close                                                   not visible
+B         same physical session as A                                                           True
+B         search_path                                                                          tenant_a, public
+observer  where B's committed insert landed                                                    tenant_a
+observer  A's insert after B's commit                                                          not visible

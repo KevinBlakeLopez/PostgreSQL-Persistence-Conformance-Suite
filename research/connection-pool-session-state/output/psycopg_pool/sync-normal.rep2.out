@@ -1,0 +1,7 @@
+scenario: sync-normal
+A         committed SET search_path; insert left uncommitted                                   done
+A         block exited with an application error                                               done
+observer  A's uncommitted insert after the return                                              not visible
+B         same physical session as A                                                           True
+B         search_path                                                                          tenant_a, public
+observer  where B's committed insert landed                                                    tenant_a

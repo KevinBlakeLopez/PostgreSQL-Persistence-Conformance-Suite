@@ -1,0 +1,10 @@
+scenario: idle-killed
+A         current_user | search_path after the session changes                                 ssc_tenant_a | tenant_a, public
+observer  terminated the idle connector's backend                                              done
+B0        first statement on the reused connector                                              threw PostgresException
+B         same physical session as A                                                           False
+B         first statement: current_user | search_path | channels                               ssc_app | "$user", public | no channels
+B         SQL-level prepared statement ssc_user_stmt still defined                             False
+observer  advisory lock 4712 holders after B's first statement                                 0 backend(s) of the pool
+observer  temp tables of B's backend after B's first statement                                 none
+observer  where B's unqualified insert landed                                                  public

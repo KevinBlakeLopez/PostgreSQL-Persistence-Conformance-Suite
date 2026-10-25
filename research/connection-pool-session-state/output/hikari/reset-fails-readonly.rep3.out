@@ -1,0 +1,11 @@
+scenario: reset-fails-readonly
+A         getSchema() (pgjdbc runs select current_schema())                                            public
+A         close()                                                                                      threw SQLException SQLSTATE 25001: Cannot change transaction read-only property in the middle of a transaction.
+observer  pool backend after A's close()                                                               state=idle in transaction xact_open=true xid=false xmin=true
+B         same physical session as A                                                                   true
+B         getAutoCommit() through the pool                                                             false
+B         isReadOnly() through the pool                                                                true
+B         insert (B expects autocommit)                                                                SQLSTATE 25006: ERROR: cannot execute INSERT in a read-only transaction
+observer  where B's insert is visible                                                                  not visible (uncommitted or absent)
+B         close()                                                                                      returned normally
+observer  pool backend after B's close()                                                               state=idle in transaction (aborted) xact_open=false xid=false xmin=false

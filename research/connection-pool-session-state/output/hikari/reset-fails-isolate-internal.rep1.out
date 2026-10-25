@@ -1,0 +1,9 @@
+scenario: reset-fails-isolate-internal
+A         getSchema()                                                                                  public
+A         close()                                                                                      threw SQLException SQLSTATE 25001: Cannot change transaction isolation level in the middle of a transaction.
+observer  pool backend after A's close()                                                               state=idle in transaction xact_open=true xid=false xmin=true
+B         same physical session as A                                                                   true
+observer  B's backend at checkout, before B's first statement                                          state=idle xact_open=false xid=false xmin=false
+B         show transaction_isolation                                                                   serializable
+B         probe_row.v as B reads it (observer committed 1)                                             1
+B         close()                                                                                      returned normally

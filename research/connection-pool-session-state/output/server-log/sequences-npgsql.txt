@@ -1,0 +1,74 @@
+== ssc-npgsql-normal: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: SET ROLE ssc_tenant_a
+  T3: SET search_path TO tenant_a, public
+  T4: select pg_advisory_lock(4712)
+  T5: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T6: LISTEN ppcs_probe_channel
+  T7: PREPARE ssc_user_stmt AS SELECT 42
+  T8: select current_user || ' | ' || current_setting('search_path')
+  T9: DISCARD ALL
+  T10: select current_user || ' | ' || current_setting('search_path') || ' | ' || coalesce((select string_agg(c, ',') from pg_listening_channels() c), 'no channels')
+  T11: select count(*) > 0 from pg_prepared_statements where name = 'ssc_user_stmt'
+  T12: insert into item(label) values ('B-unqualified')
+== ssc-npgsql-no-reset: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: SET ROLE ssc_tenant_a
+  T3: SET search_path TO tenant_a, public
+  T4: select pg_advisory_lock(4712)
+  T5: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T6: LISTEN ppcs_probe_channel
+  T7: PREPARE ssc_user_stmt AS SELECT 42
+  T8: select current_user || ' | ' || current_setting('search_path')
+  T9: select current_user || ' | ' || current_setting('search_path') || ' | ' || coalesce((select string_agg(c, ',') from pg_listening_channels() c), 'no channels')
+  T10: select count(*) > 0 from pg_prepared_statements where name = 'ssc_user_stmt'
+  T11: insert into item(label) values ('B-unqualified')
+== ssc-npgsql-prepared: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: SET ROLE ssc_tenant_a
+  T3: SET search_path TO tenant_a, public
+  T4: select pg_advisory_lock(4712)
+  T5: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T6: LISTEN ppcs_probe_channel
+  T7: PREPARE ssc_user_stmt AS SELECT 42
+  T8: select current_user || ' | ' || current_setting('search_path')
+  T9: select 1
+  T10: SET SESSION AUTHORIZATION DEFAULT;RESET ALL;CLOSE ALL;UNLISTEN *;SELECT pg_advisory_unlock_all();DISCARD SEQUENCES;DISCARD TEMP
+  T11: select current_user || ' | ' || current_setting('search_path') || ' | ' || coalesce((select string_agg(c, ',') from pg_listening_channels() c), 'no channels')
+  T12: select count(*) > 0 from pg_prepared_statements where name = 'ssc_user_stmt'
+  T13: insert into item(label) values ('B-unqualified')
+== ssc-npgsql-rollback-fails: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED | insert into item(label) values ('A-uncommitted') | [xid] SET ROLE ssc_tenant_a | [xid] SET search_path TO tenant_a, public | [xid] select pg_advisory_lock(4712) | [xid] CREATE TEMP TABLE ssc_temp_probe (id int) | [xid] LISTEN ppcs_probe_channel | [xid] PREPARE ssc_user_stmt AS SELECT 42 | [xid] select current_user || ' | ' || current_setting('search_path') | FATAL 57P01
+ sequence 2 (seen on 4 backend(s)):
+  T1: select current_user || ' | ' || current_setting('search_path') || ' | ' || coalesce((select string_agg(c, ',') from pg_listening_channels() c), 'no channels')
+  T2: select count(*) > 0 from pg_prepared_statements where name = 'ssc_user_stmt'
+  T3: insert into item(label) values ('B-unqualified')
+== ssc-npgsql-idle-killed: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: SET ROLE ssc_tenant_a
+  T3: SET search_path TO tenant_a, public
+  T4: select pg_advisory_lock(4712)
+  T5: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T6: LISTEN ppcs_probe_channel
+  T7: PREPARE ssc_user_stmt AS SELECT 42
+  T8: select current_user || ' | ' || current_setting('search_path') | FATAL 57P01
+ sequence 2 (seen on 4 backend(s)):
+  T1: select current_user || ' | ' || current_setting('search_path') || ' | ' || coalesce((select string_agg(c, ',') from pg_listening_channels() c), 'no channels')
+  T2: select count(*) > 0 from pg_prepared_statements where name = 'ssc_user_stmt'
+  T3: insert into item(label) values ('B-unqualified')
+== ssc-npgsql-pruned: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SELECT version();
+  T2: SET ROLE ssc_tenant_a
+  T3: SET search_path TO tenant_a, public
+  T4: select pg_advisory_lock(4712)
+  T5: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T6: LISTEN ppcs_probe_channel
+  T7: PREPARE ssc_user_stmt AS SELECT 42
+  T8: select current_user || ' | ' || current_setting('search_path')

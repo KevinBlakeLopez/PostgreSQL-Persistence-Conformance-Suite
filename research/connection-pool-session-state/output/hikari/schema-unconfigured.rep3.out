@@ -1,0 +1,8 @@
+scenario: schema-unconfigured
+A         current_schema() at checkout                                                                 public
+A         current_schema() after setSchema("tenant_a")                                                 tenant_a
+A         close()                                                                                      returned normally
+B         same physical session as A                                                                   true
+B         current_schema() at checkout                                                                 tenant_a
+observer  where B's unqualified insert landed                                                          tenant_a/ssc_app
+B         close()                                                                                      returned normally

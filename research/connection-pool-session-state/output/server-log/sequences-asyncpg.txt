@@ -1,0 +1,171 @@
+== ssc-asyncpg-normal-release: 5 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 1 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: SELECT pg_advisory_unlock_all();
+  T7: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T8: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T9: select now() < statement_timestamp()
+  T10: insert into item(label) values ('B-unqualified')
+  T11: SELECT pg_advisory_unlock_all();
+ sequence 2 (seen on 4 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: SELECT pg_advisory_unlock_all();
+  T7: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T8: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T9: select pg_try_advisory_lock($1)
+  T10: select pg_advisory_unlock_all()
+  T11: insert into item(label) values ('B-unqualified')
+  T12: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-open-transaction: 5 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 1 backend(s)):
+  T1: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] SET search_path TO tenant_a, public | [xid] select pg_advisory_lock($1) | [xid] LISTEN ppcs_probe_channel | [xid] select set_config('app.tenant_id', 'tenant_a', false) | [xid] select current_setting('search_path') || ' | ' || current_setting('app.tenant_id') | [xid] ROLLBACK
+  T2: SELECT pg_advisory_unlock_all();
+  T3: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T4: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T5: select now() < statement_timestamp()
+  T6: insert into item(label) values ('B-unqualified')
+  T7: SELECT pg_advisory_unlock_all();
+ sequence 2 (seen on 4 backend(s)):
+  T1: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] SET search_path TO tenant_a, public | [xid] select pg_advisory_lock($1) | [xid] LISTEN ppcs_probe_channel | [xid] select set_config('app.tenant_id', 'tenant_a', false) | [xid] select current_setting('search_path') || ' | ' || current_setting('app.tenant_id') | [xid] ROLLBACK
+  T2: SELECT pg_advisory_unlock_all();
+  T3: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T4: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T5: select pg_try_advisory_lock($1)
+  T6: select pg_advisory_unlock_all()
+  T7: insert into item(label) values ('B-unqualified')
+  T8: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-reset-raises: 10 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 5 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+ sequence 2 (seen on 1 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select now() < statement_timestamp()
+  T4: insert into item(label) values ('B-unqualified')
+ sequence 3 (seen on 4 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select pg_try_advisory_lock($1)
+  T4: select pg_advisory_unlock_all()
+  T5: insert into item(label) values ('B-unqualified')
+  T6: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-reset-timeout: 10 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 5 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: select pg_sleep(0.5)
+ sequence 2 (seen on 1 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select now() < statement_timestamp()
+  T4: insert into item(label) values ('B-unqualified')
+  T5: select pg_sleep(0.5)
+  T6: SELECT pg_advisory_unlock_all();
+ sequence 3 (seen on 4 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select pg_try_advisory_lock($1)
+  T4: select pg_advisory_unlock_all()
+  T5: insert into item(label) values ('B-unqualified')
+  T6: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-cancel-during-reset: 5 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 1 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+ sequence 2 (seen on 4 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: select pg_sleep(0.5)
+  T7: SELECT pg_advisory_unlock_all();
+  T8: select current_setting('search_path')
+  T9: SELECT pg_advisory_unlock_all();
+  T10: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T11: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T12: select pg_try_advisory_lock($1)
+  T13: select pg_advisory_unlock_all()
+  T14: insert into item(label) values ('B-unqualified')
+  T15: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-backend-killed: 10 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 5 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id') | FATAL 57P01
+ sequence 2 (seen on 1 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select now() < statement_timestamp()
+  T4: insert into item(label) values ('B-unqualified')
+  T5: SELECT pg_advisory_unlock_all();
+ sequence 3 (seen on 4 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select pg_try_advisory_lock($1)
+  T4: select pg_advisory_unlock_all()
+  T5: insert into item(label) values ('B-unqualified')
+  T6: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-cancelled-query: 5 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 1 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: select pg_sleep(5) | ERROR 57014
+  T7: SELECT pg_advisory_unlock_all();
+  T8: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T9: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T10: select now() < statement_timestamp()
+  T11: insert into item(label) values ('B-unqualified')
+  T12: SELECT pg_advisory_unlock_all();
+ sequence 2 (seen on 4 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: select pg_sleep(5) | ERROR 57014
+  T7: SELECT pg_advisory_unlock_all();
+  T8: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T9: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T10: select pg_try_advisory_lock($1)
+  T11: select pg_advisory_unlock_all()
+  T12: insert into item(label) values ('B-unqualified')
+  T13: SELECT pg_advisory_unlock_all();
+== ssc-asyncpg-reset-timeout-long: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SET search_path TO tenant_a, public
+  T2: select pg_advisory_lock($1)
+  T3: LISTEN ppcs_probe_channel
+  T4: select set_config('app.tenant_id', 'tenant_a', false)
+  T5: select current_setting('search_path') || ' | ' || current_setting('app.tenant_id')
+  T6: select pg_sleep(5)
+ sequence 2 (seen on 4 backend(s)):
+  T1: select current_setting('search_path') || ' | ' || coalesce(current_setting('app.tenant_id', true), '<undefined>')
+  T2: select coalesce(string_agg(c, ','), 'none') from pg_listening_channels() c
+  T3: select pg_try_advisory_lock($1)
+  T4: select pg_advisory_unlock_all()
+  T5: insert into item(label) values ('B-unqualified')
+  T6: SELECT pg_advisory_unlock_all();

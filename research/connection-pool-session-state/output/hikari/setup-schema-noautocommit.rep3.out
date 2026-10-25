@@ -1,0 +1,8 @@
+scenario: setup-schema-noautocommit
+observer  pool backend after pool start                                                                state=idle in transaction xact_open=true xid=false xmin=false
+A         current_schema() at checkout                                                                 tenant_b
+A         current_schema() after A's rollback()                                                        public
+A         close()                                                                                      returned normally
+B         same physical session as A                                                                   true
+observer  where B's committed unqualified insert landed                                                public/ssc_app
+B         close()                                                                                      returned normally

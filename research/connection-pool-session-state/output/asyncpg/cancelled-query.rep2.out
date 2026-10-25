@@ -1,0 +1,13 @@
+scenario: cancelled-query
+A         state after the session changes                                                      tenant_a, public | tenant_a
+A         long query cancelled after 0.3 s                                                     CancelledError
+A         release() immediately after the cancellation                                         returned
+B         same physical session as A                                                           True
+observer  B's backend at checkout, before B's first statement                                  state=idle xact_open=False
+observer  A's original backend still exists while B holds its connection                       same backend
+B         search_path | app.tenant_id                                                          "$user", public | 
+B         listening channels                                                                   none
+observer  advisory lock 4711 holders while B holds the connection                              0 backend(s) of the pool
+B         pg_try_advisory_lock(4711)                                                           True
+observer  where B's unqualified insert landed                                                  public
+observer  pool backends at the end                                                             idle

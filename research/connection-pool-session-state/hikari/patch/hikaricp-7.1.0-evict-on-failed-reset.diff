@@ -1,0 +1,75 @@
+diff --git a/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java b/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
+index dbf3f33..7e8b345 100644
+--- a/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
++++ b/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
+@@ -260,6 +260,9 @@ public abstract class ProxyConnection implements Connection
+          catch (SQLException e) {
+             // when connections are aborted, exceptions are often thrown that should not reach the application
+             if (!poolEntry.isMarkedEvicted()) {
++               // The rollback or the state reset did not complete, so the connection's state is unknown: close it
++               // instead of returning it to the pool.
++               poolEntry.markEvicted();
+                throw checkException(e);
+             }
+          }
+diff --git a/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java b/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
+index b2da043..2853feb 100644
+--- a/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
++++ b/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
+@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
+ import static org.junit.Assert.assertSame;
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertNotSame;
++import static org.junit.Assert.fail;
+ 
+ import java.sql.Connection;
+ import java.sql.ResultSet;
+@@ -32,6 +34,7 @@ import org.junit.Test;
+ 
+ import com.zaxxer.hikari.HikariConfig;
+ import com.zaxxer.hikari.HikariDataSource;
++import com.zaxxer.hikari.mocks.StubConnection;
+ import com.zaxxer.hikari.util.UtilityElf;
+ 
+ public class ConnectionStateTest
+@@ -170,4 +173,39 @@ public class ConnectionStateTest
+          }
+       }
+    }
++
++   @Test
++   public void testConnectionIsNotReusedWhenStateResetFails() throws SQLException
++   {
++      try (HikariDataSource ds = newHikariDataSource()) {
++         ds.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
++         ds.setMinimumIdle(1);
++         ds.setMaximumPoolSize(1);
++         ds.setConnectionTestQuery("VALUES 1");
++         ds.setDataSourceClassName("com.zaxxer.hikari.mocks.StubDataSource");
++
++         StubConnection first;
++         try (Connection connection = ds.getConnection()) {
++            first = connection.unwrap(StubConnection.class);
++            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
++
++            // The reset of the isolation level now fails without a disconnection SQLState, as pgjdbc's
++            // setTransactionIsolation() does (SQLSTATE 25001) when a transaction is open.
++            first.throwException = true;
++            try {
++               connection.close();
++               fail("close() should report the failed reset");
++            }
++            catch (SQLException e) {
++               // pass
++            }
++            first.throwException = false;
++         }
++
++         try (Connection connection = ds.getConnection()) {
++            assertNotSame("a connection whose state reset failed was handed out again", first, connection.unwrap(StubConnection.class));
++            assertEquals(Connection.TRANSACTION_READ_COMMITTED, connection.getTransactionIsolation());
++         }
++      }
++   }
+ }
