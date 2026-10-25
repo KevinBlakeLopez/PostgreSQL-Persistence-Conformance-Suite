@@ -1,6 +1,6 @@
 # PPCS master research plan
 
-Inspected 2026-10-21. This is the mission and the boundary for the PostgreSQL Persistence Conformance Suite (PPCS) and for the separate longitudinal persistence ownership benchmark.
+Inspected 2026-10-21. Updated 2026-10-23 for the next-milestone sentence and the list of unfiled drafts. The mission is unchanged. This is the mission and the boundary for the PostgreSQL Persistence Conformance Suite (PPCS) and for the separate longitudinal persistence ownership benchmark.
 
 Read this plan before starting work. Current facts, including what is recorded and what is only drafted, are in [`research-status.md`](research-status.md). Order of work is in [`research-roadmap.md`](research-roadmap.md). Agent rules are in [`../AGENTS.md`](../AGENTS.md).
 
@@ -14,7 +14,7 @@ Writing this plan does not approve the future work it describes.
 | What has already been established? | [`research-status.md`](research-status.md) |
 | Which findings are production-reachable? | [`../research/production-reachability/README.md`](../research/production-reachability/README.md) and the status inventory |
 | Which upstream reports have been filed? | [`upstream-submissions.md`](upstream-submissions.md). Drafts are not filings. |
-| What is the next research milestone? | Finish PPCS closeout preservation, then design review of the Python benchmark. See the roadmap. |
+| What is the next research milestone? | Design review of the Python ownership benchmark. M0's evidence is on `main`. See the roadmap. |
 | Why is the ownership benchmark separate? | Program B, below |
 | What should the benchmark measure? | [`ownership-benchmark/research-questions.md`](ownership-benchmark/research-questions.md) |
 | Why does it begin with Python? | [`ownership-benchmark/methodology-plan.md`](ownership-benchmark/methodology-plan.md) |
@@ -241,7 +241,7 @@ Maintainer approval is required before:
 
 Ordinary documentation updates and maintenance of existing tests may proceed when a task explicitly assigns them. Approval of a documentation task is not approval of the work the documents describe.
 
-Upstream drafts that are ready to file still need approval of the exact text. As of the tracker copied into this repository, that includes Kysely `isCommitted`, Spring `afterCommit`, psycopg `commit()`, and TypeORM `afterTransactionCommit`. The Knex draft that restates knex#6547 must not be filed again.
+Upstream drafts that are ready to file still need approval of the exact text. As of the tracker in this repository on 2026-10-23, that is Spring `afterCommit` (S1) and Prisma `$transaction()` (PI1). Kysely `isCommitted` (Y2), psycopg `commit()` (P1), TypeORM `afterTransactionCommit` (T3), and Drizzle `db.transaction()` (D1) are filed. The Knex draft that restates knex#6547 must not be filed again. This sentence was not re-checked against GitHub.
 
 ## Maintenance after closeout
 
