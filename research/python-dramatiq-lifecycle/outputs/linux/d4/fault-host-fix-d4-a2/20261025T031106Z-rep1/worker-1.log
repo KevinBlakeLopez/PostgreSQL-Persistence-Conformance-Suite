@@ -1,0 +1,96 @@
+[2026-10-25 03:11:07,003] [PID 7018] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-25 03:11:06,966] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-25 03:11:07,000] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-25 03:11:07,000] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-25 03:11:07,000] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-25 03:11:07,002] [PID 7019] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-25 03:11:07,002] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-25 03:11:07,002] [PID 7019] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-25 03:11:07,003] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-25 03:11:07,003] [PID 7019] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-25 03:11:07,003] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-25 03:11:07,004] [PID 7019] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-25 03:11:07,006] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'e87da53b-a773-4111-9284-7513134462f0' onto work queue.
+[2026-10-25 03:11:07,006] [PID 7019] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('d4', {'0': 'barrier', 'default': 'ok'}) with id 'e87da53b-a773-4111-9284-7513134462f0'.
+[2026-10-25 03:11:07,006] [PID 7019] [Thread-4] [app.job] [DEBUG] Received args=('d4', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-25 03:11:07,007] [PID 7019] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-25 03:11:07,012] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,013] [PID 7019] [Thread-4] [app.job] [DEBUG] Completed after 6.71ms.
+[2026-10-25 03:11:07,013] [PID 7019] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('d4', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "/venv/fix-d4-a2/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/venv/fix-d4-a2/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/study/reproductions/app.py", line 153, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job d4 attempt 0: simulated downstream failure
+[2026-10-25 03:11:07,015] [PID 7019] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'e87da53b-a773-4111-9284-7513134462f0' on queue 'default.DQ'.
+[2026-10-25 03:11:07,029] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,069] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,121] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,247] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,416] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:07,722] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:08,687] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:09,690] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:10,416] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:10,416] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:10,692] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:11,306] [PID 7019] [Thread-4] [dramatiq.middleware.retries.Retries] [WARNING] Failed to enqueue a retry for message 'e87da53b-a773-4111-9284-7513134462f0' due to a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+The operation will be retried in 5 seconds until the connection recovers.
+[2026-10-25 03:11:11,692] [PID 7019] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-25 03:11:11,693] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:11,693] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:16,312] [PID 7019] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'e87da53b-a773-4111-9284-7513134462f0' on queue 'default.DQ'.
+[2026-10-25 03:11:17,194] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:17,194] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:17,564] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:17,564] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:21,270] [PID 7019] [Thread-4] [dramatiq.middleware.retries.Retries] [WARNING] Failed to enqueue a retry for message 'e87da53b-a773-4111-9284-7513134462f0' due to a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+The operation will be retried in 5 seconds until the connection recovers.
+[2026-10-25 03:11:24,388] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:24,388] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:25,032] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:25,032] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:26,270] [PID 7019] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'e87da53b-a773-4111-9284-7513134462f0' on queue 'default.DQ'.
+[2026-10-25 03:11:29,996] [PID 7019] [Thread-4] [dramatiq.middleware.retries.Retries] [WARNING] Failed to enqueue a retry for message 'e87da53b-a773-4111-9284-7513134462f0' due to a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+The operation will be retried in 5 seconds until the connection recovers.
+[2026-10-25 03:11:31,344] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:31,345] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:32,155] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 111 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-25 03:11:32,156] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-25 03:11:34,999] [PID 7019] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'e87da53b-a773-4111-9284-7513134462f0' on queue 'default.DQ'.
+[2026-10-25 03:11:37,290] [PID 7019] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-25 03:11:37,578] [PID 7019] [Thread-4] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-25 03:11:37,579] [PID 7019] [Thread-4] [dramatiq.middleware.retries.Retries] [INFO] Retrying message 'e87da53b-a773-4111-9284-7513134462f0' in 1500 milliseconds.
+[2026-10-25 03:11:37,580] [PID 7019] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'e87da53b-a773-4111-9284-7513134462f0'.
+[2026-10-25 03:11:37,665] [PID 7019] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-25 03:11:37,665] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message 'e87da53b-a773-4111-9284-7513134462f0' onto delay queue.
+[2026-10-25 03:11:37,666] [PID 7019] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'e87da53b-a773-4111-9284-7513134462f0' on queue 'default'.
+[2026-10-25 03:11:37,667] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message 'e87da53b-a773-4111-9284-7513134462f0'.
+[2026-10-25 03:11:37,743] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'e87da53b-a773-4111-9284-7513134462f0' onto work queue.
+[2026-10-25 03:11:37,743] [PID 7019] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('d4', {'0': 'barrier', 'default': 'ok'}) with id 'e87da53b-a773-4111-9284-7513134462f0'.
+[2026-10-25 03:11:37,743] [PID 7019] [Thread-4] [app.job] [DEBUG] Received args=('d4', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-25 03:11:37,750] [PID 7018] [MainThread] [dramatiq.MainProcess] [INFO] Sending signal 'SIGTERM' to subprocesses...
+[2026-10-25 03:11:37,751] [PID 7019] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Stopping worker process...
+[2026-10-25 03:11:37,751] [PID 7019] [Thread-4] [app.job] [DEBUG] Completed after 8.08ms.
+[2026-10-25 03:11:37,752] [PID 7019] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'e87da53b-a773-4111-9284-7513134462f0'.
+[2026-10-25 03:11:38,051] [PID 7019] [MainThread] [dramatiq.middleware.shutdown.ShutdownNotifications] [DEBUG] Sending shutdown notification to worker threads...
+[2026-10-25 03:11:38,051] [PID 7019] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 03:11:38,052] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping workers...
+[2026-10-25 03:11:38,052] [PID 7019] [MainThread] [dramatiq.worker.WorkerThread] [DEBUG] Stopping worker thread...
+[2026-10-25 03:11:38,753] [PID 7019] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Worker thread stopped.
+[2026-10-25 03:11:38,754] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Workers stopped.
+[2026-10-25 03:11:38,754] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping consumers...
+[2026-10-25 03:11:38,754] [PID 7019] [MainThread] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Stopping consumer thread...
+[2026-10-25 03:11:38,754] [PID 7019] [MainThread] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Stopping consumer thread...
+[2026-10-25 03:11:38,835] [PID 7019] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Consumer thread stopped.
+[2026-10-25 03:11:39,489] [PID 7019] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Consumer thread stopped.
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers stopped.
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Requeueing in-memory messages...
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.
+[2026-10-25 03:11:39,490] [PID 7019] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.

@@ -1,0 +1,118 @@
+{
+  "after_worker_shutdown_hook_ran": false,
+  "argv": [
+    "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/experiments.py",
+    "d7",
+    "--variant",
+    "fault",
+    "--reps",
+    "3",
+    "--tag",
+    "master",
+    "--ports",
+    "56395,56396"
+  ],
+  "dir": "outputs/d7/fault-host-master/20261025T025444Z-rep3",
+  "environment": {
+    "dramatiq": "2.2.1",
+    "dramatiq_build": "master 08d711a",
+    "dramatiq_path": "$SCRATCH/scratchpad/venvs/master/lib/python3.13/site-packages/dramatiq",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.11",
+    "redis_config": {
+      "appendfsync": "always",
+      "appendonly": "yes"
+    },
+    "redis_py": "8.1.0",
+    "redis_server": "8.6.2",
+    "sha256": {
+      "broker.py": "edbc717b148e76d0295060d1b7252618297857160052bf1afd68222e79a389ec",
+      "brokers/redis.py": "6d4ba97283bc0e15c747c1e97946bdb9dbd2819f7fde8ab468dcd543e805cf21",
+      "brokers/redis/dispatch.lua": "ba4d872e4fb204ebc3f73ca4719265a9946d70e847856c125314f01a8c90540c",
+      "cli.py": "176704d8646ef2e9a150c148d951256c6eee59d800b4d6b4fc602a5a3b1e8991",
+      "middleware/retries.py": "633c6739e95f3930b835258ab62d9d24be17b3416670d9e060fcf1c17513993d",
+      "worker.py": "26a720b65abec04666a3ab5f6b7ff01f02ddff2d7ae93bbe82267e99a0e57948"
+    }
+  },
+  "executed_by_replacement": [
+    "d7-1",
+    "d7-2"
+  ],
+  "experiment": "d7",
+  "finished_at": 1792896893.865289,
+  "held_after_exit": {
+    "dramatiq:__acks__.db87f750-d2d5-4c92-b919-eebe734ef2de.default": [
+      "5c42f851-f76f-404c-aac8-e61f95f71289"
+    ]
+  },
+  "held_before_requeue": {
+    "dramatiq:__acks__.db87f750-d2d5-4c92-b919-eebe734ef2de.default": [
+      "5c42f851-f76f-404c-aac8-e61f95f71289"
+    ]
+  },
+  "held_while_first_executes": {
+    "dramatiq:__acks__.db87f750-d2d5-4c92-b919-eebe734ef2de.default": [
+      "5c42f851-f76f-404c-aac8-e61f95f71289",
+      "f2b15f1d-560e-4197-ab90-7850f89640a7"
+    ]
+  },
+  "log_markers_worker1": {
+    "Acknowledging message": 1,
+    "Consumer encountered a connection error": 0,
+    "Consumer encountered an unexpected error": 0,
+    "Exception in thread": 0,
+    "Failed to post_process_message": 0,
+    "Failed to requeue messages": 0,
+    "Re-enqueueing": 1,
+    "Rejecting message": 0,
+    "Restarting consumer": 0,
+    "Retries exceeded": 0,
+    "Retrying message": 0,
+    "Unexpected failure in after_process_message": 0,
+    "Unhandled error during post_process_message": 0,
+    "Worker has been shut down": 0
+  },
+  "message_ids": [
+    "d0b3c09d-017d-44df-be73-f25aa990fcc6",
+    "cdf27c94-56d2-4ae2-8d3e-5f152c3fc827",
+    "c1d89c51-bdcd-4da7-8f22-9db3ec134b30"
+  ],
+  "places_final": {
+    "c1d89c51-bdcd-4da7-8f22-9db3ec134b30": [],
+    "cdf27c94-56d2-4ae2-8d3e-5f152c3fc827": [],
+    "d0b3c09d-017d-44df-be73-f25aa990fcc6": []
+  },
+  "queue_after_exit": [
+    "3a20d91f-a26c-4287-a87f-dffb05f360c9"
+  ],
+  "queue_before_requeue": [
+    "3a20d91f-a26c-4287-a87f-dffb05f360c9"
+  ],
+  "recovery_seconds_after_replacement_boot": 0.0,
+  "rep": 3,
+  "variant": "fault-host-master",
+  "worker1_broker_id": "db87f750-d2d5-4c92-b919-eebe734ef2de",
+  "worker1_exit": 1,
+  "worker1_heartbeat_age_ms_after_exit": 4246,
+  "worker1_hung": false,
+  "worker1_log_tail": [
+    "  File \"$SCRATCH/scratchpad/venvs/master/lib/python3.13/site-packages/redis/retry.py\", line 120, in call_with_retry",
+    "    return do()",
+    "  File \"$SCRATCH/scratchpad/venvs/master/lib/python3.13/site-packages/redis/connection.py\", line 1029, in <lambda>",
+    "    lambda: self.connect_check_health(",
+    "            ~~~~~~~~~~~~~~~~~~~~~~~~~^",
+    "        check_health=True, retry_socket_connect=False",
+    "        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "    ),",
+    "    ^",
+    "  File \"$SCRATCH/scratchpad/venvs/master/lib/python3.13/site-packages/redis/connection.py\", line 1077, in connect_check_health",
+    "    raise e",
+    "redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:56395. Connection refused."
+  ],
+  "worker2_exit": 0,
+  "worker_env": {
+    "PPCS_BARRIER_CONSUMER_SHUTDOWN": "1",
+    "PPCS_BROKER_FORM": "host"
+  }
+}

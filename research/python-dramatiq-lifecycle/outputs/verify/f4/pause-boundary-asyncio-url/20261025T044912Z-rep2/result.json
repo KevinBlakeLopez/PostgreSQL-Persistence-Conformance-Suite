@@ -1,0 +1,104 @@
+{
+  "after_worker_shutdown_hook_ran": false,
+  "argv": [
+    "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/verify.py",
+    "f4",
+    "--variant",
+    "pause-boundary-asyncio",
+    "--form",
+    "url",
+    "--reps",
+    "2",
+    "--ports",
+    "56394,56395"
+  ],
+  "dir": "outputs/verify/f4/pause-boundary-asyncio-url/20261025T044912Z-rep2",
+  "environment": {
+    "dramatiq": "2.2.1",
+    "dramatiq_build": "2.2.1 (PyPI)",
+    "dramatiq_path": "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.11",
+    "redis_config": {
+      "appendfsync": "always",
+      "appendonly": "yes"
+    },
+    "redis_py": "8.1.0",
+    "redis_server": "8.6.2",
+    "sha256": {
+      "broker.py": "bee86afdd06b238cf5c141b9b1beafff4b2ffee0221dfb65a5f0a974eec152c3",
+      "brokers/redis.py": "6d4ba97283bc0e15c747c1e97946bdb9dbd2819f7fde8ab468dcd543e805cf21",
+      "brokers/redis/dispatch.lua": "ba4d872e4fb204ebc3f73ca4719265a9946d70e847856c125314f01a8c90540c",
+      "cli.py": "176704d8646ef2e9a150c148d951256c6eee59d800b4d6b4fc602a5a3b1e8991",
+      "middleware/retries.py": "633c6739e95f3930b835258ab62d9d24be17b3416670d9e060fcf1c17513993d",
+      "worker.py": "26a720b65abec04666a3ab5f6b7ff01f02ddff2d7ae93bbe82267e99a0e57948"
+    }
+  },
+  "executions": {
+    "2efe6df0-32a8-4d1a-bffe-642cdda4eb70": 1,
+    "9975770a-02b3-4e08-91ae-3cf4e4e07561": 1
+  },
+  "experiment": "f4",
+  "finished_at": 1792903833.3071868,
+  "held_after_exit": {
+    "dramatiq:__acks__.d2cb73fd-bb89-476e-91c7-4379aabb54be.default": [
+      "70fa7edc-1ce0-416d-91ec-c64f95065024"
+    ]
+  },
+  "held_before": {
+    "dramatiq:__acks__.d2cb73fd-bb89-476e-91c7-4379aabb54be.default": [
+      "70fa7edc-1ce0-416d-91ec-c64f95065024",
+      "ec9456da-2154-4cec-b4cb-9bbd58721933"
+    ]
+  },
+  "last_non_daemon_threads": [
+    "MainThread",
+    "Thread-2"
+  ],
+  "log_markers_worker1": {
+    "Acknowledging message": 1,
+    "Consumer encountered a connection error": 0,
+    "Consumer encountered an unexpected error": 0,
+    "Exception in thread": 0,
+    "Failed to post_process_message": 0,
+    "Failed to requeue messages": 0,
+    "Re-enqueueing": 1,
+    "Rejecting message": 0,
+    "Restarting consumer": 0,
+    "Retries exceeded": 0,
+    "Retrying message": 0,
+    "Unexpected failure in after_process_message": 0,
+    "Unhandled error during post_process_message": 0,
+    "Worker has been shut down": 0
+  },
+  "places_final": {
+    "2efe6df0-32a8-4d1a-bffe-642cdda4eb70": [],
+    "9975770a-02b3-4e08-91ae-3cf4e4e07561": []
+  },
+  "rep": 2,
+  "variant": "pause-boundary-asyncio-url",
+  "worker1_exit": null,
+  "worker1_hung": true,
+  "worker1_log_tail": [
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/resp3.py\", line 65, in _read_response",
+    "    raw = self._buffer.readline(timeout=timeout)",
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/socket.py\", line 117, in readline",
+    "    self._read_from_socket(timeout=timeout)",
+    "    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^",
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/socket.py\", line 77, in _read_from_socket",
+    "    raise TimeoutError(\"Timeout reading from socket\")",
+    "redis.exceptions.TimeoutError: Timeout reading from socket"
+  ],
+  "worker1_pids_still_running": [
+    39402,
+    39415,
+    39416
+  ],
+  "worker_env": {
+    "PPCS_ASYNCIO": "1",
+    "PPCS_BARRIER_CONSUMER_SHUTDOWN": "1",
+    "PPCS_BROKER_FORM": "url",
+    "PPCS_REPORT_STATE": "1"
+  }
+}

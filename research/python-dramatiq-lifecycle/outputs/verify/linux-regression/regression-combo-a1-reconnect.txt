@@ -1,0 +1,263 @@
+.......                                                                  [100%]
+==================================== PASSES ====================================
+___ test_f1_failed_message_is_not_deleted_when_its_retry_cannot_be_enqueued ____
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:36,666] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message fails_once() with unhandled exception.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 61, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+[2026-10-25 04:36:36,667] [Thread-4] [dramatiq.middleware.retries.Retries] [ERROR] Failed to enqueue a retry for message 'bfae147a-e22f-46b2-a433-50fa4f3c0233'. Marking it as failed.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 61, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/middleware/retries.py", line 148, in after_process_message
+    broker.enqueue(message, delay=delay)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 184, in enqueue
+    self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1240, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 43, in side_effect
+    raise exc
+redis.exceptions.ConnectionError: the retry never reached Redis
+------------------------------ Captured log call -------------------------------
+ERROR    dramatiq.worker.WorkerThread:worker.py:610 Failed to process message fails_once() with unhandled exception.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 61, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+ERROR    dramatiq.middleware.retries.Retries:retries.py:153 Failed to enqueue a retry for message 'bfae147a-e22f-46b2-a433-50fa4f3c0233'. Marking it as failed.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 61, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/middleware/retries.py", line 148, in after_process_message
+    broker.enqueue(message, delay=delay)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 184, in enqueue
+    self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1240, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 43, in side_effect
+    raise exc
+redis.exceptions.ConnectionError: the retry never reached Redis
+--------------------------- Captured stderr teardown ---------------------------
+[2026-10-25 04:36:36,714] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:38,529] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+---------------------------- Captured log teardown -----------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+______________ test_f1_control_retry_works_when_enqueue_succeeds _______________
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:38,546] [Thread-39] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message fails_once() with unhandled exception.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 82, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+[2026-10-25 04:36:38,546] [Thread-39] [dramatiq.middleware.retries.Retries] [INFO] Retrying message '2baa5fc5-4038-4ab3-ba65-391f5b7f24a8' in 78 milliseconds.
+------------------------------ Captured log call -------------------------------
+ERROR    dramatiq.worker.WorkerThread:worker.py:610 Failed to process message fails_once() with unhandled exception.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 576, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "/src/combo-a1-reconnect/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 82, in fails_once
+    raise RuntimeError("first attempt fails")
+RuntimeError: first attempt fails
+INFO     dramatiq.middleware.retries.Retries:retries.py:157 Retrying message '2baa5fc5-4038-4ab3-ba65-391f5b7f24a8' in 78 milliseconds.
+--------------------------- Captured stderr teardown ---------------------------
+[2026-10-25 04:36:38,843] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:40,070] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+---------------------------- Captured log teardown -----------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+__ test_f2_delayed_message_survives_a_connection_error_in_the_delay_consumer ___
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:40,087] [Thread-107] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: connection lost
+[2026-10-25 04:36:40,087] [Thread-107] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 1.00 seconds.
+------------------------------ Captured log call -------------------------------
+CRITICAL dramatiq.worker.ConsumerThread(default.DQ):worker.py:326 Consumer encountered a connection error: connection lost
+INFO     dramatiq.worker.ConsumerThread(default.DQ):worker.py:339 Restarting consumer in 1.00 seconds.
+--------------------------- Captured stderr teardown ---------------------------
+[2026-10-25 04:36:43,437] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:45,234] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+---------------------------- Captured log teardown -----------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+--------------------------- Captured stderr teardown ---------------------------
+[2026-10-25 04:36:47,022] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:48,676] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+---------------------------- Captured log teardown -----------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+_______ test_f3_delay_consumer_survives_a_timeout_while_holding_messages _______
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:48,745] [Thread-177] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 349, in __next__
+    data = self.message_cache.pop(0)
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 314, in run
+    for message in self.consumer:
+                   ^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 368, in __next__
+    self.message_cache = messages = self.broker.do_fetch(
+                                    ~~~~~~~~~~~~~~~~~~~~^
+        self.queue_name,
+        ^^^^^^^^^^^^^^^^
+        self.prefetch - self.outstanding_message_count,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1240, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 43, in side_effect
+    raise exc
+redis.exceptions.TimeoutError: Timeout reading from socket
+[2026-10-25 04:36:48,746] [Thread-177] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 1.00 seconds.
+------------------------------ Captured log call -------------------------------
+CRITICAL dramatiq.worker.ConsumerThread(default.DQ):worker.py:331 Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 349, in __next__
+    data = self.message_cache.pop(0)
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 314, in run
+    for message in self.consumer:
+                   ^^^^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 368, in __next__
+    self.message_cache = messages = self.broker.do_fetch(
+                                    ~~~~~~~~~~~~~~~~~~~~^
+        self.queue_name,
+        ^^^^^^^^^^^^^^^^
+        self.prefetch - self.outstanding_message_count,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/unittest/mock.py", line 1240, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/src/combo-a1-reconnect/tests/test_ppcs_lifecycle.py", line 43, in side_effect
+    raise exc
+redis.exceptions.TimeoutError: Timeout reading from socket
+INFO     dramatiq.worker.ConsumerThread(default.DQ):worker.py:339 Restarting consumer in 1.00 seconds.
+--------------------------- Captured stderr teardown ---------------------------
+[2026-10-25 04:36:53,831] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:55,218] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+---------------------------- Captured log teardown -----------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+___________ test_f4_worker_stop_finishes_shutdown_when_requeue_fails ___________
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:55,281] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:56,264] [MainThread] [dramatiq.worker.Worker] [WARNING] Failed to requeue messages on queue 'default'.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 177, in stop
+    self.consumers[queue_name].requeue_messages(messages)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 469, in requeue_messages
+    self.consumer.requeue(messages)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 339, in requeue
+    raise ConnectionClosed(e) from None
+dramatiq.errors.ConnectionClosed: Redis is down
+[2026-10-25 04:36:56,265] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+------------------------------ Captured log call -------------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+WARNING  dramatiq.worker.Worker:worker.py:179 Failed to requeue messages on queue 'default'.
+Traceback (most recent call last):
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 177, in stop
+    self.consumers[queue_name].requeue_messages(messages)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/worker.py", line 469, in requeue_messages
+    self.consumer.requeue(messages)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/src/combo-a1-reconnect/dramatiq/brokers/redis.py", line 339, in requeue
+    raise ConnectionClosed(e) from None
+dramatiq.errors.ConnectionClosed: Redis is down
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+____________ test_f4_control_worker_stop_requeues_when_redis_is_up _____________
+----------------------------- Captured stderr call -----------------------------
+[2026-10-25 04:36:56,322] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-25 04:36:57,261] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
+------------------------------ Captured log call -------------------------------
+INFO     dramatiq.worker.Worker:worker.py:150 Shutting down...
+INFO     dramatiq.worker.Worker:worker.py:188 Worker has been shut down.
+=========================== short test summary info ============================
+PASSED tests/test_ppcs_lifecycle.py::test_f1_failed_message_is_not_deleted_when_its_retry_cannot_be_enqueued
+PASSED tests/test_ppcs_lifecycle.py::test_f1_control_retry_works_when_enqueue_succeeds
+PASSED tests/test_ppcs_lifecycle.py::test_f2_delayed_message_survives_a_connection_error_in_the_delay_consumer
+PASSED tests/test_ppcs_lifecycle.py::test_f2_control_delayed_message_runs_without_a_fault
+PASSED tests/test_ppcs_lifecycle.py::test_f3_delay_consumer_survives_a_timeout_while_holding_messages
+PASSED tests/test_ppcs_lifecycle.py::test_f4_worker_stop_finishes_shutdown_when_requeue_fails
+PASSED tests/test_ppcs_lifecycle.py::test_f4_control_worker_stop_requeues_when_redis_is_up
+7 passed in 20.63s
