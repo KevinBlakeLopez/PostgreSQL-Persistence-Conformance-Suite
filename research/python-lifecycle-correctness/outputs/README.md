@@ -13,6 +13,8 @@ Raw evidence, kept as recorded. Nothing here was edited after recording except o
 | `e1-run3-standard/` | The two core F1 cases on `uvicorn[standard]` (uvloop, httptools) |
 | `e2-run1/` | E2, signal during lifespan startup, on 0.40.0 and 0.54.0 |
 | `e3-run1/` | E3 (fourth harness version: tagged and logged replies, observation completeness): core F1 re-check, shared pool, cancellation-suppressing request, long cleanup, second Ctrl+C; unpatched, unbounded fix, bounded fix |
+| `linux-run1/` | F1 on Linux: a disposable `python:3.13-slim` container (Debian 13, kernel 6.8, aarch64, CPython 3.13.17) running `reproductions/run-linux-container.sh`. `image.txt` has the image digest; `console.txt` includes the minimal-reproduction runs |
+| `diag-run1/` | Uvicorn's registry at the lifespan boundary: `main` plus a diagnostic log line, without and with the bounded fix. Read the `diag:` line in each `rep-N.server.log`, or run `reproductions/diag_summary.py` |
 | `minimal-repro/` | `reproductions/minimal_repro.py`: a first pass, a hardened pass, and one manual run with `uvicorn`, `curl` and `kill` |
 | `regression-test/` | `reproductions/uvicorn_regression_test.py` inside Uvicorn's suite: the first version (`with-fix.txt`, `without-fix.txt`, `repeated.txt`) and the hardened one (`hardened-repeated.txt`) |
 | `stdlib-probe/` | `reproductions/wait_closed_probe.py` on Python 3.13.11, 3.14.2 and 3.9.9 |
@@ -119,4 +121,39 @@ Generated with `python reproductions/summarize.py outputs/<run>`.
 | e3-20-release-long-cleanup-int-int | uvicorn 0.54.0, Python 3.13.11 | INT then INT | 3 | 3/3 | 0 ×3 | 0/3 | 3/3 | 3/3 | 0/3 | 0/3 | 3/3 | HTTP/1.1 500 Internal Server Error ×3 | 2.19, 2.22 |
 | e3-21-fix-long-cleanup-int-int | uvicorn main e4981ad + fix, Python 3.13.11 | INT then INT | 3 | 3/3 | 0 ×3 | 0/3 | 0/3 | 3/3 | 3/3 | 3/3 | 0/3 | HTTP/1.1 500 Internal Server Error ×3 | 7.21, 7.27 |
 | e3-22-fixb-long-cleanup-int-int | uvicorn main e4981ad + bounded fix, Python 3.13.11 | INT then INT | 3 | 3/3 | 0 ×3 | 0/3 | 0/3 | 3/3 | 0/3 | 0/3 | 0/3 | HTTP/1.1 500 Internal Server Error ×3 | 2.28, 2.33 |
+
+### linux-run1
+
+| Case | Server | Signal | Reps | Observation complete | Exit status | Hung | Lifespan shutdown sent | Release reached backend | Release answered by backend | Cleanup finished | Lifespan shutdown before cleanup finished | Client saw | Signal to exit (median s, max s) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| linux-01-in-time-term | uvicorn 0.54.0, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 200 OK ×5 | 0.89, 0.90 |
+| linux-02-exceeds-term | uvicorn 0.54.0, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | (no response) ×5 | 2.20, 2.23 |
+| linux-03-exceeds-int | uvicorn 0.54.0, Python 3.13.17 | INT | 5 | 5/5 | 0 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.19, 2.24 |
+| linux-04-standard-exceeds-term | uvicorn 0.54.0 [standard], Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | (no response) ×5 | 2.19, 2.21 |
+| linux-05-shared-term | uvicorn 0.54.0, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.20, 2.26 |
+| linux-06-fastapi-bg-exceeds-term | uvicorn 0.54.0, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | HTTP/1.1 202 Accepted ×5 | 2.18, 2.25 |
+| linux-07-fixb-exceeds-term | uvicorn main e4981ad + bounded fix, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.69, 2.77 |
+| linux-08-fixb-exceeds-int | uvicorn main e4981ad + bounded fix, Python 3.13.17 | INT | 5 | 5/5 | 0 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.77, 2.82 |
+| linux-09-fixb-shared-term | uvicorn main e4981ad + bounded fix, Python 3.13.17 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.72, 2.77 |
+| linux-10-fixb-stubborn-term | uvicorn main e4981ad + bounded fix, Python 3.13.17 | TERM | 3 | 3/3 | -15 ×3 | 0/3 | 3/3 | 0/3 | 0/3 | 0/3 | 3/3 | (no response) ×3 | 4.21, 4.21 |
+
+### diag-run1
+
+| Case | Server | Signal | Reps | Observation complete | Exit status | Hung | Lifespan shutdown sent | Release reached backend | Release answered by backend | Cleanup finished | Lifespan shutdown before cleanup finished | Client saw | Signal to exit (median s, max s) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| d-01-diag-in-time-term | uvicorn main e4981ad + diagnostic log, Python 3.13.11 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 200 OK ×5 | 0.88, 0.93 |
+| d-02-diag-exceeds-term | uvicorn main e4981ad + diagnostic log, Python 3.13.11 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | (no response) ×5 | 2.17, 2.21 |
+| d-03-diag-exceeds-int | uvicorn main e4981ad + diagnostic log, Python 3.13.11 | INT | 5 | 5/5 | 0 ×5 | 0/5 | 5/5 | 5/5 | 0/5 | 0/5 | 5/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.21, 2.27 |
+| d-04-fixb-diag-exceeds-term | uvicorn main e4981ad + bounded fix + diagnostic log, Python 3.13.11 | TERM | 5 | 5/5 | -15 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.78, 2.87 |
+| d-05-fixb-diag-exceeds-int | uvicorn main e4981ad + bounded fix + diagnostic log, Python 3.13.11 | INT | 5 | 5/5 | 0 ×5 | 0/5 | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 | HTTP/1.1 500 Internal Server Error ×5 | 2.80, 2.87 |
+
+### diag-run1: registry at the lifespan boundary
+
+| Case | Reps | Registry at the lifespan boundary (connections [transport state], tasks, not done) |
+| --- | --- | --- |
+| d-01-diag-in-time-term | 5 | 0 [], 0 task(s), 0 not done ×5 |
+| d-02-diag-exceeds-term | 5 | 1 ['open'], 1 task(s), 1 not done ×5 |
+| d-03-diag-exceeds-int | 5 | 1 ['open'], 1 task(s), 1 not done ×5 |
+| d-04-fixb-diag-exceeds-term | 5 | 0 [], 0 task(s), 0 not done ×5 |
+| d-05-fixb-diag-exceeds-int | 5 | 0 [], 0 task(s), 0 not done ×5 |
 
