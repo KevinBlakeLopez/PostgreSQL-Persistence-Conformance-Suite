@@ -1,0 +1,41 @@
+python 3.13.11, tortoise-orm 1.1.9, backend asyncpg (asyncpg 0.32.0), Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+retry: save() in in_transaction(), the block raises; then save() again in a new in_transaction()
+  first save() returned, pk=1; the block raised AppError
+  first transaction: pg_xact_status(783) aborted
+  after the rollback: pk=1, _saved_in_db=True, rows with arm='retry': 0
+  second save() returned normally
+  second transaction: pg_xact_status(784) committed
+  rows with arm='retry': 0
+retry-changed: save() in in_transaction(), the block raises; then value = 2 and save() again in a new in_transaction()
+  first save() returned, pk=2; the block raised AppError
+  first transaction: pg_xact_status(785) aborted
+  after the rollback: pk=2, _saved_in_db=True, rows with arm='retry-changed': 0
+  second save() returned normally
+  second transaction: pg_xact_status(786) committed
+  rows with arm='retry-changed': 0
+savepoint: in an outer in_transaction(), save() in a nested in_transaction() that raises; the error is caught; then save() again in the outer block
+  first save() returned, pk=3; the nested block raised AppError
+  after the savepoint rollback: pk=3, _saved_in_db=True
+  second save() returned normally
+  the outer block exited normally
+  outer transaction: pg_xact_status(787) committed
+  rows with arm='savepoint': 0
+savepoint-changed: in an outer in_transaction(), save() in a nested in_transaction() that raises; the error is caught; then value = 2 and save() again in the outer block
+  first save() returned, pk=4; the nested block raised AppError
+  after the savepoint rollback: pk=4, _saved_in_db=True
+  second save() returned normally
+  the outer block exited normally
+  outer transaction: pg_xact_status(789) committed
+  rows with arm='savepoint-changed': 0
+control: save() of a new instance in in_transaction()
+  save() returned, pk=5
+  transaction: pg_xact_status(791) committed
+  rows with arm='control': 1
+force_update: as retry, but the second call is save(force_update=True)
+  first save() returned, pk=6; the block raised AppError
+  first transaction: pg_xact_status(792) aborted
+  after the rollback: pk=6, _saved_in_db=True, rows with arm='force_update': 0
+  second save(force_update=True) raised IntegrityError: Can't update object that doesn't exist. PK: 6
+  second transaction: pg_xact_status(793) aborted
+  rows with arm='force_update': 0

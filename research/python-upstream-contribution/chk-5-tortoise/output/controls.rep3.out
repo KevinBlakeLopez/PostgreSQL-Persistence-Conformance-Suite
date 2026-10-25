@@ -1,0 +1,47 @@
+python 3.13.11, psycopg 3.3.6, Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+sqlalchemy-retry: add() and flush() in a Session, the block raises; then add() and flush() again in a new Session
+  first transaction: pg_xact_status(967) aborted
+  after the rollback: pk=1, transient=True, pending=False, persistent=False
+  the second Session committed normally, pk=1
+  second transaction: pg_xact_status(968) committed
+  rows with arm='retry': 1
+sqlalchemy-retry-changed: add() and flush() in a Session, the block raises; then value = 2 and add() and flush() again in a new Session
+  first transaction: pg_xact_status(969) aborted
+  after the rollback: pk=2, transient=True, pending=False, persistent=False
+  the second Session committed normally, pk=2
+  second transaction: pg_xact_status(970) committed
+  rows with arm='retry-changed': 1
+sqlalchemy-savepoint: in a Session's transaction, add() and flush() in begin_nested() that raises; the error is caught; then add() and flush() again
+  after the savepoint rollback: pk=3, transient=True, pending=False, persistent=False
+  the second flush() returned normally, pk=3
+  outer transaction: pg_xact_status(971) committed
+  rows with arm='savepoint': 1
+sqlalchemy-savepoint-changed: in a Session's transaction, add() and flush() in begin_nested() that raises; the error is caught; then value = 2 and add() and flush() again
+  after the savepoint rollback: pk=4, transient=True, pending=False, persistent=False
+  the second flush() returned normally, pk=4
+  outer transaction: pg_xact_status(974) committed
+  rows with arm='savepoint-changed': 1
+django-retry: save() in atomic(), the block raises; then save() again in a new atomic()
+  first transaction: pg_xact_status(978) aborted
+  after the rollback: pk=1, _state.adding=False
+  second save() returned normally, pk=1
+  second transaction: pg_xact_status(979) committed
+  rows with arm='retry': 1
+django-retry-changed: save() in atomic(), the block raises; then value = 2 and save() again in a new atomic()
+  first transaction: pg_xact_status(980) aborted
+  after the rollback: pk=2, _state.adding=False
+  second save() returned normally, pk=2
+  second transaction: pg_xact_status(981) committed
+  rows with arm='retry-changed': 1
+django-savepoint: in an outer atomic(), save() in a nested atomic() that raises; the error is caught; then save() again in the outer block
+  after the savepoint rollback: pk=3, _state.adding=False
+  second save() returned normally, pk=3
+  outer transaction: pg_xact_status(982) committed
+  rows with arm='savepoint': 1
+django-savepoint-changed: in an outer atomic(), save() in a nested atomic() that raises; the error is caught; then value = 2 and save() again in the outer block
+  after the savepoint rollback: pk=4, _state.adding=False
+  second save() returned normally, pk=4
+  outer transaction: pg_xact_status(984) committed
+  rows with arm='savepoint-changed': 1
+versions: Django 6.1.2, SQLAlchemy 2.1.5
