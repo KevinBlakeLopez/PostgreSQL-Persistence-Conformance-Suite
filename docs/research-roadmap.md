@@ -1,6 +1,6 @@
 # Research roadmap
 
-Inspected 2026-10-21. This is the order of work. The mission and the boundaries are in [`research-master-plan.md`](research-master-plan.md). What is actually done is in [`research-status.md`](research-status.md).
+Inspected 2026-10-21. Updated 2026-10-23 for M0 preservation and filing status. The order of later milestones is unchanged. This is the order of work. The mission and the boundaries are in [`research-master-plan.md`](research-master-plan.md). What is actually done is in [`research-status.md`](research-status.md).
 
 A milestone in this file is not permission to start it. Start work only when the status document says that milestone is authorized, or when the maintainer assigns it.
 
@@ -10,7 +10,7 @@ A **dependency** is work that has to be finished before the next milestone can s
 
 ## Milestone M0 — Preserve the production-reachability closeout
 
-**Status.** Active. The experiments have been run. Preservation and filing status are not finished. See the status document for the criterion-by-criterion account.
+**Status.** Preserved on `main` at `36dd52f`. The runs, the `PR-01` catalog, the classifier, and the drafts are committed. See the status document. S1 and PI1 remain unfiled.
 
 **Question already under study.** After an application catches a real PostgreSQL unique violation and lets a supported transaction API finish, what does the application observe, what did PostgreSQL commit, and can the connection be reused?
 
@@ -26,18 +26,17 @@ A **dependency** is work that has to be finished before the next milestone can s
 - Upstream report status matches the tracker, and drafts are labeled as drafts.
 - Remaining uncertainties are written down.
 
-**Remaining work, and only this work.**
+**Remaining constraints.**
 
-- Keep the recorded runs, the `PR-01` catalog, the adapter code that produced them, and the drafts together as one preserved body of work. On 2026-10-21 that body was uncommitted local work. Committing it requires an explicit request. Do not rerun the suite in order to tidy it.
-- Leave case JSON and summaries unchanged.
-- Do not add Drizzle, Prisma, Hibernate, or another SQLSTATE to this catalog. The study's own report excludes them.
-- Do not file Y2, S1, P1, or T3 without approval of the exact text. Do not refile the Knex draft.
+- Leave case JSON and summaries unchanged. Do not rerun the suite in order to tidy it. The 2026-10-19 harness digest does not match `36dd52f`, because the classifier later gained category E. That is recorded in the status document.
+- Do not add Drizzle, Prisma, Hibernate, or another SQLSTATE to this catalog. The study's own report excludes them. Later suite adapters are separate recordings. They are not PR-01 rows.
+- Y2, P1, T3, and D1 are filed in the tracker. Do not file S1 or PI1 without approval of the exact text. Do not refile the Knex draft.
 
 **Then.** PPCS maintenance. New suite scenarios need a separate question.
 
 ## Milestone M1 — Freeze the ownership-benchmark design
 
-**Depends on.** M0's evidence remaining intact. M1 may be drafted while M0's commit and upstream replies are still open. M1 may not change PPCS results.
+**Depends on.** M0's evidence remaining intact. The preservation commit is done. Upstream replies may still be open. M1 may not change PPCS results.
 
 **Status.** The requirements documents in `docs/ownership-benchmark/` are the draft. They are not a frozen specification, and they are not authorization to implement the pilot.
 

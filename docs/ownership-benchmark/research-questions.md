@@ -137,7 +137,7 @@ Later on 2026-10-23 the maintainer decided:
 - V5's report runs against fixtures of 30 and 300 evidence items, each matched in a second organization. It must send the same number of statements for both, counted by the proxy. There is no time limit.
 - V7 moves the whole persistence stack (psycopg, its pool, SQLAlchemy, and Alembic, wherever installed) across one 24-month calendar window. V1–V6 and the pilot pin the versions current at the window's start. V7 moves to the versions current at its end.
 - The transaction task runs only on V1's external-reference rule. It is not repeated on V3's decision constraint. The cumulative tests re-run it at every later stage.
-- Every table carries `organization_id`, kept equal to the claim's (and the author's) by composite foreign keys. Each architecture can then use its natural scoping tool: a condition on each query, or the ORM's automatic filter. PostgreSQL row-level security is not used, because it would enforce isolation the same way in every arm and erase the difference V4 measures.
+- Every table except `organization` itself carries `organization_id`, kept equal to the claim's (and the author's) by composite foreign keys. Each architecture can then use its natural scoping tool: a condition on each query, or the ORM's automatic filter. PostgreSQL row-level security is not used, because it would enforce isolation the same way in every arm and erase the difference V4 measures.
 - The V1 and V2 test contract is written in [`test-contract.md`](test-contract.md), reviewed on 2026-10-24. Revisions conflict on a stale base, the current revision is a pointer with a composite foreign key, identifiers are `bigint` identity columns, PostgreSQL sets the timestamps, the result types come from a benchmark-provided package, and atomicity is checked with a trigger the test arms.
 - V6 marks archived revisions and events with an `archived_at` column. A revision is immutable in its content, author, and creation time; archival is the only change to a revision or an event. An event is archived only together with its revision.
 - The V3–V7 sketch in `test-contract.md` is reviewed. V3 adds a `decision_recorded` event, a record of another organization reads as not found in V4, and the V5 report leaves archived rows out.
@@ -145,16 +145,32 @@ Later on 2026-10-23 the maintainer decided:
 - The V4 contract is written and reviewed. V4 adds `list_claims`. Organization B's rows get identifiers of at least 9,000,000,000 and a per-run token in every text value, and checks run in one direction only. In an organization-wide read, any of B's values crossing to the application fails. In a call that names a record, they are recorded per call, because loading the named record and checking its organization in code is a legitimate way to refuse it. The transaction probes are outside V4's checks.
 - The V5 contract is written and reviewed. `report` returns the claims with current evidence, the evidence items in each approval state with all three states always present, and each item's latest event time. Each fixture is a fresh database built through the service, with claims that have no evidence. Expected values come from the fixture's plan and the test's own SQL. The proxy counts every statement of one `report` call, on a pool of one connection after a discarded first call.
 - The V6 contract is written and reviewed. An event is archived together with its revision, whatever its own age, and never on its own. Any user of the organization may set the retention policy. `run_archival` runs in one transaction, archives nothing without a policy, and is an organization-wide read. Archived revisions read as not found for decisions and approval state, and revision views gain `archived_at`. The tests age rows by moving their timestamps back, with a 30-day policy and rows aged 60 days.
-- In V7 the harness performs the version change: it swaps the persistence packages to the window-end versions and updates the lock, then runs the full suite once before the agent starts and records which checks the upgrade broke. That breakage profile depends on the libraries and the code, not on the agent.
+- In V7 the harness performs the version change: it swaps the persistence packages to the window-end versions and updates the lock, then runs the full suite once before the agent starts and records which checks fail: the breakage before upgrade repair. Given the same code, that breakage depends only on the libraries. But each agent wrote different code, so how it is distributed across trajectories can depend on the model.
 - Dependencies are declared in `pyproject.toml` with exact versions and locked with `uv`, and Python stays at one version from V1 to V7. Pinning a package back, or copying old library code into the application, is a departure. V7 also records the persistence libraries' deprecation warnings before and after the agent's work, and the transaction-probe records on the new versions beside V6's. The V1–V7 test contract is complete.
 
-V1–V7 are necessary as a set of stages, and they were not replaced or extended to cover the review's gaps. Since the review, the requirements, the acceptance tests, and the transaction task have been written: see the decisions above and [`test-contract.md`](test-contract.md). Whether the design can now be frozen is the maintainer's decision, after a review of that text.
+On 2026-10-25, after the freeze review, the maintainer decided:
+
+- Checks carry across stages in two ways. Migration checks (S1–S7 and V2-1) replay each stage's migration. When a stage is complete, the harness records the Alembic head as that stage's revision and saves a snapshot of a database built through that stage's service. Each migration check upgrades the previous stage's snapshot to its stage's revision, and every one runs again in every later stage, on the current scripts and library versions. Behavior checks run again in every later stage against the current service. Where a later stage moves a value a check reads, the check says what it reads from then on; V1-2 is the only such check.
+
+V1–V7 are necessary as a set of stages, and they were not replaced or extended to cover the review's gaps. Since the review, the requirements, the acceptance tests, and the transaction task have been written: see the decisions above and [`test-contract.md`](test-contract.md). Whether the design can now be frozen is the maintainer's decision, after a review of that text. A freeze review on 2026-10-25 found that it cannot be frozen yet. Its wording fixes have been made, and its open items are below.
 
 ## Open before freeze
 
-One item remains. It blocks a freeze only if the measure is to be scored.
+The freeze review left nine items, decided one at a time in this order. All but the last block a freeze.
 
-1. **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
+1. **What agents see.** Which documents and stages each agent is given, kept apart from the research rationale, including whether a V1 agent sees V2–V7.
+2. **Probe validity.** How a run shows that a transaction probe reached the intended unique violation, so that a faulty probe is recorded as inconclusive rather than as library behavior.
+3. **V5's counting unit.** Whether V5 counts SQL statements or protocol messages, and how batching, cursors, and transaction control count.
+4. **V6's replacement order.** Which reviewers count for a replaced revision when an assignment and a revision are created at the same time or concurrently.
+5. **Adherence counting.** Which reads, writes, and reports count as an escape hatch, what one escape hatch is, and whether it was used or needed.
+6. **Service-behavior gaps.** Failure precedence, missing parents, the source of each view field, list order, and invalid inputs.
+7. **Fault injection.** What the atomicity triggers reject and for how long, controls for the mechanism, and an atomicity check for `attach_evidence`.
+8. **What the proxy detects.** Marked values only or more, the result formats it decodes, and how much a call that names a record may fetch.
+9. **Failed trajectories.** How failed, capped, and incomplete trajectories are counted. This does not block a freeze if it is scheduled before measured runs.
+
+One earlier item remains. It blocks a freeze only if the measure is to be scored.
+
+- **Unscored measures.** A definition of persistence-code complexity or of SQL visibility, if either is ever scored.
 
 The confirmatory repetition count, the prompt text, and the numeric execution caps wait for pilot approval. That deferral is part of the plan. It is not a gap in the design.
 

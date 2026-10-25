@@ -67,10 +67,10 @@ Agent results are a snapshot of one model, one agent implementation, and one per
 
 Measures differ in how much they depend on the model:
 
-- Results that the transaction task attributes to the framework or to PostgreSQL, and the API changes a V7 upgrade forces, are properties of the library version and the database. They should not change with the model.
-- Cost fields, human review and repair time, and agent-attributed correctness results depend on the model.
+- Results that the transaction task attributes to the framework or to PostgreSQL, and V7's breakage before upgrade repair (the checks that fail on the new versions before the agent changes anything), are properties of the library version and the database, given the code that ran. Given the same code, they do not depend on the model. But the agent wrote that code and chose its APIs, so across trajectories these results are conditional on each agent's implementation, and how often each one occurs can change with the model. Reports give each result with the code and API that produced it.
+- Cost fields, human review and repair time, and agent-attributed correctness results depend on the model directly.
 
-The pre-registration in the frozen spec labels every measure as model-sensitive or not. Reports keep the two groups separate.
+The pre-registration in the frozen spec labels every measure as one kind or the other. Reports keep the two groups separate, and do not treat how often a library-level result occurs across trajectories as independent of the model.
 
 Models usually know older library versions better than new ones. The configuration record includes the model's stated training cutoff and each pinned library's release date, so a recency effect can be seen.
 
@@ -186,6 +186,7 @@ Each experiment preserves enough to reproduce and to re-score:
 - the agent configuration list above
 - transcripts or their durable equivalent, including tool calls that changed files
 - acceptance-test output
+- each stage's recorded Alembic revision and database snapshot
 - independent database observations for the transaction task
 - cost records
 - human-intervention records
@@ -266,7 +267,7 @@ Reasons to start here: one language, one PostgreSQL server, a comparable applica
 
 **Synchronous code.** All three arms and the service interface are synchronous. Concurrency tests use threads or processes. Async is a separate variable for a later study, not part of this comparison. PPCS's existing Python evidence is synchronous too.
 
-**Connection pooling.** Each arm uses its usual pool: `psycopg_pool` in the psycopg arm, and the engine's built-in pool in the SQLAlchemy arms. The spec fixes identical pool settings for all three. Differences in how the pools reset and check connections are library behavior, and part B of the transaction task records them as such. The exact settings, and whether part B pins the pool to one connection so reuse is certain, are set with the assertions.
+**Connection pooling.** Each arm uses its usual pool: `psycopg_pool` in the psycopg arm, and the engine's built-in pool in the SQLAlchemy arms. The test contract gives every arm the same connection limit, expressed in each pool's own options, and a limit of one connection for the transaction probes, so that part B's connection is certainly reused. The limit is what the arms share. How each pool resets and checks a connection it hands out is library behavior, and part B of the transaction task records it as such.
 
 **Test interface.** The Python cohort's acceptance tests call a fixed Python service interface in the test process, and read PostgreSQL on their own connection. A cohort in another language needs its own suite.
 

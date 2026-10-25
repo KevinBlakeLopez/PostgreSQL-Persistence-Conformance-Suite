@@ -1,6 +1,6 @@
 # Test contract
 
-Status: V1 to V7 written and reviewed on 2026-10-24. Not frozen.
+Status: V1 to V7 written and reviewed on 2026-10-24. How checks carry across stages added on 2026-10-25. Not frozen.
 
 This document is the contract between the application and its acceptance tests. Anyone implementing the application reads it, so it states requirements only. The requirements it makes exact are in [`application-evolution-spec.md`](application-evolution-spec.md).
 
@@ -8,12 +8,12 @@ This document is the contract between the application and its acceptance tests. 
 
 - The application is a Python package with a synchronous service interface. The tests call that interface in their own process and read PostgreSQL over their own connection.
 - The tables and columns below are fixed. An implementation may add tables, columns, indexes, and constraints. The tests never read what it adds.
-- The schema is created and changed with Alembic. The tests run `alembic upgrade head` from the repository root.
+- The schema is created and changed with Alembic. The tests run `alembic upgrade` from the repository root, to `head` or to a recorded stage revision (see "Across stages" under Checks).
 - Dependencies are declared in `pyproject.toml` with exact versions and locked with `uv`. Python stays at one version from V1 to V7, chosen to support the persistence stack at both ends of V7's window.
 - Identifiers are `bigint` columns generated as identity.
-- Timestamps are `timestamptz` columns set by PostgreSQL through a default of `now()`. The application never writes them.
+- Timestamps are `timestamptz` columns whose values come from PostgreSQL's `now()`, never from the application. A creation time is set by a column default when the row is inserted. The only later write is V6's archival, which sets `archived_at` to `now()`. A migration may copy an existing timestamp, as V2's does for each item's first revision.
 - The user table is named `app_user`, because `user` is reserved in PostgreSQL.
-- Every table carries `organization_id`. Composite foreign keys keep it equal to the organization of the row's parent and author.
+- Every table except `organization` carries `organization_id`. Composite foreign keys keep it equal to the organization of the row's parent and author.
 - Isolation between organizations is the application's job. PostgreSQL row-level security is not used.
 - From V4, the DSN passed to `open_service` points at a proxy the tests run. The application must not require TLS.
 
@@ -83,7 +83,7 @@ V2's migration does five things, in one Alembic revision:
 1. creates `evidence_revision`;
 2. gives every existing evidence item one revision holding its organization, content, author, and creation time;
 3. adds `evidence.current_revision_id` and points it at that revision;
-4. adds `event.revision_id` and fills it, for every existing event, with the first revision of its evidence item;
+4. adds `event.revision_id`, fills it, for every existing event, with the first revision of its evidence item, and then makes it not null;
 5. drops `evidence.content`.
 
 ### `evidence_revision`
@@ -119,7 +119,7 @@ The current revision is a pointer on the evidence item, not a flag on the revisi
 
 | Column | Type | Rule |
 | --- | --- | --- |
-| `revision_id` | `bigint` | Set on every event after V2's migration. (`revision_id`, `organization_id`) references `evidence_revision` (`id`, `organization_id`) |
+| `revision_id` | `bigint` | Not null. (`revision_id`, `organization_id`) references `evidence_revision` (`id`, `organization_id`) |
 | `kind` | `text` | `evidence_created` or `revision_created` |
 
 ## Tables after V3
@@ -213,7 +213,7 @@ When a revision is archived, all of its events are archived in the same statemen
 V7 adds no tables and no service calls. It changes versions.
 
 1. The harness replaces the pinned versions of psycopg, `psycopg_pool`, SQLAlchemy, and Alembic, wherever each is installed, with the versions current at the end of V7's window, and updates the lock. It changes nothing else.
-2. Before the agent changes anything, the harness runs the full suite on the new versions and records which checks fail.
+2. Before the agent changes anything, the harness runs the full suite on the new versions and records which checks fail. That record is the breakage before upgrade repair.
 3. The agent then makes every earlier check pass on the new versions.
 
 Pinning a package back to an older version, or copying old library code into the application, is a departure.
@@ -328,23 +328,35 @@ The reads of `pg_current_xact_id()` and `pg_backend_pid()` may use textual SQL w
 
 A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` or raises. After every call, the check also reads PostgreSQL on the test's own connection. When the response and the database disagree, the check fails.
 
+### Across stages
+
+A stage is complete when every check that applies to it passes.
+
+- **Stage revisions.** When a stage is complete, the harness records the Alembic head revision as that stage's revision, written `rev(V1)` to `rev(V6)`. While a stage is in progress, its revision means `head`. The migration history has one head. A recorded revision stays in the history, with the same identifier, in every later stage. A later stage may change an earlier stage's migration scripts, as long as every migration check still passes.
+- **Stage snapshots.** When a stage from V1 to V6 is complete, the harness builds that stage's snapshot. On an empty database, it runs `alembic upgrade head`, creates the snapshot data below through the service, and saves a dump of the whole database, including Alembic's version table.
+- **Migration checks.** S1 to S7 and V2-1 each test one stage's migration. Each starts from the snapshot of the stage before, or from an empty database, and upgrades to that stage's revision. In every later stage, every migration check runs again this way, with the current migration scripts and library versions.
+- **Behavior checks.** Every other check tests the service as it currently is. It starts on an empty database upgraded to `head`, unless it describes its own fixture, and runs again in every later stage. Where a later stage moves a value the check reads, the check says what it reads from that stage on.
+- **Invariant checks.** V1-7, V2-7, V3-11, and V6-10 must hold after every behavior check of their own stage and of every later stage.
+
+**Snapshot data.** Two organizations, each with two users and three claims. In each organization, two claims have two evidence items each, and the third has none. From V2, every item has a second revision. From V3, every item has one assigned reviewer, who has approved one item's current revision and rejected another's. From V6, each organization has a 30-day retention policy, and one replaced revision in each, aged by 60 days as in V6's checks, has been archived by `run_archival`.
+
 ### Schema
 
-- **S1.** On an empty database, `alembic upgrade head` creates every V1 table and column above, with these types, nullability, keys, references, and the unique constraint.
-- **S2.** On a V1 database that holds data, `alembic upgrade head` produces the V2 tables and columns. `evidence.content` no longer exists.
-- **S3.** On a V2 database that holds data, `alembic upgrade head` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
-- **S4.** On a V3 database that holds data, `alembic upgrade head` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
-- **S5.** The same holds for V5's migration on a V4 database.
-- **S6.** On a V5 database that holds data, `alembic upgrade head` creates `retention_policy` and adds `archived_at` to `evidence_revision` and `event`, null on every existing row.
-- **S7.** On the new versions, `alembic upgrade head` builds the V6 schema from an empty database, and runs on a V6 database that holds data without changing any fixed table, column, or row.
+- **S1.** Upgrading an empty database to `rev(V1)` creates every V1 table and column above, with these types, nullability, keys, references, and the unique constraint.
+- **S2.** Upgrading the V1 snapshot to `rev(V2)` produces the V2 tables and columns. `evidence.content` no longer exists.
+- **S3.** Upgrading the V2 snapshot to `rev(V3)` produces the V3 tables, columns, keys, and unique constraints. Existing revisions have no decisions.
+- **S4.** Upgrading the V3 snapshot to `rev(V4)` succeeds and leaves every fixed table and column as V3 defined it. V4 may add indexes.
+- **S5.** The same holds for upgrading the V4 snapshot to `rev(V5)`.
+- **S6.** Upgrading the V5 snapshot to `rev(V6)` creates `retention_policy` and adds `archived_at` to `evidence_revision` and `event`, null on every existing row.
+- **S7.** On the new versions, upgrading an empty database to `head` builds the V6 schema, and upgrading the V6 snapshot to `head` changes no fixed table, column, or row.
 
 ### V1
 
 - **V1-1.** `add_claim` succeeds. A claim row exists in the actor's organization with the statement.
-- **V1-2.** `attach_evidence` succeeds. One evidence row exists with the claim, the reference, the content, and the actor as `created_by`, and `created_at` is set. Exactly one `evidence_created` event refers to it, and `occurred_at` is set.
-- **V1-3.** Attaching a reference the claim already has fails with `DUPLICATE_REFERENCE`. No evidence row and no event are added.
+- **V1-2.** `attach_evidence` succeeds. One evidence row exists with the claim, the reference, the content, and the actor as `created_by`, and `created_at` is set. Exactly one `evidence_created` event refers to it, and `occurred_at` is set. From V2, `evidence.content` no longer exists: the content is read from the item's current revision, which is its only revision and has the actor as `created_by`.
+- **V1-3.** Attaching a reference the claim already has fails with `DUPLICATE_REFERENCE`. No row is added to any fixed table.
 - **V1-4.** The same reference attached to a different claim succeeds.
-- **V1-5.** Attaching to a claim that does not exist fails with `NOT_FOUND`. No evidence row and no event are added.
+- **V1-5.** Attaching to a claim that does not exist fails with `NOT_FOUND`. No row is added to any fixed table.
 - **V1-6.** A second user in the same organization reads the evidence through `get_evidence` and `list_evidence` and sees the stored values.
 - **V1-7.** After every V1 check, the database holds:
   - every claim and every user in an organization;
@@ -354,14 +366,14 @@ A call *succeeds* when it returns `Ok` and *fails* when it returns a `Failure` o
 
 ### V2
 
-- **V2-1.** The migration preserves V1 data. Each V1 evidence item has exactly one revision with its content, author, and creation time. `current_revision_id` names that revision, and the item's events refer to it.
+- **V2-1.** Upgrading the V1 snapshot to `rev(V2)` preserves V1 data. Each V1 evidence item has exactly one revision with its content, author, and creation time. `current_revision_id` names that revision, and the item's events refer to it.
 - **V2-2.** `attach_evidence` succeeds and creates the first revision. `current_revision_id` names it, and one `evidence_created` event refers to both.
 - **V2-3.** `revise_evidence` with the current revision as `based_on_revision_id` succeeds. A new revision row exists, `current_revision_id` names it, and one `revision_created` event refers to it. Earlier revisions are unchanged and still listed by `list_revisions`.
 - **V2-4.** `revise_evidence` with a `based_on_revision_id` that is no longer current fails with `CONFLICT`. No revision, no pointer change, and no event are added.
 - **V2-5.** Atomicity. The test arms a trigger on `event` that rejects the next `revision_created` insert. `revise_evidence` fails. No revision row was added, the pointer is unchanged, and no event was added.
 - **V2-6.** Concurrency. Two threads call `revise_evidence` on the same item with the same `based_on_revision_id`, released together, for 20 rounds. In each round exactly one call succeeds and the other fails with `CONFLICT`. The pointer names the successful call's revision. The failed call left no revision and no event.
 - **V2-7.** After every V2 check, every evidence item's `current_revision_id` names one of its own revisions, and every event refers to an existing revision of its evidence item.
-- Every V1 check still passes. V1-2 now also expects the first revision.
+- Every V1 check still passes, with V1-2 reading the content from the current revision.
 
 ### V3
 
@@ -425,7 +437,7 @@ Expected counts come from the fixture's plan. Expected latest event times come f
 
 - **V5-1.** On the small fixture, `report` returns exactly the expected `claims_with_current_evidence`, `evidence_by_state`, and `latest_event_at`.
 - **V5-2.** The same on the large fixture.
-- **V5-3.** The statement count is the same on both fixtures. A difference is an N+1 load and fails. There is no time limit.
+- **V5-3.** The statement count is the same on both fixtures. Any difference fails this check, whatever its cause. There is no time limit.
 - **V5-4.** The item with no assigned reviewer is counted as pending.
 - **V5-5.** After `revise_evidence` on an item whose current revision was approved, the report counts that item as pending, and its latest event time is the new revision's event.
 - **V5-6.** `report` is an organization-wide read: the proxy saw no value of the second organization.
@@ -452,7 +464,7 @@ Expected counts come from the fixture's plan. Expected latest event times come f
 
 ### V7
 
-- **V7-1.** Every V1 to V6 check passes on the new versions.
+- **V7-1.** Every migration check and every behavior check of V1 to V6 passes on the new versions.
 - **V7-2.** The lock holds the window-end version of every persistence package the application installs.
 
 Recorded, not checked:

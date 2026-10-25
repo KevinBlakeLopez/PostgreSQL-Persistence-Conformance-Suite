@@ -70,7 +70,7 @@ Do not commit, push, rebase, reset, or discard changes unless explicitly instruc
 
 ### 14. Check active work
 
-Before editing shared files or starting a substantial workstream, inspect repository status and `docs/research-status.md`. The production-reachability study and the Hibernate adapter have lived as uncommitted work. Treat unexpected diffs as someone else's work until the status document or the task says otherwise.
+Before editing shared files or starting a substantial workstream, inspect repository status and `docs/research-status.md`. On 2026-10-21 the production-reachability study and the Hibernate adapter were uncommitted. Both are on `main` at `36dd52f`. Treat unexpected diffs as someone else's work until the status document or the task says otherwise.
 
 ## PPCS evidence conventions
 
