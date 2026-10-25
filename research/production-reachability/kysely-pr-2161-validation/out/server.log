@@ -1,0 +1,1065 @@
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "en_US.utf8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+waiting for server to start....2026-10-25 15:48:45.484 UTC [59]  vxid= xid=0 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 15:48:45.486 UTC [59]  vxid= xid=0 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 15:48:45.488 UTC [65]  vxid= xid=0 LOG:  database system was shut down at 2026-10-25 15:48:45 UTC
+2026-10-25 15:48:45.489 UTC [59]  vxid= xid=0 LOG:  database system is ready to accept connections
+ done
+server started
+2026-10-25 15:48:45.577 UTC [71] psql vxid=0/2 xid=0 LOG:  statement: SELECT 1 FROM pg_database WHERE datname = 'k2161' ;
+2026-10-25 15:48:45.595 UTC [73] psql vxid=1/2 xid=0 LOG:  statement: CREATE DATABASE "k2161" ;
+CREATE DATABASE
+
+
+/usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+
+waiting for server to shut down....2026-10-25 15:48:45.649 UTC [59]  vxid= xid=0 LOG:  received fast shutdown request
+2026-10-25 15:48:45.649 UTC [59]  vxid= xid=0 LOG:  aborting any active transactions
+2026-10-25 15:48:45.650 UTC [59]  vxid= xid=0 LOG:  background worker "logical replication launcher" (PID 68) exited with exit code 1
+2026-10-25 15:48:45.650 UTC [63]  vxid= xid=0 LOG:  shutting down
+2026-10-25 15:48:45.650 UTC [63]  vxid= xid=0 LOG:  checkpoint starting: shutdown immediate
+2026-10-25 15:48:45.659 UTC [63]  vxid= xid=0 LOG:  checkpoint complete: wrote 943 buffers (5.8%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.009 s, sync=0.001 s, total=0.010 s; sync files=303, longest=0.001 s, average=0.000 s; distance=4352 kB, estimate=4352 kB; lsn=0/1BA1BE0, redo lsn=0/1BA1BE0
+2026-10-25 15:48:45.665 UTC [59]  vxid= xid=0 LOG:  database system is shut down
+ done
+server stopped
+
+PostgreSQL init process complete; ready for start up.
+
+2026-10-25 15:48:45.762 UTC [1]  vxid= xid=0 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 15:48:45.763 UTC [1]  vxid= xid=0 LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 15:48:45.763 UTC [1]  vxid= xid=0 LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 15:48:45.765 UTC [1]  vxid= xid=0 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 15:48:45.766 UTC [81]  vxid= xid=0 LOG:  database system was shut down at 2026-10-25 15:48:45 UTC
+2026-10-25 15:48:45.767 UTC [1]  vxid= xid=0 LOG:  database system is ready to accept connections
+2026-10-25 15:48:46.244 UTC [99] psql vxid=1/2 xid=0 LOG:  statement: select version()
+2026-10-25 15:49:42.405 UTC [102] k2161-base-observer vxid=2/2 xid=0 LOG:  statement: show server_version
+2026-10-25 15:49:42.406 UTC [102] k2161-base-observer vxid=2/3 xid=0 LOG:  statement: drop table if exists item, child, parent
+2026-10-25 15:49:42.406 UTC [102] k2161-base-observer vxid=2/4 xid=0 LOG:  statement: create table item (id int primary key, note text)
+2026-10-25 15:49:42.409 UTC [102] k2161-base-observer vxid=2/5 xid=0 LOG:  statement: create table parent (id int primary key)
+2026-10-25 15:49:42.411 UTC [102] k2161-base-observer vxid=2/6 xid=0 LOG:  statement: create table child (id int primary key, parent_id int references parent (id) deferrable initially deferred)
+2026-10-25 15:49:42.412 UTC [102] k2161-base-observer vxid=2/7 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.418 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.419 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.419 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.420 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/2 xid=769 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.421 UTC [103] k2161-base-s1-r1 vxid=3/0 xid=769 LOG:  statement: commit
+2026-10-25 15:49:42.422 UTC [102] k2161-base-observer vxid=2/8 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.422 UTC [102] k2161-base-observer vxid=2/8 xid=0 DETAIL:  Parameters: $1 = '769'
+2026-10-25 15:49:42.422 UTC [102] k2161-base-observer vxid=2/9 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.423 UTC [103] k2161-base-s1-r1 vxid=3/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.424 UTC [102] k2161-base-observer vxid=2/10 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.424 UTC [102] k2161-base-observer vxid=2/10 xid=0 DETAIL:  Parameters: $1 = '103'
+2026-10-25 15:49:42.425 UTC [103] k2161-base-s1-r1 vxid=3/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.425 UTC [103] k2161-base-s1-r1 vxid=3/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.425 UTC [102] k2161-base-observer vxid=2/11 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.426 UTC [102] k2161-base-observer vxid=2/12 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.430 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.431 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.431 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.431 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/2 xid=772 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.432 UTC [104] k2161-base-s1-r2 vxid=4/0 xid=772 LOG:  statement: commit
+2026-10-25 15:49:42.432 UTC [102] k2161-base-observer vxid=2/13 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.432 UTC [102] k2161-base-observer vxid=2/13 xid=0 DETAIL:  Parameters: $1 = '772'
+2026-10-25 15:49:42.433 UTC [102] k2161-base-observer vxid=2/14 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.433 UTC [104] k2161-base-s1-r2 vxid=4/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.434 UTC [102] k2161-base-observer vxid=2/15 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.434 UTC [102] k2161-base-observer vxid=2/15 xid=0 DETAIL:  Parameters: $1 = '104'
+2026-10-25 15:49:42.434 UTC [104] k2161-base-s1-r2 vxid=4/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.434 UTC [104] k2161-base-s1-r2 vxid=4/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.435 UTC [102] k2161-base-observer vxid=2/16 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.435 UTC [102] k2161-base-observer vxid=2/17 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.439 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.439 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.439 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/2 xid=775 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.440 UTC [105] k2161-base-s1-r3 vxid=5/0 xid=775 LOG:  statement: commit
+2026-10-25 15:49:42.441 UTC [102] k2161-base-observer vxid=2/18 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.441 UTC [102] k2161-base-observer vxid=2/18 xid=0 DETAIL:  Parameters: $1 = '775'
+2026-10-25 15:49:42.441 UTC [102] k2161-base-observer vxid=2/19 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.442 UTC [105] k2161-base-s1-r3 vxid=5/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.442 UTC [102] k2161-base-observer vxid=2/20 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.442 UTC [102] k2161-base-observer vxid=2/20 xid=0 DETAIL:  Parameters: $1 = '105'
+2026-10-25 15:49:42.442 UTC [105] k2161-base-s1-r3 vxid=5/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.442 UTC [105] k2161-base-s1-r3 vxid=5/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.443 UTC [102] k2161-base-observer vxid=2/21 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.443 UTC [102] k2161-base-observer vxid=2/22 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.447 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.448 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.448 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.448 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/2 xid=778 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.449 UTC [106] k2161-base-s2-r1 vxid=6/0 xid=778 LOG:  statement: commit
+2026-10-25 15:49:42.449 UTC [102] k2161-base-observer vxid=2/23 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.449 UTC [102] k2161-base-observer vxid=2/23 xid=0 DETAIL:  Parameters: $1 = '778'
+2026-10-25 15:49:42.450 UTC [102] k2161-base-observer vxid=2/24 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.450 UTC [106] k2161-base-s2-r1 vxid=6/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.451 UTC [102] k2161-base-observer vxid=2/25 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.451 UTC [102] k2161-base-observer vxid=2/25 xid=0 DETAIL:  Parameters: $1 = '106'
+2026-10-25 15:49:42.451 UTC [106] k2161-base-s2-r1 vxid=6/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.451 UTC [106] k2161-base-s2-r1 vxid=6/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.451 UTC [102] k2161-base-observer vxid=2/26 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.452 UTC [102] k2161-base-observer vxid=2/27 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.455 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.455 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.455 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.456 UTC [107] k2161-base-s2-r2 vxid=7/2 xid=781 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.457 UTC [107] k2161-base-s2-r2 vxid=7/0 xid=781 LOG:  statement: commit
+2026-10-25 15:49:42.457 UTC [102] k2161-base-observer vxid=2/28 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.457 UTC [102] k2161-base-observer vxid=2/28 xid=0 DETAIL:  Parameters: $1 = '781'
+2026-10-25 15:49:42.457 UTC [102] k2161-base-observer vxid=2/29 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.458 UTC [107] k2161-base-s2-r2 vxid=7/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.458 UTC [102] k2161-base-observer vxid=2/30 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.458 UTC [102] k2161-base-observer vxid=2/30 xid=0 DETAIL:  Parameters: $1 = '107'
+2026-10-25 15:49:42.459 UTC [107] k2161-base-s2-r2 vxid=7/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.459 UTC [107] k2161-base-s2-r2 vxid=7/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.459 UTC [102] k2161-base-observer vxid=2/31 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.459 UTC [102] k2161-base-observer vxid=2/32 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.463 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.463 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.463 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.464 UTC [108] k2161-base-s2-r3 vxid=8/2 xid=784 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.465 UTC [108] k2161-base-s2-r3 vxid=8/0 xid=784 LOG:  statement: commit
+2026-10-25 15:49:42.465 UTC [102] k2161-base-observer vxid=2/33 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.465 UTC [102] k2161-base-observer vxid=2/33 xid=0 DETAIL:  Parameters: $1 = '784'
+2026-10-25 15:49:42.465 UTC [102] k2161-base-observer vxid=2/34 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.465 UTC [108] k2161-base-s2-r3 vxid=8/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.466 UTC [102] k2161-base-observer vxid=2/35 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.466 UTC [102] k2161-base-observer vxid=2/35 xid=0 DETAIL:  Parameters: $1 = '108'
+2026-10-25 15:49:42.466 UTC [108] k2161-base-s2-r3 vxid=8/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.466 UTC [108] k2161-base-s2-r3 vxid=8/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.467 UTC [102] k2161-base-observer vxid=2/36 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.467 UTC [102] k2161-base-observer vxid=2/37 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.474 UTC [109] k2161-base-s3-r1 vxid=9/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.474 UTC [109] k2161-base-s3-r1 vxid=9/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.474 UTC [109] k2161-base-s3-r1 vxid=9/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.475 UTC [109] k2161-base-s3-r1 vxid=9/2 xid=787 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.475 UTC [109] k2161-base-s3-r1 vxid=9/2 xid=787 LOG:  statement: commit
+2026-10-25 15:49:42.476 UTC [102] k2161-base-observer vxid=2/38 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.476 UTC [102] k2161-base-observer vxid=2/38 xid=0 DETAIL:  Parameters: $1 = '787'
+2026-10-25 15:49:42.476 UTC [102] k2161-base-observer vxid=2/39 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.476 UTC [109] k2161-base-s3-r1 vxid=9/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.477 UTC [102] k2161-base-observer vxid=2/40 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.477 UTC [102] k2161-base-observer vxid=2/40 xid=0 DETAIL:  Parameters: $1 = '109'
+2026-10-25 15:49:42.477 UTC [109] k2161-base-s3-r1 vxid=9/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.477 UTC [109] k2161-base-s3-r1 vxid=9/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.477 UTC [102] k2161-base-observer vxid=2/41 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.478 UTC [102] k2161-base-observer vxid=2/42 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.482 UTC [110] k2161-base-s3-r2 vxid=10/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.482 UTC [110] k2161-base-s3-r2 vxid=10/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.482 UTC [110] k2161-base-s3-r2 vxid=10/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.483 UTC [110] k2161-base-s3-r2 vxid=10/2 xid=790 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.483 UTC [110] k2161-base-s3-r2 vxid=10/2 xid=790 LOG:  statement: commit
+2026-10-25 15:49:42.484 UTC [102] k2161-base-observer vxid=2/43 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.484 UTC [102] k2161-base-observer vxid=2/43 xid=0 DETAIL:  Parameters: $1 = '790'
+2026-10-25 15:49:42.484 UTC [102] k2161-base-observer vxid=2/44 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.484 UTC [110] k2161-base-s3-r2 vxid=10/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.485 UTC [102] k2161-base-observer vxid=2/45 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.485 UTC [102] k2161-base-observer vxid=2/45 xid=0 DETAIL:  Parameters: $1 = '110'
+2026-10-25 15:49:42.485 UTC [110] k2161-base-s3-r2 vxid=10/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.485 UTC [110] k2161-base-s3-r2 vxid=10/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.486 UTC [102] k2161-base-observer vxid=2/46 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.486 UTC [102] k2161-base-observer vxid=2/47 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.490 UTC [111] k2161-base-s3-r3 vxid=11/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.491 UTC [111] k2161-base-s3-r3 vxid=11/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.491 UTC [111] k2161-base-s3-r3 vxid=11/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.491 UTC [111] k2161-base-s3-r3 vxid=11/2 xid=793 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.492 UTC [111] k2161-base-s3-r3 vxid=11/2 xid=793 LOG:  statement: commit
+2026-10-25 15:49:42.492 UTC [102] k2161-base-observer vxid=2/48 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.492 UTC [102] k2161-base-observer vxid=2/48 xid=0 DETAIL:  Parameters: $1 = '793'
+2026-10-25 15:49:42.492 UTC [102] k2161-base-observer vxid=2/49 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.493 UTC [111] k2161-base-s3-r3 vxid=11/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.493 UTC [102] k2161-base-observer vxid=2/50 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.493 UTC [102] k2161-base-observer vxid=2/50 xid=0 DETAIL:  Parameters: $1 = '111'
+2026-10-25 15:49:42.494 UTC [111] k2161-base-s3-r3 vxid=11/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.494 UTC [111] k2161-base-s3-r3 vxid=11/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.494 UTC [102] k2161-base-observer vxid=2/51 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.494 UTC [102] k2161-base-observer vxid=2/52 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.499 UTC [112] k2161-base-s4-r1 vxid=12/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.499 UTC [112] k2161-base-s4-r1 vxid=12/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.499 UTC [112] k2161-base-s4-r1 vxid=12/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.500 UTC [112] k2161-base-s4-r1 vxid=12/2 xid=796 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.500 UTC [112] k2161-base-s4-r1 vxid=12/2 xid=796 LOG:  statement: commit
+2026-10-25 15:49:42.501 UTC [102] k2161-base-observer vxid=2/53 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.501 UTC [102] k2161-base-observer vxid=2/53 xid=0 DETAIL:  Parameters: $1 = '796'
+2026-10-25 15:49:42.501 UTC [102] k2161-base-observer vxid=2/54 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.501 UTC [112] k2161-base-s4-r1 vxid=12/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.502 UTC [102] k2161-base-observer vxid=2/55 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.502 UTC [102] k2161-base-observer vxid=2/55 xid=0 DETAIL:  Parameters: $1 = '112'
+2026-10-25 15:49:42.502 UTC [112] k2161-base-s4-r1 vxid=12/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.502 UTC [112] k2161-base-s4-r1 vxid=12/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.503 UTC [102] k2161-base-observer vxid=2/56 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.503 UTC [102] k2161-base-observer vxid=2/57 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.507 UTC [113] k2161-base-s4-r2 vxid=13/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.507 UTC [113] k2161-base-s4-r2 vxid=13/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.507 UTC [113] k2161-base-s4-r2 vxid=13/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.508 UTC [113] k2161-base-s4-r2 vxid=13/2 xid=799 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.508 UTC [113] k2161-base-s4-r2 vxid=13/2 xid=799 LOG:  statement: commit
+2026-10-25 15:49:42.508 UTC [102] k2161-base-observer vxid=2/58 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.508 UTC [102] k2161-base-observer vxid=2/58 xid=0 DETAIL:  Parameters: $1 = '799'
+2026-10-25 15:49:42.509 UTC [102] k2161-base-observer vxid=2/59 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.509 UTC [113] k2161-base-s4-r2 vxid=13/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.509 UTC [102] k2161-base-observer vxid=2/60 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.509 UTC [102] k2161-base-observer vxid=2/60 xid=0 DETAIL:  Parameters: $1 = '113'
+2026-10-25 15:49:42.510 UTC [113] k2161-base-s4-r2 vxid=13/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.510 UTC [113] k2161-base-s4-r2 vxid=13/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.510 UTC [102] k2161-base-observer vxid=2/61 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.511 UTC [102] k2161-base-observer vxid=2/62 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.514 UTC [114] k2161-base-s4-r3 vxid=14/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.514 UTC [114] k2161-base-s4-r3 vxid=14/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.514 UTC [114] k2161-base-s4-r3 vxid=14/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.515 UTC [114] k2161-base-s4-r3 vxid=14/2 xid=802 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.515 UTC [114] k2161-base-s4-r3 vxid=14/2 xid=802 LOG:  statement: commit
+2026-10-25 15:49:42.516 UTC [102] k2161-base-observer vxid=2/63 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.516 UTC [102] k2161-base-observer vxid=2/63 xid=0 DETAIL:  Parameters: $1 = '802'
+2026-10-25 15:49:42.516 UTC [102] k2161-base-observer vxid=2/64 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.516 UTC [114] k2161-base-s4-r3 vxid=14/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.517 UTC [102] k2161-base-observer vxid=2/65 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.517 UTC [102] k2161-base-observer vxid=2/65 xid=0 DETAIL:  Parameters: $1 = '114'
+2026-10-25 15:49:42.517 UTC [114] k2161-base-s4-r3 vxid=14/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.517 UTC [114] k2161-base-s4-r3 vxid=14/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.517 UTC [102] k2161-base-observer vxid=2/66 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.518 UTC [102] k2161-base-observer vxid=2/67 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.521 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.522 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.522 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.522 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.523 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.524 UTC [115] k2161-base-s5-r1 vxid=15/2 xid=805 LOG:  statement: commit
+2026-10-25 15:49:42.524 UTC [102] k2161-base-observer vxid=2/68 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.524 UTC [102] k2161-base-observer vxid=2/68 xid=0 DETAIL:  Parameters: $1 = '805'
+2026-10-25 15:49:42.524 UTC [102] k2161-base-observer vxid=2/69 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.525 UTC [115] k2161-base-s5-r1 vxid=15/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.525 UTC [102] k2161-base-observer vxid=2/70 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.525 UTC [102] k2161-base-observer vxid=2/70 xid=0 DETAIL:  Parameters: $1 = '115'
+2026-10-25 15:49:42.526 UTC [115] k2161-base-s5-r1 vxid=15/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.526 UTC [115] k2161-base-s5-r1 vxid=15/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.526 UTC [102] k2161-base-observer vxid=2/71 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.526 UTC [102] k2161-base-observer vxid=2/72 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.530 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.530 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.530 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.530 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.531 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.532 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.532 UTC [116] k2161-base-s5-r2 vxid=16/2 xid=809 LOG:  statement: commit
+2026-10-25 15:49:42.532 UTC [102] k2161-base-observer vxid=2/73 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.532 UTC [102] k2161-base-observer vxid=2/73 xid=0 DETAIL:  Parameters: $1 = '809'
+2026-10-25 15:49:42.533 UTC [102] k2161-base-observer vxid=2/74 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.533 UTC [116] k2161-base-s5-r2 vxid=16/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.533 UTC [102] k2161-base-observer vxid=2/75 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.533 UTC [102] k2161-base-observer vxid=2/75 xid=0 DETAIL:  Parameters: $1 = '116'
+2026-10-25 15:49:42.534 UTC [116] k2161-base-s5-r2 vxid=16/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.534 UTC [116] k2161-base-s5-r2 vxid=16/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.534 UTC [102] k2161-base-observer vxid=2/76 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.534 UTC [102] k2161-base-observer vxid=2/77 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.538 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.538 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.538 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.539 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.539 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.540 UTC [117] k2161-base-s5-r3 vxid=17/2 xid=813 LOG:  statement: commit
+2026-10-25 15:49:42.541 UTC [102] k2161-base-observer vxid=2/78 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.541 UTC [102] k2161-base-observer vxid=2/78 xid=0 DETAIL:  Parameters: $1 = '813'
+2026-10-25 15:49:42.541 UTC [102] k2161-base-observer vxid=2/79 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.541 UTC [117] k2161-base-s5-r3 vxid=17/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.542 UTC [102] k2161-base-observer vxid=2/80 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.542 UTC [102] k2161-base-observer vxid=2/80 xid=0 DETAIL:  Parameters: $1 = '117'
+2026-10-25 15:49:42.542 UTC [117] k2161-base-s5-r3 vxid=17/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.542 UTC [117] k2161-base-s5-r3 vxid=17/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.543 UTC [102] k2161-base-observer vxid=2/81 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.543 UTC [102] k2161-base-observer vxid=2/82 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.547 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.547 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.547 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.548 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.548 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.548 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.548 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 LOG:  statement: commit
+2026-10-25 15:49:42.549 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.549 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.549 UTC [118] k2161-base-s6-r1 vxid=18/2 xid=817 STATEMENT:  commit
+2026-10-25 15:49:42.549 UTC [118] k2161-base-s6-r1 vxid=18/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.549 UTC [118] k2161-base-s6-r1 vxid=18/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.549 UTC [102] k2161-base-observer vxid=2/83 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.549 UTC [102] k2161-base-observer vxid=2/83 xid=0 DETAIL:  Parameters: $1 = '817'
+2026-10-25 15:49:42.550 UTC [102] k2161-base-observer vxid=2/84 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.550 UTC [118] k2161-base-s6-r1 vxid=18/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.551 UTC [102] k2161-base-observer vxid=2/85 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.551 UTC [102] k2161-base-observer vxid=2/85 xid=0 DETAIL:  Parameters: $1 = '118'
+2026-10-25 15:49:42.551 UTC [118] k2161-base-s6-r1 vxid=18/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.551 UTC [118] k2161-base-s6-r1 vxid=18/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.551 UTC [102] k2161-base-observer vxid=2/86 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.552 UTC [102] k2161-base-observer vxid=2/87 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.555 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.555 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.555 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.556 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.556 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.556 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.556 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 LOG:  statement: commit
+2026-10-25 15:49:42.557 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.557 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.557 UTC [119] k2161-base-s6-r2 vxid=19/2 xid=820 STATEMENT:  commit
+2026-10-25 15:49:42.557 UTC [119] k2161-base-s6-r2 vxid=19/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.557 UTC [119] k2161-base-s6-r2 vxid=19/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.557 UTC [102] k2161-base-observer vxid=2/88 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.557 UTC [102] k2161-base-observer vxid=2/88 xid=0 DETAIL:  Parameters: $1 = '820'
+2026-10-25 15:49:42.558 UTC [102] k2161-base-observer vxid=2/89 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.558 UTC [119] k2161-base-s6-r2 vxid=19/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.558 UTC [102] k2161-base-observer vxid=2/90 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.558 UTC [102] k2161-base-observer vxid=2/90 xid=0 DETAIL:  Parameters: $1 = '119'
+2026-10-25 15:49:42.559 UTC [119] k2161-base-s6-r2 vxid=19/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.559 UTC [119] k2161-base-s6-r2 vxid=19/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.559 UTC [102] k2161-base-observer vxid=2/91 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.559 UTC [102] k2161-base-observer vxid=2/92 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.563 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.563 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.563 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.563 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 LOG:  statement: commit
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.564 UTC [120] k2161-base-s6-r3 vxid=20/2 xid=823 STATEMENT:  commit
+2026-10-25 15:49:42.565 UTC [120] k2161-base-s6-r3 vxid=20/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.565 UTC [120] k2161-base-s6-r3 vxid=20/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.565 UTC [102] k2161-base-observer vxid=2/93 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.565 UTC [102] k2161-base-observer vxid=2/93 xid=0 DETAIL:  Parameters: $1 = '823'
+2026-10-25 15:49:42.565 UTC [102] k2161-base-observer vxid=2/94 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.566 UTC [120] k2161-base-s6-r3 vxid=20/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.566 UTC [102] k2161-base-observer vxid=2/95 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.566 UTC [102] k2161-base-observer vxid=2/95 xid=0 DETAIL:  Parameters: $1 = '120'
+2026-10-25 15:49:42.567 UTC [120] k2161-base-s6-r3 vxid=20/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.567 UTC [120] k2161-base-s6-r3 vxid=20/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.567 UTC [102] k2161-base-observer vxid=2/96 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.567 UTC [102] k2161-base-observer vxid=2/97 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.571 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.571 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.571 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.571 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 LOG:  statement: commit
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.572 UTC [121] k2161-base-s7-r1 vxid=21/2 xid=826 STATEMENT:  commit
+2026-10-25 15:49:42.573 UTC [121] k2161-base-s7-r1 vxid=21/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.573 UTC [121] k2161-base-s7-r1 vxid=21/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.573 UTC [102] k2161-base-observer vxid=2/98 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.573 UTC [102] k2161-base-observer vxid=2/98 xid=0 DETAIL:  Parameters: $1 = '826'
+2026-10-25 15:49:42.573 UTC [102] k2161-base-observer vxid=2/99 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.574 UTC [121] k2161-base-s7-r1 vxid=21/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.574 UTC [102] k2161-base-observer vxid=2/100 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.574 UTC [102] k2161-base-observer vxid=2/100 xid=0 DETAIL:  Parameters: $1 = '121'
+2026-10-25 15:49:42.575 UTC [121] k2161-base-s7-r1 vxid=21/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.575 UTC [121] k2161-base-s7-r1 vxid=21/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.575 UTC [102] k2161-base-observer vxid=2/101 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.575 UTC [102] k2161-base-observer vxid=2/102 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.578 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.579 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.579 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.579 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 LOG:  statement: commit
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/2 xid=829 STATEMENT:  commit
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.580 UTC [122] k2161-base-s7-r2 vxid=22/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.581 UTC [102] k2161-base-observer vxid=2/103 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.581 UTC [102] k2161-base-observer vxid=2/103 xid=0 DETAIL:  Parameters: $1 = '829'
+2026-10-25 15:49:42.581 UTC [102] k2161-base-observer vxid=2/104 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.581 UTC [122] k2161-base-s7-r2 vxid=22/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.582 UTC [102] k2161-base-observer vxid=2/105 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.582 UTC [102] k2161-base-observer vxid=2/105 xid=0 DETAIL:  Parameters: $1 = '122'
+2026-10-25 15:49:42.582 UTC [122] k2161-base-s7-r2 vxid=22/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.582 UTC [122] k2161-base-s7-r2 vxid=22/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.583 UTC [102] k2161-base-observer vxid=2/106 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.583 UTC [102] k2161-base-observer vxid=2/107 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.586 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.587 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.587 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.587 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 LOG:  statement: commit
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/2 xid=832 STATEMENT:  commit
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.588 UTC [123] k2161-base-s7-r3 vxid=23/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.589 UTC [102] k2161-base-observer vxid=2/108 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.589 UTC [102] k2161-base-observer vxid=2/108 xid=0 DETAIL:  Parameters: $1 = '832'
+2026-10-25 15:49:42.589 UTC [102] k2161-base-observer vxid=2/109 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.589 UTC [123] k2161-base-s7-r3 vxid=23/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.590 UTC [102] k2161-base-observer vxid=2/110 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.590 UTC [102] k2161-base-observer vxid=2/110 xid=0 DETAIL:  Parameters: $1 = '123'
+2026-10-25 15:49:42.590 UTC [123] k2161-base-s7-r3 vxid=23/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.590 UTC [123] k2161-base-s7-r3 vxid=23/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.591 UTC [102] k2161-base-observer vxid=2/111 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.591 UTC [102] k2161-base-observer vxid=2/112 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.595 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.595 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.595 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/2 xid=835 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.596 UTC [124] k2161-base-s8-r1 vxid=24/0 xid=835 LOG:  statement: commit
+2026-10-25 15:49:42.597 UTC [102] k2161-base-observer vxid=2/113 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.597 UTC [102] k2161-base-observer vxid=2/113 xid=0 DETAIL:  Parameters: $1 = '835'
+2026-10-25 15:49:42.597 UTC [102] k2161-base-observer vxid=2/114 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.598 UTC [124] k2161-base-s8-r1 vxid=24/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.598 UTC [102] k2161-base-observer vxid=2/115 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.598 UTC [102] k2161-base-observer vxid=2/115 xid=0 DETAIL:  Parameters: $1 = '124'
+2026-10-25 15:49:42.598 UTC [124] k2161-base-s8-r1 vxid=24/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.598 UTC [124] k2161-base-s8-r1 vxid=24/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.599 UTC [102] k2161-base-observer vxid=2/116 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.599 UTC [102] k2161-base-observer vxid=2/117 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.602 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.603 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.603 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.603 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/2 xid=838 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.604 UTC [125] k2161-base-s8-r2 vxid=25/0 xid=838 LOG:  statement: commit
+2026-10-25 15:49:42.605 UTC [102] k2161-base-observer vxid=2/118 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.605 UTC [102] k2161-base-observer vxid=2/118 xid=0 DETAIL:  Parameters: $1 = '838'
+2026-10-25 15:49:42.605 UTC [102] k2161-base-observer vxid=2/119 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.606 UTC [125] k2161-base-s8-r2 vxid=25/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.606 UTC [102] k2161-base-observer vxid=2/120 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.606 UTC [102] k2161-base-observer vxid=2/120 xid=0 DETAIL:  Parameters: $1 = '125'
+2026-10-25 15:49:42.606 UTC [125] k2161-base-s8-r2 vxid=25/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.606 UTC [125] k2161-base-s8-r2 vxid=25/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.607 UTC [102] k2161-base-observer vxid=2/121 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.607 UTC [102] k2161-base-observer vxid=2/122 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.611 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.611 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.611 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.611 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/2 xid=841 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.612 UTC [126] k2161-base-s8-r3 vxid=26/0 xid=841 LOG:  statement: commit
+2026-10-25 15:49:42.613 UTC [102] k2161-base-observer vxid=2/123 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.613 UTC [102] k2161-base-observer vxid=2/123 xid=0 DETAIL:  Parameters: $1 = '841'
+2026-10-25 15:49:42.613 UTC [102] k2161-base-observer vxid=2/124 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.613 UTC [126] k2161-base-s8-r3 vxid=26/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.614 UTC [102] k2161-base-observer vxid=2/125 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.614 UTC [102] k2161-base-observer vxid=2/125 xid=0 DETAIL:  Parameters: $1 = '126'
+2026-10-25 15:49:42.614 UTC [126] k2161-base-s8-r3 vxid=26/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.614 UTC [126] k2161-base-s8-r3 vxid=26/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.615 UTC [102] k2161-base-observer vxid=2/126 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.615 UTC [102] k2161-base-observer vxid=2/127 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.619 UTC [127] k2161-base-s9-r1 vxid=27/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.619 UTC [127] k2161-base-s9-r1 vxid=27/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.619 UTC [127] k2161-base-s9-r1 vxid=27/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.620 UTC [127] k2161-base-s9-r1 vxid=27/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.620 UTC [127] k2161-base-s9-r1 vxid=27/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.620 UTC [127] k2161-base-s9-r1 vxid=27/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.621 UTC [127] k2161-base-s9-r1 vxid=27/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.621 UTC [127] k2161-base-s9-r1 vxid=27/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.621 UTC [102] k2161-base-observer vxid=2/128 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.622 UTC [102] k2161-base-observer vxid=2/129 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.625 UTC [128] k2161-base-s9-r2 vxid=28/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.626 UTC [128] k2161-base-s9-r2 vxid=28/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.626 UTC [128] k2161-base-s9-r2 vxid=28/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.626 UTC [128] k2161-base-s9-r2 vxid=28/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.626 UTC [128] k2161-base-s9-r2 vxid=28/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.627 UTC [128] k2161-base-s9-r2 vxid=28/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.627 UTC [128] k2161-base-s9-r2 vxid=28/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.627 UTC [128] k2161-base-s9-r2 vxid=28/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.628 UTC [102] k2161-base-observer vxid=2/130 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.628 UTC [102] k2161-base-observer vxid=2/131 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.631 UTC [129] k2161-base-s9-r3 vxid=29/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.632 UTC [129] k2161-base-s9-r3 vxid=29/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.632 UTC [129] k2161-base-s9-r3 vxid=29/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.632 UTC [129] k2161-base-s9-r3 vxid=29/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.632 UTC [129] k2161-base-s9-r3 vxid=29/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.633 UTC [129] k2161-base-s9-r3 vxid=29/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.633 UTC [129] k2161-base-s9-r3 vxid=29/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.633 UTC [129] k2161-base-s9-r3 vxid=29/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.634 UTC [102] k2161-base-observer vxid=2/132 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.739 UTC [130] k2161-pr-observer vxid=30/2 xid=0 LOG:  statement: show server_version
+2026-10-25 15:49:42.739 UTC [130] k2161-pr-observer vxid=30/3 xid=0 LOG:  statement: drop table if exists item, child, parent
+2026-10-25 15:49:42.741 UTC [130] k2161-pr-observer vxid=30/4 xid=0 LOG:  statement: create table item (id int primary key, note text)
+2026-10-25 15:49:42.742 UTC [130] k2161-pr-observer vxid=30/5 xid=0 LOG:  statement: create table parent (id int primary key)
+2026-10-25 15:49:42.743 UTC [130] k2161-pr-observer vxid=30/6 xid=0 LOG:  statement: create table child (id int primary key, parent_id int references parent (id) deferrable initially deferred)
+2026-10-25 15:49:42.744 UTC [130] k2161-pr-observer vxid=30/7 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.748 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.750 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.750 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.750 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/2 xid=851 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.751 UTC [131] k2161-pr-s1-r1 vxid=31/0 xid=851 LOG:  statement: commit
+2026-10-25 15:49:42.752 UTC [130] k2161-pr-observer vxid=30/8 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.752 UTC [130] k2161-pr-observer vxid=30/8 xid=0 DETAIL:  Parameters: $1 = '851'
+2026-10-25 15:49:42.752 UTC [130] k2161-pr-observer vxid=30/9 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.753 UTC [131] k2161-pr-s1-r1 vxid=31/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.754 UTC [130] k2161-pr-observer vxid=30/10 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.754 UTC [130] k2161-pr-observer vxid=30/10 xid=0 DETAIL:  Parameters: $1 = '131'
+2026-10-25 15:49:42.754 UTC [131] k2161-pr-s1-r1 vxid=31/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.754 UTC [131] k2161-pr-s1-r1 vxid=31/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.755 UTC [130] k2161-pr-observer vxid=30/11 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.755 UTC [130] k2161-pr-observer vxid=30/12 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.761 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.762 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.762 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.762 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/2 xid=854 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.763 UTC [132] k2161-pr-s1-r2 vxid=32/0 xid=854 LOG:  statement: commit
+2026-10-25 15:49:42.763 UTC [130] k2161-pr-observer vxid=30/13 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.763 UTC [130] k2161-pr-observer vxid=30/13 xid=0 DETAIL:  Parameters: $1 = '854'
+2026-10-25 15:49:42.764 UTC [130] k2161-pr-observer vxid=30/14 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.764 UTC [132] k2161-pr-s1-r2 vxid=32/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.765 UTC [130] k2161-pr-observer vxid=30/15 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.765 UTC [130] k2161-pr-observer vxid=30/15 xid=0 DETAIL:  Parameters: $1 = '132'
+2026-10-25 15:49:42.765 UTC [132] k2161-pr-s1-r2 vxid=32/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.765 UTC [132] k2161-pr-s1-r2 vxid=32/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.766 UTC [130] k2161-pr-observer vxid=30/16 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.766 UTC [130] k2161-pr-observer vxid=30/17 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.770 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.770 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.770 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.771 UTC [133] k2161-pr-s1-r3 vxid=33/2 xid=857 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.772 UTC [133] k2161-pr-s1-r3 vxid=33/0 xid=857 LOG:  statement: commit
+2026-10-25 15:49:42.772 UTC [130] k2161-pr-observer vxid=30/18 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.772 UTC [130] k2161-pr-observer vxid=30/18 xid=0 DETAIL:  Parameters: $1 = '857'
+2026-10-25 15:49:42.772 UTC [130] k2161-pr-observer vxid=30/19 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.773 UTC [133] k2161-pr-s1-r3 vxid=33/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.773 UTC [130] k2161-pr-observer vxid=30/20 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.773 UTC [130] k2161-pr-observer vxid=30/20 xid=0 DETAIL:  Parameters: $1 = '133'
+2026-10-25 15:49:42.774 UTC [133] k2161-pr-s1-r3 vxid=33/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.774 UTC [133] k2161-pr-s1-r3 vxid=33/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.774 UTC [130] k2161-pr-observer vxid=30/21 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.775 UTC [130] k2161-pr-observer vxid=30/22 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.779 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.779 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.779 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.780 UTC [134] k2161-pr-s2-r1 vxid=34/2 xid=860 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.781 UTC [134] k2161-pr-s2-r1 vxid=34/0 xid=860 LOG:  statement: commit
+2026-10-25 15:49:42.781 UTC [130] k2161-pr-observer vxid=30/23 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.781 UTC [130] k2161-pr-observer vxid=30/23 xid=0 DETAIL:  Parameters: $1 = '860'
+2026-10-25 15:49:42.781 UTC [130] k2161-pr-observer vxid=30/24 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.782 UTC [134] k2161-pr-s2-r1 vxid=34/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.782 UTC [130] k2161-pr-observer vxid=30/25 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.782 UTC [130] k2161-pr-observer vxid=30/25 xid=0 DETAIL:  Parameters: $1 = '134'
+2026-10-25 15:49:42.783 UTC [134] k2161-pr-s2-r1 vxid=34/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.783 UTC [134] k2161-pr-s2-r1 vxid=34/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.783 UTC [130] k2161-pr-observer vxid=30/26 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.783 UTC [130] k2161-pr-observer vxid=30/27 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.787 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.788 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.788 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.788 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.788 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.788 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.789 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.789 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.789 UTC [135] k2161-pr-s2-r2 vxid=35/2 xid=863 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.789 UTC [135] k2161-pr-s2-r2 vxid=35/0 xid=863 LOG:  statement: commit
+2026-10-25 15:49:42.789 UTC [130] k2161-pr-observer vxid=30/28 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.789 UTC [130] k2161-pr-observer vxid=30/28 xid=0 DETAIL:  Parameters: $1 = '863'
+2026-10-25 15:49:42.790 UTC [130] k2161-pr-observer vxid=30/29 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.790 UTC [135] k2161-pr-s2-r2 vxid=35/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.790 UTC [130] k2161-pr-observer vxid=30/30 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.790 UTC [130] k2161-pr-observer vxid=30/30 xid=0 DETAIL:  Parameters: $1 = '135'
+2026-10-25 15:49:42.791 UTC [135] k2161-pr-s2-r2 vxid=35/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.791 UTC [135] k2161-pr-s2-r2 vxid=35/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.791 UTC [130] k2161-pr-observer vxid=30/31 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.792 UTC [130] k2161-pr-observer vxid=30/32 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.795 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.796 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.796 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.796 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/2 xid=866 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.797 UTC [136] k2161-pr-s2-r3 vxid=36/0 xid=866 LOG:  statement: commit
+2026-10-25 15:49:42.797 UTC [130] k2161-pr-observer vxid=30/33 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.797 UTC [130] k2161-pr-observer vxid=30/33 xid=0 DETAIL:  Parameters: $1 = '866'
+2026-10-25 15:49:42.798 UTC [130] k2161-pr-observer vxid=30/34 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.798 UTC [136] k2161-pr-s2-r3 vxid=36/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.799 UTC [130] k2161-pr-observer vxid=30/35 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.799 UTC [130] k2161-pr-observer vxid=30/35 xid=0 DETAIL:  Parameters: $1 = '136'
+2026-10-25 15:49:42.799 UTC [136] k2161-pr-s2-r3 vxid=36/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.799 UTC [136] k2161-pr-s2-r3 vxid=36/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.799 UTC [130] k2161-pr-observer vxid=30/36 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.800 UTC [130] k2161-pr-observer vxid=30/37 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.804 UTC [137] k2161-pr-s3-r1 vxid=37/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.804 UTC [137] k2161-pr-s3-r1 vxid=37/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.804 UTC [137] k2161-pr-s3-r1 vxid=37/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.805 UTC [137] k2161-pr-s3-r1 vxid=37/2 xid=869 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.805 UTC [137] k2161-pr-s3-r1 vxid=37/2 xid=869 LOG:  statement: commit
+2026-10-25 15:49:42.805 UTC [130] k2161-pr-observer vxid=30/38 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.805 UTC [130] k2161-pr-observer vxid=30/38 xid=0 DETAIL:  Parameters: $1 = '869'
+2026-10-25 15:49:42.806 UTC [130] k2161-pr-observer vxid=30/39 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.806 UTC [137] k2161-pr-s3-r1 vxid=37/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.806 UTC [130] k2161-pr-observer vxid=30/40 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.806 UTC [130] k2161-pr-observer vxid=30/40 xid=0 DETAIL:  Parameters: $1 = '137'
+2026-10-25 15:49:42.807 UTC [137] k2161-pr-s3-r1 vxid=37/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.807 UTC [137] k2161-pr-s3-r1 vxid=37/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.807 UTC [130] k2161-pr-observer vxid=30/41 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.808 UTC [130] k2161-pr-observer vxid=30/42 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.811 UTC [138] k2161-pr-s3-r2 vxid=38/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.812 UTC [138] k2161-pr-s3-r2 vxid=38/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.812 UTC [138] k2161-pr-s3-r2 vxid=38/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.812 UTC [138] k2161-pr-s3-r2 vxid=38/2 xid=872 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.812 UTC [138] k2161-pr-s3-r2 vxid=38/2 xid=872 LOG:  statement: commit
+2026-10-25 15:49:42.813 UTC [130] k2161-pr-observer vxid=30/43 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.813 UTC [130] k2161-pr-observer vxid=30/43 xid=0 DETAIL:  Parameters: $1 = '872'
+2026-10-25 15:49:42.813 UTC [130] k2161-pr-observer vxid=30/44 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.813 UTC [138] k2161-pr-s3-r2 vxid=38/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.814 UTC [130] k2161-pr-observer vxid=30/45 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.814 UTC [130] k2161-pr-observer vxid=30/45 xid=0 DETAIL:  Parameters: $1 = '138'
+2026-10-25 15:49:42.814 UTC [138] k2161-pr-s3-r2 vxid=38/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.814 UTC [138] k2161-pr-s3-r2 vxid=38/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.815 UTC [130] k2161-pr-observer vxid=30/46 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.815 UTC [130] k2161-pr-observer vxid=30/47 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.819 UTC [139] k2161-pr-s3-r3 vxid=39/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.819 UTC [139] k2161-pr-s3-r3 vxid=39/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.819 UTC [139] k2161-pr-s3-r3 vxid=39/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.820 UTC [139] k2161-pr-s3-r3 vxid=39/2 xid=875 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.820 UTC [139] k2161-pr-s3-r3 vxid=39/2 xid=875 LOG:  statement: commit
+2026-10-25 15:49:42.820 UTC [130] k2161-pr-observer vxid=30/48 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.820 UTC [130] k2161-pr-observer vxid=30/48 xid=0 DETAIL:  Parameters: $1 = '875'
+2026-10-25 15:49:42.821 UTC [130] k2161-pr-observer vxid=30/49 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.821 UTC [139] k2161-pr-s3-r3 vxid=39/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.822 UTC [130] k2161-pr-observer vxid=30/50 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.822 UTC [130] k2161-pr-observer vxid=30/50 xid=0 DETAIL:  Parameters: $1 = '139'
+2026-10-25 15:49:42.822 UTC [139] k2161-pr-s3-r3 vxid=39/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.822 UTC [139] k2161-pr-s3-r3 vxid=39/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.822 UTC [130] k2161-pr-observer vxid=30/51 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.823 UTC [130] k2161-pr-observer vxid=30/52 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.826 UTC [140] k2161-pr-s4-r1 vxid=40/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.827 UTC [140] k2161-pr-s4-r1 vxid=40/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.827 UTC [140] k2161-pr-s4-r1 vxid=40/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.827 UTC [140] k2161-pr-s4-r1 vxid=40/2 xid=878 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.828 UTC [140] k2161-pr-s4-r1 vxid=40/2 xid=878 LOG:  statement: commit
+2026-10-25 15:49:42.828 UTC [130] k2161-pr-observer vxid=30/53 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.828 UTC [130] k2161-pr-observer vxid=30/53 xid=0 DETAIL:  Parameters: $1 = '878'
+2026-10-25 15:49:42.828 UTC [130] k2161-pr-observer vxid=30/54 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.829 UTC [140] k2161-pr-s4-r1 vxid=40/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.829 UTC [130] k2161-pr-observer vxid=30/55 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.829 UTC [130] k2161-pr-observer vxid=30/55 xid=0 DETAIL:  Parameters: $1 = '140'
+2026-10-25 15:49:42.830 UTC [140] k2161-pr-s4-r1 vxid=40/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.830 UTC [140] k2161-pr-s4-r1 vxid=40/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.830 UTC [130] k2161-pr-observer vxid=30/56 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.830 UTC [130] k2161-pr-observer vxid=30/57 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.834 UTC [141] k2161-pr-s4-r2 vxid=41/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.834 UTC [141] k2161-pr-s4-r2 vxid=41/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.834 UTC [141] k2161-pr-s4-r2 vxid=41/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.835 UTC [141] k2161-pr-s4-r2 vxid=41/2 xid=881 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.835 UTC [141] k2161-pr-s4-r2 vxid=41/2 xid=881 LOG:  statement: commit
+2026-10-25 15:49:42.835 UTC [130] k2161-pr-observer vxid=30/58 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.835 UTC [130] k2161-pr-observer vxid=30/58 xid=0 DETAIL:  Parameters: $1 = '881'
+2026-10-25 15:49:42.836 UTC [130] k2161-pr-observer vxid=30/59 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.836 UTC [141] k2161-pr-s4-r2 vxid=41/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.837 UTC [130] k2161-pr-observer vxid=30/60 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.837 UTC [130] k2161-pr-observer vxid=30/60 xid=0 DETAIL:  Parameters: $1 = '141'
+2026-10-25 15:49:42.837 UTC [141] k2161-pr-s4-r2 vxid=41/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.837 UTC [141] k2161-pr-s4-r2 vxid=41/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.837 UTC [130] k2161-pr-observer vxid=30/61 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.838 UTC [130] k2161-pr-observer vxid=30/62 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.841 UTC [142] k2161-pr-s4-r3 vxid=42/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.842 UTC [142] k2161-pr-s4-r3 vxid=42/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.842 UTC [142] k2161-pr-s4-r3 vxid=42/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.842 UTC [142] k2161-pr-s4-r3 vxid=42/2 xid=884 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.843 UTC [142] k2161-pr-s4-r3 vxid=42/2 xid=884 LOG:  statement: commit
+2026-10-25 15:49:42.843 UTC [130] k2161-pr-observer vxid=30/63 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.843 UTC [130] k2161-pr-observer vxid=30/63 xid=0 DETAIL:  Parameters: $1 = '884'
+2026-10-25 15:49:42.843 UTC [130] k2161-pr-observer vxid=30/64 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.844 UTC [142] k2161-pr-s4-r3 vxid=42/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.844 UTC [130] k2161-pr-observer vxid=30/65 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.844 UTC [130] k2161-pr-observer vxid=30/65 xid=0 DETAIL:  Parameters: $1 = '142'
+2026-10-25 15:49:42.845 UTC [142] k2161-pr-s4-r3 vxid=42/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.845 UTC [142] k2161-pr-s4-r3 vxid=42/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.845 UTC [130] k2161-pr-observer vxid=30/66 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.846 UTC [130] k2161-pr-observer vxid=30/67 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.849 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.850 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.850 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.850 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.851 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.852 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.852 UTC [143] k2161-pr-s5-r1 vxid=43/2 xid=887 LOG:  statement: commit
+2026-10-25 15:49:42.852 UTC [130] k2161-pr-observer vxid=30/68 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.852 UTC [130] k2161-pr-observer vxid=30/68 xid=0 DETAIL:  Parameters: $1 = '887'
+2026-10-25 15:49:42.853 UTC [130] k2161-pr-observer vxid=30/69 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.853 UTC [143] k2161-pr-s5-r1 vxid=43/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.853 UTC [130] k2161-pr-observer vxid=30/70 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.853 UTC [130] k2161-pr-observer vxid=30/70 xid=0 DETAIL:  Parameters: $1 = '143'
+2026-10-25 15:49:42.854 UTC [143] k2161-pr-s5-r1 vxid=43/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.854 UTC [143] k2161-pr-s5-r1 vxid=43/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.854 UTC [130] k2161-pr-observer vxid=30/71 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.855 UTC [130] k2161-pr-observer vxid=30/72 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.858 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.859 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.859 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.859 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.860 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.861 UTC [144] k2161-pr-s5-r2 vxid=44/2 xid=891 LOG:  statement: commit
+2026-10-25 15:49:42.861 UTC [130] k2161-pr-observer vxid=30/73 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.861 UTC [130] k2161-pr-observer vxid=30/73 xid=0 DETAIL:  Parameters: $1 = '891'
+2026-10-25 15:49:42.861 UTC [130] k2161-pr-observer vxid=30/74 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.862 UTC [144] k2161-pr-s5-r2 vxid=44/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.862 UTC [130] k2161-pr-observer vxid=30/75 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.862 UTC [130] k2161-pr-observer vxid=30/75 xid=0 DETAIL:  Parameters: $1 = '144'
+2026-10-25 15:49:42.863 UTC [144] k2161-pr-s5-r2 vxid=44/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.863 UTC [144] k2161-pr-s5-r2 vxid=44/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.863 UTC [130] k2161-pr-observer vxid=30/76 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.863 UTC [130] k2161-pr-observer vxid=30/77 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.867 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.867 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.867 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 LOG:  statement: savepoint "sp1"
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.868 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.869 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 LOG:  statement: rollback to "sp1"
+2026-10-25 15:49:42.869 UTC [145] k2161-pr-s5-r3 vxid=45/2 xid=895 LOG:  statement: commit
+2026-10-25 15:49:42.870 UTC [130] k2161-pr-observer vxid=30/78 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.870 UTC [130] k2161-pr-observer vxid=30/78 xid=0 DETAIL:  Parameters: $1 = '895'
+2026-10-25 15:49:42.870 UTC [130] k2161-pr-observer vxid=30/79 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.870 UTC [145] k2161-pr-s5-r3 vxid=45/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.871 UTC [130] k2161-pr-observer vxid=30/80 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.871 UTC [130] k2161-pr-observer vxid=30/80 xid=0 DETAIL:  Parameters: $1 = '145'
+2026-10-25 15:49:42.871 UTC [145] k2161-pr-s5-r3 vxid=45/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.871 UTC [145] k2161-pr-s5-r3 vxid=45/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.871 UTC [130] k2161-pr-observer vxid=30/81 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.872 UTC [130] k2161-pr-observer vxid=30/82 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.875 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.876 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.876 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.876 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 LOG:  statement: commit
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.877 UTC [146] k2161-pr-s6-r1 vxid=46/2 xid=899 STATEMENT:  commit
+2026-10-25 15:49:42.878 UTC [146] k2161-pr-s6-r1 vxid=46/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.878 UTC [146] k2161-pr-s6-r1 vxid=46/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.878 UTC [130] k2161-pr-observer vxid=30/83 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.878 UTC [130] k2161-pr-observer vxid=30/83 xid=0 DETAIL:  Parameters: $1 = '899'
+2026-10-25 15:49:42.879 UTC [130] k2161-pr-observer vxid=30/84 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.879 UTC [146] k2161-pr-s6-r1 vxid=46/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.879 UTC [130] k2161-pr-observer vxid=30/85 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.879 UTC [130] k2161-pr-observer vxid=30/85 xid=0 DETAIL:  Parameters: $1 = '146'
+2026-10-25 15:49:42.880 UTC [146] k2161-pr-s6-r1 vxid=46/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.880 UTC [146] k2161-pr-s6-r1 vxid=46/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.880 UTC [130] k2161-pr-observer vxid=30/86 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.880 UTC [130] k2161-pr-observer vxid=30/87 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.884 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.884 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.884 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.885 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.885 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.885 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 LOG:  statement: commit
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/2 xid=902 STATEMENT:  commit
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.886 UTC [147] k2161-pr-s6-r2 vxid=47/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.886 UTC [130] k2161-pr-observer vxid=30/88 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.886 UTC [130] k2161-pr-observer vxid=30/88 xid=0 DETAIL:  Parameters: $1 = '902'
+2026-10-25 15:49:42.887 UTC [130] k2161-pr-observer vxid=30/89 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.887 UTC [147] k2161-pr-s6-r2 vxid=47/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.888 UTC [130] k2161-pr-observer vxid=30/90 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.888 UTC [130] k2161-pr-observer vxid=30/90 xid=0 DETAIL:  Parameters: $1 = '147'
+2026-10-25 15:49:42.888 UTC [147] k2161-pr-s6-r2 vxid=47/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.888 UTC [147] k2161-pr-s6-r2 vxid=47/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.888 UTC [130] k2161-pr-observer vxid=30/91 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.889 UTC [130] k2161-pr-observer vxid=30/92 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.893 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.893 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.893 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.894 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.894 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.894 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.894 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 LOG:  statement: commit
+2026-10-25 15:49:42.895 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.895 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.895 UTC [148] k2161-pr-s6-r3 vxid=48/2 xid=905 STATEMENT:  commit
+2026-10-25 15:49:42.895 UTC [148] k2161-pr-s6-r3 vxid=48/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.895 UTC [148] k2161-pr-s6-r3 vxid=48/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.895 UTC [130] k2161-pr-observer vxid=30/93 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.895 UTC [130] k2161-pr-observer vxid=30/93 xid=0 DETAIL:  Parameters: $1 = '905'
+2026-10-25 15:49:42.896 UTC [130] k2161-pr-observer vxid=30/94 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.896 UTC [148] k2161-pr-s6-r3 vxid=48/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.897 UTC [130] k2161-pr-observer vxid=30/95 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.897 UTC [130] k2161-pr-observer vxid=30/95 xid=0 DETAIL:  Parameters: $1 = '148'
+2026-10-25 15:49:42.897 UTC [148] k2161-pr-s6-r3 vxid=48/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.897 UTC [148] k2161-pr-s6-r3 vxid=48/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.897 UTC [130] k2161-pr-observer vxid=30/96 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.898 UTC [130] k2161-pr-observer vxid=30/97 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.903 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.904 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.904 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.904 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.904 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.904 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 LOG:  statement: commit
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/2 xid=908 STATEMENT:  commit
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.905 UTC [149] k2161-pr-s7-r1 vxid=49/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.906 UTC [130] k2161-pr-observer vxid=30/98 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.906 UTC [130] k2161-pr-observer vxid=30/98 xid=0 DETAIL:  Parameters: $1 = '908'
+2026-10-25 15:49:42.906 UTC [130] k2161-pr-observer vxid=30/99 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.907 UTC [149] k2161-pr-s7-r1 vxid=49/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.907 UTC [130] k2161-pr-observer vxid=30/100 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.907 UTC [130] k2161-pr-observer vxid=30/100 xid=0 DETAIL:  Parameters: $1 = '149'
+2026-10-25 15:49:42.907 UTC [149] k2161-pr-s7-r1 vxid=49/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.907 UTC [149] k2161-pr-s7-r1 vxid=49/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.908 UTC [130] k2161-pr-observer vxid=30/101 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.908 UTC [130] k2161-pr-observer vxid=30/102 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.914 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.915 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.915 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.915 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.915 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.915 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 LOG:  statement: commit
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/2 xid=911 STATEMENT:  commit
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.916 UTC [150] k2161-pr-s7-r2 vxid=50/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.917 UTC [130] k2161-pr-observer vxid=30/103 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.917 UTC [130] k2161-pr-observer vxid=30/103 xid=0 DETAIL:  Parameters: $1 = '911'
+2026-10-25 15:49:42.917 UTC [130] k2161-pr-observer vxid=30/104 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.918 UTC [150] k2161-pr-s7-r2 vxid=50/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.918 UTC [130] k2161-pr-observer vxid=30/105 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.918 UTC [130] k2161-pr-observer vxid=30/105 xid=0 DETAIL:  Parameters: $1 = '150'
+2026-10-25 15:49:42.919 UTC [150] k2161-pr-s7-r2 vxid=50/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.919 UTC [150] k2161-pr-s7-r2 vxid=50/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.919 UTC [130] k2161-pr-observer vxid=30/106 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.919 UTC [130] k2161-pr-observer vxid=30/107 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.923 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.923 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.923 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.924 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 LOG:  execute <unnamed>: insert into "child" ("id", "parent_id") values ($1, $2)
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 DETAIL:  Parameters: $1 = '1', $2 = '99'
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 LOG:  statement: commit
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 ERROR:  insert or update on table "child" violates foreign key constraint "child_parent_id_fkey"
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 DETAIL:  Key (parent_id)=(99) is not present in table "parent".
+2026-10-25 15:49:42.925 UTC [151] k2161-pr-s7-r3 vxid=51/2 xid=914 STATEMENT:  commit
+2026-10-25 15:49:42.926 UTC [151] k2161-pr-s7-r3 vxid=51/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.926 UTC [151] k2161-pr-s7-r3 vxid=51/3 xid=0 WARNING:  there is no transaction in progress
+2026-10-25 15:49:42.926 UTC [130] k2161-pr-observer vxid=30/108 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.926 UTC [130] k2161-pr-observer vxid=30/108 xid=0 DETAIL:  Parameters: $1 = '914'
+2026-10-25 15:49:42.926 UTC [130] k2161-pr-observer vxid=30/109 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.927 UTC [151] k2161-pr-s7-r3 vxid=51/4 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.927 UTC [130] k2161-pr-observer vxid=30/110 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.927 UTC [130] k2161-pr-observer vxid=30/110 xid=0 DETAIL:  Parameters: $1 = '151'
+2026-10-25 15:49:42.927 UTC [151] k2161-pr-s7-r3 vxid=51/5 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.927 UTC [151] k2161-pr-s7-r3 vxid=51/5 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.928 UTC [130] k2161-pr-observer vxid=30/111 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.928 UTC [130] k2161-pr-observer vxid=30/112 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.932 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.932 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.932 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/2 xid=917 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.933 UTC [152] k2161-pr-s8-r1 vxid=52/0 xid=917 LOG:  statement: commit
+2026-10-25 15:49:42.934 UTC [130] k2161-pr-observer vxid=30/113 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.934 UTC [130] k2161-pr-observer vxid=30/113 xid=0 DETAIL:  Parameters: $1 = '917'
+2026-10-25 15:49:42.934 UTC [130] k2161-pr-observer vxid=30/114 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.934 UTC [152] k2161-pr-s8-r1 vxid=52/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.935 UTC [130] k2161-pr-observer vxid=30/115 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.935 UTC [130] k2161-pr-observer vxid=30/115 xid=0 DETAIL:  Parameters: $1 = '152'
+2026-10-25 15:49:42.935 UTC [152] k2161-pr-s8-r1 vxid=52/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.935 UTC [152] k2161-pr-s8-r1 vxid=52/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.936 UTC [130] k2161-pr-observer vxid=30/116 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.936 UTC [130] k2161-pr-observer vxid=30/117 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.939 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.940 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.940 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.940 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/2 xid=920 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.941 UTC [153] k2161-pr-s8-r2 vxid=53/0 xid=920 LOG:  statement: commit
+2026-10-25 15:49:42.941 UTC [130] k2161-pr-observer vxid=30/118 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.941 UTC [130] k2161-pr-observer vxid=30/118 xid=0 DETAIL:  Parameters: $1 = '920'
+2026-10-25 15:49:42.942 UTC [130] k2161-pr-observer vxid=30/119 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.942 UTC [153] k2161-pr-s8-r2 vxid=53/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.943 UTC [130] k2161-pr-observer vxid=30/120 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.943 UTC [130] k2161-pr-observer vxid=30/120 xid=0 DETAIL:  Parameters: $1 = '153'
+2026-10-25 15:49:42.943 UTC [153] k2161-pr-s8-r2 vxid=53/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.943 UTC [153] k2161-pr-s8-r2 vxid=53/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.943 UTC [130] k2161-pr-observer vxid=30/121 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.944 UTC [130] k2161-pr-observer vxid=30/122 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.947 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.948 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.948 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=0 DETAIL:  Parameters: $1 = '1', $2 = 'kept'
+2026-10-25 15:49:42.948 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 LOG:  statement: select pg_current_xact_id()::text as xid, pg_backend_pid() as pid
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 DETAIL:  Parameters: $1 = '1', $2 = 'dup'
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 ERROR:  duplicate key value violates unique constraint "item_pkey"
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 DETAIL:  Key (id)=(1) already exists.
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/2 xid=923 STATEMENT:  insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.949 UTC [154] k2161-pr-s8-r3 vxid=54/0 xid=923 LOG:  statement: commit
+2026-10-25 15:49:42.949 UTC [130] k2161-pr-observer vxid=30/123 xid=0 LOG:  execute <unnamed>: select pg_xact_status($1::xid8) as s
+2026-10-25 15:49:42.949 UTC [130] k2161-pr-observer vxid=30/123 xid=0 DETAIL:  Parameters: $1 = '923'
+2026-10-25 15:49:42.950 UTC [130] k2161-pr-observer vxid=30/124 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.950 UTC [154] k2161-pr-s8-r3 vxid=54/3 xid=0 LOG:  statement: select pg_backend_pid() as pid
+2026-10-25 15:49:42.950 UTC [130] k2161-pr-observer vxid=30/125 xid=0 LOG:  execute <unnamed>: select state, backend_xid is null and xact_start is null as no_transaction from pg_stat_activity where pid = $1
+2026-10-25 15:49:42.950 UTC [130] k2161-pr-observer vxid=30/125 xid=0 DETAIL:  Parameters: $1 = '154'
+2026-10-25 15:49:42.951 UTC [154] k2161-pr-s8-r3 vxid=54/4 xid=0 LOG:  execute <unnamed>: insert into "item" ("id", "note") values ($1, $2)
+2026-10-25 15:49:42.951 UTC [154] k2161-pr-s8-r3 vxid=54/4 xid=0 DETAIL:  Parameters: $1 = '100', $2 = 'autocommit-after'
+2026-10-25 15:49:42.951 UTC [130] k2161-pr-observer vxid=30/126 xid=0 LOG:  statement: select count(*)::int as n from item where id = 100
+2026-10-25 15:49:42.951 UTC [130] k2161-pr-observer vxid=30/127 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.955 UTC [155] k2161-pr-s9-r1 vxid=55/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.955 UTC [155] k2161-pr-s9-r1 vxid=55/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.955 UTC [155] k2161-pr-s9-r1 vxid=55/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.956 UTC [155] k2161-pr-s9-r1 vxid=55/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.956 UTC [155] k2161-pr-s9-r1 vxid=55/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.956 UTC [155] k2161-pr-s9-r1 vxid=55/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.957 UTC [155] k2161-pr-s9-r1 vxid=55/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.957 UTC [155] k2161-pr-s9-r1 vxid=55/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.957 UTC [130] k2161-pr-observer vxid=30/128 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.958 UTC [130] k2161-pr-observer vxid=30/129 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.961 UTC [156] k2161-pr-s9-r2 vxid=56/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.961 UTC [156] k2161-pr-s9-r2 vxid=56/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.961 UTC [156] k2161-pr-s9-r2 vxid=56/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.962 UTC [156] k2161-pr-s9-r2 vxid=56/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.962 UTC [156] k2161-pr-s9-r2 vxid=56/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.962 UTC [156] k2161-pr-s9-r2 vxid=56/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.963 UTC [156] k2161-pr-s9-r2 vxid=56/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.963 UTC [156] k2161-pr-s9-r2 vxid=56/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.963 UTC [130] k2161-pr-observer vxid=30/130 xid=0 LOG:  statement: select id, note from item order by id
+2026-10-25 15:49:42.964 UTC [130] k2161-pr-observer vxid=30/131 xid=0 LOG:  statement: truncate item, child, parent
+2026-10-25 15:49:42.967 UTC [157] k2161-pr-s9-r3 vxid=57/2 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.967 UTC [157] k2161-pr-s9-r3 vxid=57/2 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.968 UTC [157] k2161-pr-s9-r3 vxid=57/3 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.968 UTC [157] k2161-pr-s9-r3 vxid=57/3 xid=0 LOG:  statement: rollback
+2026-10-25 15:49:42.968 UTC [157] k2161-pr-s9-r3 vxid=57/4 xid=0 LOG:  statement: begin
+2026-10-25 15:49:42.969 UTC [157] k2161-pr-s9-r3 vxid=57/4 xid=0 LOG:  statement: savepoint s
+2026-10-25 15:49:42.969 UTC [157] k2161-pr-s9-r3 vxid=57/4 xid=0 LOG:  statement: rollback to savepoint s
+2026-10-25 15:49:42.969 UTC [157] k2161-pr-s9-r3 vxid=57/4 xid=0 LOG:  statement: commit
+2026-10-25 15:49:42.970 UTC [130] k2161-pr-observer vxid=30/132 xid=0 LOG:  statement: select id, note from item order by id

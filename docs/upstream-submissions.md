@@ -51,6 +51,7 @@ The upstream states below were last checked 2026-10-14 to 2026-10-17, as shown p
 | M4 | mikro-orm/mikro-orm PR #8448 | Comment | The listener fix does not reach a `ROLLBACK` that fails on a live connection | **Submitted** | Wait for a reply. §4 sets no follow-up date. The PR was already merged | [kysely-connection-recovery-comment-draft.md](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/kysely-connection-recovery-comment-draft.md), comment 2 |
 | Y1 | kysely-org/kysely #1990 | Comment | 0.29.7 and 0.28.18 can return a connection whose `ROLLBACK` never completed; the next commit can include those writes | **Submitted** | Wait for a reply. §4 sets no follow-up date. A later PR waits on the four release checks | [kysely-connection-recovery-comment-draft.md](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/kysely-connection-recovery-comment-draft.md), comment 1 |
 | Y2 | kysely-org/kysely #2157 | Issue | `commit()` sets `isCommitted` when the transaction did not commit | **Submitted** | Filed 2026-10-21. No pull request from us. Duplicate search the same day did not find this case. The maintainer `igalklebanov` opened PR #2161 ("closes #2157") on 2026-10-21 and labeled the issue on 2026-10-22; #2161 was open on 2026-10-25. #1990 is the connection leak | [kysely.md](../research/production-reachability/upstream-drafts/kysely.md) |
+| Y3 | kysely-org/kysely PR #2161 | Comment | Independent validation of the maintainer's fix for Y2: both #2157 paths reject with `AbortedTransactionError`; controls unchanged; a note on the 0.29.7 docs catch pattern | **Submitted** | Wait for a reply. §4 sets no follow-up date | [kysely-pr-2161-validation/comment.md](../research/production-reachability/kysely-pr-2161-validation/comment.md) |
 | S1 | spring-projects/spring-framework | Issue | `afterCommit` runs, and `afterCompletion` is `STATUS_COMMITTED`, when PostgreSQL rolled the transaction back | **Ready** | A1 is posted as discussion #5166. Not approved to file. pgjdbc #4494 (J1) is the driver half and is already submitted | [spring-framework.md](../research/production-reachability/upstream-drafts/spring-framework.md) |
 | P1 | psycopg/psycopg #1453 | Issue | `Connection.commit()` returns when `COMMIT` completes with command tag `ROLLBACK` | **Submitted** | Filed 2026-10-21. No pull request. Same-day search found no duplicate. PyPI `latest` was 3.3.6, uploaded 2026-09-18. Do not also file SQLAlchemy or Django | [psycopg.md](../research/production-reachability/upstream-drafts/psycopg.md) |
 | J1 | pgjdbc/pgjdbc #4494 | Issue | Should `Connection.commit()` report that PostgreSQL answered `COMMIT` with `ROLLBACK`? | **Submitted** | Use case answered 2026-10-21. `vlsi` opened PR #4499 (opt-in `raiseExceptionOnSilentRollback`) and PR #4496 (XA) on 2026-10-22, both referencing #4494; both open on 2026-10-25. Do not open a second pgjdbc issue | — |
@@ -73,7 +74,7 @@ Do not resume a row from the historical priority table once its item is submitte
 
 No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. PY-3 was filed 2026-10-25 as tortoise/tortoise-orm #2383. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
 
-Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, PY-3, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
+Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, Y3, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, PY-3, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
 
 ### Priority (set 2026-10-17)
 
@@ -203,6 +204,17 @@ Historical. This is the order decided before the day's submissions. **K2, L3, an
 
 **Y2. `isCommitted` after a caught `23505`. Submitted 2026-10-21** as https://github.com/kysely-org/kysely/issues/2157. Not Y1. On run `2026-10-19T18-15-49Z-b2c174`, explicit `commit().execute()` resolved and `driver.isCommitted` was `true` while the row was absent. Managed `db.transaction().execute()` resolved and the row was absent. That case logs `driver.isCommitted` as `null`. Neither Kysely case logs `command_tag`. The `ROLLBACK` tag in the same run is the pg control. The managed internal flag is source in `TransactionBuilder.execute`, not a logged value. Savepoint recovery committed the kept row and logged `isCommitted` true. Duplicate search the same day: `isCommitted` returned only #1990. `ROLLBACK` with commit returned #1894. `23505` returned nothing. `command tag` returned #428. npm `latest` was 0.29.7, and its `commitTransaction` still discards the result before `isCommitted` is set. No pull request. M3 (#8476) already reports the MikroORM call that goes through this driver path. Y2 is the Kysely issue M3 deliberately did not open. **Checked 2026-10-25:** the maintainer `igalklebanov` opened https://github.com/kysely-org/kysely/pull/2161 ("fix(postgres): reject commits that roll back aborted transactions", body "closes #2157") on 2026-10-21 and labeled #2157 `postgres` and `built-in dialect` on 2026-10-22. #2161 was open. No comment on #2157.
 
+**Y3. Validation comment on PR #2161. Submitted 2026-10-25** as https://github.com/kysely-org/kysely/pull/2161#issuecomment-6403967170 Posted as `KevinBlakeLopez`.
+
+- **Setup:** PR head `ef60ffe` (the pkg.pr.new build) against npm 0.29.7, the PR's base (tag `v0.29.7`). pg 8.23.1, Node.js 24.14.1, PostgreSQL 18.6, three runs per build.
+- **Result:** both #2157 paths reject with `AbortedTransactionError`. On both builds the server shows `aborted` and no row.
+- **Controls:** plain commit, savepoint recovery, and a deferred FK failing at `COMMIT` are unchanged. The pooled connection is idle and reusable after every case.
+- **Included:** a note that the 0.29.7 `commit()` docs pattern (`rollback()` in the catch) now surfaces `Transaction is already rolled back`.
+- **Left out:** raw `` sql`commit` `` and `` sql`rollback` `` now return a `{ command }` row.
+- **Before posting:** the head was unchanged, with no human comments or reviews.
+- **After posting:** the body returned by the API matched the draft.
+- **Evidence:** [`kysely-pr-2161-validation/`](../research/production-reachability/kysely-pr-2161-validation/README.md).
+
 ### 3.5 TypeORM
 
 **T1. Nested start, then savepoint-rollback depth.**
@@ -294,7 +306,7 @@ These come from [`python-upstream-contribution-roadmap.md`](../research/python-u
 
 **For the other upstreams** no general rule has been set. These items do not decide the persistence choice. They do bear on how much integration code a MikroORM or TypeORM path would need permanently. Record dates here, so replies can be judged.
 
-Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2), and Prisma (PI1) have no follow-up date. M2 and M3 are closed.
+Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2, Y3), and Prisma (PI1) have no follow-up date. M2 and M3 are closed.
 
 **Recheck 2026-10-25.** Every Submitted row was rechecked on GitHub. Changes since the last per-item checks: M2 closed (#8462 merged 2026-10-22); maintainer fix PRs for Y2 (Kysely #2161) and J1 (pgjdbc #4499, #4496); outside-contributor PRs for K1 (#6549), T1 (#12983, #12997), T3 (#12993) and D1 (#6574), none with maintainer activity; a bot triage note on PI1; K2-PR still waits for CI approval. No new human reply on L1, L3, L5, A1, K1, K2, K3, M4, Y1, P1, PY-1b, PY-2 or PY-3. Y1 still has no reply after the 2026-10-18 comment.
 
@@ -324,6 +336,7 @@ Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2), and Prisma (PI1) have 
 | L5 | 2026-10-17 | https://github.com/adonisjs/lucid/issues/1204 | — (§4 sets no date) | — | waiting |
 | Y1 | 2026-10-18 | https://github.com/kysely-org/kysely/issues/1990#issuecomment-6249837924 | — (§4 sets no date) | — | waiting |
 | Y2 | 2026-10-21 | https://github.com/kysely-org/kysely/issues/2157 | — (§4 sets no date) | Maintainer `igalklebanov` opened PR #2161 (closes #2157) 2026-10-21 and labeled the issue | fix PR open |
+| Y3 | 2026-10-25 | https://github.com/kysely-org/kysely/pull/2161#issuecomment-6403967170 | — (§4 sets no date) | — | waiting |
 | M4 | 2026-10-18 | https://github.com/mikro-orm/mikro-orm/pull/8448#issuecomment-6249891879 | — (§4 sets no date) | — | waiting |
 | M3 | 2026-10-18 | https://github.com/mikro-orm/mikro-orm/issues/8476 | — | Closed 2026-10-22 as completed via #8499. Retested on 7.2.6-dev.19 | closed |
 | J1 | 2026-10-19 | https://github.com/pgjdbc/pgjdbc/issues/4494 | — | Dave Cramer, 2026-10-20: `commit()` should report it; he asked for the use case. Use case answered 2026-10-21: https://github.com/pgjdbc/pgjdbc/issues/4494#issuecomment-6316574491 `vlsi` opened PRs #4499 and #4496 on 2026-10-22 | maintainer PRs open |
@@ -385,3 +398,4 @@ Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2), and Prisma (PI1) have 
   - **Before filing:** no tortoise-orm issue or PR had been created or updated after 01:30 UTC. `develop` was still `ad0d6ce2b`, so the linked lines held. PyPI `latest` was 1.1.9. #2293 was open; #1212 had no comments.
   - **After filing:** the posted title and body match the draft, compared through the API.
 - **2026-10-25.** Rechecked every Submitted and Closed row on GitHub. M2 closed: #8462 merged 2026-10-22 at `d3d3b5da`, without the suggested subscriber test, and not re-validated. Recorded the maintainer fix PRs for Y2 (Kysely #2161) and J1 (pgjdbc #4499 and #4496), the outside-contributor PRs for K1, T1, T3 and D1, and the bot triage note on PI1. Added K2-PR (knex PR #6548, submitted 2026-10-18), which was missing; its CI waits for maintainer approval. Nothing posted.
+- **2026-10-25.** Y3 submitted on Kysely PR #2161: https://github.com/kysely-org/kysely/pull/2161#issuecomment-6403967170 It validates the maintainer's fix for Y2 against 0.29.7. Before posting, the head was still `ef60ffe`, with no human comments or reviews. The posted body matches the draft, compared through the API. Evidence: `research/production-reachability/kysely-pr-2161-validation/`. Status Submitted.
