@@ -1,0 +1,669 @@
+2026-10-25 05:26:34.117 UTC [179] db=cb_1_d15c app=cb-setup vxid=88/2 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.217 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/3 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.239 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/3 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.240 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.244 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/4 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.244 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/4 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r1-tx', $2 = '0'
+2026-10-25 05:26:34.245 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/4 xid=877 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.247 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/5 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.247 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/5 xid=0 DETAIL:  Parameters: $1 = '182'
+2026-10-25 05:26:34.247 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/7 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.247 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/7 xid=0 DETAIL:  Parameters: $1 = '877'
+2026-10-25 05:26:34.248 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/9 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.248 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/9 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r1-tx'
+2026-10-25 05:26:34.249 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/11 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.249 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/11 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '1'
+2026-10-25 05:26:34.250 UTC [182] db=cb_1_d15c app=cb-laravel.commit-r1-subject vxid=91/4 xid=877 LOG:  statement: COMMIT
+2026-10-25 05:26:34.251 UTC [181] db=cb_1_d15c app=cb-sink vxid=90/3 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.251 UTC [181] db=cb_1_d15c app=cb-sink vxid=90/3 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '1', $3 = 'afterCommit'
+2026-10-25 05:26:34.252 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/13 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.252 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/13 xid=0 DETAIL:  Parameters: $1 = '182'
+2026-10-25 05:26:34.253 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/15 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.253 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/15 xid=0 DETAIL:  Parameters: $1 = '877'
+2026-10-25 05:26:34.253 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/17 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.253 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/17 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r1-tx'
+2026-10-25 05:26:34.254 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/19 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.254 UTC [180] db=cb_1_d15c app=cb-observer vxid=89/19 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '1'
+2026-10-25 05:26:34.275 UTC [183] db=cb_2_23d2 app=cb-setup vxid=92/2 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.330 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/3 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.342 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/3 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.343 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.346 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/4 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.346 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/4 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r2-tx', $2 = '0'
+2026-10-25 05:26:34.347 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/4 xid=882 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.349 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/5 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.349 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/5 xid=0 DETAIL:  Parameters: $1 = '186'
+2026-10-25 05:26:34.349 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/7 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.349 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/7 xid=0 DETAIL:  Parameters: $1 = '882'
+2026-10-25 05:26:34.350 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/9 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.350 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/9 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r2-tx'
+2026-10-25 05:26:34.351 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/11 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.351 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/11 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '2'
+2026-10-25 05:26:34.352 UTC [186] db=cb_2_23d2 app=cb-laravel.commit-r2-subject vxid=95/4 xid=882 LOG:  statement: COMMIT
+2026-10-25 05:26:34.353 UTC [185] db=cb_2_23d2 app=cb-sink vxid=94/3 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.353 UTC [185] db=cb_2_23d2 app=cb-sink vxid=94/3 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '2', $3 = 'afterCommit'
+2026-10-25 05:26:34.354 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/13 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.354 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/13 xid=0 DETAIL:  Parameters: $1 = '186'
+2026-10-25 05:26:34.355 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/15 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.355 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/15 xid=0 DETAIL:  Parameters: $1 = '882'
+2026-10-25 05:26:34.356 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/17 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.356 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/17 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r2-tx'
+2026-10-25 05:26:34.356 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/19 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.356 UTC [184] db=cb_2_23d2 app=cb-observer vxid=93/19 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '2'
+2026-10-25 05:26:34.375 UTC [187] db=cb_3_7bc7 app=cb-setup vxid=96/2 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.433 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/3 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.447 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/3 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.448 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.450 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/4 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.450 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/4 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r3-tx', $2 = '0'
+2026-10-25 05:26:34.452 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/4 xid=887 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.454 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/5 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.454 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/5 xid=0 DETAIL:  Parameters: $1 = '190'
+2026-10-25 05:26:34.454 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/7 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.454 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/7 xid=0 DETAIL:  Parameters: $1 = '887'
+2026-10-25 05:26:34.455 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/9 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.455 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/9 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r3-tx'
+2026-10-25 05:26:34.456 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/11 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.456 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/11 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '3'
+2026-10-25 05:26:34.458 UTC [190] db=cb_3_7bc7 app=cb-laravel.commit-r3-subject vxid=99/4 xid=887 LOG:  statement: COMMIT
+2026-10-25 05:26:34.458 UTC [189] db=cb_3_7bc7 app=cb-sink vxid=98/3 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.458 UTC [189] db=cb_3_7bc7 app=cb-sink vxid=98/3 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '3', $3 = 'afterCommit'
+2026-10-25 05:26:34.460 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/13 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.460 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/13 xid=0 DETAIL:  Parameters: $1 = '190'
+2026-10-25 05:26:34.460 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/15 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.460 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/15 xid=0 DETAIL:  Parameters: $1 = '887'
+2026-10-25 05:26:34.461 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/17 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.461 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/17 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.commit-r3-tx'
+2026-10-25 05:26:34.462 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/19 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.462 UTC [188] db=cb_3_7bc7 app=cb-observer vxid=97/19 xid=0 DETAIL:  Parameters: $1 = 'laravel.commit', $2 = '3'
+2026-10-25 05:26:34.481 UTC [191] db=cb_4_d9e9 app=cb-setup vxid=0/3 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.537 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.551 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.552 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.555 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.555 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r1-tx', $2 = '0'
+2026-10-25 05:26:34.556 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.557 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.557 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/7 xid=0 DETAIL:  Parameters: $1 = '194'
+2026-10-25 05:26:34.558 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.558 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/9 xid=0 DETAIL:  Parameters: $1 = '892'
+2026-10-25 05:26:34.559 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.559 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r1-tx'
+2026-10-25 05:26:34.559 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.559 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '1'
+2026-10-25 05:26:34.561 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.561 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:34.562 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:34.562 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:34.562 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/23 xid=892 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.563 UTC [194] db=cb_4_d9e9 app=cb-laravel.error-escapes-r1-subject vxid=3/0 xid=892 LOG:  statement: ROLLBACK
+2026-10-25 05:26:34.565 UTC [193] db=cb_4_d9e9 app=cb-sink vxid=4/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.565 UTC [193] db=cb_4_d9e9 app=cb-sink vxid=4/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '1', $3 = 'afterRollBack'
+2026-10-25 05:26:34.566 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.566 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/15 xid=0 DETAIL:  Parameters: $1 = '194'
+2026-10-25 05:26:34.566 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.566 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/17 xid=0 DETAIL:  Parameters: $1 = '892'
+2026-10-25 05:26:34.567 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.567 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r1-tx'
+2026-10-25 05:26:34.568 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.568 UTC [192] db=cb_4_d9e9 app=cb-observer vxid=2/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '1'
+2026-10-25 05:26:34.587 UTC [195] db=cb_5_49db app=cb-setup vxid=5/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.647 UTC [196] db=cb_5_49db app=cb-observer vxid=6/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.661 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.662 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.665 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.665 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r2-tx', $2 = '0'
+2026-10-25 05:26:34.666 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.668 UTC [196] db=cb_5_49db app=cb-observer vxid=6/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.668 UTC [196] db=cb_5_49db app=cb-observer vxid=6/7 xid=0 DETAIL:  Parameters: $1 = '198'
+2026-10-25 05:26:34.669 UTC [196] db=cb_5_49db app=cb-observer vxid=6/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.669 UTC [196] db=cb_5_49db app=cb-observer vxid=6/9 xid=0 DETAIL:  Parameters: $1 = '897'
+2026-10-25 05:26:34.669 UTC [196] db=cb_5_49db app=cb-observer vxid=6/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.669 UTC [196] db=cb_5_49db app=cb-observer vxid=6/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r2-tx'
+2026-10-25 05:26:34.670 UTC [196] db=cb_5_49db app=cb-observer vxid=6/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.670 UTC [196] db=cb_5_49db app=cb-observer vxid=6/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '2'
+2026-10-25 05:26:34.672 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.672 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:34.672 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:34.672 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:34.672 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/23 xid=897 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.673 UTC [198] db=cb_5_49db app=cb-laravel.error-escapes-r2-subject vxid=7/0 xid=897 LOG:  statement: ROLLBACK
+2026-10-25 05:26:34.674 UTC [197] db=cb_5_49db app=cb-sink vxid=8/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.674 UTC [197] db=cb_5_49db app=cb-sink vxid=8/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '2', $3 = 'afterRollBack'
+2026-10-25 05:26:34.675 UTC [196] db=cb_5_49db app=cb-observer vxid=6/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.675 UTC [196] db=cb_5_49db app=cb-observer vxid=6/15 xid=0 DETAIL:  Parameters: $1 = '198'
+2026-10-25 05:26:34.676 UTC [196] db=cb_5_49db app=cb-observer vxid=6/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.676 UTC [196] db=cb_5_49db app=cb-observer vxid=6/17 xid=0 DETAIL:  Parameters: $1 = '897'
+2026-10-25 05:26:34.677 UTC [196] db=cb_5_49db app=cb-observer vxid=6/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.677 UTC [196] db=cb_5_49db app=cb-observer vxid=6/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r2-tx'
+2026-10-25 05:26:34.677 UTC [196] db=cb_5_49db app=cb-observer vxid=6/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.677 UTC [196] db=cb_5_49db app=cb-observer vxid=6/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '2'
+2026-10-25 05:26:34.697 UTC [199] db=cb_6_87bd app=cb-setup vxid=9/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.754 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.766 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/6 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.767 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.770 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.770 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r3-tx', $2 = '0'
+2026-10-25 05:26:34.771 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.773 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.773 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/7 xid=0 DETAIL:  Parameters: $1 = '202'
+2026-10-25 05:26:34.773 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.773 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/9 xid=0 DETAIL:  Parameters: $1 = '902'
+2026-10-25 05:26:34.774 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.774 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r3-tx'
+2026-10-25 05:26:34.774 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.774 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '3'
+2026-10-25 05:26:34.776 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.776 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:34.776 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:34.776 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:34.776 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/7 xid=902 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.777 UTC [202] db=cb_6_87bd app=cb-laravel.error-escapes-r3-subject vxid=12/0 xid=902 LOG:  statement: ROLLBACK
+2026-10-25 05:26:34.778 UTC [201] db=cb_6_87bd app=cb-sink vxid=11/22 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.778 UTC [201] db=cb_6_87bd app=cb-sink vxid=11/22 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '3', $3 = 'afterRollBack'
+2026-10-25 05:26:34.779 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.779 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/15 xid=0 DETAIL:  Parameters: $1 = '202'
+2026-10-25 05:26:34.780 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.780 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/17 xid=0 DETAIL:  Parameters: $1 = '902'
+2026-10-25 05:26:34.780 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.780 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.error-escapes-r3-tx'
+2026-10-25 05:26:34.781 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.781 UTC [200] db=cb_6_87bd app=cb-observer vxid=10/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.error-escapes', $2 = '3'
+2026-10-25 05:26:34.798 UTC [203] db=cb_7_43fa app=cb-setup vxid=13/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.852 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.865 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.865 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.868 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.868 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-tx', $2 = '0'
+2026-10-25 05:26:34.869 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.870 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.870 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:34.870 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:34.870 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:34.870 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/23 xid=907 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.872 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.872 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/7 xid=0 DETAIL:  Parameters: $1 = '206'
+2026-10-25 05:26:34.873 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.873 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/9 xid=0 DETAIL:  Parameters: $1 = '907'
+2026-10-25 05:26:34.874 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.874 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-tx'
+2026-10-25 05:26:34.874 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.874 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '1'
+2026-10-25 05:26:34.876 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/0 xid=907 LOG:  statement: COMMIT
+2026-10-25 05:26:34.877 UTC [205] db=cb_7_43fa app=cb-sink vxid=16/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.877 UTC [205] db=cb_7_43fa app=cb-sink vxid=16/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '1', $3 = 'afterCommit'
+2026-10-25 05:26:34.878 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.878 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/15 xid=0 DETAIL:  Parameters: $1 = '206'
+2026-10-25 05:26:34.879 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.879 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/17 xid=0 DETAIL:  Parameters: $1 = '907'
+2026-10-25 05:26:34.880 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.880 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-tx'
+2026-10-25 05:26:34.880 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.880 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '1'
+2026-10-25 05:26:34.882 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/24 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.882 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/24 xid=0 LOG:  execute pdo_stmt_00000005: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.882 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/24 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-reuse', $2 = '0'
+2026-10-25 05:26:34.883 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/24 xid=909 LOG:  execute pdo_stmt_00000006: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.884 UTC [206] db=cb_7_43fa app=cb-laravel.caught-error-r1-subject vxid=15/24 xid=909 LOG:  statement: COMMIT
+2026-10-25 05:26:34.885 UTC [205] db=cb_7_43fa app=cb-sink vxid=16/8 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.885 UTC [205] db=cb_7_43fa app=cb-sink vxid=16/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '1', $3 = 'afterCommit:reuse'
+2026-10-25 05:26:34.886 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/23 xid=0 LOG:  execute pdo_stmt_0000000a: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.886 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/23 xid=0 DETAIL:  Parameters: $1 = '206'
+2026-10-25 05:26:34.886 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/25 xid=0 LOG:  execute pdo_stmt_0000000b: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.886 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/25 xid=0 DETAIL:  Parameters: $1 = '907'
+2026-10-25 05:26:34.887 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/27 xid=0 LOG:  execute pdo_stmt_0000000c: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.887 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/27 xid=0 DETAIL:  Parameters: $1 = '909'
+2026-10-25 05:26:34.887 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/29 xid=0 LOG:  execute pdo_stmt_0000000d: select count(*) from item where name = $1
+2026-10-25 05:26:34.887 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/29 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-tx'
+2026-10-25 05:26:34.888 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/31 xid=0 LOG:  execute pdo_stmt_0000000e: select count(*) from item where name = $1
+2026-10-25 05:26:34.888 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/31 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r1-reuse'
+2026-10-25 05:26:34.889 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/33 xid=0 LOG:  execute pdo_stmt_0000000f: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.889 UTC [204] db=cb_7_43fa app=cb-observer vxid=14/33 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '1'
+2026-10-25 05:26:34.905 UTC [207] db=cb_8_d206 app=cb-setup vxid=17/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:34.958 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:34.972 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:34.973 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.976 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.976 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-tx', $2 = '0'
+2026-10-25 05:26:34.977 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.978 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.978 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:34.978 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:34.978 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:34.978 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/23 xid=914 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:34.980 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.980 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/7 xid=0 DETAIL:  Parameters: $1 = '210'
+2026-10-25 05:26:34.981 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.981 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/9 xid=0 DETAIL:  Parameters: $1 = '914'
+2026-10-25 05:26:34.981 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:34.981 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-tx'
+2026-10-25 05:26:34.982 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.982 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '2'
+2026-10-25 05:26:34.984 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/0 xid=914 LOG:  statement: COMMIT
+2026-10-25 05:26:34.985 UTC [209] db=cb_8_d206 app=cb-sink vxid=20/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.985 UTC [209] db=cb_8_d206 app=cb-sink vxid=20/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '2', $3 = 'afterCommit'
+2026-10-25 05:26:34.986 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.986 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/15 xid=0 DETAIL:  Parameters: $1 = '210'
+2026-10-25 05:26:34.986 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.986 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/17 xid=0 DETAIL:  Parameters: $1 = '914'
+2026-10-25 05:26:34.987 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:34.987 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-tx'
+2026-10-25 05:26:34.988 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.988 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '2'
+2026-10-25 05:26:34.989 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/24 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:34.990 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/24 xid=0 LOG:  execute pdo_stmt_00000005: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:34.990 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/24 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-reuse', $2 = '0'
+2026-10-25 05:26:34.992 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/24 xid=916 LOG:  execute pdo_stmt_00000006: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:34.992 UTC [210] db=cb_8_d206 app=cb-laravel.caught-error-r2-subject vxid=19/24 xid=916 LOG:  statement: COMMIT
+2026-10-25 05:26:34.993 UTC [209] db=cb_8_d206 app=cb-sink vxid=20/8 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:34.993 UTC [209] db=cb_8_d206 app=cb-sink vxid=20/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '2', $3 = 'afterCommit:reuse'
+2026-10-25 05:26:34.994 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/23 xid=0 LOG:  execute pdo_stmt_0000000a: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:34.994 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/23 xid=0 DETAIL:  Parameters: $1 = '210'
+2026-10-25 05:26:34.995 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/25 xid=0 LOG:  execute pdo_stmt_0000000b: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.995 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/25 xid=0 DETAIL:  Parameters: $1 = '914'
+2026-10-25 05:26:34.996 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/27 xid=0 LOG:  execute pdo_stmt_0000000c: select pg_xact_status($1::xid8)
+2026-10-25 05:26:34.996 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/27 xid=0 DETAIL:  Parameters: $1 = '916'
+2026-10-25 05:26:34.996 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/29 xid=0 LOG:  execute pdo_stmt_0000000d: select count(*) from item where name = $1
+2026-10-25 05:26:34.996 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/29 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-tx'
+2026-10-25 05:26:34.997 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/31 xid=0 LOG:  execute pdo_stmt_0000000e: select count(*) from item where name = $1
+2026-10-25 05:26:34.997 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/31 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r2-reuse'
+2026-10-25 05:26:34.998 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/33 xid=0 LOG:  execute pdo_stmt_0000000f: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:34.998 UTC [208] db=cb_8_d206 app=cb-observer vxid=18/33 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '2'
+2026-10-25 05:26:35.015 UTC [211] db=cb_9_22b5 app=cb-setup vxid=21/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.072 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.085 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.086 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.089 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.089 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-tx', $2 = '0'
+2026-10-25 05:26:35.090 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.091 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.091 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.091 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.091 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.091 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/23 xid=921 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.093 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.093 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/7 xid=0 DETAIL:  Parameters: $1 = '214'
+2026-10-25 05:26:35.094 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.094 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/9 xid=0 DETAIL:  Parameters: $1 = '921'
+2026-10-25 05:26:35.095 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.095 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-tx'
+2026-10-25 05:26:35.095 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.095 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '3'
+2026-10-25 05:26:35.097 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/0 xid=921 LOG:  statement: COMMIT
+2026-10-25 05:26:35.098 UTC [213] db=cb_9_22b5 app=cb-sink vxid=24/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.098 UTC [213] db=cb_9_22b5 app=cb-sink vxid=24/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '3', $3 = 'afterCommit'
+2026-10-25 05:26:35.099 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.099 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/15 xid=0 DETAIL:  Parameters: $1 = '214'
+2026-10-25 05:26:35.100 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.100 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/17 xid=0 DETAIL:  Parameters: $1 = '921'
+2026-10-25 05:26:35.100 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.100 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-tx'
+2026-10-25 05:26:35.101 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.101 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '3'
+2026-10-25 05:26:35.102 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/24 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.103 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/24 xid=0 LOG:  execute pdo_stmt_00000005: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.103 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/24 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-reuse', $2 = '0'
+2026-10-25 05:26:35.104 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/24 xid=923 LOG:  execute pdo_stmt_00000006: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.105 UTC [214] db=cb_9_22b5 app=cb-laravel.caught-error-r3-subject vxid=23/24 xid=923 LOG:  statement: COMMIT
+2026-10-25 05:26:35.106 UTC [213] db=cb_9_22b5 app=cb-sink vxid=24/8 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.106 UTC [213] db=cb_9_22b5 app=cb-sink vxid=24/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '3', $3 = 'afterCommit:reuse'
+2026-10-25 05:26:35.107 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/23 xid=0 LOG:  execute pdo_stmt_0000000a: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.107 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/23 xid=0 DETAIL:  Parameters: $1 = '214'
+2026-10-25 05:26:35.107 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/25 xid=0 LOG:  execute pdo_stmt_0000000b: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.107 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/25 xid=0 DETAIL:  Parameters: $1 = '921'
+2026-10-25 05:26:35.108 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/27 xid=0 LOG:  execute pdo_stmt_0000000c: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.108 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/27 xid=0 DETAIL:  Parameters: $1 = '923'
+2026-10-25 05:26:35.109 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/29 xid=0 LOG:  execute pdo_stmt_0000000d: select count(*) from item where name = $1
+2026-10-25 05:26:35.109 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/29 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-tx'
+2026-10-25 05:26:35.110 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/31 xid=0 LOG:  execute pdo_stmt_0000000e: select count(*) from item where name = $1
+2026-10-25 05:26:35.110 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/31 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.caught-error-r3-reuse'
+2026-10-25 05:26:35.110 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/33 xid=0 LOG:  execute pdo_stmt_0000000f: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.110 UTC [212] db=cb_9_22b5 app=cb-observer vxid=22/33 xid=0 DETAIL:  Parameters: $1 = 'laravel.caught-error', $2 = '3'
+2026-10-25 05:26:35.127 UTC [215] db=cb_10_a7ea app=cb-setup vxid=25/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.184 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.197 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/34 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.198 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.201 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.201 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r1-tx', $2 = '0'
+2026-10-25 05:26:35.202 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.203 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.203 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.203 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.203 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.203 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/35 xid=928 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.205 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.205 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/7 xid=0 DETAIL:  Parameters: $1 = '218'
+2026-10-25 05:26:35.206 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.206 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/9 xid=0 DETAIL:  Parameters: $1 = '928'
+2026-10-25 05:26:35.206 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.206 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r1-tx'
+2026-10-25 05:26:35.207 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.207 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '1'
+2026-10-25 05:26:35.208 UTC [218] db=cb_10_a7ea app=cb-laravel.explicit-caught-error-r1-subject vxid=27/0 xid=928 LOG:  statement: COMMIT
+2026-10-25 05:26:35.209 UTC [217] db=cb_10_a7ea app=cb-sink vxid=28/8 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.209 UTC [217] db=cb_10_a7ea app=cb-sink vxid=28/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '1', $3 = 'afterCommit'
+2026-10-25 05:26:35.211 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.211 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/15 xid=0 DETAIL:  Parameters: $1 = '218'
+2026-10-25 05:26:35.211 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.211 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/17 xid=0 DETAIL:  Parameters: $1 = '928'
+2026-10-25 05:26:35.212 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.212 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r1-tx'
+2026-10-25 05:26:35.212 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.212 UTC [216] db=cb_10_a7ea app=cb-observer vxid=26/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '1'
+2026-10-25 05:26:35.230 UTC [219] db=cb_11_464f app=cb-setup vxid=29/7 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.289 UTC [220] db=cb_11_464f app=cb-observer vxid=30/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.303 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/34 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.303 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.306 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.306 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r2-tx', $2 = '0'
+2026-10-25 05:26:35.307 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.308 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.308 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.308 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.308 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.308 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/35 xid=933 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.311 UTC [220] db=cb_11_464f app=cb-observer vxid=30/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.311 UTC [220] db=cb_11_464f app=cb-observer vxid=30/7 xid=0 DETAIL:  Parameters: $1 = '222'
+2026-10-25 05:26:35.311 UTC [220] db=cb_11_464f app=cb-observer vxid=30/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.311 UTC [220] db=cb_11_464f app=cb-observer vxid=30/9 xid=0 DETAIL:  Parameters: $1 = '933'
+2026-10-25 05:26:35.312 UTC [220] db=cb_11_464f app=cb-observer vxid=30/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.312 UTC [220] db=cb_11_464f app=cb-observer vxid=30/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r2-tx'
+2026-10-25 05:26:35.313 UTC [220] db=cb_11_464f app=cb-observer vxid=30/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.313 UTC [220] db=cb_11_464f app=cb-observer vxid=30/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '2'
+2026-10-25 05:26:35.314 UTC [222] db=cb_11_464f app=cb-laravel.explicit-caught-error-r2-subject vxid=31/0 xid=933 LOG:  statement: COMMIT
+2026-10-25 05:26:35.315 UTC [221] db=cb_11_464f app=cb-sink vxid=32/8 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.315 UTC [221] db=cb_11_464f app=cb-sink vxid=32/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '2', $3 = 'afterCommit'
+2026-10-25 05:26:35.316 UTC [220] db=cb_11_464f app=cb-observer vxid=30/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.316 UTC [220] db=cb_11_464f app=cb-observer vxid=30/15 xid=0 DETAIL:  Parameters: $1 = '222'
+2026-10-25 05:26:35.317 UTC [220] db=cb_11_464f app=cb-observer vxid=30/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.317 UTC [220] db=cb_11_464f app=cb-observer vxid=30/17 xid=0 DETAIL:  Parameters: $1 = '933'
+2026-10-25 05:26:35.318 UTC [220] db=cb_11_464f app=cb-observer vxid=30/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.318 UTC [220] db=cb_11_464f app=cb-observer vxid=30/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r2-tx'
+2026-10-25 05:26:35.318 UTC [220] db=cb_11_464f app=cb-observer vxid=30/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.318 UTC [220] db=cb_11_464f app=cb-observer vxid=30/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '2'
+2026-10-25 05:26:35.334 UTC [223] db=cb_12_6124 app=cb-setup vxid=33/7 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.390 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.404 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/34 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.405 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.407 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.407 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r3-tx', $2 = '0'
+2026-10-25 05:26:35.409 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.410 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.410 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.410 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.410 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.410 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/35 xid=938 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.412 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.412 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/7 xid=0 DETAIL:  Parameters: $1 = '226'
+2026-10-25 05:26:35.413 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.413 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/9 xid=0 DETAIL:  Parameters: $1 = '938'
+2026-10-25 05:26:35.414 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.414 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r3-tx'
+2026-10-25 05:26:35.415 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.415 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '3'
+2026-10-25 05:26:35.416 UTC [226] db=cb_12_6124 app=cb-laravel.explicit-caught-error-r3-subject vxid=35/0 xid=938 LOG:  statement: COMMIT
+2026-10-25 05:26:35.417 UTC [225] db=cb_12_6124 app=cb-sink vxid=36/8 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.417 UTC [225] db=cb_12_6124 app=cb-sink vxid=36/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '3', $3 = 'afterCommit'
+2026-10-25 05:26:35.418 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.418 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/15 xid=0 DETAIL:  Parameters: $1 = '226'
+2026-10-25 05:26:35.419 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.419 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/17 xid=0 DETAIL:  Parameters: $1 = '938'
+2026-10-25 05:26:35.420 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.420 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.explicit-caught-error-r3-tx'
+2026-10-25 05:26:35.420 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.420 UTC [224] db=cb_12_6124 app=cb-observer vxid=34/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.explicit-caught-error', $2 = '3'
+2026-10-25 05:26:35.437 UTC [227] db=cb_13_d39a app=cb-setup vxid=37/7 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.496 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.510 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.511 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.514 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.514 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r1-tx', $2 = '0'
+2026-10-25 05:26:35.516 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.516 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 LOG:  statement: SAVEPOINT trans2
+2026-10-25 05:26:35.517 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.517 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.517 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.517 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.517 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.518 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 LOG:  statement: ROLLBACK TO SAVEPOINT trans2
+2026-10-25 05:26:35.519 UTC [229] db=cb_13_d39a app=cb-sink vxid=40/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.519 UTC [229] db=cb_13_d39a app=cb-sink vxid=40/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '1', $3 = 'afterRollBack:inner'
+2026-10-25 05:26:35.521 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.521 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/7 xid=0 DETAIL:  Parameters: $1 = '230'
+2026-10-25 05:26:35.522 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.522 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/9 xid=0 DETAIL:  Parameters: $1 = '943'
+2026-10-25 05:26:35.523 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.523 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r1-tx'
+2026-10-25 05:26:35.523 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.523 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '1'
+2026-10-25 05:26:35.525 UTC [230] db=cb_13_d39a app=cb-laravel.savepoint-recovery-r1-subject vxid=39/23 xid=943 LOG:  statement: COMMIT
+2026-10-25 05:26:35.525 UTC [229] db=cb_13_d39a app=cb-sink vxid=40/8 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.525 UTC [229] db=cb_13_d39a app=cb-sink vxid=40/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '1', $3 = 'afterCommit'
+2026-10-25 05:26:35.527 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.527 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/15 xid=0 DETAIL:  Parameters: $1 = '230'
+2026-10-25 05:26:35.527 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.527 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/17 xid=0 DETAIL:  Parameters: $1 = '943'
+2026-10-25 05:26:35.528 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.528 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r1-tx'
+2026-10-25 05:26:35.528 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.528 UTC [228] db=cb_13_d39a app=cb-observer vxid=38/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '1'
+2026-10-25 05:26:35.546 UTC [231] db=cb_14_e400 app=cb-setup vxid=41/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.604 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.617 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/6 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.618 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.621 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.621 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r2-tx', $2 = '0'
+2026-10-25 05:26:35.622 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.623 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 LOG:  statement: SAVEPOINT trans2
+2026-10-25 05:26:35.624 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.624 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.624 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.624 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.624 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.625 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 LOG:  statement: ROLLBACK TO SAVEPOINT trans2
+2026-10-25 05:26:35.626 UTC [233] db=cb_14_e400 app=cb-sink vxid=43/22 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.626 UTC [233] db=cb_14_e400 app=cb-sink vxid=43/22 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '2', $3 = 'afterRollBack:inner'
+2026-10-25 05:26:35.627 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.627 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/7 xid=0 DETAIL:  Parameters: $1 = '234'
+2026-10-25 05:26:35.628 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.628 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/9 xid=0 DETAIL:  Parameters: $1 = '950'
+2026-10-25 05:26:35.629 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.629 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r2-tx'
+2026-10-25 05:26:35.630 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.630 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '2'
+2026-10-25 05:26:35.631 UTC [234] db=cb_14_e400 app=cb-laravel.savepoint-recovery-r2-subject vxid=44/7 xid=950 LOG:  statement: COMMIT
+2026-10-25 05:26:35.632 UTC [233] db=cb_14_e400 app=cb-sink vxid=43/24 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.632 UTC [233] db=cb_14_e400 app=cb-sink vxid=43/24 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '2', $3 = 'afterCommit'
+2026-10-25 05:26:35.633 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.633 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/15 xid=0 DETAIL:  Parameters: $1 = '234'
+2026-10-25 05:26:35.634 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.634 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/17 xid=0 DETAIL:  Parameters: $1 = '950'
+2026-10-25 05:26:35.634 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.634 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r2-tx'
+2026-10-25 05:26:35.635 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.635 UTC [232] db=cb_14_e400 app=cb-observer vxid=42/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '2'
+2026-10-25 05:26:35.652 UTC [235] db=cb_15_5918 app=cb-setup vxid=45/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.709 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.722 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/22 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid() as pid
+2026-10-25 05:26:35.722 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.725 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=0 LOG:  execute pdo_stmt_00000002: insert into "item" ("name", "qty") values ($1, $2)
+2026-10-25 05:26:35.725 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r3-tx', $2 = '0'
+2026-10-25 05:26:35.726 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 LOG:  execute pdo_stmt_00000003: select pg_current_xact_id()::text as xid
+2026-10-25 05:26:35.727 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 LOG:  statement: SAVEPOINT trans2
+2026-10-25 05:26:35.727 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 LOG:  execute pdo_stmt_00000004: insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.727 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 DETAIL:  Parameters: $1 = 'taken'
+2026-10-25 05:26:35.728 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:35.728 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:35.728 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 STATEMENT:  insert into "uniq" ("code") values ($1)
+2026-10-25 05:26:35.729 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 LOG:  statement: ROLLBACK TO SAVEPOINT trans2
+2026-10-25 05:26:35.729 UTC [237] db=cb_15_5918 app=cb-sink vxid=48/6 xid=0 LOG:  execute pdo_stmt_00000001: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.729 UTC [237] db=cb_15_5918 app=cb-sink vxid=48/6 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '3', $3 = 'afterRollBack:inner'
+2026-10-25 05:26:35.731 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.731 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/7 xid=0 DETAIL:  Parameters: $1 = '238'
+2026-10-25 05:26:35.732 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.732 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/9 xid=0 DETAIL:  Parameters: $1 = '957'
+2026-10-25 05:26:35.732 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.732 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/11 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r3-tx'
+2026-10-25 05:26:35.733 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.733 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/13 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '3'
+2026-10-25 05:26:35.734 UTC [238] db=cb_15_5918 app=cb-laravel.savepoint-recovery-r3-subject vxid=47/23 xid=957 LOG:  statement: COMMIT
+2026-10-25 05:26:35.735 UTC [237] db=cb_15_5918 app=cb-sink vxid=48/8 xid=0 LOG:  execute pdo_stmt_00000002: insert into callback_log (scenario, rep, event) values ($1, $2, $3)
+2026-10-25 05:26:35.735 UTC [237] db=cb_15_5918 app=cb-sink vxid=48/8 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '3', $3 = 'afterCommit'
+2026-10-25 05:26:35.736 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.736 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/15 xid=0 DETAIL:  Parameters: $1 = '238'
+2026-10-25 05:26:35.737 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.737 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/17 xid=0 DETAIL:  Parameters: $1 = '957'
+2026-10-25 05:26:35.738 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.738 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/19 xid=0 DETAIL:  Parameters: $1 = 'cb-laravel.savepoint-recovery-r3-tx'
+2026-10-25 05:26:35.738 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.738 UTC [236] db=cb_15_5918 app=cb-observer vxid=46/21 xid=0 DETAIL:  Parameters: $1 = 'laravel.savepoint-recovery', $2 = '3'
+2026-10-25 05:26:35.755 UTC [239] db=cb_16_add3 app=cb-setup vxid=49/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.821 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.829 UTC [242] db=cb_16_add3 app=cb-pdo.commit-r1-subject vxid=52/8 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:35.830 UTC [242] db=cb_16_add3 app=cb-pdo.commit-r1-subject vxid=52/9 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.831 UTC [242] db=cb_16_add3 app=cb-pdo.commit-r1-subject vxid=52/9 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.commit-r1-tx', 0)
+2026-10-25 05:26:35.832 UTC [242] db=cb_16_add3 app=cb-pdo.commit-r1-subject vxid=52/9 xid=964 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:35.834 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.834 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/7 xid=0 DETAIL:  Parameters: $1 = '242'
+2026-10-25 05:26:35.834 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.834 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/9 xid=0 DETAIL:  Parameters: $1 = '964'
+2026-10-25 05:26:35.835 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.835 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r1-tx'
+2026-10-25 05:26:35.836 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.836 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '1'
+2026-10-25 05:26:35.837 UTC [242] db=cb_16_add3 app=cb-pdo.commit-r1-subject vxid=52/9 xid=964 LOG:  statement: COMMIT
+2026-10-25 05:26:35.838 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.838 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/15 xid=0 DETAIL:  Parameters: $1 = '242'
+2026-10-25 05:26:35.839 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.839 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/17 xid=0 DETAIL:  Parameters: $1 = '964'
+2026-10-25 05:26:35.839 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.839 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r1-tx'
+2026-10-25 05:26:35.840 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.840 UTC [240] db=cb_16_add3 app=cb-observer vxid=50/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '1'
+2026-10-25 05:26:35.859 UTC [243] db=cb_17_9db1 app=cb-setup vxid=53/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:35.917 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:35.925 UTC [246] db=cb_17_9db1 app=cb-pdo.commit-r2-subject vxid=56/8 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:35.926 UTC [246] db=cb_17_9db1 app=cb-pdo.commit-r2-subject vxid=56/9 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:35.926 UTC [246] db=cb_17_9db1 app=cb-pdo.commit-r2-subject vxid=56/9 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.commit-r2-tx', 0)
+2026-10-25 05:26:35.927 UTC [246] db=cb_17_9db1 app=cb-pdo.commit-r2-subject vxid=56/9 xid=968 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:35.929 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.929 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/7 xid=0 DETAIL:  Parameters: $1 = '246'
+2026-10-25 05:26:35.930 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.930 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/9 xid=0 DETAIL:  Parameters: $1 = '968'
+2026-10-25 05:26:35.930 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:35.930 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r2-tx'
+2026-10-25 05:26:35.931 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.931 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '2'
+2026-10-25 05:26:35.933 UTC [246] db=cb_17_9db1 app=cb-pdo.commit-r2-subject vxid=56/9 xid=968 LOG:  statement: COMMIT
+2026-10-25 05:26:35.934 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:35.934 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/15 xid=0 DETAIL:  Parameters: $1 = '246'
+2026-10-25 05:26:35.934 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:35.934 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/17 xid=0 DETAIL:  Parameters: $1 = '968'
+2026-10-25 05:26:35.935 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:35.935 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r2-tx'
+2026-10-25 05:26:35.935 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:35.935 UTC [244] db=cb_17_9db1 app=cb-observer vxid=54/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '2'
+2026-10-25 05:26:35.953 UTC [247] db=cb_18_3ca0 app=cb-setup vxid=57/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:36.011 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:36.020 UTC [250] db=cb_18_3ca0 app=cb-pdo.commit-r3-subject vxid=60/8 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:36.021 UTC [250] db=cb_18_3ca0 app=cb-pdo.commit-r3-subject vxid=60/9 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:36.022 UTC [250] db=cb_18_3ca0 app=cb-pdo.commit-r3-subject vxid=60/9 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.commit-r3-tx', 0)
+2026-10-25 05:26:36.023 UTC [250] db=cb_18_3ca0 app=cb-pdo.commit-r3-subject vxid=60/9 xid=972 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:36.025 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.025 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/7 xid=0 DETAIL:  Parameters: $1 = '250'
+2026-10-25 05:26:36.025 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.025 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/9 xid=0 DETAIL:  Parameters: $1 = '972'
+2026-10-25 05:26:36.026 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:36.026 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r3-tx'
+2026-10-25 05:26:36.027 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.027 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '3'
+2026-10-25 05:26:36.028 UTC [250] db=cb_18_3ca0 app=cb-pdo.commit-r3-subject vxid=60/9 xid=972 LOG:  statement: COMMIT
+2026-10-25 05:26:36.029 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.029 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/15 xid=0 DETAIL:  Parameters: $1 = '250'
+2026-10-25 05:26:36.030 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.030 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/17 xid=0 DETAIL:  Parameters: $1 = '972'
+2026-10-25 05:26:36.031 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:36.031 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.commit-r3-tx'
+2026-10-25 05:26:36.031 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.031 UTC [248] db=cb_18_3ca0 app=cb-observer vxid=58/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.commit', $2 = '3'
+2026-10-25 05:26:36.059 UTC [251] db=cb_19_6149 app=cb-setup vxid=61/6 xid=0 LOG:  statement: 
+2026-10-25 05:26:36.137 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:36.146 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/4 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:36.146 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:36.147 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.caught-error-r1-tx', 0)
+2026-10-25 05:26:36.148 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=976 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:36.149 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=976 LOG:  statement: insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.149 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=976 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:36.149 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=976 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:36.149 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/5 xid=976 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.151 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.151 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/7 xid=0 DETAIL:  Parameters: $1 = '254'
+2026-10-25 05:26:36.151 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.151 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/9 xid=0 DETAIL:  Parameters: $1 = '976'
+2026-10-25 05:26:36.152 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:36.152 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r1-tx'
+2026-10-25 05:26:36.153 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.153 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '1'
+2026-10-25 05:26:36.154 UTC [254] db=cb_19_6149 app=cb-pdo.caught-error-r1-subject vxid=64/0 xid=976 LOG:  statement: COMMIT
+2026-10-25 05:26:36.155 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.155 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/15 xid=0 DETAIL:  Parameters: $1 = '254'
+2026-10-25 05:26:36.156 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.156 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/17 xid=0 DETAIL:  Parameters: $1 = '976'
+2026-10-25 05:26:36.156 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:36.156 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r1-tx'
+2026-10-25 05:26:36.157 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.157 UTC [252] db=cb_19_6149 app=cb-observer vxid=62/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '1'
+2026-10-25 05:26:36.175 UTC [255] db=cb_20_0703 app=cb-setup vxid=63/21 xid=0 LOG:  statement: 
+2026-10-25 05:26:36.230 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:36.238 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/4 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:36.239 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:36.240 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.caught-error-r2-tx', 0)
+2026-10-25 05:26:36.241 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=980 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:36.241 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=980 LOG:  statement: insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.241 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=980 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:36.241 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=980 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:36.241 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/5 xid=980 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.243 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.243 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/7 xid=0 DETAIL:  Parameters: $1 = '258'
+2026-10-25 05:26:36.243 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.243 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/9 xid=0 DETAIL:  Parameters: $1 = '980'
+2026-10-25 05:26:36.244 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:36.244 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r2-tx'
+2026-10-25 05:26:36.245 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.245 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '2'
+2026-10-25 05:26:36.246 UTC [258] db=cb_20_0703 app=cb-pdo.caught-error-r2-subject vxid=68/0 xid=980 LOG:  statement: COMMIT
+2026-10-25 05:26:36.247 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.247 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/15 xid=0 DETAIL:  Parameters: $1 = '258'
+2026-10-25 05:26:36.248 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.248 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/17 xid=0 DETAIL:  Parameters: $1 = '980'
+2026-10-25 05:26:36.248 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:36.248 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r2-tx'
+2026-10-25 05:26:36.249 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.249 UTC [256] db=cb_20_0703 app=cb-observer vxid=66/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '2'
+2026-10-25 05:26:36.266 UTC [259] db=cb_21_525f app=cb-setup vxid=67/21 xid=0 LOG:  statement: 
+2026-10-25 05:26:36.331 UTC [260] db=cb_21_525f app=cb-observer vxid=70/5 xid=0 LOG:  execute pdo_stmt_00000001: show cluster_name
+2026-10-25 05:26:36.339 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/4 xid=0 LOG:  execute pdo_stmt_00000001: select pg_backend_pid()
+2026-10-25 05:26:36.340 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=0 LOG:  statement: BEGIN
+2026-10-25 05:26:36.340 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=0 LOG:  statement: insert into item (name, qty) values ('cb-pdo.caught-error-r3-tx', 0)
+2026-10-25 05:26:36.342 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=984 LOG:  execute pdo_stmt_00000002: select pg_current_xact_id()::text
+2026-10-25 05:26:36.342 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=984 LOG:  statement: insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.342 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=984 ERROR:  duplicate key value violates unique constraint "uniq_code_key"
+2026-10-25 05:26:36.342 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=984 DETAIL:  Key (code)=(taken) already exists.
+2026-10-25 05:26:36.342 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/5 xid=984 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-25 05:26:36.344 UTC [260] db=cb_21_525f app=cb-observer vxid=70/7 xid=0 LOG:  execute pdo_stmt_00000002: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.344 UTC [260] db=cb_21_525f app=cb-observer vxid=70/7 xid=0 DETAIL:  Parameters: $1 = '262'
+2026-10-25 05:26:36.345 UTC [260] db=cb_21_525f app=cb-observer vxid=70/9 xid=0 LOG:  execute pdo_stmt_00000003: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.345 UTC [260] db=cb_21_525f app=cb-observer vxid=70/9 xid=0 DETAIL:  Parameters: $1 = '984'
+2026-10-25 05:26:36.345 UTC [260] db=cb_21_525f app=cb-observer vxid=70/11 xid=0 LOG:  execute pdo_stmt_00000004: select count(*) from item where name = $1
+2026-10-25 05:26:36.345 UTC [260] db=cb_21_525f app=cb-observer vxid=70/11 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r3-tx'
+2026-10-25 05:26:36.346 UTC [260] db=cb_21_525f app=cb-observer vxid=70/13 xid=0 LOG:  execute pdo_stmt_00000005: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.346 UTC [260] db=cb_21_525f app=cb-observer vxid=70/13 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '3'
+2026-10-25 05:26:36.348 UTC [262] db=cb_21_525f app=cb-pdo.caught-error-r3-subject vxid=72/0 xid=984 LOG:  statement: COMMIT
+2026-10-25 05:26:36.349 UTC [260] db=cb_21_525f app=cb-observer vxid=70/15 xid=0 LOG:  execute pdo_stmt_00000006: select state, backend_xid::text as backend_xid, query from pg_stat_activity where pid = $1
+2026-10-25 05:26:36.349 UTC [260] db=cb_21_525f app=cb-observer vxid=70/15 xid=0 DETAIL:  Parameters: $1 = '262'
+2026-10-25 05:26:36.349 UTC [260] db=cb_21_525f app=cb-observer vxid=70/17 xid=0 LOG:  execute pdo_stmt_00000007: select pg_xact_status($1::xid8)
+2026-10-25 05:26:36.349 UTC [260] db=cb_21_525f app=cb-observer vxid=70/17 xid=0 DETAIL:  Parameters: $1 = '984'
+2026-10-25 05:26:36.350 UTC [260] db=cb_21_525f app=cb-observer vxid=70/19 xid=0 LOG:  execute pdo_stmt_00000008: select count(*) from item where name = $1
+2026-10-25 05:26:36.350 UTC [260] db=cb_21_525f app=cb-observer vxid=70/19 xid=0 DETAIL:  Parameters: $1 = 'cb-pdo.caught-error-r3-tx'
+2026-10-25 05:26:36.350 UTC [260] db=cb_21_525f app=cb-observer vxid=70/21 xid=0 LOG:  execute pdo_stmt_00000009: select event from callback_log where scenario = $1 and rep = $2 order by id
+2026-10-25 05:26:36.350 UTC [260] db=cb_21_525f app=cb-observer vxid=70/21 xid=0 DETAIL:  Parameters: $1 = 'pdo.caught-error', $2 = '3'
