@@ -1,6 +1,6 @@
 # PY-8 review package: assessment (items 5-8)
 
-Run and written on 2026-10-25, 05:00–05:30 UTC. Written by: Claude Opus 5.5 (max).
+Runs on 2026-10-25, 05:04–05:08 UTC; written after them, and amended at 06:04 UTC (8.9). Written by: Claude Opus 5.5 (max).
 
 This file holds the runtime checks and the analysis. The code they refer to is quoted verbatim in [`materials.md`](materials.md). Read that first if you want to form your own view before reading this one.
 
@@ -150,7 +150,7 @@ Not run. **Expected behavior.**
 **8.8 Cancellation.** The `except` clause names an `Exception` subclass, so `asyncio.CancelledError` (a `BaseException`) passes through as before. Src. **No issue found.**
 
 **8.9 The changelog wording.** The entry says the change makes "`get_or_create()` handle it like an error from the `INSERT`". `update_or_create()` changes too (item 5: its race recovery now completes). **Minor change recommended:** name both.
-- **Applied** on 2026-10-25, about 05:45 UTC, at the user's request, after this assessment was written. The entry now ends "so ``get_or_create()`` and ``update_or_create()`` handle it like an error from the ``INSERT``. (#XXXX)".
+- **Applied** on 2026-10-25, 06:03 UTC, at the user's request, after this assessment was written. The entry now ends "so ``get_or_create()`` and ``update_or_create()`` handle it like an error from the ``INSERT``. (#XXXX)".
 - `../branch/fix-v2.patch` (SHA-256 `8f2244c160004a266908ebb260f8ee080c61cf895402636befb843f6b3bdcfd8`) is the current diff. It differs from `../branch/fix.patch`, which every run used, only in that line; the source part is byte-identical to `../branch/src.patch`.
 - Docutils parses the changelog with the same two errors as on `develop`: the Sphinx roles `:meth:` and `:ref:`, far from this entry.
 

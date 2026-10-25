@@ -324,7 +324,7 @@ Run on 2026-10-25, 04:21–04:31 UTC. The user chose approach A that morning (UT
     - `test_commit_raising_integrity_error`: `IntFields.create(intnum=999)` inside `in_transaction()` raises `IntegrityError`, and no row remains.
     - `test_get_or_create_commit_raising_integrity_error`: `IntFields.get_or_create(intnum=999)` raises `IntegrityError`.
   - **`CHANGELOG.rst`:** one entry under 1.1 → Unreleased → Fixed. It ends with `(#XXXX)`, to be replaced by the PR number after the PR is opened.
-- **Reworded after the review package (about 05:45 UTC), at the user's request.** The changelog entry now names `update_or_create()` alongside `get_or_create()`.
+- **Reworded after the review package (06:03 UTC), at the user's request.** The changelog entry now names `update_or_create()` alongside `get_or_create()`.
   - `branch/fix-v2.patch` (SHA-256 `8f2244c160004a266908ebb260f8ee080c61cf895402636befb843f6b3bdcfd8`) is the current diff. It differs from `branch/fix.patch` only in that line, and its `tortoise/` part is byte-identical to `branch/src.patch`.
   - All runs in this section used `fix.patch`. Nothing was rerun for a changelog-only change.
 

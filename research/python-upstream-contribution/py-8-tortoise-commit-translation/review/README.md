@@ -1,6 +1,6 @@
 # PY-8 review package
 
-Prepared on 2026-10-25, 04:45–05:35 UTC. Written by: Claude Opus 5.5 (max).
+Prepared on 2026-10-25, between about 04:50 and 06:05 UTC. Written by: Claude Opus 5.5 (max).
 
 This package is for an independent correctness review of a small Tortoise ORM patch before it is proposed upstream. Nothing in it has been committed, pushed or posted.
 
