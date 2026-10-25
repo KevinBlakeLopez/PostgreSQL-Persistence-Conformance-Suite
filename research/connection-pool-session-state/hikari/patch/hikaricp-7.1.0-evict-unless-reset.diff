@@ -1,0 +1,147 @@
+diff --git a/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java b/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
+index dbf3f33..59ece89 100644
+--- a/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
++++ b/src/main/java/com/zaxxer/hikari/pool/ProxyConnection.java
+@@ -245,6 +245,7 @@ public abstract class ProxyConnection implements Connection
+       if (delegate != ClosedConnection.CLOSED_CONNECTION) {
+          leakTask.cancel();
+ 
++         var isStateReset = false;
+          try {
+             if (isCommitStateDirty && !isAutoCommit) {
+                delegate.rollback();
+@@ -256,6 +257,7 @@ public abstract class ProxyConnection implements Connection
+             }
+ 
+             delegate.clearWarnings();
++            isStateReset = true;
+          }
+          catch (SQLException e) {
+             // when connections are aborted, exceptions are often thrown that should not reach the application
+@@ -264,6 +266,11 @@ public abstract class ProxyConnection implements Connection
+             }
+          }
+          finally {
++            if (!isStateReset) {
++               // The rollback or the state reset did not complete, so the connection's state is unknown: close it
++               // instead of returning it to the pool.
++               poolEntry.markEvicted();
++            }
+             delegate = ClosedConnection.CLOSED_CONNECTION;
+             poolEntry.recycle();
+          }
+diff --git a/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java b/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
+index b2da043..7cf2f3f 100644
+--- a/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
++++ b/src/test/java/com/zaxxer/hikari/pool/ConnectionStateTest.java
+@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
+ import static org.junit.Assert.assertSame;
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertNotSame;
++import static org.junit.Assert.fail;
+ 
+ import java.sql.Connection;
+ import java.sql.ResultSet;
+@@ -32,6 +34,8 @@ import org.junit.Test;
+ 
+ import com.zaxxer.hikari.HikariConfig;
+ import com.zaxxer.hikari.HikariDataSource;
++import com.zaxxer.hikari.mocks.StubConnection;
++import com.zaxxer.hikari.mocks.StubDataSource;
+ import com.zaxxer.hikari.util.UtilityElf;
+ 
+ public class ConnectionStateTest
+@@ -170,4 +174,92 @@ public class ConnectionStateTest
+          }
+       }
+    }
++
++   @Test
++   public void testConnectionIsNotReusedWhenStateResetFails() throws SQLException
++   {
++      try (HikariDataSource ds = newHikariDataSource()) {
++         ds.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
++         ds.setMinimumIdle(1);
++         ds.setMaximumPoolSize(1);
++         ds.setConnectionTestQuery("VALUES 1");
++         ds.setDataSourceClassName("com.zaxxer.hikari.mocks.StubDataSource");
++
++         StubConnection first;
++         try (Connection connection = ds.getConnection()) {
++            first = connection.unwrap(StubConnection.class);
++            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
++
++            // The reset of the isolation level now fails without a disconnection SQLState, as pgjdbc's
++            // setTransactionIsolation() does (SQLSTATE 25001) when a transaction is open.
++            first.throwException = true;
++            try {
++               connection.close();
++               fail("close() should report the failed reset");
++            }
++            catch (SQLException e) {
++               // pass
++            }
++            first.throwException = false;
++         }
++
++         try (Connection connection = ds.getConnection()) {
++            assertNotSame("a connection whose state reset failed was handed out again", first, connection.unwrap(StubConnection.class));
++            assertEquals(Connection.TRANSACTION_READ_COMMITTED, connection.getTransactionIsolation());
++         }
++      }
++   }
++
++   @Test
++   public void testConnectionIsNotReusedWhenStateResetThrowsUncheckedException() throws SQLException
++   {
++      final class ResetFailingConnection extends StubConnection
++      {
++         volatile boolean failIsolationReset;
++
++         @Override
++         public void setTransactionIsolation(int level) throws SQLException
++         {
++            if (failIsolationReset) {
++               throw new IllegalStateException("isolation reset failed");
++            }
++            super.setTransactionIsolation(level);
++         }
++      }
++
++      HikariConfig config = newHikariConfig();
++      config.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
++      config.setMinimumIdle(1);
++      config.setMaximumPoolSize(1);
++      config.setConnectionTestQuery("VALUES 1");
++      config.setDataSource(new StubDataSource() {
++         @Override
++         public Connection getConnection()
++         {
++            return new ResetFailingConnection();
++         }
++      });
++
++      try (HikariDataSource ds = new HikariDataSource(config)) {
++         ResetFailingConnection first;
++         try (Connection connection = ds.getConnection()) {
++            first = connection.unwrap(ResetFailingConnection.class);
++            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
++            first.failIsolationReset = true;
++            try {
++               connection.close();
++               fail("close() should report the failed reset");
++            }
++            catch (IllegalStateException e) {
++               // pass
++            }
++            first.failIsolationReset = false;
++         }
++
++         try (Connection connection = ds.getConnection()) {
++            assertNotSame("a connection whose state reset failed was handed out again", first, connection.unwrap(ResetFailingConnection.class));
++            assertEquals(Connection.TRANSACTION_READ_COMMITTED, connection.getTransactionIsolation());
++         }
++      }
++   }
+ }

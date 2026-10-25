@@ -12,6 +12,7 @@ import sys
 
 H = "HikariCP 7.1.0, pgjdbc 42.7.14"
 HP = "HikariCP 7.1.0 + one-line fix, pgjdbc 42.7.14"
+HF = "HikariCP 7.1.0 + completion-flag fix, pgjdbc 42.7.14"
 A = "asyncpg 0.32.0 `Pool`"
 SA_A = "SQLAlchemy 2.1.6 `AsyncAdaptedQueuePool`, asyncpg 0.32.0"
 SA_S = "SQLAlchemy 2.1.6 `QueuePool`, psycopg 3.3.6"
@@ -92,11 +93,30 @@ ROWS = [
      "", "Control: output identical to unpatched", "hikari-patched/reset-fails-configured-none"),
     ("HikariCP", HP, "As `readonly-report-poison`", "Patched", "no (closed)", "Failed; connection closed",
      "Cleared for B, C and D; inserts succeed", "", "Fix validated", "hikari-patched/readonly-report-poison"),
+    ("HikariCP", HF, "As `reset-fails`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails"),
+    ("HikariCP", HF, "As `reset-fails-control`", "Completion-flag fix", 'yes', 'Completed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-control"),
+    ("HikariCP", HF, "As `reset-fails-readonly`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-readonly"),
+    ("HikariCP", HF, "As `reset-fails-configured-getschema`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-configured-getschema"),
+    ("HikariCP", HF, "As `reset-fails-configured-setschema`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', "Cleared (B joins the new connection's setup transaction, #1369)", "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-configured-setschema"),
+    ("HikariCP", HF, "As `reset-fails-configured-savepoint`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-configured-savepoint"),
+    ("HikariCP", HF, "As `reset-fails-configured-none`", "Completion-flag fix", 'yes', 'Completed', 'Cleared', "", "Output identical to the one-line fix", "hikari-patched-flag/reset-fails-configured-none"),
+    ("HikariCP", HF, "As `readonly-report-poison`", "Completion-flag fix", 'no (closed)', 'Failed; connection closed', 'Cleared for B, C and D; inserts succeed', "", "Output identical to the one-line fix", "hikari-patched-flag/readonly-report-poison"),
     ("HikariCP", "HikariCP 4.0.3, 5.1.0, 6.3.3, 7.0.2, 7.1.0; pgjdbc 42.7.14", "Isolation (configured) + `getSchema()`",
      "Minimal single-file reproduction, per version", "yes", "Failed", "Retained: SERIALIZABLE, stale snapshot",
      "Configured `transactionIsolation`", "CONFIRMED DEFECT (F-H2), all five versions",
      ["hikari-versions/minimal-4.0.3", "hikari-versions/minimal-5.1.0", "hikari-versions/minimal-6.3.3",
       "hikari-versions/minimal-7.0.2", "hikari-versions/minimal-7.1.0"]),
+    ("HikariCP", "HikariCP 4.0.3, 5.1.0, 6.3.3, 7.0.2, 7.1.0; pgjdbc 42.7.14", "Read-only report, `getSchema()` after `commit()`",
+     "Minimal single-file reproduction, HikariCP defaults, per version", "yes (B, C, D)", "Failed",
+     "Retained for B, C and D: autocommit off, read-only; inserts fail 25006, 25P02, 25P02; 0 rows",
+     "`autoCommit` and `readOnly` defaults", "CONFIRMED DEFECT (F-H2), all five versions",
+     ["hikari-versions/minimal-readonly-4.0.3", "hikari-versions/minimal-readonly-5.1.0", "hikari-versions/minimal-readonly-6.3.3",
+      "hikari-versions/minimal-readonly-7.0.2", "hikari-versions/minimal-readonly-7.1.0"]),
+    ("HikariCP", HP, "As the row above", "One-line fix", "no (closed)", "Failed; connection closed",
+     "Cleared for B, C and D; 3 rows", "", "Fix validated", "hikari-versions/minimal-readonly-7.1.0-fixed"),
+    ("HikariCP", HF, "As the row above", "Completion-flag fix", "no (closed)", "Failed; connection closed",
+     "Cleared for B, C and D; 3 rows; output identical to the one-line fix", "", "Fix validated",
+     "hikari-versions/minimal-readonly-7.1.0-fixed-flag"),
     ("pgjdbc", "pgjdbc 42.7.14, no pool", "Transaction state", "`getSchema()` with autocommit off", "n/a", "n/a",
      "`getSchema()` leaves the session `idle in transaction`; `setTransactionIsolation()` then fails 25001",
      "Not documented either way; #3005 covers `setSchema()` only", "CONFIRMED BEHAVIOR (contributing trigger)", "hikari-minimal/pgjdbc-getschema"),

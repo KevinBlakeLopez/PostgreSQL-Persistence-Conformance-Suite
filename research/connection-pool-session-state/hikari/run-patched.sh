@@ -5,13 +5,16 @@
 #
 # Usage: hikari/run-patched.sh <instance-file> <scenario>
 # Build first: (cd hikari && mvn -q -B package && patch/make-overlay.sh)
+# OVERLAY=<jar> selects another overlay built by patch/make-overlay.sh <diff> <jar>, for example the
+# completion-flag variant in patch/hikaricp-7.1.0-evict-unless-reset.diff.
 set -eu
 DIR=$(cd "$(dirname "$0")" && pwd)
 JAVA_HOME="${JAVA_HOME:-/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home}"
+OVERLAY="${OVERLAY:-$DIR/target/hikari-7.1.0-evict-on-failed-reset.jar}"
 exec "$JAVA_HOME/bin/java" \
   -Xlog:class+load=info:stderr \
   -Dorg.slf4j.simpleLogger.logFile=System.err \
   -Dorg.slf4j.simpleLogger.defaultLogLevel=warn \
   -Dorg.slf4j.simpleLogger.log.com.zaxxer.hikari.pool=debug \
-  -cp "$DIR/target/hikari-7.1.0-evict-on-failed-reset.jar:$DIR/target/ssc-hikari-probe-1.0.jar:$DIR/target/lib/*" \
+  -cp "$OVERLAY:$DIR/target/ssc-hikari-probe-1.0.jar:$DIR/target/lib/*" \
   ssc.HikariProbe "$1" "$2"

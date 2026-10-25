@@ -1,0 +1,100 @@
+== hikari-ro-probe: 48 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 30 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*) from hikari_ro_probe | COMMIT
+  T4: BEGIN READ ONLY | select current_schema() | <empty query> | insert into hikari_ro_probe values (1) | ERROR 25006 | <empty query> | ERROR 25P02 | <empty query> | ERROR 25P02
+ sequence 2 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*) from hikari_ro_probe | COMMIT
+  T4: BEGIN READ ONLY | select current_schema()
+ sequence 3 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: insert into hikari_ro_probe values (1)
+  T3: <empty query>
+  T4: insert into hikari_ro_probe values (1)
+  T5: <empty query>
+  T6: insert into hikari_ro_probe values (1)
+== ssc-hikari-reset-fails: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: BEGIN | select current_schema()
+ sequence 2 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | show transaction_isolation | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T4: BEGIN | show transaction_isolation | COMMIT
+== ssc-hikari-reset-fails-control: 3 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T5: <empty query>
+  T6: SHOW TRANSACTION ISOLATION LEVEL
+  T7: BEGIN | show transaction_isolation | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T8: BEGIN | show transaction_isolation | COMMIT
+== ssc-hikari-reset-fails-readonly: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select current_schema()
+ sequence 2 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: insert into item(label) values ('B-unqualified')
+== ssc-hikari-reset-fails-configured-getschema: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | select current_schema()
+ sequence 2 (seen on 3 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-setschema: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SET SESSION search_path TO 'tenant_a' | select current_schema()
+ sequence 2 (seen on 3 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-savepoint: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SAVEPOINT JDBC_SAVEPOINT_0
+ sequence 2 (seen on 3 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-none: 3 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T6: <empty query>
+  T7: BEGIN | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T8: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-readonly-report-poison: 6 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*)::text from public.item | COMMIT
+  T4: BEGIN READ ONLY | select current_schema()
+ sequence 2 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: insert into item(label) values ('B-unqualified')
+  T3: <empty query>
+  T4: insert into item(label) values ('C-unqualified')
+  T5: <empty query>
+  T6: insert into item(label) values ('D-unqualified')
