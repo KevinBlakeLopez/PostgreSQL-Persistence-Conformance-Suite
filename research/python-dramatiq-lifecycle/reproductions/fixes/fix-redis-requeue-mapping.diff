@@ -1,0 +1,16 @@
+diff --git a/dramatiq/brokers/redis.py b/dramatiq/brokers/redis.py
+index c04ca08..14bfa91 100644
+--- a/dramatiq/brokers/redis.py
++++ b/dramatiq/brokers/redis.py
+@@ -329,7 +329,10 @@ class _RedisConsumer(Consumer):
+             return
+ 
+         self.logger.debug("Re-enqueueing %r on queue %r.", message_ids, self.queue_name)
+-        self.broker.do_requeue(self.queue_name, *message_ids)
++        try:
++            self.broker.do_requeue(self.queue_name, *message_ids)
++        except (redis.ConnectionError, redis.TimeoutError) as e:
++            raise ConnectionClosed(e) from None
+ 
+     def __next__(self):
+         try:

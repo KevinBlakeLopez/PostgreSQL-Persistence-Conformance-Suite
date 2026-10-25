@@ -1,0 +1,113 @@
+[2026-10-24 21:36:31,970] [PID 29248] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 21:36:31,923] [PID 29250] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 21:36:31,954] [PID 29250] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 21:36:31,954] [PID 29250] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 21:36:31,954] [PID 29250] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 21:36:31,956] [PID 29250] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 21:36:31,957] [PID 29250] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 21:36:31,957] [PID 29250] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 21:36:31,957] [PID 29250] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 21:36:31,957] [PID 29250] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 21:36:31,958] [PID 29250] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:36:31,963] [PID 29250] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:36:31,969] [PID 29250] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 21:36:31,980] [PID 29250] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '5106c0c3-4c1c-4d0b-b5c0-cc09017dcdaf' onto work queue.
+[2026-10-24 21:36:31,980] [PID 29250] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('f1-a1-nackfail-kill', {'0': 'barrier', 'default': 'ok'}) with id '5106c0c3-4c1c-4d0b-b5c0-cc09017dcdaf'.
+[2026-10-24 21:36:31,980] [PID 29250] [Thread-4] [app.job] [DEBUG] Received args=('f1-a1-nackfail-kill', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 21:36:32,107] [PID 29250] [Thread-4] [app.job] [DEBUG] Completed after 127.37ms.
+[2026-10-24 21:36:32,107] [PID 29250] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('f1-a1-nackfail-kill', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 187, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job f1-a1-nackfail-kill attempt 0: simulated downstream failure
+[2026-10-24 21:36:32,108] [PID 29250] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '5106c0c3-4c1c-4d0b-b5c0-cc09017dcdaf' on queue 'default.DQ'.
+[2026-10-24 21:36:35,276] [PID 29250] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+[2026-10-24 21:36:35,276] [PID 29250] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:36:36,090] [PID 29250] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+[2026-10-24 21:36:36,091] [PID 29250] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:36:36,958] [PID 29250] [Thread-4] [dramatiq.middleware.retries.Retries] [ERROR] Failed to enqueue a retry for message '5106c0c3-4c1c-4d0b-b5c0-cc09017dcdaf'. Marking it as failed.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 187, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job f1-a1-nackfail-kill attempt 0: simulated downstream failure
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1055, in connect_check_health
+    sock = self._connect()
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1617, in _connect
+    raise err
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1601, in _connect
+    sock.connect(socket_address)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/ppcs_netguard.py", line 30, in connect
+    return _connect(self, address)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/middleware/retries.py", line 148, in after_process_message
+    broker.enqueue(message, delay=delay)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 184, in enqueue
+    self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/client.py", line 873, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ~~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/utils.py", line 258, in wrapper
+    return func(*args, **kwargs)
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 3273, in get_connection
+    connection.connect()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1028, in connect
+    self.retry.call_with_retry(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        lambda: self.connect_check_health(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        lambda error: self.disconnect(error),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1029, in <lambda>
+    lambda: self.connect_check_health(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        check_health=True, retry_socket_connect=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a1/lib/python3.13/site-packages/redis/connection.py", line 1077, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+[2026-10-24 21:36:36,965] [PID 29250] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Rejecting message '5106c0c3-4c1c-4d0b-b5c0-cc09017dcdaf'.

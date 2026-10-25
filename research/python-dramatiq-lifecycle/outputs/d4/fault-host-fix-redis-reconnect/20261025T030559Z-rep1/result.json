@@ -1,0 +1,99 @@
+{
+  "actor_redis_write_failed": [],
+  "argv": [
+    "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/experiments.py",
+    "d4",
+    "--variant",
+    "fault",
+    "--reps",
+    "1",
+    "--tag",
+    "fix-redis-reconnect",
+    "--ports",
+    "56397,56398"
+  ],
+  "attempts_started": [
+    [
+      0,
+      68122
+    ]
+  ],
+  "completed": false,
+  "dead_letter_keys": {},
+  "dir": "outputs/d4/fault-host-fix-redis-reconnect/20261025T030559Z-rep1",
+  "environment": {
+    "dramatiq": "2.2.1",
+    "dramatiq_build": "master 08d711a + fix-redis-reconnect",
+    "dramatiq_path": "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.11",
+    "redis_config": {
+      "appendfsync": "always",
+      "appendonly": "yes"
+    },
+    "redis_py": "8.1.0",
+    "redis_server": "8.6.2",
+    "sha256": {
+      "broker.py": "8397b2703fc83b36a64c2c73f81f9bf3b1d243fcf0ccbb67d859d146d539c6b3",
+      "brokers/redis.py": "7325ea6bb8219477f3f35a8252614bdd3f0ec233a3234f8d26134d7c8ad2b441",
+      "brokers/redis/dispatch.lua": "ba4d872e4fb204ebc3f73ca4719265a9946d70e847856c125314f01a8c90540c",
+      "cli.py": "176704d8646ef2e9a150c148d951256c6eee59d800b4d6b4fc602a5a3b1e8991",
+      "middleware/retries.py": "633c6739e95f3930b835258ab62d9d24be17b3416670d9e060fcf1c17513993d",
+      "worker.py": "921e4128e508a89d0dbfbde7b4ba85ed9a6b780e95b830a6f2cebde49a3f774b"
+    }
+  },
+  "experiment": "d4",
+  "finished_at": 1792897610.214256,
+  "hook_after_process_message": {
+    "exception": "RuntimeError",
+    "failed": false,
+    "retries": 1
+  },
+  "hooks_finished_while_redis_down": true,
+  "log_markers_worker1": {
+    "Acknowledging message": 1,
+    "Consumer encountered a connection error": 2,
+    "Consumer encountered an unexpected error": 0,
+    "Exception in thread": 0,
+    "Failed to post_process_message": 0,
+    "Failed to requeue messages": 0,
+    "Re-enqueueing": 0,
+    "Rejecting message": 0,
+    "Restarting consumer": 2,
+    "Retries exceeded": 0,
+    "Retrying message": 1,
+    "Unexpected failure in after_process_message": 1,
+    "Unhandled error during post_process_message": 0,
+    "Worker has been shut down": 1
+  },
+  "message_id": "85dc748b-623d-4314-8529-ea015dae2c44",
+  "message_lost": true,
+  "original_settled_by": "hook_after_ack",
+  "places_after_final_redis_restart": [],
+  "places_after_settle": [],
+  "places_after_wait": [],
+  "places_final": [],
+  "places_while_executing": [
+    {
+      "held_by": [
+        "dramatiq:__acks__.6df2867d-7396-4047-a6f3-6363c4679754.default"
+      ],
+      "payload_hash": "dramatiq:default.msgs",
+      "redis_message_id": "6753025a-cca0-49f1-b5a6-e3067276ae54",
+      "retries": 0
+    }
+  ],
+  "redelivered_to_replacement": false,
+  "rep": 1,
+  "retry_attempt_seen_while_worker1_alive": false,
+  "retry_enqueued_by_worker": false,
+  "variant": "fault-host-fix-redis-reconnect",
+  "worker1_broker_id": "6df2867d-7396-4047-a6f3-6363c4679754",
+  "worker1_exit": 0,
+  "worker2_exit": 0,
+  "worker_env": {
+    "PPCS_BROKER_FORM": "host",
+    "PPCS_MAX_RETRIES": "3"
+  }
+}

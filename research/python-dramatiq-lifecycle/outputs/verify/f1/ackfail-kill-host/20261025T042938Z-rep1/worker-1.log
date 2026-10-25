@@ -1,0 +1,31 @@
+[2026-10-24 21:29:38,737] [PID 24094] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 21:29:38,665] [PID 24096] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 21:29:38,712] [PID 24096] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 21:29:38,713] [PID 24096] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 21:29:38,713] [PID 24096] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 21:29:38,716] [PID 24096] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 21:29:38,716] [PID 24096] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 21:29:38,716] [PID 24096] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 21:29:38,716] [PID 24096] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 21:29:38,716] [PID 24096] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 21:29:38,718] [PID 24096] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:29:38,725] [PID 24096] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 21:29:38,728] [PID 24096] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:29:38,739] [PID 24096] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53' onto work queue.
+[2026-10-24 21:29:38,739] [PID 24096] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('f1-ackfail-kill', {'0': 'barrier', 'default': 'ok'}) with id '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53'.
+[2026-10-24 21:29:38,739] [PID 24096] [Thread-4] [app.job] [DEBUG] Received args=('f1-ackfail-kill', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 21:29:38,750] [PID 24096] [Thread-4] [app.job] [DEBUG] Completed after 10.42ms.
+[2026-10-24 21:29:38,750] [PID 24096] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('f1-ackfail-kill', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 187, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job f1-ackfail-kill attempt 0: simulated downstream failure
+[2026-10-24 21:29:38,751] [PID 24096] [Thread-4] [dramatiq.middleware.retries.Retries] [INFO] Retrying message '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53' in 1941 milliseconds.
+[2026-10-24 21:29:38,751] [PID 24096] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53' on queue 'default.DQ'.
+[2026-10-24 21:29:38,763] [PID 24096] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53' onto delay queue.
+[2026-10-24 21:29:38,897] [PID 24096] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '0ab36d40-c65c-4dc3-9b90-2a4adfe3ff53'.

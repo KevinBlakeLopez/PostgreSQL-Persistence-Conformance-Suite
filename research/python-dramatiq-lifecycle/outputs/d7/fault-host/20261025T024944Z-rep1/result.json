@@ -1,0 +1,116 @@
+{
+  "after_worker_shutdown_hook_ran": false,
+  "argv": [
+    "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/experiments.py",
+    "d7",
+    "--variant",
+    "fault",
+    "--reps",
+    "3",
+    "--ports",
+    "56395,56396"
+  ],
+  "dir": "outputs/d7/fault-host/20261025T024944Z-rep1",
+  "environment": {
+    "dramatiq": "2.2.1",
+    "dramatiq_build": "2.2.1 (PyPI)",
+    "dramatiq_path": "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.11",
+    "redis_config": {
+      "appendfsync": "always",
+      "appendonly": "yes"
+    },
+    "redis_py": "8.1.0",
+    "redis_server": "8.6.2",
+    "sha256": {
+      "broker.py": "bee86afdd06b238cf5c141b9b1beafff4b2ffee0221dfb65a5f0a974eec152c3",
+      "brokers/redis.py": "6d4ba97283bc0e15c747c1e97946bdb9dbd2819f7fde8ab468dcd543e805cf21",
+      "brokers/redis/dispatch.lua": "ba4d872e4fb204ebc3f73ca4719265a9946d70e847856c125314f01a8c90540c",
+      "cli.py": "176704d8646ef2e9a150c148d951256c6eee59d800b4d6b4fc602a5a3b1e8991",
+      "middleware/retries.py": "633c6739e95f3930b835258ab62d9d24be17b3416670d9e060fcf1c17513993d",
+      "worker.py": "26a720b65abec04666a3ab5f6b7ff01f02ddff2d7ae93bbe82267e99a0e57948"
+    }
+  },
+  "executed_by_replacement": [
+    "d7-1",
+    "d7-2"
+  ],
+  "experiment": "d7",
+  "finished_at": 1792896593.397196,
+  "held_after_exit": {
+    "dramatiq:__acks__.92ebf67c-2075-4aaa-b92b-efc49ab419e6.default": [
+      "f03084de-3fbf-4155-afc2-3984bcc01c52"
+    ]
+  },
+  "held_before_requeue": {
+    "dramatiq:__acks__.92ebf67c-2075-4aaa-b92b-efc49ab419e6.default": [
+      "f03084de-3fbf-4155-afc2-3984bcc01c52"
+    ]
+  },
+  "held_while_first_executes": {
+    "dramatiq:__acks__.92ebf67c-2075-4aaa-b92b-efc49ab419e6.default": [
+      "3dde9f34-73b0-4771-9701-6549119e8618",
+      "f03084de-3fbf-4155-afc2-3984bcc01c52"
+    ]
+  },
+  "log_markers_worker1": {
+    "Acknowledging message": 1,
+    "Consumer encountered a connection error": 0,
+    "Consumer encountered an unexpected error": 0,
+    "Exception in thread": 0,
+    "Failed to post_process_message": 0,
+    "Failed to requeue messages": 0,
+    "Re-enqueueing": 1,
+    "Rejecting message": 0,
+    "Restarting consumer": 0,
+    "Retries exceeded": 0,
+    "Retrying message": 0,
+    "Unexpected failure in after_process_message": 0,
+    "Unhandled error during post_process_message": 0,
+    "Worker has been shut down": 0
+  },
+  "message_ids": [
+    "638c155c-0f58-41b1-9d60-038286c70061",
+    "20e7e8df-31a1-4ed5-962d-0fcc61d93a70",
+    "6725288f-18a4-40d3-a03b-de426b3bf688"
+  ],
+  "places_final": {
+    "20e7e8df-31a1-4ed5-962d-0fcc61d93a70": [],
+    "638c155c-0f58-41b1-9d60-038286c70061": [],
+    "6725288f-18a4-40d3-a03b-de426b3bf688": []
+  },
+  "queue_after_exit": [
+    "b44e7bae-766f-472b-b99e-9c5581db39c9"
+  ],
+  "queue_before_requeue": [
+    "b44e7bae-766f-472b-b99e-9c5581db39c9"
+  ],
+  "recovery_seconds_after_replacement_boot": 0.0,
+  "rep": 1,
+  "variant": "fault-host",
+  "worker1_broker_id": "92ebf67c-2075-4aaa-b92b-efc49ab419e6",
+  "worker1_exit": 1,
+  "worker1_heartbeat_age_ms_after_exit": 4477,
+  "worker1_hung": false,
+  "worker1_log_tail": [
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/retry.py\", line 120, in call_with_retry",
+    "    return do()",
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py\", line 1029, in <lambda>",
+    "    lambda: self.connect_check_health(",
+    "            ~~~~~~~~~~~~~~~~~~~~~~~~~^",
+    "        check_health=True, retry_socket_connect=False",
+    "        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "    ),",
+    "    ^",
+    "  File \"$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py\", line 1077, in connect_check_health",
+    "    raise e",
+    "redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:56395. Connection refused."
+  ],
+  "worker2_exit": 0,
+  "worker_env": {
+    "PPCS_BARRIER_CONSUMER_SHUTDOWN": "1",
+    "PPCS_BROKER_FORM": "host"
+  }
+}

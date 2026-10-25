@@ -1,0 +1,38 @@
+[2026-10-24 20:09:56,266] [PID 71729] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 20:09:56,231] [PID 71738] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 20:09:56,261] [PID 71738] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 20:09:56,261] [PID 71738] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 20:09:56,261] [PID 71738] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 20:09:56,264] [PID 71738] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 20:09:56,264] [PID 71738] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 20:09:56,264] [PID 71738] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 20:09:56,264] [PID 71738] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 20:09:56,264] [PID 71738] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 20:09:56,265] [PID 71738] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 20:09:56,265] [PID 71738] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 20:09:56,266] [PID 71738] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 20:09:56,277] [PID 71738] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' onto work queue.
+[2026-10-24 20:09:56,277] [PID 71738] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('d4', {'0': 'barrier', 'default': 'ok'}) with id 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f'.
+[2026-10-24 20:09:56,277] [PID 71738] [Thread-4] [app.job] [DEBUG] Received args=('d4', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 20:09:56,285] [PID 71738] [Thread-4] [app.job] [DEBUG] Completed after 8.20ms.
+[2026-10-24 20:09:56,285] [PID 71738] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('d4', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a2/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/fix-d4-a2/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 153, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job d4 attempt 0: simulated downstream failure
+[2026-10-24 20:09:56,286] [PID 71738] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' on queue 'default.DQ'.
+[2026-10-24 20:09:56,290] [PID 71738] [Thread-4] [dramatiq.middleware.retries.Retries] [INFO] Retrying message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' in 1293 milliseconds.
+[2026-10-24 20:09:56,291] [PID 71738] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f'.
+[2026-10-24 20:09:56,302] [PID 71738] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' onto delay queue.
+[2026-10-24 20:09:58,151] [PID 71738] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' on queue 'default'.
+[2026-10-24 20:09:58,156] [PID 71738] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f'.
+[2026-10-24 20:09:58,780] [PID 71738] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f' onto work queue.
+[2026-10-24 20:09:58,781] [PID 71738] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('d4', {'0': 'barrier', 'default': 'ok'}) with id 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f'.
+[2026-10-24 20:09:58,781] [PID 71738] [Thread-4] [app.job] [DEBUG] Received args=('d4', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 20:09:58,786] [PID 71738] [Thread-4] [app.job] [DEBUG] Completed after 5.06ms.
+[2026-10-24 20:09:58,786] [PID 71738] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'bb23f63c-c24b-4f48-8d05-1a04d8749f2f'.

@@ -1,0 +1,60 @@
+[2026-10-24 21:34:17,976] [PID 27105] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 21:34:17,931] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 21:34:17,963] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 21:34:17,963] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 21:34:17,963] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 21:34:17,970] [PID 27115] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 21:34:17,970] [PID 27115] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 21:34:17,970] [PID 27115] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 21:34:17,970] [PID 27115] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 21:34:17,970] [PID 27115] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 21:34:17,971] [PID 27115] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:34:17,975] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 21:34:17,978] [PID 27115] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:34:17,994] [PID 27115] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '46edbb05-1361-4e7f-ad80-15d44e593d97' onto work queue.
+[2026-10-24 21:34:17,994] [PID 27115] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('f1-ackfail-recover', {'0': 'barrier', 'default': 'ok'}) with id '46edbb05-1361-4e7f-ad80-15d44e593d97'.
+[2026-10-24 21:34:17,995] [PID 27115] [Thread-4] [app.job] [DEBUG] Received args=('f1-ackfail-recover', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 21:34:18,001] [PID 27115] [Thread-4] [app.job] [DEBUG] Completed after 6.05ms.
+[2026-10-24 21:34:18,001] [PID 27115] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('f1-ackfail-recover', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 187, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job f1-ackfail-recover attempt 0: simulated downstream failure
+[2026-10-24 21:34:18,001] [PID 27115] [Thread-4] [dramatiq.middleware.retries.Retries] [INFO] Retrying message '46edbb05-1361-4e7f-ad80-15d44e593d97' in 1548 milliseconds.
+[2026-10-24 21:34:18,001] [PID 27115] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '46edbb05-1361-4e7f-ad80-15d44e593d97' on queue 'default.DQ'.
+[2026-10-24 21:34:18,011] [PID 27115] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '46edbb05-1361-4e7f-ad80-15d44e593d97' onto delay queue.
+[2026-10-24 21:34:18,143] [PID 27115] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '46edbb05-1361-4e7f-ad80-15d44e593d97'.
+[2026-10-24 21:34:21,661] [PID 27115] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered a connection error: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+[2026-10-24 21:34:21,661] [PID 27115] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:34:22,130] [PID 27115] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+[2026-10-24 21:34:22,130] [PID 27115] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:34:22,859] [PID 27115] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [WARNING] Failed to post_process_message(job('f1-ackfail-recover', {'0': 'barrier', 'default': 'ok'})) due to a connection error: Error 61 connecting to 127.0.0.1:56394. Connection refused.
+The operation will be retried in 5 seconds until the connection recovers.
+If you restart this worker before this operation succeeds, the message will be re-processed later.
+[2026-10-24 21:34:26,621] [PID 27115] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:34:26,815] [PID 27115] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:34:27,865] [PID 27115] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '46edbb05-1361-4e7f-ad80-15d44e593d97'.
+[2026-10-24 21:34:38,182] [PID 27105] [MainThread] [dramatiq.MainProcess] [INFO] Sending signal 'SIGTERM' to subprocesses...
+[2026-10-24 21:34:38,183] [PID 27115] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Stopping worker process...
+[2026-10-24 21:34:39,046] [PID 27115] [MainThread] [dramatiq.middleware.shutdown.ShutdownNotifications] [DEBUG] Sending shutdown notification to worker threads...
+[2026-10-24 21:34:39,046] [PID 27115] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-24 21:34:39,046] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping workers...
+[2026-10-24 21:34:39,046] [PID 27115] [MainThread] [dramatiq.worker.WorkerThread] [DEBUG] Stopping worker thread...
+[2026-10-24 21:34:39,916] [PID 27115] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Worker thread stopped.
+[2026-10-24 21:34:39,916] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Workers stopped.
+[2026-10-24 21:34:39,916] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping consumers...
+[2026-10-24 21:34:39,916] [PID 27115] [MainThread] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:34:39,916] [PID 27115] [MainThread] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:34:39,981] [PID 27115] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:34:40,205] [PID 27115] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:34:40,205] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers stopped.
+[2026-10-24 21:34:40,205] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Requeueing in-memory messages...
+[2026-10-24 21:34:40,205] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.
+[2026-10-24 21:34:40,205] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...
+[2026-10-24 21:34:40,205] [PID 27115] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.
+[2026-10-24 21:34:40,206] [PID 27115] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.

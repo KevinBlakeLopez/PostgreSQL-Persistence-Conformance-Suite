@@ -1,0 +1,169 @@
+[2026-10-24 19:44:08,370] [PID 49822] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 19:44:08,331] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 19:44:08,360] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 19:44:08,360] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 19:44:08,360] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 19:44:08,362] [PID 49824] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 19:44:08,362] [PID 49824] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 19:44:08,362] [PID 49824] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 19:44:08,362] [PID 49824] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 19:44:08,362] [PID 49824] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 19:44:08,363] [PID 49824] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 19:44:08,368] [PID 49824] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 19:44:08,369] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 19:44:08,373] [PID 49824] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '530dd460-48a6-4d9f-9fb3-46f800c9bd1f' onto work queue.
+[2026-10-24 19:44:08,373] [PID 49824] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('d4', {'0': 'barrier', 'default': 'ok'}) with id '530dd460-48a6-4d9f-9fb3-46f800c9bd1f'.
+[2026-10-24 19:44:08,374] [PID 49824] [Thread-4] [app.job] [DEBUG] Received args=('d4', {'0': 'barrier', 'default': 'ok'}) kwargs={}.
+[2026-10-24 19:44:08,496] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:08,503] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:08,512] [PID 49824] [Thread-4] [app.job] [DEBUG] Completed after 138.22ms.
+[2026-10-24 19:44:08,512] [PID 49824] [Thread-4] [dramatiq.worker.WorkerThread] [ERROR] Failed to process message job('d4', {'0': 'barrier', 'default': 'ok'}) with unhandled exception.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 153, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job d4 attempt 0: simulated downstream failure
+[2026-10-24 19:44:08,513] [PID 49824] [Thread-4] [dramatiq.middleware.retries.Retries] [INFO] Retrying message '530dd460-48a6-4d9f-9fb3-46f800c9bd1f' in 1691 milliseconds.
+[2026-10-24 19:44:08,513] [PID 49824] [Thread-4] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '530dd460-48a6-4d9f-9fb3-46f800c9bd1f' on queue 'default.DQ'.
+[2026-10-24 19:44:08,546] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:08,628] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:08,753] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:09,020] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:09,498] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:10,504] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:11,405] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:11,940] [PID 49824] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered a connection error: Error 61 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-24 19:44:11,940] [PID 49824] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 19:44:12,406] [PID 49824] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56391,db=0)>, details: not connected
+[2026-10-24 19:44:12,716] [PID 49824] [Thread-4] [dramatiq.broker.RedisBroker] [CRITICAL] Unexpected failure in after_process_message of <dramatiq.middleware.retries.Retries object at 0x108f557f0>.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/worker.py", line 560, in process_message
+    res = actor(*message.args, **message.kwargs)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/actor.py", line 194, in __call__
+    return self.fn(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/app.py", line 153, in job
+    raise RuntimeError("job %s attempt %s: simulated downstream failure" % (job_id, fields["attempt"]))
+RuntimeError: job d4 attempt 0: simulated downstream failure
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 3280, in get_connection
+    connection.can_read()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1387, in can_read
+    return self._parser.can_read(timeout)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/base.py", line 169, in can_read
+    return self._buffer.can_read(timeout)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/socket.py", line 97, in can_read
+    return bool(self.unread_bytes()) or self._read_from_socket(
+                                        ~~~~~~~~~~~~~~~~~~~~~~^
+        timeout=timeout, raise_on_timeout=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/_parsers/socket.py", line 67, in _read_from_socket
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1055, in connect_check_health
+    sock = self._connect()
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1617, in _connect
+    raise err
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1601, in _connect
+    sock.connect(socket_address)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/ppcs_netguard.py", line 30, in connect
+    return _connect(self, address)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/broker.py", line 127, in emit_after
+    getattr(middleware, signal)(self, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/middleware/retries.py", line 148, in after_process_message
+    broker.enqueue(message, delay=delay)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 184, in enqueue
+    self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/client.py", line 873, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ~~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/utils.py", line 258, in wrapper
+    return func(*args, **kwargs)
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 3287, in get_connection
+    connection.connect()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1028, in connect
+    self.retry.call_with_retry(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        lambda: self.connect_check_health(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        lambda error: self.disconnect(error),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1029, in <lambda>
+    lambda: self.connect_check_health(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        check_health=True, retry_socket_connect=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/rel221/lib/python3.13/site-packages/redis/connection.py", line 1077, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:56391. Connection refused.
+[2026-10-24 19:44:12,732] [PID 49824] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '530dd460-48a6-4d9f-9fb3-46f800c9bd1f'.
+[2026-10-24 19:44:12,790] [PID 49824] [Thread-4] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 19:44:13,408] [PID 49824] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 19:44:32,813] [PID 49822] [MainThread] [dramatiq.MainProcess] [INFO] Sending signal 'SIGTERM' to subprocesses...
+[2026-10-24 19:44:32,817] [PID 49824] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Stopping worker process...
+[2026-10-24 19:44:33,454] [PID 49824] [MainThread] [dramatiq.middleware.shutdown.ShutdownNotifications] [DEBUG] Sending shutdown notification to worker threads...
+[2026-10-24 19:44:33,454] [PID 49824] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-24 19:44:33,454] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping workers...
+[2026-10-24 19:44:33,454] [PID 49824] [MainThread] [dramatiq.worker.WorkerThread] [DEBUG] Stopping worker thread...
+[2026-10-24 19:44:33,866] [PID 49824] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Worker thread stopped.
+[2026-10-24 19:44:33,866] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Workers stopped.
+[2026-10-24 19:44:33,866] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping consumers...
+[2026-10-24 19:44:33,866] [PID 49824] [MainThread] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Stopping consumer thread...
+[2026-10-24 19:44:33,866] [PID 49824] [MainThread] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Stopping consumer thread...
+[2026-10-24 19:44:33,913] [PID 49824] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Consumer thread stopped.
+[2026-10-24 19:44:34,322] [PID 49824] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Consumer thread stopped.
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers stopped.
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Requeueing in-memory messages...
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.
+[2026-10-24 19:44:34,322] [PID 49824] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.
