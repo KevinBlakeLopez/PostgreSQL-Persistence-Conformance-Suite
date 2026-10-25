@@ -1,6 +1,6 @@
 # CHK-5: Tortoise ORM `save()` after the instance's INSERT was rolled back
 
-Run on 2026-10-25, 01:20 UTC (2026-10-24, 18:20 PDT). Written by: Claude Opus 5.5 (max).
+Run on 2026-10-25, 01:20 UTC (2026-10-24, 18:20 PDT); revised the same day after an outside review (see the last section). Written by: Claude Opus 5.5 (max).
 
 This is check CHK-5 from [`../../python-upstream-contribution-roadmap.md`](../../python-upstream-contribution-roadmap.md) §11, for tracker item PY-3. It runs the standalone program proposed for the Tortoise issue three times on each PostgreSQL backend, and adds three CHK-only programs: a wrapper that shows the count `save()` receives, Django and SQLAlchemy controls, and a server-log cross-check.
 
@@ -43,6 +43,8 @@ All observed, three of three on each backend, unless marked otherwise.
 | `output/server-log-extract.txt` | Every server-log entry, with its continuation lines, of the subject sessions (`application_name` `repro-tortoise`, `repro-django`, `repro-sqlalchemy`): 1,470 entries | `4b47e88e20fd7de2ced9d606ca219966317dc28c99167ba2040107b6b842ab98` |
 | `output/server-log-check.txt` | `server_log_check.py check output` | `a11a6fd4ca672779a77172872fe686df3bcd0a11b7bb5ef6008b704076cc349c` |
 | `output/pip-freeze.txt` | The virtualenv's packages, the Python build, psycopg's libpq, and how the virtualenv was created | `4fde8d656f8815a52d8436228f1ed7de02a0c6a0d54fc82c55f836062439f1d2` |
+| `output/install-check/asyncpg.out`, `output/install-check/psycopg.out` | The install check after the outside review: complete stdout and stderr of the program, from a fresh virtualenv with only `tortoise-orm[asyncpg,psycopg]==1.1.9` | in the last section |
+| `output/install-check/pip-freeze.txt` | That virtualenv's packages (`pip freeze --all`) | `f5c277a909bff5bc2848726f1d9ba10719d0b791b670d2940e64773d421a5448` |
 
 Full hashes of the 15 outputs:
 
@@ -171,9 +173,9 @@ Four sources agree for all 144 printed transactions (`output/server-log-check.tx
 1. **The programs' witness connections,** described above: asyncpg for Tortoise, psycopg for the controls.
 2. **`psql` inside the container,** after all runs, with no Python driver involved. Fates: 48 first attempts `aborted`; 36 retries and 36 outer transactions `committed`; 12 `control` arms `committed`; 12 `force_update` retries `aborted`.
 3. **The server's statement log.** `server_log_check.py` grouped each subject session's statements into transactions. It matched each printed ID to exactly one transaction, by the ID on its `COMMIT` or `ROLLBACK` line, and checked that the ending statement agrees with the fate. The 9 unmatched transactions are the controls' setup: Django's and SQLAlchemy's `CREATE TABLE`, and SQLAlchemy's read-only first-connect check.
-4. **`auto_explain`,** with `log_analyze`. For each INSERT and UPDATE it logs the rows of the node under the Insert or Update node. These are the rows inserted, or the rows the UPDATE matched.
+4. **`auto_explain`,** with `log_analyze`. For each INSERT and UPDATE it logs the rows of the node under the Insert or Update node. For these statements, which have no triggers, no `ON CONFLICT` and one loop each, those are the rows inserted, or the rows the UPDATE matched. Statements with triggers, `ON CONFLICT` or repeated loops would need a separate reading.
 
-**One more server-side signal, for the plain retries.** The log prefix's `xid` was 0 when `auto_explain` logged the UPDATE, in all 24 `retry` and `retry-changed` transactions. An ID was assigned only by the program's `pg_current_xact_id()` call afterwards. PostgreSQL assigns a transaction ID when a transaction first writes to the database, so the UPDATE wrote nothing. In the savepoint arms the nested INSERT had already assigned the ID, and in `force_update` the program's own call had, so this signal does not apply there.
+**One more server-side signal, for the plain retries.** `auto_explain` logs a plan after its statement has run: the INSERT's plan entry already carries the ID that the INSERT assigned, while its statement entry shows 0 (lines 16–25 of the extract). In all 24 `retry` and `retry-changed` transactions, the log prefix's `xid` was still 0 in the UPDATE's plan entry. An ID was assigned only by the program's `pg_current_xact_id()` call afterwards. Changing a row requires a transaction ID, since every new row version is stamped with it, so the UPDATE changed no row. The converse does not hold: an ID can be assigned without any row changing, for example by a sequence's allocation. In the savepoint arms the nested INSERT had already assigned the ID, and in `force_update` the program's own call had, so this signal does not apply there.
 
 ## Source reading
 
@@ -204,13 +206,13 @@ CHK-5 reproduces P4's Tortoise result on asyncpg: the retry returned normally, t
   - a later `save()` sends an UPDATE for that `pk`, which matches 0 rows. `execute_update()` returns 0, `save()` returns normally, the transaction commits, and no row exists. The same holds whether or not a field was changed first, and when the outer transaction of a rolled-back savepoint commits;
   - `save(force_update=True)` raises `IntegrityError` in the same situation.
 
-  On the same server, Django 6.1.2 and SQLAlchemy 2.1.5 persisted the same four retries.
+  On the same server, Django 6.1.2 persisted the same four retries, and so did SQLAlchemy 2.1.5, where the rollback makes the object transient and the retry adds it to a session again.
 - **Source reading only.** Two claims rest on the code, not on these runs:
   - nothing resets `_saved_in_db` on rollback;
   - `execute_update()` returns 0 without sending a statement when no field needs updating.
 - **Not run here:**
   - other PostgreSQL versions; Linux;
-  - Tortoise's other backends. `Model.save()` is shared code, but #1212 suggests that MySQL's counts differ;
+  - Tortoise's other backends. `Model.save()` is shared code, but #1212 (2022, on 0.18.1 and 0.19.2) suggests that MySQL's counts may differ;
   - `Model.create()` inside the rolled-back transaction. It goes through `save(force_create=True)`, which sets the same flag;
   - `update_fields`, `bulk_create`, `get_or_create` and `update_or_create`;
   - client-generated primary keys;
@@ -224,3 +226,24 @@ CHK-5 reproduces P4's Tortoise result on asyncpg: the retry returned normally, t
   - **The pattern summary in `server_log_check.py`.** It counted patterns before replacing the primary-key values, so each run showed up separately. It now counts after replacing them, per program, arm and transaction. Two columns were widened.
   - **An unused parameter.** It was removed from the controls' `report()`.
 - **The settings read-back before the recorded runs** first failed on a quoting error in an inline script, before it connected. It was rerun from a file.
+
+## After the outside review (2026-10-25)
+
+An outside adversarial review reproduced the six runs on its own container and found no defect in them. Two things changed here.
+
+- **Wording.** Point 4 under "Independent verification" now says which statements its reading covers. The transaction-ID paragraph now gives the exact reason for its conclusion, and says that the converse does not hold.
+- **An install check, for the issue's setup line.** The review found that neither backend extra alone runs both commands, because the program always imports asyncpg for its setup and witness connections. The issue now says to install `tortoise-orm[asyncpg,psycopg]==1.1.9`. That line was checked at 03:01 UTC in a fresh virtualenv that had nothing else, with Python 3.13.11 and `--only-binary=:all:`, on a throwaway container from the same image (`py3-install-check-pg`, `127.0.0.1:55497`, default settings, removed after the runs). The program was copied into an otherwise empty directory and run from there, once per backend, as the issue's two commands:
+
+  ```sh
+  python3.13 -m venv <venv>
+  <venv>/bin/pip install --only-binary=:all: 'tortoise-orm[asyncpg,psycopg]==1.1.9'
+  DATABASE_URL=postgresql://postgres:<password>@127.0.0.1:55497/postgres <venv>/bin/python tortoise_save_after_rollback.py asyncpg
+  DATABASE_URL=postgresql://postgres:<password>@127.0.0.1:55497/postgres <venv>/bin/python tortoise_save_after_rollback.py psycopg
+  ```
+
+  Both exited 0. Once the transaction IDs are masked, the outputs equal `output/asyncpg.rep1.out` and `output/psycopg.rep1.out`; the asyncpg output is byte-identical even unmasked. The virtualenv resolved the same versions as the recorded runs: tortoise-orm 1.1.9, asyncpg 0.32.0, psycopg 3.3.6 (binary), psycopg-pool 3.3.3.
+
+  ```text
+  b1db438afadd1388a88acf8f3e39b9caebd62e00c717f5eae7cf9c2bddd93197  output/install-check/asyncpg.out
+  9e6e6f5a17f230f91db04f99eb9d67a546565ca48fc4a793b0a024316caaf235  output/install-check/psycopg.out
+  ```
