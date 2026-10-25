@@ -2,7 +2,7 @@
 
 Investigation date: 2026-10-24. Written by: Claude Opus 5.5 (max).
 
-Nothing has been filed, posted or proposed upstream. Upstream state was last checked on 2026-10-25 at 01:01 UTC. Uvicorn `main` was then at `a55389d`, with the shutdown block unchanged since `e4981ad`. No new discussion, issue or PR covers F1. Open PRs #3217 and #3231 touch only the start of `shutdown()`.
+F1 was posted as Kludex/uvicorn discussion #3232 on 2026-10-25 at 01:06 UTC. Nothing else has been filed, posted or proposed upstream. Upstream state was last checked on 2026-10-25 at 01:01 UTC. Uvicorn `main` was then at `a55389d`, with the shutdown block unchanged since `e4981ad`. No new discussion, issue or PR covers F1. Open PRs #3217 and #3231 touch only the start of `shutdown()`.
 
 ## Ranking
 

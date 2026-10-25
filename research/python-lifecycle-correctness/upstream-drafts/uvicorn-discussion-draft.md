@@ -1,6 +1,6 @@
 # Draft: Uvicorn "Potential Issue" discussion
 
-Status: draft for human review. Not posted. The exact text needs approval before anything is posted, and the upstream state (discussions, open PRs, `main`) must be re-checked first.
+Status: posted by the author on 2026-10-25 at 01:06 UTC as https://github.com/Kludex/uvicorn/discussions/3232 (category "Potential Issue"). The text below is what was approved for posting.
 
 - Venue: https://github.com/Kludex/uvicorn/discussions, category "Potential Issue".
 - Evidence behind each sentence: [../findings.md](../findings.md), F1.
