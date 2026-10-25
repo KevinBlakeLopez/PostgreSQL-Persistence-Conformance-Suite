@@ -34,7 +34,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — (A1) | UPSTREAM_ALREADY_TRACKED | Wait on #1453. PY-1b adds to it |
 | PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED | 1 (A1, B1) | SUBMITTED | Posted 2026-10-24 ([comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348)). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
 | PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
-| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED | 3 (A3, B4) | READY_FOR_HUMAN_REVIEW | Run CHK-5 (a, b), then draft the issue |
+| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | AWAITING_APPROVAL | Approve the exact text of the [drafted issue](python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md). Not filed |
 | PY-5 | SQLAlchemy (docs) | The documented PostgreSQL reset recipe resets nothing on psycopg 3 | CONFIRMED on psycopg 3 | 4 (A5, B3) | NEEDS_VERIFICATION | Run CHK-3, then hand the evidence package to the author |
 | PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | READY_FOR_HUMAN_REVIEW | Write and run the standalone script; draft the issue |
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Prepare the PR and its test; run the touched backends locally |
@@ -138,18 +138,38 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 ### PY-3: Tortoise `Model.save()` after a rolled-back transaction
 
-- **Project:** Tortoise ORM 1.1.9. `develop` `536fc3abd` is unchanged.
-- **Finding:** after a rolled-back `save()`, `_saved_in_db` stays True. The retried `save()` returns normally, and 0 rows persist.
+- **Project:** Tortoise ORM 1.1.9, still the latest release (re-checked 2026-10-25, about 01:10 UTC). `develop` is now `ad0d6ce2b` (2026-10-24, a setuptools bump), the child of the roadmap's `536fc3abd`. `Model.save()` and `BaseExecutor.execute_update()` are identical to 1.1.9. `save()` sits 4 lines lower, at 1135–1199.
+- **Finding:** after the transaction or savepoint that inserted an instance rolls back, `_saved_in_db` stays True.
+  - The retried `save()` sends an UPDATE for the old `pk`, which matches 0 rows. `execute_update()` returns 0, `save()` returns normally, the transaction commits, and 0 rows persist.
+  - It makes no difference whether a field was changed first.
+  - In the savepoint variant, the outer transaction commits without the row.
 - **Evidence:**
+  - **CHK-5,** [`python-upstream-contribution/chk-5-tortoise/`](python-upstream-contribution/chk-5-tortoise/README.md). It contains:
+    - the program to post, three runs per backend (asyncpg and psycopg);
+    - a wrapper showing the count `save()` receives;
+    - Django and SQLAlchemy controls;
+    - the server's statement log with `auto_explain`, and `psql`. Both agree with the witness for all 144 transactions;
   - `research/python-production-failure-gap-analysis/output/p45.rep{1,2,3}.out` (`p4_tortoise`; Django and SQLAlchemy as controls);
-  - Src: `tortoise/models.py:1176-1194`.
-- **Upstream:** none. #1094 shares only the symptom. #1212 bears on the fix (`force_update` sees 0 rows on MySQL).
-- **Confidence:** CONFIRMED. The mechanism is Src.
+  - Src: `tortoise/models.py:1176-1194` (1.1.9; `develop` 1180–1198).
+- **Upstream:** none found. The search ran on 2026-10-25: 28 queries through the search API, 209 items screened by title, 9 read in full.
+  - #1094 shares only the symptom.
+  - #1212 bears on option (b): `force_update` sees 0 rows on MySQL for a row that exists.
+  - Also related, and not duplicates: #242 (2019), where a collaborator suggested that `save()` raise or warn when no rows were affected; and open PR #2293, whose per-savepoint `on_commit()` frames are the kind of bookkeeping option (a) needs.
+- **Confidence:** CONFIRMED. Observed: the outcome, the statement sent, its 0 matched rows, and the count `save()` receives. Src: that nothing resets the flag on rollback.
 - **Priority:** 3.
-- **Proposed action:** an issue that asks for the fix direction: restoring state on rollback, or handling zero-row updates. Then a PR (roadmap §7 and §10.3).
-- **Prerequisites:** CHK-5 (a) and (b). Recommended before the issue; required before a PR.
-- **Status:** READY_FOR_HUMAN_REVIEW
-- **Next concrete step:** run CHK-5, then draft the issue with a standalone script.
+- **Proposed action:** a new issue that asks for the fix direction, with a conditional PR offer (roadmap §7 and §10.3). The directions are (a), resetting `_saved_in_db` on rollback per transaction and savepoint level, and (b), handling zero-row updates. The issue also asks whether saving an instance again after a rollback is meant to be supported.
+- **Draft:** [`python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md`](python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md). It uses Tortoise's bug-report template and has about 58 visible lines. The program, its output and a server-log excerpt are in `<details>`, all byte-identical to the CHK-5 files. It passed the content guard. It covers:
+  - the mechanism: the stale `pk` and `_saved_in_db`, an UPDATE that matches no row, a normal return and a commit;
+  - the savepoint case;
+  - a table of the six arms;
+  - the ignored count, `_saved_in_db`, and the `force_update` contrast, with links to `develop` `ad0d6ce2b`;
+  - one sentence on Django and SQLAlchemy;
+  - options (a) and (b), with the #1212 caution and the no-statement early return;
+  - a conditional PR offer.
+- **Left out of the draft:** PY-8, PY-19, #1094, and the transaction-ID signal. #242 is optional: the draft offers one line for the maintainer to add.
+- **Prerequisites:** CHK-5, done 2026-10-25. Repeat the draft's pre-filing checks on the day of filing. A release after 1.1.9 means running the program again first.
+- **Status:** AWAITING_APPROVAL
+- **Next concrete step:** approval of the exact title, body and destination (`AGENTS.md` rule 9). Nothing is filed.
 
 ### PY-5: SQLAlchemy PostgreSQL reset-on-return recipe
 
@@ -257,7 +277,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-2 | PY-2 | Required before posting | DONE 2026-10-24. Reproduced, with no discrepancy from P1: [`python-upstream-contribution/chk-2-asyncpg/`](python-upstream-contribution/chk-2-asyncpg/README.md) |
 | CHK-3 | PY-5 | Required | NOT_STARTED |
 | CHK-4 | PY-4 | Required (or PP-3) | NOT_STARTED |
-| CHK-5 | PY-3 | Recommended before the issue; required before a PR | NOT_STARTED |
+| CHK-5 | PY-3 | Recommended before the issue; required before a PR | DONE 2026-10-25 (UTC). Reproduced on both PostgreSQL backends, the savepoint variant included, with no discrepancy from P4: [`python-upstream-contribution/chk-5-tortoise/`](python-upstream-contribution/chk-5-tortoise/README.md) |
 | CHK-6 | PY-6 | Optional | NOT_STARTED |
 | CHK-7 | PY-7 | Required | NOT_STARTED |
 
@@ -284,6 +304,37 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 - `psql` agreed for all 24 asyncpg transactions.
 - I re-checked those comparisons myself.
 - The reviewer's records are kept locally, outside the repository.
+
+### CHK-5 result (2026-10-25)
+
+**The setup:**
+
+- container `ppcs-chk5-tortoise-pg`, PPCS's pinned 18.6 digest, `127.0.0.1:55495`. It had a tmpfs data directory, `log_statement=all`, and `auto_explain` with `log_analyze`. Removed afterwards. `ppcs-postgres` was not touched;
+- Tortoise ORM 1.1.9, asyncpg 0.32.0, psycopg 3.3.6, psycopg-pool 3.3.3, Django 6.1.2, SQLAlchemy 2.1.5, Python 3.13.11.
+
+**The arms.** Each held in 6 of 6 runs, three on asyncpg and three on psycopg:
+
+| Arm | Tortoise's report | PostgreSQL |
+| --- | --- | --- |
+| `retry`: `save()`, rollback, `save()` in a new `in_transaction()` | Returns normally | UPDATE for the old `pk` matches 0 rows; `committed`; 0 rows |
+| `retry-changed`: a field changed before the retry | Returns normally | The same |
+| `savepoint`: the INSERT in a rolled-back savepoint, then `save()` in the outer block | Returns normally; the outer block exits normally | The same UPDATE matches 0 rows; outer `committed`; 0 rows |
+| `savepoint-changed` | Returns normally | The same |
+| `control`: a new instance, saved once | Returns normally | INSERT; `committed`; 1 row |
+| `force_update` (optional) | `IntegrityError: Can't update object that doesn't exist` | UPDATE matches 0 rows; `aborted`; 0 rows |
+
+**The count `save()` receives.** In the wrapped runs, `execute_update()` returned 0 to `save()` in all 30 calls.
+
+**The controls.** Django 6.1.2 and SQLAlchemy 2.1.5 persisted all four retry variants: 1 row each, three runs each. Django falls back from a 0-row UPDATE to an INSERT. SQLAlchemy makes the object transient and inserts it.
+
+**Agreement.** The witness, `psql` inside the container, and the server's statement log with `auto_explain` agree for all 144 printed transactions; the cross-check found 0 problems. The program's hash was the same before and after its 12 runs.
+
+**What it answers:**
+
+- **(a)** The retry really sends an UPDATE that matches 0 rows, and its transaction commits.
+- **(b)** The savepoint variant loses the write too.
+- **(c)** The psycopg backend behaves the same.
+- **The added changed-field arms.** Neither retry path skips SQL.
 
 ## Evidence preservation (PP-1)
 
@@ -353,6 +404,15 @@ The rest of this section is the plan as it stood before the commits.
   - **asyncpg.** `test_timeout_06`, and `test_timeout_04`, exit a transaction block normally after a caught error that aborted it, so a fix that raises conflicts with them. The PY-2 draft now asks the maintainers which behaviour they want.
   - **What did not change.** The findings themselves (PY-1b and PY-2 CONFIRMED). The change is to the compatibility framing.
 - **Blockers.** None for PY-1b and PY-2: the comment was posted and the issue filed on 2026-10-24, after approval of the exact texts. Today's later edits are uncommitted and local (see PP-1).
+- **CHK-5 (2026-10-25 UTC). No conclusion changed.** PY-3 stays CONFIRMED.
+  - **Refinements:**
+    - The retry's statement, its 0 matched rows, and the count `save()` receives are now observed. Before CHK-5 they were Src.
+    - The roadmap's H-c holds: the savepoint variant loses the write.
+  - **The effect on the fix question.**
+    - Option (a) has to work per savepoint level. A reset only at the outermost rollback would miss the savepoint case, because the outer transaction commits.
+    - Option (b) does not depend on nesting.
+    - The recommendation stands: ask the maintainers. The draft presents both options without choosing.
+  - **The added control** (a field changed before the retry, at the maintainer's request) changed nothing. Both retry paths send an UPDATE.
 
 ## Change log
 
@@ -375,3 +435,8 @@ The rest of this section is the plan as it stood before the commits.
   - Both posted texts match the drafts (compared through the API).
   - Both items are SUBMITTED. A follow-up is due around 2026-11-07, and a decision around 2026-11-21.
   - Added the note on the outside reviewer's independent re-run.
+- **2026-10-25, about 01:45 UTC (2026-10-24 PDT).**
+  - Ran CHK-5, which reproduced P4 and answered (a), (b) and (c): [`python-upstream-contribution/chk-5-tortoise/`](python-upstream-contribution/chk-5-tortoise/README.md).
+  - Re-checked upstream for PY-3: no duplicate; `develop` moved to `ad0d6ce2b`, with `save()` unchanged; PyPI's latest is still 1.1.9.
+  - Drafted the PY-3 issue; it is not filed. PY-3 moved to AWAITING_APPROVAL.
+  - Nothing committed.
