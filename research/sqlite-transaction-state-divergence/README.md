@@ -126,4 +126,4 @@ A first development run of SQLITE-03 had one variant whose repetitions disagreed
 
 - No MySQL, and no async experiment: SQLITE-07 stopped at source reading because the remaining question belongs to the Python cancellation study (`findings.md`, X1).
 - No fix was implemented in SQLAlchemy or CPython.
-- Nothing was filed, posted or pushed.
+- Nothing was filed or posted upstream.

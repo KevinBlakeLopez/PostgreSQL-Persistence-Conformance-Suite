@@ -40,7 +40,7 @@ The CI workflow (`.github/workflows/ci.yml`) runs `node harness/run.mjs --adapte
 | `PR-01` production-reachability catalog | On `main` since `64e2f5b`. Recorded under `research/production-reachability/runs/`. Harness PASS does not mean the commit report was correct. |
 | MySQL 8.4 companion runner | Investigated and recorded under `investigations/mysql-innodb-baseline/`. The PHP and CodeIgniter 4 companion is `investigations/mysql-innodb-baseline/php/`, evidence `php-mx01.json`, finished `2026-10-21T17:15:26.400Z`. Not a PPCS adapter. |
 | SQLite phase 0, sqlite3 control, SQLAlchemy Core comparison | Investigated and recorded under `research/sqlite-phase0/`. Not a PPCS adapter. |
-| SQLite transaction-state divergence: `sqlite3`, SQLAlchemy 2.1.6 and 2.0.55, Django 6.1.2 | Investigated 2026-10-25 and recorded under `research/sqlite-transaction-state-divergence/`. Committed on branch `research/sqlite-state-divergence` (evidence `4d54f1b`), not merged into `main` on 2026-10-25. Not a PPCS adapter. |
+| SQLite transaction-state divergence: `sqlite3`, SQLAlchemy 2.1.6 and 2.0.55, Django 6.1.2 | Investigated 2026-10-25 and recorded under `research/sqlite-transaction-state-divergence/`. Evidence commit `4d54f1b`, pushed to `main` on 2026-10-25. Not a PPCS adapter. |
 | Drizzle follow-up probe | `investigations/drizzle-followups/probe.mjs` only. No evidence directory. Not a recorded result. The category B suite re-run is section 14. |
 
 `PR-01` case files do not have a `pg-control` expectation. The run summary says so. CTL-01 held for the adapters in the main run. The contract verdicts are the research report, not the harness classification.

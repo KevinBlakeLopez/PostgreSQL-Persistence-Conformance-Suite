@@ -265,7 +265,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - The consequence differs from PostgreSQL's. SQLite has already rolled back, so the next checkout gets the same connection with no transaction open: its write committed although its `commit()` raised, and the following unit's write committed although its `rollback()` raised. A pool reset that failed then invalidated the connection.
   - Same through `conn.begin()`/`tx.commit()`, commit-as-you-go and `session.commit()`. `engine.begin()` is not affected: it rolls back, the pool's reset fails, and the connection is invalidated.
   - Runs: `sqlite-transaction-state-divergence/output/sqlite02-core/2026-10-25T17-21-27Z-ca780e/` (`autocommit-false.{explicit,commit-as-you-go}.rollback.*`) and `…/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-continue`). The study's `upstream/sqlalchemy-facts.md`, item SA-3, states it for the author.
-  - Recorded on branch `research/sqlite-state-divergence` (evidence `4d54f1b`), not merged into `main` on 2026-10-25.
+  - Evidence commit `4d54f1b`, pushed to `main` on 2026-10-25.
 - **Upstream:** none found.
   - Re-checked 2026-10-25 for 2026-10-18 onward, with the review's twelve issue queries and five replacement discussion queries; no matching item was found.
   - #13699 (fixed in 2.1.6) touches `Connection.close()`, but it is a cancellation during the reset, not P5a.
@@ -618,3 +618,4 @@ The rest of this section is the plan as it stood before the commits.
   - **New: PY-21, PY-22 and PY-23** from the same study: F1 with F2, F3, and F4, at the maintainer's request. They are unranked, like PY-20; the roadmap was not edited.
   - PY-23's draft is stored with its study, in `sqlite-transaction-state-divergence/upstream/`, not in `python-upstream-contribution/upstream-drafts/`.
   - Committed on branch `research/sqlite-state-divergence`. Not pushed. Nothing posted or filed.
+- **2026-10-25, about 22:20 UTC.** Pushed to `main` at the maintainer's request, as a fast-forward from `68fa4e0`: the SQLite study (`4d54f1b`, `2c48f68`, `b8d8e48`, `8e82653`), the PY-7 note (`378bdd5`), PY-21 to PY-23 (`8de2fbb`), and this entry in the commit after it. Nothing posted or filed.

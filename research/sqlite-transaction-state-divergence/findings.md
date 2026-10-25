@@ -231,7 +231,7 @@ Searched on 2026-10-25; the queries and results are in `upstream/duplicate-searc
 
 ## Upstream status
 
-Nothing has been filed, posted or pushed. `upstream/` holds:
+Nothing has been filed or posted. `upstream/` holds:
 
 - `sqlalchemy-facts.md`: facts, scripts and outputs for F1, F2 and F3. SQLAlchemy's code of conduct and contributing guide ask that issue and discussion text be the reporter's own words, so this is not a draft to paste.
 - `cpython-sqlite3-autocommit-false-draft.md`: a draft issue for F4, for review. CPython's devguide asks that the person filing be able to explain the report in their own words; disclosure of AI assistance is appreciated.
