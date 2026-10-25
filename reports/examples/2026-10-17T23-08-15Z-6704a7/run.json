@@ -1,0 +1,174 @@
+{
+  "schema": "ppcs-run/1",
+  "run_id": "2026-10-17T23-08-15Z-6704a7",
+  "ppcs_version": "0.2.0",
+  "harness": {
+    "ppcs_version": "0.2.0",
+    "sha256": "9be521e4e5b9370e9d626dab3c415dc0614542cdeeb2d052c864bf4dd46ca0a3"
+  },
+  "runner_runtime": "v24.14.1",
+  "status": "completed",
+  "started_at": "2026-10-17T23:08:15.802Z",
+  "finished_at": "2026-10-17T23:08:27.167Z",
+  "duration_ms": 11365,
+  "filters": {
+    "adapters": [
+      "sqlalchemy"
+    ],
+    "cases": [
+      "TX-02"
+    ],
+    "modes": []
+  },
+  "repetitions": 3,
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6"
+  },
+  "catalog": {
+    "path": "specifications/transactions.v1.json",
+    "sha256": "2f6ad9f7bf99ba99068ec626ad4b3163f15e8441931d81462dc9eb73e65e32ec"
+  },
+  "adapters": [
+    {
+      "name": "pg-control",
+      "manifest": "adapters/pg-control/adapter.json",
+      "source_sha256": "93437193c77009bad3f12087f556a223fdd4eb18a5aae8ae823a67f437a840d2"
+    },
+    {
+      "name": "sqlalchemy",
+      "manifest": "adapters/sqlalchemy/adapter.json",
+      "source_sha256": "acc40300b48be8b858366d9004a89e3df8365a9b175e336a7779bafadb4be3b0"
+    }
+  ],
+  "results": [
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.correct.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-rejected.pg-control.unsafe.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "correct",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.correct.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "pg-control",
+      "mode": "unsafe",
+      "classification": "PASS",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.pg-control.unsafe.json"
+    },
+    {
+      "case": "CTL-01.commit",
+      "adapter": "sqlalchemy",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.commit.sqlalchemy.native.json"
+    },
+    {
+      "case": "CTL-01.rollback",
+      "adapter": "sqlalchemy",
+      "mode": "native",
+      "classification": "PASS",
+      "file": "cases/CTL-01.rollback.sqlalchemy.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-not-sent",
+      "adapter": "sqlalchemy",
+      "mode": "native",
+      "classification": "FAIL",
+      "file": "cases/TX-02.savepoint-rollback-not-sent.sqlalchemy.native.json"
+    },
+    {
+      "case": "TX-02.savepoint-rollback-rejected",
+      "adapter": "sqlalchemy",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/TX-02.savepoint-rollback-rejected.sqlalchemy.native.json"
+    },
+    {
+      "case": "TX-02.conn-lost-before-savepoint-rollback",
+      "adapter": "sqlalchemy",
+      "mode": "native",
+      "classification": "NOT_RUN",
+      "file": "cases/TX-02.conn-lost-before-savepoint-rollback.sqlalchemy.native.json"
+    }
+  ],
+  "counts": {
+    "PASS": 10,
+    "FAIL": 3,
+    "UNSUPPORTED": 0,
+    "INCONCLUSIVE": 0,
+    "NOT_RUN": 2
+  }
+}
