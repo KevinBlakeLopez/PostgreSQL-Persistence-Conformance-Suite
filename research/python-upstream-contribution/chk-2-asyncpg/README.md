@@ -25,7 +25,7 @@ P1's program also ran SQLAlchemy subjects, and it read asyncpg's state from `rep
 | --- | --- | --- |
 | `asyncpg_commit_rollback.py` | The program proposed for the issue, byte-identical to the one that ran (same hash before and after the six runs) | `891ffa6a9efc9332f5d3991f904fec5379bd760dc0fc4fe36baca06cd0b0c104` |
 | `output/asyncio.rep{1,2,3}.out` | Complete stdout and stderr of the three asyncio runs | `4cf47347…bac`, `b9e71900…4a8`, `ec3a9aac…43c` |
-| `output/uvloop.rep{1,2,3}.out` | Complete stdout and stderr of the three uvloop runs | `3f213ff2…2ea`, `98d1be2e…895`, `5026e96c…7c0` |
+| `output/uvloop.rep{1,2,3}.out` | Complete stdout and stderr of the three uvloop runs | `3f213ff2…954b`, `98d1be2e…895`, `5026e96c…7c0` |
 | `output/psql-xact-status.txt` | `pg_xact_status()` of all 24 transaction IDs, read with `psql` inside the container after the runs | `3cd7f7f5483459714703ecf30ae0528d30a55b4b5f767296db7d7b9909688129` |
 | `output/server.log` | The server's complete log (`docker logs`), from initialisation to the `psql` check | `bd75bff5bfad248eae1ef21ee2e9d41501b104c90b157fb95f55d551d23e8e3f` |
 | `server_log_sessions.py` | Cross-checks the server log, the six outputs and the `psql` fates. Not part of the issue | `5d72cbeaffc7c911f6e2038fd64d1cb8d0ca9320716383d935c33a6207bbacb9` |
