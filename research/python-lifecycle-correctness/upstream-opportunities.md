@@ -26,10 +26,10 @@ Nothing has been filed, posted or proposed upstream. Upstream state was last che
 
 ### Candidate corrections, as measured
 
-| Option | Order restored | Shutdown stays bounded | Force quit (second Ctrl+C) | Existing suite | Notes |
+| Option | Order restored | Uvicorn's own wait bounded | Force quit (second Ctrl+C) | Existing suite | Notes |
 | --- | --- | --- | --- | --- | --- |
 | a. Unbounded `await asyncio.wait(tasks)` ([diff](reproductions/uvicorn-await-cancelled-tasks.diff), 3 lines) | Yes (45 of 45) | **No**: SIGTERM shutdown hangs on a request that suppresses its cancellation; 5 s cleanup extends shutdown to 7.2 s | **Broken** while it waits | Passes | Not recommended |
-| b. Wait for at most another `timeout_graceful_shutdown`, stop on force exit ([diff](reproductions/uvicorn-await-cancelled-tasks-bounded.diff), 14 lines) | Yes, for cleanup that fits the bound (15 of 15) | Yes: at most one extra timeout period (4.2 s with a 2 s timeout) | Honored (2.3 s) | Passes | Recommended starting point. Cleanup longer than the bound is still lost, as today but later |
+| b. Wait for at most another `timeout_graceful_shutdown`, stop on force exit ([diff](reproductions/uvicorn-await-cancelled-tasks-bounded.diff), 14 lines) | Yes, for cleanup that fits the bound (15 of 15) | Yes: at most one extra timeout period (4.2 s with a 2 s timeout). It avoids option a's SIGTERM hang. `asyncio.run`'s SIGINT teardown can still hang on a task that suppresses cancellation, as today | Honored (2.3 s) | Passes | Recommended starting point, as a candidate policy. Cleanup longer than the bound still does not finish, as today but later |
 | c. Abort connections first (as in #2882), plus b | Meets ASGI's connection wording explicitly | As b | As b | Not tested | Worth raising, because #2882 shows the maintainer considered it |
 | d. Documentation only | No | Unchanged | Unchanged | n/a | If the maintainers decide the overlap is intended |
 
@@ -43,8 +43,12 @@ None of these options gives a hard deadline under SIGINT for a task that suppres
 
 ### Required regression tests
 
-1. [uvicorn_regression_test.py](reproductions/uvicorn_regression_test.py): event-driven. It fails on `main` and passes with options a and b.
-2. For option b, a second test: a cancelled request that suppresses cancellation must not delay shutdown past the bound. This would be written in the same in-process style; it is not drafted here.
+[uvicorn_regression_test.py](reproductions/uvicorn_regression_test.py) holds two event-driven tests. Both fail on `main` and pass with options a and b:
+
+1. **`test_no_active_connections_when_lifespan_shutdown_starts`:** the remedy-neutral ASGI invariant. No connection is registered when the application receives `lifespan.shutdown`. Option c should pass it as well; that was not tested.
+2. **`test_cancelled_request_cleanup_finishes_before_lifespan_shutdown`:** for a waiting remedy (a or b) only. It would reject option c, which is why it is separate.
+
+For option b, a third test would be needed: a cancelled request that suppresses cancellation must not delay Uvicorn's own wait past the bound. It would be written in the same in-process style; it is not drafted here.
 
 ### Compatibility risks (option b)
 

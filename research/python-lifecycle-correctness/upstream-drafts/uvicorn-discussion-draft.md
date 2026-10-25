@@ -7,9 +7,9 @@ Status: draft for human review. Not posted. The exact text needs approval before
 
 ---
 
-**Title:** Lifespan shutdown starts while the requests cancelled by `--timeout-graceful-shutdown` are still running
+**Title:** After `--timeout-graceful-shutdown` expires, `lifespan.shutdown` is sent while the cancelled requests' connections are still open
 
-When `--timeout-graceful-shutdown` expires, `Server.shutdown()` cancels the request tasks and then goes straight to the lifespan shutdown, without waiting for the cancelled tasks to finish:
+When `--timeout-graceful-shutdown` expires, `Server.shutdown()` cancels the remaining request tasks and goes straight to the lifespan shutdown, without waiting for those tasks or closing their connections:
 
 ```python
 for t in self.server_state.tasks:
@@ -20,12 +20,12 @@ if not self.force_exit:
     await self.lifespan.shutdown()
 ```
 
-So a cancelled request's `except CancelledError` / `finally` block runs at the same time as the app's lifespan shutdown, which usually closes the pools and clients that block needs. After `serve()` returns:
+With a temporary log line just before `await self.lifespan.shutdown()`, `server_state.connections` still held the request's connection, with its transport not closing, and the cancelled task was not done, in each of 10 runs. Nothing between that line and the message being queued yields to the event loop, so the app receives `lifespan.shutdown` while that connection is still active. The ASGI lifespan spec says `lifespan.shutdown` is sent once the server "has stopped accepting connections and closed all active connections", and the lifespan page in the docs shows pending requests completing before it.
+
+In practice, a cancelled request's `except CancelledError` / `finally` block runs at the same time as the app's lifespan shutdown, which usually closes the pools and clients that block needs. After `serve()` returns:
 
 - on SIGTERM, the re-raised signal ends the process before that block finishes;
 - on SIGINT, `asyncio.run`'s teardown cancels it a second time, and the 500 for the request is written after `Finished server process`.
-
-The ASGI lifespan spec says `lifespan.shutdown` is sent once the server "has stopped accepting connections and closed all active connections", and the lifespan page in the docs shows pending requests completing before it.
 
 With the app below, `uvicorn app:app --timeout-graceful-shutdown 1`, one request, then `kill -TERM <pid>`, Uvicorn 0.54.0 prints:
 
@@ -65,15 +65,15 @@ async def app(scope, receive, send):
 
 </details>
 
-I saw the same order every time on 0.54.0 and on `main` (e4981ad), with CPython 3.13 and 3.14, with and without `uvicorn[standard]`, on macOS (arm64) and Linux (Debian 13, aarch64). With a temporary log line just before `await self.lifespan.shutdown()`, `server_state.connections` still held the request's connection, with its transport not closing, and the cancelled task was not done.
-
-I also checked it with a separate process standing in for a remote service. The cleanup's request reached it, but the server process ended before the answer came back. When the cleanup went through a pool that the lifespan shutdown closes, it failed with `ConnectionError`.
+I saw the same behavior every time on 0.54.0 and on `main` (e4981ad), with CPython 3.13 and 3.14, with and without `uvicorn[standard]`, on macOS (arm64) and Linux (Debian 13, aarch64). I also checked it with a separate process standing in for a remote service. The cleanup's request reached it, but the server process ended before the answer came back. When the cleanup went through a pool that the lifespan shutdown closes, it failed with `ConnectionError`.
 
 I tried two changes locally. Both pass the existing test suite:
 
-1. `await asyncio.wait(self.server_state.tasks)` after the cancel loop restores the order. But a request that suppresses its cancellation then hangs SIGTERM shutdown, and a second Ctrl+C no longer forces quit while it waits.
-2. Waiting for the cancelled tasks for at most another `timeout_graceful_shutdown`, and stopping on `force_exit` (polling like `_wait_tasks_to_complete`), restores the order for cleanup that fits in that window, and keeps shutdown bounded. The worst case becomes twice the configured timeout, and cleanup that takes longer is still cut off.
+1. `await asyncio.wait(self.server_state.tasks)` after the cancel loop. It closes the gap, but a request that suppresses its cancellation then hangs SIGTERM shutdown, and a second Ctrl+C no longer forces quit while it waits.
+2. Waiting for the cancelled tasks for at most another `timeout_graceful_shutdown`, and stopping on `force_exit` (polling like `_wait_tasks_to_complete`). It closes the gap for cleanup that fits in that window, and Uvicorn's own wait stays bounded. But the worst case becomes twice the configured timeout, cleanup that takes longer is still cut off, and `asyncio.run`'s teardown can still hang under SIGINT on a task that suppresses cancellation, as it does today.
 
-Is waiting for the cancelled tasks, within some bound, how you'd want the server to behave after the timeout, or is the current overlap intended? If the approach is useful, I'm happy to prepare a PR with a regression test.
+Aborting the connections before the lifespan shutdown, as #2882 explored, would be another way to meet the spec's wording.
 
-Related: #2422 noted from the source that the cancelled tasks aren't awaited, and #2882 proposed aborting the connections after the timeout.
+Which behavior would you want after the timeout, or is the current overlap intended? If one of these is useful, I'm happy to prepare a PR with a regression test that checks only that no connection is registered when `lifespan.shutdown` arrives, so that it doesn't presuppose which of them you choose.
+
+Related: #2422 noted from the source that the cancelled tasks aren't awaited.

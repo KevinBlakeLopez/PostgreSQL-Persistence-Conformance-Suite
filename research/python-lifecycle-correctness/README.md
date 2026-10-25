@@ -37,12 +37,16 @@ It is a research package for human review. Nothing was filed or posted upstream.
 
 ## Main conclusions
 
-- **F1, CONFIRMED DEFECT (Uvicorn).** When `--timeout-graceful-shutdown` expires, Uvicorn cancels the request tasks and sends `lifespan.shutdown` without waiting for them.
-  - **Order:** in 166 of 166 unpatched repetitions on macOS and Linux where the work outlived the timeout, lifespan shutdown began within a few milliseconds of the cancelled task's cleanup starting (0.06 to 0.97 ms on macOS).
-  - **The registry agrees:** at that moment Uvicorn's own registry still held the request's connection, open, and the task still running.
-  - **Lost cleanup:** that cleanup was lost in 144 of them. Under SIGTERM, the signal Uvicorn re-raises ends the process mid-cleanup; under SIGINT, `asyncio.run` cancels the cleanup again. When the cleanup used a pool that lifespan shutdown closes, it failed with `ConnectionError`.
+- **F1, CONFIRMED DEFECT (Uvicorn).** When `--timeout-graceful-shutdown` expires, Uvicorn cancels the request tasks and initiates lifespan shutdown without waiting for them or closing their connections.
+  - **Specification level:** immediately before Uvicorn initiates lifespan shutdown, its own registry still holds the request's connection, open, and the task still running (10 of 10). That contradicts ASGI's "closed all active connections".
+  - **Application level, order:** in 166 of 166 unpatched repetitions on macOS and Linux where the work outlived the timeout, lifespan shutdown began within a few milliseconds of the cancelled task's cleanup starting (0.06 to 0.97 ms on macOS).
+  - **Application level, cleanup:** it did not finish before the process exited in 144 of them; whether the remote operation it had sent took effect is not established. Under SIGTERM, the signal Uvicorn re-raises ends the process mid-cleanup; under SIGINT, `asyncio.run` cancels the cleanup again. When the cleanup used a pool that lifespan shutdown closes, it failed with `ConnectionError`.
   - **Reach:** it holds on the latest release and `main`, Python 3.13 and 3.14, asyncio and uvloop, plain ASGI and FastAPI `BackgroundTasks`.
-  - **Candidate fixes:** an unbounded wait fixes the order but makes shutdown hang on a request that suppresses its cancellation, and breaks force quit. A bounded wait (at most one more timeout period, honoring force exit) fixes the order for cleanup that fits within the bound and keeps shutdown bounded. Both pass Uvicorn's existing tests.
+  - **Candidate fixes (policies, not guarantees):**
+    - An unbounded wait fixes the order, but makes SIGTERM shutdown hang on a request that suppresses its cancellation, and breaks force quit.
+    - A bounded wait (at most one more timeout period, honoring force exit) fixes the order for cleanup that fits within the bound and avoids that hang. It does not bound `asyncio.run`'s SIGINT teardown.
+
+    Both pass Uvicorn's existing tests.
 - **F2, ALREADY FIXED (Uvicorn below 0.41.0).** A signal during lifespan startup skipped lifespan shutdown.
 - **F3, DUPLICATE (Hypercorn on Python 3.12+).** `graceful_timeout` is not enforced. This is pgjones/hypercorn#308, with fix PR #388 open.
 
