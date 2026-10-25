@@ -20,9 +20,9 @@ if not self.force_exit:
     await self.lifespan.shutdown()
 ```
 
-With a temporary log line just before `await self.lifespan.shutdown()`, `server_state.connections` still held the request's connection, with its transport not closing, and the cancelled task was not done, in each of 10 runs. Nothing between that line and the message being queued yields to the event loop, so the app receives `lifespan.shutdown` while that connection is still active. The ASGI lifespan spec says `lifespan.shutdown` is sent once the server "has stopped accepting connections and closed all active connections", and the lifespan page in the docs shows pending requests completing before it.
+Immediately before initiating lifespan shutdown, Uvicorn still had an open request connection and an unfinished request task in its registry, in all 10 runs where I added a temporary log line just before `await self.lifespan.shutdown()`. A test that reads `server_state.connections` from the app's lifespan handler also still sees that connection when `lifespan.shutdown` arrives. Independent client observations showed the connection ending after lifespan shutdown began, in 121 of 121 runs. The ASGI lifespan spec says `lifespan.shutdown` is sent once the server "has stopped accepting connections and closed all active connections", and the lifespan page in the docs shows pending requests completing before it.
 
-In practice, a cancelled request's `except CancelledError` / `finally` block runs at the same time as the app's lifespan shutdown, which usually closes the pools and clients that block needs. After `serve()` returns:
+Consequently, a cancelled request's `except CancelledError` / `finally` block can overlap lifespan shutdown, so shared resources may be closed while cleanup is still using them. After `serve()` returns:
 
 - on SIGTERM, the re-raised signal ends the process before that block finishes;
 - on SIGINT, `asyncio.run`'s teardown cancels it a second time, and the 500 for the request is written after `Finished server process`.
@@ -67,7 +67,7 @@ async def app(scope, receive, send):
 
 I saw the same behavior every time on 0.54.0 and on `main` (e4981ad), with CPython 3.13 and 3.14, with and without `uvicorn[standard]`, on macOS (arm64) and Linux (Debian 13, aarch64). I also checked it with a separate process standing in for a remote service. The cleanup's request reached it, but the server process ended before the answer came back. When the cleanup went through a pool that the lifespan shutdown closes, it failed with `ConnectionError`.
 
-I tried two changes locally. Both pass the existing test suite:
+I tried two changes locally. With each, every collected test in the suite passes (the benchmark modules weren't collected, as I didn't install `pytest-codspeed`):
 
 1. `await asyncio.wait(self.server_state.tasks)` after the cancel loop. It closes the gap, but a request that suppresses its cancellation then hangs SIGTERM shutdown, and a second Ctrl+C no longer forces quit while it waits.
 2. Waiting for the cancelled tasks for at most another `timeout_graceful_shutdown`, and stopping on `force_exit` (polling like `_wait_tasks_to_complete`). It closes the gap for cleanup that fits in that window, and Uvicorn's own wait stays bounded. But the worst case becomes twice the configured timeout, cleanup that takes longer is still cut off, and `asyncio.run`'s teardown can still hang under SIGINT on a task that suppresses cancellation, as it does today.
