@@ -1,0 +1,52 @@
+candidate R; tortoise.backends.sqlite.client.SqliteTransactionWrapper source 5b73d8440546ae44
+part 1: tortoise_commit_translation.py's arms
+python 3.13.11, tortoise-orm 1.1.9, backend sqlite (aiosqlite 0.22.1, SQLite 3.54.1), Darwin arm64
+DeferredChild.create(parent_id=999) inside in_transaction()
+  create() returned; the block exits normally
+  raised tortoise.exceptions.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: sqlite3.IntegrityError
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    tortoise/backends/sqlite/client.py:208 __aexit__
+  rows in deferred_child with id=1: 0
+ImmediateChild.create(parent_id=999) inside in_transaction()
+  raised tortoise.exceptions.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: sqlite3.IntegrityError
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    tortoise/models.py:1408 create
+    tortoise/models.py:1178 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/sqlite/client.py:46 translate_exceptions_
+  rows in immediate_child with id=1: 0
+DeferredChild.get_or_create(id=2, defaults={'parent_id': 999})
+  returned created=False
+  rows in deferred_child with id=2: 0
+ImmediateChild.get_or_create(id=2, defaults={'parent_id': 999})
+  raised tortoise.exceptions.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: sqlite3.IntegrityError
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    tortoise/models.py:1297 get_or_create
+    tortoise/models.py:1310 _create_or_get
+    tortoise/models.py:1408 create
+    tortoise/models.py:1178 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/sqlite/client.py:46 translate_exceptions_
+  rows in immediate_child with id=2: 0
+part 2: a nested block inserts a row that violates the deferred foreign key; both blocks exit normally
+  the nested block exited normally
+  raised tortoise.exceptions.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: sqlite3.IntegrityError
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    tortoise/backends/sqlite/client.py:208 __aexit__
+  rows in deferred_child with id=3: 0

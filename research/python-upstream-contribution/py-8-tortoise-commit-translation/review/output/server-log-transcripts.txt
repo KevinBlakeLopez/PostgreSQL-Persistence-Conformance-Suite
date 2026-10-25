@@ -1,0 +1,140 @@
+py8-uoc-develop-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 9: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT; | ERROR 23505
+    tx 10: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 11: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 12: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 13: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT;
+    tx 14: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 15: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT;
+    tx 16: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-uoc-develop-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT | ERROR 23503
+    tx 3: 
+    tx 4: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 5: 
+    tx 6: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 9: 
+    tx 10: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT | ERROR 23505
+    tx 11: 
+    tx 12: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 13: 
+    tx 14: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT
+    tx 15: 
+    tx 16: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT
+    end: disconnection
+py8-uoc-branch-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 9: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 10: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 11: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT; | ERROR 23505
+    tx 12: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 13: SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2
+    tx 14: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 15: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT;
+    tx 16: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 17: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT;
+    tx 18: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 19: BEGIN; | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT;
+    tx 20: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 21: BEGIN; | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT;
+    tx 22: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-uoc-branch-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT | ERROR 23503
+    tx 3: 
+    tx 4: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 5: 
+    tx 6: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2
+    tx 9: 
+    tx 10: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 11: 
+    tx 12: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT | ERROR 23505
+    tx 13: 
+    tx 14: SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2
+    tx 15: 
+    tx 16: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT
+    tx 17: 
+    tx 18: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | COMMIT
+    tx 19: 
+    tx 20: BEGIN | INSERT INTO "item" ("code","parent_id","value") VALUES ($1,$2,$3) RETURNING "id" | COMMIT
+    tx 21: 
+    tx 22: BEGIN | SELECT "code","id","parent_id","value" FROM "item" WHERE "code"=$1 LIMIT $2 FOR UPDATE | UPDATE "item" SET "code"=$1,"parent_id"=$2,"value"=$3 WHERE "id"=$4 | COMMIT
+    end: disconnection
+py8-reuse-develop-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: SELECT 1
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT;
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 9: SELECT pg_backend_pid() AS v
+    tx 10: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-reuse-develop-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: SELECT 1
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT
+    tx 5: 
+    tx 6: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT
+    tx 9: 
+    tx 10: SELECT pg_backend_pid() AS v
+    end: disconnection
+py8-reuse-branch-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: SELECT 1
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT;
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 9: SELECT pg_backend_pid() AS v
+    tx 10: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-reuse-branch-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: SELECT 1
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT
+    tx 5: 
+    tx 6: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | SELECT pg_current_xact_id()::text AS v | INSERT INTO "reuse_item" ("parent_id") VALUES ($1) RETURNING "id" | COMMIT
+    tx 9: 
+    tx 10: SELECT pg_backend_pid() AS v
+    end: disconnection

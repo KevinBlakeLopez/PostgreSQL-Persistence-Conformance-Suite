@@ -1,0 +1,55 @@
+python 3.13.11, tortoise-orm 1.1.9, backend asyncpg (asyncpg 0.31.0), Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+DeferredChild.create(parent_id=999) inside in_transaction()
+  create() returned; the block exits normally
+  raised tortoise.exceptions.IntegrityError: insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: asyncpg.exceptions.ForeignKeyViolationError
+  __context__: asyncpg.exceptions.ForeignKeyViolationError
+  driver error code: 23503
+  raised through:
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/asyncpg/client.py:207 commit
+  pg_xact_status(757): aborted
+  rows in deferred_child with id=1: 0
+ImmediateChild.create(parent_id=999) inside in_transaction()
+  raised tortoise.exceptions.IntegrityError: insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: asyncpg.exceptions.ForeignKeyViolationError
+  __context__: asyncpg.exceptions.ForeignKeyViolationError
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1408 create
+    tortoise/models.py:1178 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/asyncpg/client.py:95 _translate_exceptions
+  pg_xact_status(758): aborted
+  rows in immediate_child with id=1: 0
+DeferredChild.get_or_create(id=2, defaults={'parent_id': 999})
+  raised tortoise.exceptions.IntegrityError: insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: asyncpg.exceptions.ForeignKeyViolationError
+  __context__: asyncpg.exceptions.ForeignKeyViolationError
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1297 get_or_create
+    tortoise/models.py:1309 _create_or_get
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/asyncpg/client.py:207 commit
+  rows in deferred_child with id=2: 0
+ImmediateChild.get_or_create(id=2, defaults={'parent_id': 999})
+  raised tortoise.exceptions.IntegrityError: insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: asyncpg.exceptions.ForeignKeyViolationError
+  __context__: asyncpg.exceptions.ForeignKeyViolationError
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1297 get_or_create
+    tortoise/models.py:1310 _create_or_get
+    tortoise/models.py:1408 create
+    tortoise/models.py:1178 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/asyncpg/client.py:95 _translate_exceptions
+  rows in immediate_child with id=2: 0

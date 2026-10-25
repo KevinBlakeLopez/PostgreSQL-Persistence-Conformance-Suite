@@ -1,0 +1,1221 @@
+2026-10-25 04:23:05.620 UTC [101] app=[unknown] vxid=5/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r1
+2026-10-25 04:23:05.622 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.623 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:05.624 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.624 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:05.625 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:05.625 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:05.625 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.625 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/2 xid=757 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:05.625 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid=5/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.628 UTC [101] app=py8-repro-branch-asyncpg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.018 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50752
+2026-10-25 04:23:05.639 UTC [102] app=[unknown] vxid=6/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r1
+2026-10-25 04:23:05.641 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.642 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=758 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=758 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=758 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=758 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/2 xid=758 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.643 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/0 xid=758 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:05.644 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid=6/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.646 UTC [102] app=py8-repro-branch-asyncpg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.015 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50754
+2026-10-25 04:23:05.657 UTC [103] app=[unknown] vxid=7/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r1
+2026-10-25 04:23:05.658 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.658 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.659 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.659 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=759 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=759 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=759 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.660 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/4 xid=759 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:05.661 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.661 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.661 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.662 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid=7/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.663 UTC [103] app=py8-repro-branch-asyncpg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50760
+2026-10-25 04:23:05.673 UTC [104] app=[unknown] vxid=8/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r1
+2026-10-25 04:23:05.674 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.674 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.675 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.675 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=760 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=760 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/4 xid=760 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.676 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/0 xid=760 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:05.677 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.677 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.677 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.678 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid=8/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.679 UTC [104] app=py8-repro-branch-asyncpg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50772
+2026-10-25 04:23:05.894 UTC [107] app=[unknown] vxid=11/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r2
+2026-10-25 04:23:05.895 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.896 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:05.897 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.897 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:05.898 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:05.898 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:05.898 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.898 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/2 xid=766 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:05.898 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid=11/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.900 UTC [107] app=py8-repro-branch-asyncpg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.015 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50798
+2026-10-25 04:23:05.911 UTC [108] app=[unknown] vxid=12/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r2
+2026-10-25 04:23:05.913 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.913 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:05.914 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=767 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.914 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=767 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:05.915 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=767 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:05.915 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=767 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.915 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/2 xid=767 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.915 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/0 xid=767 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:05.916 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid=12/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.917 UTC [108] app=py8-repro-branch-asyncpg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50808
+2026-10-25 04:23:05.928 UTC [109] app=[unknown] vxid=13/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r2
+2026-10-25 04:23:05.929 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.929 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.929 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.930 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.930 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.930 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:05.931 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=768 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:05.931 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=768 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:05.931 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=768 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.931 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/4 xid=768 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:05.931 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.932 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.932 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.932 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid=13/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.933 UTC [109] app=py8-repro-branch-asyncpg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50824
+2026-10-25 04:23:05.944 UTC [110] app=[unknown] vxid=14/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r2
+2026-10-25 04:23:05.945 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.945 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.946 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.946 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=769 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=769 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/4 xid=769 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:05.947 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/0 xid=769 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:05.948 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.948 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:05.948 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:05.949 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid=14/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:05.950 UTC [110] app=py8-repro-branch-asyncpg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50840
+2026-10-25 04:23:06.294 UTC [113] app=[unknown] vxid=17/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r3
+2026-10-25 04:23:06.295 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:06.296 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.297 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.297 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.298 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:06.298 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.298 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.298 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/2 xid=775 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:06.299 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid=17/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.301 UTC [113] app=py8-repro-branch-asyncpg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.016 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50860
+2026-10-25 04:23:06.313 UTC [114] app=[unknown] vxid=18/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r3
+2026-10-25 04:23:06.314 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:06.315 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.317 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=776 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.317 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=776 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.320 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=776 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.320 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=776 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.320 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/2 xid=776 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.320 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/0 xid=776 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:06.321 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid=18/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.324 UTC [114] app=py8-repro-branch-asyncpg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.019 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50864
+2026-10-25 04:23:06.336 UTC [115] app=[unknown] vxid=19/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r3
+2026-10-25 04:23:06.339 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.339 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.339 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.340 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:06.340 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.340 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.341 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=777 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:06.341 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=777 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.341 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=777 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.341 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/4 xid=777 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:06.341 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.342 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.342 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.342 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid=19/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.343 UTC [115] app=py8-repro-branch-asyncpg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.017 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50868
+2026-10-25 04:23:06.354 UTC [116] app=[unknown] vxid=20/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-asyncpg-r3
+2026-10-25 04:23:06.356 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.356 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.356 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.357 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:06.357 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.357 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.358 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=778 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.358 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=778 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.358 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/4 xid=778 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.358 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/0 xid=778 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:06.358 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.359 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.359 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.359 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid=20/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:06.360 UTC [116] app=py8-repro-branch-asyncpg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50878
+2026-10-25 04:23:06.552 UTC [119] app=[unknown] vxid=23/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r1
+2026-10-25 04:23:06.553 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.553 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.554 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.554 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.554 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.555 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:06.555 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.555 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.555 UTC [119] app=py8-repro-branch-psycopg-r1 vxid=23/3 xid=784 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:06.557 UTC [119] app=py8-repro-branch-psycopg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50902
+2026-10-25 04:23:06.561 UTC [120] app=[unknown] vxid=24/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r1
+2026-10-25 04:23:06.561 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.562 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.562 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=785 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=785 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=785 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=785 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/3 xid=785 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.563 UTC [120] app=py8-repro-branch-psycopg-r1 vxid=24/0 xid=785 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:06.565 UTC [120] app=py8-repro-branch-psycopg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50914
+2026-10-25 04:23:06.568 UTC [121] app=[unknown] vxid=25/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r1
+2026-10-25 04:23:06.569 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.570 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.570 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.570 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.570 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=786 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=786 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=786 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.571 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/5 xid=786 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:06.572 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.572 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.572 UTC [121] app=py8-repro-branch-psycopg-r1 vxid=25/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.573 UTC [121] app=py8-repro-branch-psycopg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50926
+2026-10-25 04:23:06.576 UTC [122] app=[unknown] vxid=26/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r1
+2026-10-25 04:23:06.577 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.577 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.577 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=787 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=787 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.578 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/5 xid=787 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.579 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/0 xid=787 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:06.579 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.580 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.580 UTC [122] app=py8-repro-branch-psycopg-r1 vxid=26/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.580 UTC [122] app=py8-repro-branch-psycopg-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50934
+2026-10-25 04:23:06.766 UTC [125] app=[unknown] vxid=29/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r2
+2026-10-25 04:23:06.767 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.767 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.768 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.768 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.768 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.769 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:06.769 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.769 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.769 UTC [125] app=py8-repro-branch-psycopg-r2 vxid=29/3 xid=793 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:06.771 UTC [125] app=py8-repro-branch-psycopg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50970
+2026-10-25 04:23:06.774 UTC [126] app=[unknown] vxid=30/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r2
+2026-10-25 04:23:06.775 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.775 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.775 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.776 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=794 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.776 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=794 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.776 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=794 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.776 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=794 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.776 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/3 xid=794 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.777 UTC [126] app=py8-repro-branch-psycopg-r2 vxid=30/0 xid=794 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:06.778 UTC [126] app=py8-repro-branch-psycopg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50986
+2026-10-25 04:23:06.781 UTC [127] app=[unknown] vxid=31/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r2
+2026-10-25 04:23:06.782 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.783 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.783 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.783 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.783 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=795 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=795 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=795 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.784 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/5 xid=795 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:06.785 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.785 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.785 UTC [127] app=py8-repro-branch-psycopg-r2 vxid=31/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.786 UTC [127] app=py8-repro-branch-psycopg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=50998
+2026-10-25 04:23:06.789 UTC [128] app=[unknown] vxid=32/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r2
+2026-10-25 04:23:06.790 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.791 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.791 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.791 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.791 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=796 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=796 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/5 xid=796 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/0 xid=796 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:06.792 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.793 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:06.793 UTC [128] app=py8-repro-branch-psycopg-r2 vxid=32/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:06.794 UTC [128] app=py8-repro-branch-psycopg-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51014
+2026-10-25 04:23:06.991 UTC [131] app=[unknown] vxid=35/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r3
+2026-10-25 04:23:06.991 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:06.992 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:06.992 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:06.993 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:06.993 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:06.993 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:06.994 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:06.994 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:06.994 UTC [131] app=py8-repro-branch-psycopg-r3 vxid=35/3 xid=802 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:06.996 UTC [131] app=py8-repro-branch-psycopg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51044
+2026-10-25 04:23:06.999 UTC [132] app=[unknown] vxid=36/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r3
+2026-10-25 04:23:07.000 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.000 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:07.001 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:07.001 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=803 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.001 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=803 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:07.002 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=803 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:07.002 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=803 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:07.002 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/3 xid=803 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.002 UTC [132] app=py8-repro-branch-psycopg-r3 vxid=36/0 xid=803 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:07.004 UTC [132] app=py8-repro-branch-psycopg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51058
+2026-10-25 04:23:07.007 UTC [133] app=[unknown] vxid=37/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r3
+2026-10-25 04:23:07.008 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.009 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:07.009 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:07.009 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.010 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:07.010 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.010 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:07.010 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=804 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=804 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=804 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/5 xid=804 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:07.011 UTC [133] app=py8-repro-branch-psycopg-r3 vxid=37/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:07.012 UTC [133] app=py8-repro-branch-psycopg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51072
+2026-10-25 04:23:07.016 UTC [134] app=[unknown] vxid=38/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-repro-branch-psycopg-r3
+2026-10-25 04:23:07.017 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.017 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:07.017 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:07.018 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.018 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=805 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=805 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/5 xid=805 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.019 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/0 xid=805 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:07.020 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:07.020 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:07.020 UTC [134] app=py8-repro-branch-psycopg-r3 vxid=38/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:07.021 UTC [134] app=py8-repro-branch-psycopg-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51086
+2026-10-25 04:23:07.574 UTC [137] app=[unknown] vxid=41/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-asyncpg-develop-r1
+2026-10-25 04:23:07.575 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:07.576 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:07.577 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:07.578 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:07.578 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:07.578 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.579 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.579 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:07.579 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:07.579 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:07.579 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.580 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.580 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:07.580 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.580 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/2 xid=811 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:07.581 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:07.584 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:07.584 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:07.585 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=813 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:07.585 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=813 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:07.585 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=813 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:07.586 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/4 xid=813 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:07.586 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid=41/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:07.587 UTC [137] app=py8-nested-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.022 user=postgres database=py8_nested_release host=172.17.0.1 port=51100
+2026-10-25 04:23:07.796 UTC [141] app=[unknown] vxid=44/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-asyncpg-develop-r2
+2026-10-25 04:23:07.798 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:07.799 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:07.800 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:07.801 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:07.801 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:07.801 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.802 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.802 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:07.802 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:07.802 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:07.802 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:07.803 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.803 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:07.803 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:07.803 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/2 xid=830 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:07.804 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:07.807 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:07.807 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:07.808 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=832 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:07.808 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=832 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:07.808 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=832 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:07.808 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/4 xid=832 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:07.809 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid=44/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:07.810 UTC [141] app=py8-nested-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.023 user=postgres database=py8_nested_release host=172.17.0.1 port=51128
+2026-10-25 04:23:08.012 UTC [144] app=[unknown] vxid=47/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-asyncpg-develop-r3
+2026-10-25 04:23:08.013 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.014 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.015 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.016 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.016 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:08.016 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:08.017 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.017 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT __asyncpg_savepoint_4__;
+2026-10-25 04:23:08.018 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/2 xid=838 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:08.019 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.022 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.023 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.023 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=840 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.023 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=840 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.023 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=840 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:08.024 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/4 xid=840 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:08.024 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid=47/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.025 UTC [144] app=py8-nested-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.021 user=postgres database=py8_nested_release host=172.17.0.1 port=51168
+2026-10-25 04:23:08.214 UTC [147] app=[unknown] vxid=50/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-psycopg-develop-r1
+2026-10-25 04:23:08.215 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.216 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.216 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.217 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.217 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.217 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:08.218 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:08.218 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.218 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:08.219 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=25P02 STATEMENT:  RELEASE "_pg3_2"
+2026-10-25 04:23:08.220 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/3 xid=846 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:08.224 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.225 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.225 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.225 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=848 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.226 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=848 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.226 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=848 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:08.226 UTC [147] app=py8-nested-psycopg-develop-r1 vxid=50/5 xid=848 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:08.228 UTC [147] app=py8-nested-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.016 user=postgres database=py8_nested_release host=172.17.0.1 port=51196
+2026-10-25 04:23:08.428 UTC [150] app=[unknown] vxid=53/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-psycopg-develop-r2
+2026-10-25 04:23:08.429 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.429 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.429 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.430 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.431 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.431 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:08.431 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:08.432 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=25P02 STATEMENT:  RELEASE "_pg3_2"
+2026-10-25 04:23:08.433 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/3 xid=854 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:08.436 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.436 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.436 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.437 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=856 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.437 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=856 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.437 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=856 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:08.438 UTC [150] app=py8-nested-psycopg-develop-r2 vxid=53/5 xid=856 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:08.439 UTC [150] app=py8-nested-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=py8_nested_release host=172.17.0.1 port=51220
+2026-10-25 04:23:08.633 UTC [153] app=[unknown] vxid=56/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_nested_release application_name=py8-nested-psycopg-develop-r3
+2026-10-25 04:23:08.634 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.634 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.635 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.635 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.636 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.636 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'outer write'
+2026-10-25 04:23:08.636 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-25 04:23:08.637 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=25P02 STATEMENT:  RELEASE "_pg3_2"
+2026-10-25 04:23:08.638 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/3 xid=862 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:08.640 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:08.641 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.641 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS v
+2026-10-25 04:23:08.641 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=864 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:08.642 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=864 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "note" ("id","body") VALUES ($1,$2)
+2026-10-25 04:23:08.642 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=864 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = 'follow-up'
+2026-10-25 04:23:08.642 UTC [153] app=py8-nested-psycopg-develop-r3 vxid=56/5 xid=864 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:08.644 UTC [153] app=py8-nested-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=py8_nested_release host=172.17.0.1 port=51242
+2026-10-25 04:23:08.845 UTC [156] app=[unknown] vxid=59/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.846 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.847 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:08.848 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.848 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.848 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:08.849 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:08.849 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.849 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/2 xid=870 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:08.849 UTC [156] app=py8-after-asyncpg-develop-r1 vxid=59/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.851 UTC [156] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51258
+2026-10-25 04:23:08.862 UTC [157] app=[unknown] vxid=60/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.863 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.863 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:08.864 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=871 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.864 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=871 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:08.865 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=871 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.865 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=871 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.865 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/2 xid=871 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.865 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/0 xid=871 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:08.865 UTC [157] app=py8-after-asyncpg-develop-r1 vxid=60/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.867 UTC [157] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51264
+2026-10-25 04:23:08.877 UTC [158] app=[unknown] vxid=61/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.879 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:08.879 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:08.879 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.880 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.880 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.880 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:08.881 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=872 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:08.881 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=872 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:08.881 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=872 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.881 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/4 xid=872 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:08.881 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.882 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:08.882 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:08.882 UTC [158] app=py8-after-asyncpg-develop-r1 vxid=61/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.883 UTC [158] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51272
+2026-10-25 04:23:08.894 UTC [159] app=[unknown] vxid=62/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.896 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:08.896 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:08.896 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.897 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=873 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=873 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/4 xid=873 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.898 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/0 xid=873 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:08.899 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.899 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:08.899 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:08.899 UTC [159] app=py8-after-asyncpg-develop-r1 vxid=62/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.900 UTC [159] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51284
+2026-10-25 04:23:08.942 UTC [162] app=[unknown] vxid=65/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.943 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.943 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:08.944 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:08.944 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=879 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=879 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=879 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=879 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/2 xid=879 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:08.945 UTC [162] app=py8-after-asyncpg-develop-r1 vxid=65/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.946 UTC [162] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.012 user=postgres database=py8_part2 host=172.17.0.1 port=51308
+2026-10-25 04:23:08.984 UTC [166] app=[unknown] vxid=69/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:08.984 UTC [166] app=py8-competitor vxid=69/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:08.985 UTC [166] app=py8-competitor vxid=69/2 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:08.994 UTC [167] app=[unknown] vxid=70/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-asyncpg-develop-r1
+2026-10-25 04:23:08.996 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:08.996 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:08.996 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:08.997 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:08.997 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:08.997 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:08.998 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=885 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.039 UTC [166] app=py8-competitor vxid=69/2 xid=884 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:09.039 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=885 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:09.039 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=885 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:09.039 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/4 xid=885 sqlstate=23505 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.039 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.040 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:09.040 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:09.041 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.042 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.042 UTC [166] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.060 user=postgres database=py8_after_change host=172.17.0.1 port=51344
+2026-10-25 04:23:09.042 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:09.043 UTC [167] app=py8-after-asyncpg-develop-r1 vxid=70/8 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:09.043 UTC [167] app=py8-after-asyncpg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.056 user=postgres database=py8_after_change host=172.17.0.1 port=51352
+2026-10-25 04:23:09.243 UTC [170] app=[unknown] vxid=73/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.245 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.246 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.247 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/2 xid=891 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.248 UTC [170] app=py8-after-asyncpg-develop-r2 vxid=73/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.250 UTC [170] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51388
+2026-10-25 04:23:09.260 UTC [171] app=[unknown] vxid=74/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.262 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.262 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:09.263 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=892 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.263 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=892 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:09.264 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=892 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:09.264 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=892 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.264 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/2 xid=892 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.264 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/0 xid=892 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:09.265 UTC [171] app=py8-after-asyncpg-develop-r2 vxid=74/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.266 UTC [171] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51390
+2026-10-25 04:23:09.276 UTC [172] app=[unknown] vxid=75/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.278 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.278 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.278 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.279 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.279 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.279 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:09.280 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=893 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.280 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=893 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.280 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=893 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.280 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/4 xid=893 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.280 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.281 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "parent_id","id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.281 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.281 UTC [172] app=py8-after-asyncpg-develop-r2 vxid=75/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.282 UTC [172] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51404
+2026-10-25 04:23:09.292 UTC [173] app=[unknown] vxid=76/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.293 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.293 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.294 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.294 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=894 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=894 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/4 xid=894 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/0 xid=894 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:09.295 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.296 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "parent_id","id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.296 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.296 UTC [173] app=py8-after-asyncpg-develop-r2 vxid=76/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.297 UTC [173] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51410
+2026-10-25 04:23:09.337 UTC [176] app=[unknown] vxid=79/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.338 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.338 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:09.339 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.339 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:09.339 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=900 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:09.340 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=900 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.340 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=900 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.340 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=900 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.340 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/2 xid=900 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.341 UTC [176] app=py8-after-asyncpg-develop-r2 vxid=79/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.341 UTC [176] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.012 user=postgres database=py8_part2 host=172.17.0.1 port=51430
+2026-10-25 04:23:09.380 UTC [180] app=[unknown] vxid=83/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:09.381 UTC [180] app=py8-competitor vxid=83/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:09.381 UTC [180] app=py8-competitor vxid=83/2 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:09.392 UTC [181] app=[unknown] vxid=84/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-asyncpg-develop-r2
+2026-10-25 04:23:09.395 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:09.395 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:09.395 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.396 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.396 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:09.396 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:09.397 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=906 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.436 UTC [180] app=py8-competitor vxid=83/2 xid=905 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:09.436 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=906 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:09.436 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=906 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:09.436 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/4 xid=906 sqlstate=23505 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.437 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.437 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:09.437 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:09.438 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.439 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.439 UTC [180] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.060 user=postgres database=py8_after_change host=172.17.0.1 port=51484
+2026-10-25 04:23:09.440 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:09.441 UTC [181] app=py8-after-asyncpg-develop-r2 vxid=84/8 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:09.441 UTC [181] app=py8-after-asyncpg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.057 user=postgres database=py8_after_change host=172.17.0.1 port=51486
+2026-10-25 04:23:09.645 UTC [184] app=[unknown] vxid=87/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.646 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.647 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.648 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/2 xid=912 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.649 UTC [184] app=py8-after-asyncpg-develop-r3 vxid=87/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.651 UTC [184] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51498
+2026-10-25 04:23:09.662 UTC [185] app=[unknown] vxid=88/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.663 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.663 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:09.664 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=913 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.664 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=913 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:09.665 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=913 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:09.665 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=913 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.665 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/2 xid=913 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.665 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/0 xid=913 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:09.665 UTC [185] app=py8-after-asyncpg-develop-r3 vxid=88/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.667 UTC [185] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51506
+2026-10-25 04:23:09.678 UTC [186] app=[unknown] vxid=89/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.679 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.679 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.680 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.680 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=914 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=914 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=914 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.681 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/4 xid=914 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.682 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.682 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.682 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.683 UTC [186] app=py8-after-asyncpg-develop-r3 vxid=89/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.684 UTC [186] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.014 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51520
+2026-10-25 04:23:09.694 UTC [187] app=[unknown] vxid=90/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.696 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.696 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.696 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.696 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.697 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.697 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:09.697 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=915 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:09.697 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=915 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.697 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/4 xid=915 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.698 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/0 xid=915 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 04:23:09.698 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.698 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:09.698 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:09.699 UTC [187] app=py8-after-asyncpg-develop-r3 vxid=90/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.700 UTC [187] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=51536
+2026-10-25 04:23:09.739 UTC [190] app=[unknown] vxid=93/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.740 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.741 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:09.741 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:09.741 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:09.742 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=921 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT __asyncpg_savepoint_9__;
+2026-10-25 04:23:09.742 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=921 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.742 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=921 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:09.742 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=921 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:09.742 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/2 xid=921 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.743 UTC [190] app=py8-after-asyncpg-develop-r3 vxid=93/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.743 UTC [190] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.012 user=postgres database=py8_part2 host=172.17.0.1 port=51568
+2026-10-25 04:23:09.782 UTC [194] app=[unknown] vxid=97/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:09.782 UTC [194] app=py8-competitor vxid=97/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:09.783 UTC [194] app=py8-competitor vxid=97/2 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:09.793 UTC [195] app=[unknown] vxid=98/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-asyncpg-develop-r3
+2026-10-25 04:23:09.794 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:09.794 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:09.795 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.795 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.796 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:09.796 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:09.796 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=927 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 04:23:09.836 UTC [194] app=py8-competitor vxid=97/2 xid=926 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:09.837 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=927 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:09.837 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=927 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:09.837 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/4 xid=927 sqlstate=23505 STATEMENT:  COMMIT;
+2026-10-25 04:23:09.837 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.838 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:09.838 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:09.838 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 04:23:09.839 UTC [194] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.060 user=postgres database=py8_after_change host=172.17.0.1 port=51616
+2026-10-25 04:23:09.840 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 04:23:09.840 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:09.841 UTC [195] app=py8-after-asyncpg-develop-r3 vxid=98/8 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:09.841 UTC [195] app=py8-after-asyncpg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.056 user=postgres database=py8_after_change host=172.17.0.1 port=51620
+2026-10-25 04:23:20.081 UTC [198] app=[unknown] vxid=1/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.082 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.083 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.083 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.084 UTC [198] app=py8-after-psycopg-develop-r1 vxid=1/6 xid=933 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.087 UTC [198] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34066
+2026-10-25 04:23:20.090 UTC [199] app=[unknown] vxid=2/3 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.091 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.091 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=934 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=934 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=934 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=934 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.092 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/5 xid=934 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.093 UTC [199] app=py8-after-psycopg-develop-r1 vxid=2/0 xid=934 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.095 UTC [199] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34078
+2026-10-25 04:23:20.098 UTC [200] app=[unknown] vxid=5/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.099 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.099 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.099 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.100 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.100 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=935 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=935 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=935 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/8 xid=935 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.101 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.102 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.102 UTC [200] app=py8-after-psycopg-develop-r1 vxid=5/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.103 UTC [200] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34090
+2026-10-25 04:23:20.106 UTC [201] app=[unknown] vxid=6/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.107 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.107 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.107 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.107 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=936 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=936 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.108 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/8 xid=936 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.109 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/0 xid=936 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.109 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.110 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.110 UTC [201] app=py8-after-psycopg-develop-r1 vxid=6/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.111 UTC [201] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34102
+2026-10-25 04:23:20.142 UTC [204] app=[unknown] vxid=4/11 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.143 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/12 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.143 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.143 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:20.144 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.144 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:20.144 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=942 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:20.145 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=942 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.145 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=942 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.145 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=942 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.145 UTC [204] app=py8-after-psycopg-develop-r1 vxid=4/13 xid=942 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.145 UTC [204] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=py8_part2 host=172.17.0.1 port=34126
+2026-10-25 04:23:20.184 UTC [208] app=[unknown] vxid=13/8 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:20.185 UTC [208] app=py8-competitor vxid=13/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.185 UTC [208] app=py8-competitor vxid=13/9 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:20.189 UTC [209] app=[unknown] vxid=14/8 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.190 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.191 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","code" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.191 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.191 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/11 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.192 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.192 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:20.192 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:20.192 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=948 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.239 UTC [208] app=py8-competitor vxid=13/9 xid=947 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.239 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=948 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:20.239 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=948 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:20.239 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/12 xid=948 sqlstate=23505 STATEMENT:  COMMIT
+2026-10-25 04:23:20.240 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/13 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.240 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/14 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","code" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.240 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/14 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.242 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/15 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.242 UTC [208] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.059 user=postgres database=py8_after_change host=172.17.0.1 port=34150
+2026-10-25 04:23:20.242 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/16 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.242 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/16 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:20.243 UTC [209] app=py8-after-psycopg-develop-r1 vxid=14/16 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:20.243 UTC [209] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.055 user=postgres database=py8_after_change host=172.17.0.1 port=34160
+2026-10-25 04:23:20.248 UTC [210] app=[unknown] vxid=10/11 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r1
+2026-10-25 04:23:20.249 UTC [210] app=py8-after-psycopg-develop-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.003 user=postgres database=py8_after_change host=172.17.0.1 port=34174
+2026-10-25 04:23:20.435 UTC [213] app=[unknown] vxid=18/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.435 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.436 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.436 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.437 UTC [213] app=py8-after-psycopg-develop-r2 vxid=18/6 xid=954 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.439 UTC [213] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34200
+2026-10-25 04:23:20.443 UTC [214] app=[unknown] vxid=19/8 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.443 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.444 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.444 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=955 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=955 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=955 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=955 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/10 xid=955 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.445 UTC [214] app=py8-after-psycopg-develop-r2 vxid=19/0 xid=955 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.447 UTC [214] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34206
+2026-10-25 04:23:20.450 UTC [215] app=[unknown] vxid=20/8 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.451 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.451 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.451 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.452 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/11 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.452 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.452 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.452 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.453 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=956 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.453 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=956 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.453 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=956 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.453 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/12 xid=956 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.453 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/13 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.454 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/14 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.454 UTC [215] app=py8-after-psycopg-develop-r2 vxid=20/14 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.455 UTC [215] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34220
+2026-10-25 04:23:20.458 UTC [216] app=[unknown] vxid=16/11 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.459 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/12 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.459 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.459 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.459 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/14 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=957 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=957 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.460 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/15 xid=957 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.461 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/0 xid=957 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.461 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/16 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.461 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/17 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.461 UTC [216] app=py8-after-psycopg-develop-r2 vxid=16/17 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.462 UTC [216] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34232
+2026-10-25 04:23:20.500 UTC [219] app=[unknown] vxid=24/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.501 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.501 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.501 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:20.502 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.502 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:20.502 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=963 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:20.502 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=963 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.503 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=963 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.503 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=963 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.503 UTC [219] app=py8-after-psycopg-develop-r2 vxid=24/6 xid=963 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.503 UTC [219] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=py8_part2 host=172.17.0.1 port=34264
+2026-10-25 04:23:20.538 UTC [223] app=[unknown] vxid=21/6 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:20.539 UTC [223] app=py8-competitor vxid=21/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.539 UTC [223] app=py8-competitor vxid=21/7 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:20.543 UTC [224] app=[unknown] vxid=29/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.544 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.545 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.545 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.545 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.545 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.546 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:20.546 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:20.546 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=969 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.593 UTC [223] app=py8-competitor vxid=21/7 xid=968 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.593 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=969 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:20.593 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=969 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:20.593 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/8 xid=969 sqlstate=23505 STATEMENT:  COMMIT
+2026-10-25 04:23:20.594 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.594 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.594 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.595 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/11 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.595 UTC [223] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.059 user=postgres database=py8_after_change host=172.17.0.1 port=34284
+2026-10-25 04:23:20.595 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/12 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.596 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/12 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:20.596 UTC [224] app=py8-after-psycopg-develop-r2 vxid=29/12 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:20.596 UTC [224] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.055 user=postgres database=py8_after_change host=172.17.0.1 port=34294
+2026-10-25 04:23:20.601 UTC [225] app=[unknown] vxid=30/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r2
+2026-10-25 04:23:20.602 UTC [225] app=py8-after-psycopg-develop-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.003 user=postgres database=py8_after_change host=172.17.0.1 port=34306
+2026-10-25 04:23:20.788 UTC [228] app=[unknown] vxid=28/11 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.788 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/12 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.789 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.789 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.790 UTC [228] app=py8-after-psycopg-develop-r3 vxid=28/13 xid=975 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.792 UTC [228] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34324
+2026-10-25 04:23:20.795 UTC [229] app=[unknown] vxid=27/6 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.796 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.796 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.797 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_current_xact_id()::text AS xid
+2026-10-25 04:23:20.797 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=976 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.797 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=976 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = '999'
+2026-10-25 04:23:20.798 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=976 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.798 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=976 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.798 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/8 xid=976 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.798 UTC [229] app=py8-after-psycopg-develop-r3 vxid=27/0 xid=976 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.799 UTC [229] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34330
+2026-10-25 04:23:20.803 UTC [230] app=[unknown] vxid=35/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.804 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.804 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.804 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.804 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.805 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.805 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.805 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.805 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=977 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=977 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=977 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/8 xid=977 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.806 UTC [230] app=py8-after-psycopg-develop-r3 vxid=35/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.807 UTC [230] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34342
+2026-10-25 04:23:20.811 UTC [231] app=[unknown] vxid=36/4 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=tortoise_commit_translation application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.812 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/5 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.813 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.813 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.813 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.813 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '999'
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=978 sqlstate=23503 ERROR:  insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=978 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/8 xid=978 sqlstate=23503 STATEMENT:  INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.814 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/0 xid=978 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 04:23:20.815 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.815 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+2026-10-25 04:23:20.815 UTC [231] app=py8-after-psycopg-develop-r3 vxid=36/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '2', $2 = '2'
+2026-10-25 04:23:20.816 UTC [231] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=tortoise_commit_translation host=172.17.0.1 port=34346
+2026-10-25 04:23:20.848 UTC [234] app=[unknown] vxid=34/11 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_part2 application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.849 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/12 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.849 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.849 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_2"
+2026-10-25 04:23:20.850 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2)
+2026-10-25 04:23:20.850 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '3', $2 = '999'
+2026-10-25 04:23:20.850 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=984 sqlstate=00000 LOG:  statement: RELEASE "_pg3_2"
+2026-10-25 04:23:20.851 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=984 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.851 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=984 sqlstate=23503 ERROR:  insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+2026-10-25 04:23:20.851 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=984 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 04:23:20.851 UTC [234] app=py8-after-psycopg-develop-r3 vxid=34/13 xid=984 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 04:23:20.851 UTC [234] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=py8_part2 host=172.17.0.1 port=34378
+2026-10-25 04:23:20.893 UTC [238] app=[unknown] vxid=39/5 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-competitor
+2026-10-25 04:23:20.894 UTC [238] app=py8-competitor vxid=39/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.894 UTC [238] app=py8-competitor vxid=39/6 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO deferred_unique (id, code) VALUES (100, 'X')
+2026-10-25 04:23:20.898 UTC [239] app=[unknown] vxid=44/6 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.899 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/7 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.899 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.899 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.900 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/9 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.900 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.900 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2)
+2026-10-25 04:23:20.900 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '101', $2 = 'X'
+2026-10-25 04:23:20.901 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=990 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.947 UTC [238] app=py8-competitor vxid=39/6 xid=989 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 04:23:20.947 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=990 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "deferred_unique_code_key"
+2026-10-25 04:23:20.947 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=990 sqlstate=23505 DETAIL:  Key (code)=(X) already exists.
+2026-10-25 04:23:20.947 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/10 xid=990 sqlstate=23505 STATEMENT:  COMMIT
+2026-10-25 04:23:20.947 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/11 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.948 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+2026-10-25 04:23:20.948 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'X', $2 = '2'
+2026-10-25 04:23:20.949 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/13 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 04:23:20.949 UTC [238] app=py8-competitor vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.058 user=postgres database=py8_after_change host=172.17.0.1 port=34408
+2026-10-25 04:23:20.949 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/14 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 04:23:20.950 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/14 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 04:23:20.950 UTC [239] app=py8-after-psycopg-develop-r3 vxid=44/14 xid=0 sqlstate=57P01 FATAL:  terminating connection due to administrator command
+2026-10-25 04:23:20.950 UTC [239] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.054 user=postgres database=py8_after_change host=172.17.0.1 port=34414
+2026-10-25 04:23:20.955 UTC [240] app=[unknown] vxid=43/10 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_after_change application_name=py8-after-psycopg-develop-r3
+2026-10-25 04:23:20.956 UTC [240] app=py8-after-psycopg-develop-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.003 user=postgres database=py8_after_change host=172.17.0.1 port=34422

@@ -1,0 +1,44 @@
+py8-reuse-develop-asyncpg-explicit: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT;
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-reuse-develop-psycopg-explicit: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT | ERROR 23503
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT
+    tx 5: 
+    tx 6: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT
+    end: disconnection
+py8-reuse-branch-asyncpg-explicit: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT; | ERROR 23503
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT;
+    tx 8: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-reuse-branch-psycopg-explicit: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT | ERROR 23503
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT
+    tx 5: 
+    tx 6: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT | ERROR 23503
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id" | COMMIT
+    end: disconnection

@@ -1,0 +1,29 @@
+tortoise from: branch; b6707e5c369c7e21 is the wrapper's source digest
+1. a block that writes and commits
+  released to the pool: same backend PID as step 1: True; same driver connection object: True; transaction_status=IDLE, open Transaction contexts=0
+  pg_xact_status: committed
+2. a block whose COMMIT fails on the deferred foreign key
+  raised tortoise.exceptions.IntegrityError: insert or update on table "reuse_item" violates foreign key constraint "reuse_item_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: 23503
+  raised through:
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:268 commit
+  released to the pool: same backend PID as step 1: True; same driver connection object: True; transaction_status=IDLE, open Transaction contexts=0
+  Tortoise's rollback() calls during the block: 0
+  pg_xact_status: aborted
+  same backend PID as step 1, read inside the block: True
+3. pg_stat_activity for that backend, read by a separate connection
+  state='idle', no transaction start=True, no transaction ID=True
+4. an independent block that writes and commits
+  released to the pool: same backend PID as step 1: True; same driver connection object: True; transaction_status=IDLE, open Transaction contexts=0
+  same backend PID as step 1, read inside the block: True
+  pg_xact_status: committed
+  its row is visible to the separate connection: True
+5. a plain query outside any block
+  released to the pool: same backend PID as step 1: True; same driver connection object: True; transaction_status=IDLE, open Transaction contexts=0
+  same backend PID as step 1: True
+  Tortoise's rollback() calls in all: 0
+  log records: 0

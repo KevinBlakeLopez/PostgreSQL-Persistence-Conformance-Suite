@@ -17,7 +17,7 @@ Nothing here changes an adapter, the harness, a specification, or a recorded res
 | Server | PostgreSQL 18.6, `postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336` (PPCS's pinned digest). A throwaway container, `ppcs-gap-probe-pg`, on `127.0.0.1:55483`, with a tmpfs data directory, `log_statement=all`, and `cluster_name=ppcs-gap-probe`. Not `ppcs-postgres` |
 | Server settings that matter | `synchronous_commit` on; `statement_timeout`, `idle_in_transaction_session_timeout`, and `client_connection_check_interval` all 0; `deadlock_timeout` 1 s; `default_transaction_isolation` read committed |
 | Host | macOS arm64, colima (aarch64 VM), Python 3.13.11 |
-| Main virtualenv | asyncpg 0.32.0, SQLAlchemy 2.1.5, greenlet 3.5.6, psycopg 3.3.6 (binary implementation, libpq 18.0.6), psycopg-pool 3.3.3, Django 6.1.2, tortoise-orm 1.1.9 (pypika-tortoise 0.6.5), anyio 4.15.1. Installed with `pip install --only-binary=:all:` |
+| Main virtualenv | asyncpg 0.32.0, SQLAlchemy 2.1.5, greenlet 3.5.6, psycopg 3.3.6 (binary implementation, libpq 18.6; corrected 2026-10-24 from "18.0.6", a misreading of psycopg's `180006`), psycopg-pool 3.3.3, Django 6.1.2, tortoise-orm 1.1.9 (pypika-tortoise 0.6.5), anyio 4.15.1. Installed with `pip install --only-binary=:all:` |
 | Second virtualenv | The same packages, with SQLAlchemy 2.1.6, released 2026-10-21. Used only for `output/p3c-sa216.jsonl` |
 
 These are PPCS's pinned versions for Django, SQLAlchemy, psycopg, Tortoise and asyncpg. psycopg-pool and anyio are not PPCS dependencies.

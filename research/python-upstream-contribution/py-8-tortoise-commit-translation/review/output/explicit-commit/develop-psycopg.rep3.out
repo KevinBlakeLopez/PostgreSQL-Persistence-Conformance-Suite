@@ -1,0 +1,22 @@
+tortoise from: develop; bb64129415e770df is the wrapper's source digest
+(a) conn.commit() inside the block fails; the block does not catch it
+  the block raised:
+  raised builtins.RuntimeError: generator didn't stop after athrow()
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: None
+  raised through:
+    tortoise/backends/base/client.py:379 __aexit__
+    tortoise/backends/psycopg/client.py:275 rollback
+    contextlib.py:271 __aexit__
+  backend state after the block: 'idle'
+  rows with label 'a': 0
+  follow-up block: same backend as the arm: True; backend state after it 'idle'; its row committed: True
+(b) conn.commit() inside the block fails; the block catches the error and exits normally
+  conn.commit() raised psycopg.errors.ForeignKeyViolation; the block catches it
+  the block exited normally
+  backend state after the block: 'idle'
+  rows with label 'b': 0
+  follow-up block: same backend as the arm: True; backend state after it 'idle'; its row committed: True
+log records: 0

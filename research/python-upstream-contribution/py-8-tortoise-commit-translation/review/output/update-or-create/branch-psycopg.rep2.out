@@ -1,0 +1,36 @@
+tortoise from: branch; b6707e5c369c7e21 is the wrapper's source digest
+1. update path: update_or_create(code='A', defaults={'parent_id': 999}); 'A' exists
+  raised tortoise.exceptions.IntegrityError: insert or update on table "item" violates foreign key constraint "item_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1369 update_or_create
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:268 commit
+  rows with code 'A' (id, parent_id, value): [(1, 1, 1)]
+2. create path: update_or_create(code='B', defaults={'parent_id': 999, 'value': 1})
+  raised tortoise.exceptions.IntegrityError: insert or update on table "item" violates foreign key constraint "item_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1376 update_or_create
+    tortoise/models.py:1309 _create_or_get
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:268 commit
+  rows with code 'B' (id, parent_id, value): []
+3. race: a competitor's uncommitted row holds code 'C'
+  the competitor's row has id 3
+  update_or_create() waits: Lock/transactionid on 'COMMIT'
+  the competitor committed
+  update_or_create(code='C', defaults={'value': 2, 'parent_id': 1})
+  returned created=False, id=3, parent_id=1, value=2
+  rows with code 'C' (id, parent_id, value): [(3, 1, 2)]
+4. control: update_or_create(code='D', defaults={'value': 1, 'parent_id': 1})
+  returned created=True, id=5, parent_id=1, value=1
+   then update_or_create(code='D', defaults={'value': 2})
+  returned created=False, id=5, parent_id=1, value=2
+  rows with code 'D' (id, parent_id, value): [(5, 1, 2)]

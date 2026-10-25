@@ -10,7 +10,22 @@ import pg from 'pg'
 import { errInfo } from '../node-kit/util.mjs'
 
 const CONTRACT = 'drizzle-orm PgDialect.migrate (pg-core/dialect.js) creates the history table, reads the latest created_at, then runs every pending migration\'s statements and the history insert inside one session.transaction. There is no advisory lock. The migrator has no reversal.'
-const FORM = 'migrate() from drizzle-orm/node-postgres/migrator, migrationsSchema public and migrationsTable drizzle_migrations, so the runner can count that identifier. The generated SQL inserts the marker and waits on pg_advisory_xact_lock inside the migrator transaction.'
+const FORM = 'migrate() from drizzle-orm/node-postgres/migrator, migrationsSchema public and migrationsTable drizzle_migrations, so the runner can count that identifier. The generated SQL inserts the marker and waits on pg_advisory_xact_lock inside the migrator transaction. A DrizzleQueryError is recorded with its class, the SQLSTATE of its cause, and a message the adapter composes from the failed statement and the cause\'s message.'
+
+// DrizzleQueryError's message is "Failed query: <sql>\nparams: <params>", and the history table's DDL starts on a new line,
+// so errInfo's first line would be "Failed query: " alone. The PostgreSQL error is the cause.
+function migrateError(error) {
+  const cause = error?.cause
+  if (typeof error?.query !== 'string' || !cause) return errInfo(error)
+  const query = error.query.replace(/\s+/g, ' ').trim()
+  const statement = query.length > 160 ? `${query.slice(0, 160)}…` : query
+  const reason = String(cause.message ?? cause).split('\n')[0]
+  return {
+    class: error.constructor?.name ?? 'Error',
+    code: cause.code ?? null,
+    message: `Failed query: ${statement}; cause ${cause.constructor?.name ?? 'Error'}: ${reason}`.slice(0, 300),
+  }
+}
 
 function sqlFor(marker, gate, hold) {
   const insert = `INSERT INTO item (name) VALUES ('${String(marker).replaceAll("'", "''")}');`
@@ -71,7 +86,7 @@ export async function runDrizzleMigration(connection, { markers, migration, mode
       basis: 'migrate() threw',
       contract: CONTRACT,
       form: FORM,
-      api_error: errInfo(error),
+      api_error: migrateError(error),
     }
   } finally {
     await pool.end().catch(() => {})
