@@ -33,10 +33,10 @@ Investigation date: 2026-10-24. Written by: Claude Opus 5.5 (max).
   - **A poisoned connection on default settings** (`autoCommit=true`, `readOnly=false`). A read-only report that logs `getSchema()` after its `commit()` leaves the connection with autocommit off and read-only on.
     - Each of three later borrowers has its insert fail (`25006`, then `25P02`).
     - HikariCP's alive check passes every time.
-- **Versions.** Reproduced with an unchanged single-file program on HikariCP 4.0.3, 5.1.0, 6.3.3, 7.0.2 and 7.1.0 (identical output). `dev` is unchanged.
-- **A one-line correction is validated.** When the rollback or reset throws, mark the entry evicted.
-  - **The probes:** with the fix, every failing scenario hands the next borrower a fresh connection with the pool's defaults. Both controls produce byte-identical output with and without the fix.
-  - **A new regression test** in HikariCP's own suite fails on 7.1.0 and passes with the change. The rest of the suite is unchanged.
+- **Versions.** Two unchanged single-file programs, the SERIALIZABLE case and the default-configuration read-only case, each give identical output on HikariCP 4.0.3, 5.1.0, 6.3.3, 7.0.2 and 7.1.0. `dev` is unchanged.
+- **A small correction is validated** (revised 2026-10-25, §18). Mark the entry evicted unless its cleanup completed. Revision 1's one-line version, inside the `SQLException` catch, missed unchecked exceptions.
+  - **The probes:** with either version, every failing scenario hands the next borrower a fresh connection with the pool's defaults. Both controls produce byte-identical output with and without the fix.
+  - **Two new regression tests** in HikariCP's own suite fail on 7.1.0 and pass with the change. The suite result for HikariCP's default test selection is in §18.
   - **A configuration-only workaround works today:** an `SQLExceptionOverride` that evicts on `25001`.
 - **Prior art.** In 2017 (#1009) HikariCP's maintainer wrote that the reset calls should not fail in a way that avoids eviction, and asked for a concrete example. This is one. The draft issue is [`upstream-drafts/hikaricp-failed-reset-recycled.md`](upstream-drafts/hikaricp-failed-reset-recycled.md).
 
@@ -282,24 +282,24 @@ Line numbers are HikariCP 7.1.0's (Src):
 6. **Transition to available.** `HikariPool.recycle()` (434–449) returns the entry to the bag unless it is marked evicted.
 7. **The earliest incorrect transition** is the `finally` recycling an entry whose reset did not complete. The missing commit-state mark is the trigger, not the defect.
 8. **Invalidation should have occurred.** After a reset step fails, the connection's state is unknown, while the next proxy will assume the pool's defaults.
-9. **The smallest correction is one line,** `poolEntry.markEvicted()` in the `catch` before rethrowing ([`hikari/patch/hikaricp-7.1.0-evict-on-failed-reset.diff`](hikari/patch/hikaricp-7.1.0-evict-on-failed-reset.diff)).
+9. **The smallest correction** (revised 2026-10-25, §18) marks the entry evicted in `finally` unless the cleanup completed ([`hikari/patch/hikaricp-7.1.0-evict-unless-reset.diff`](hikari/patch/hikaricp-7.1.0-evict-unless-reset.diff)). Revision 1 was one line, `poolEntry.markEvicted()` in the `catch` before rethrowing ([`hikari/patch/hikaricp-7.1.0-evict-on-failed-reset.diff`](hikari/patch/hikaricp-7.1.0-evict-on-failed-reset.diff)). It misses unchecked exceptions.
    - **The API stays the same,** and the application is still told: `close()` still throws.
    - **There is no database-specific logic.** The maintainer's objection in #1633 was to "injecting database specific logic into the pool".
    - **Complementary, not a substitute:** mark the commit state dirty in `getSchema()`, `setSchema()` and `setSavepoint()`, as #866 did for `getMetaData()`. That removes the known triggers, but not the recycling.
    - **Not proposed:** an unconditional `ROLLBACK` or `DISCARD ALL` on return. It would conflict with HikariCP's deliberate avoidance of unneeded rollbacks, and with session state users keep on purpose.
 10. **Regression tests:**
-    - **Added and run:** `ConnectionStateTest.testConnectionIsNotReusedWhenStateResetFails`, on `StubConnection`. It fails on 7.1.0 and passes with the change.
+    - **Added and run:** `ConnectionStateTest.testConnectionIsNotReusedWhenStateResetFails`, on `StubConnection`. It fails on 7.1.0 and passes with either version of the change. A second test, `…StateResetThrowsUncheckedException` (§18), fails on 7.1.0 and with revision 1, and passes with the completion flag.
     - **Suggested:** a PostgreSQL integration test with the `getSchema()` trigger.
     - **For pgjdbc:** `getSchema()` and `setSchema()` should leave the transaction state `IDLE` in non-autocommit mode.
 
 ### 8.4 The correction, validated
 
 - **Probes with the fix.** The fix was overlaid on the released 7.1.0 jar; the JVM class-load log names the overlay jar ([`hikari/run-patched.sh`](hikari/run-patched.sh)). Every failing scenario gave B, and C and D in the poison case, a fresh backend with the pool's defaults and a fresh snapshot, while A's `close()` still threw `25001`. Both controls produced byte-identical output with and without the fix (`76a6e4e5…`, `ce507243…`).
-- **HikariCP's suite**, at tag `HikariCP-7.1.0` with `mvn test '-Dtest=!PostgresTest'` (`PostgresTest` needs Testcontainers), 192 tests:
+- **HikariCP's suite, revision 1 runs** (superseded by §18, which uses HikariCP's default test selection), at tag `HikariCP-7.1.0` with `mvn test '-Dtest=!PostgresTest'` (`PostgresTest` needs Testcontainers), 192 tests:
   - **unpatched:** 2 failures, the new test and `RampUpDown`;
   - **patched:** 1 failure, `RampUpDown`.
 
-  `RampUpDown` fails the same way without the change (3 of 3 alone), so it is pre-existing in this environment. Summaries: [`output/hikaricp-suite/`](output/hikaricp-suite/).
+  `RampUpDown` fails the same way without the change (3 of 3 alone). It is not in HikariCP's default test selection: the `-Dtest` pattern pulled it in (§18). Summaries: [`output/hikaricp-suite/`](output/hikaricp-suite/).
   - The suite ran with an earlier comment wording of the same one-line change. The final wording was re-tested with `ConnectionStateTest` (7 of 7).
 - **The workaround on unmodified 7.1.0** (`readonly-report-override`). An `SQLExceptionOverride` returning `MUST_EVICT` for `25001` ([`hikari/src/main/java/ssc/EvictOnStateResetRejected.java`](hikari/src/main/java/ssc/EvictOnStateResetRejected.java)) made HikariCP log "marked as broken because of SQLSTATE(25001)". B got a fresh connection. It also evicts on `25001` from any other call.
 
@@ -357,8 +357,8 @@ These are not pursued here, and no overlapping issue should be filed.
 
 ## 14. Recommended upstream actions
 
-1. **HikariCP: one new issue,** [`upstream-drafts/hikaricp-failed-reset-recycled.md`](upstream-drafts/hikaricp-failed-reset-recycled.md). It contains the minimal reproduction, the evidence, the one-line change and the regression test, and offers a PR.
-2. **pgjdbc: one comment on #3005,** [`upstream-drafts/pgjdbc-3005-getschema-comment.md`](upstream-drafts/pgjdbc-3005-getschema-comment.md), saying that `getSchema()` begins a transaction too.
+1. **HikariCP: one new issue,** [`upstream-drafts/hikaricp-failed-reset-recycled.md`](upstream-drafts/hikaricp-failed-reset-recycled.md), revision 2. It contains the default-configuration reproduction, the evidence, the completion-flag change and two regression tests, and offers a PR.
+2. **pgjdbc, secondary: one comment on #3005,** [`upstream-drafts/pgjdbc-3005-getschema-comment.md`](upstream-drafts/pgjdbc-3005-getschema-comment.md), saying that `getSchema()` begins a transaction too. Post it only after the HikariCP issue.
 3. **Nothing new for asyncpg, SQLAlchemy, psycopg_pool, Npgsql or node-postgres.**
    - Optional: a documentation note for Npgsql that session advisory locks stay held on idle connectors until reuse or pruning. Not drafted.
    - asyncpg's role item stays PY-6.
@@ -402,10 +402,10 @@ Related items found, none reporting a reset failure followed by reuse:
    - **Documented behaviour:** everything else in §7.
 7. **Tenant-isolation or security implications?** Cross-schema writes are demonstrated; unauthorized access is not. PY-6 (role) is the clearest security-relevant item, and it is known.
 8. **The smallest correction?**
-   - **HikariCP:** `poolEntry.markEvicted()` in `close()`'s catch (one line). Optionally, commit-state marks for `getSchema()`, `setSchema()` and `setSavepoint()`.
+   - **HikariCP:** in `close()`, mark the entry evicted unless the cleanup completed (seven lines; revised 2026-10-25, §18). Optionally, and separately, commit-state marks for `getSchema()`, `setSchema()` and `setSavepoint()`.
    - **pgjdbc:** no `BEGIN` from `getSchema()` and `setSchema()`.
    - **Today:** an `SQLExceptionOverride` evicting on `25001`.
-9. **Regression tests?** The added `ConnectionStateTest` case; a PostgreSQL integration test with the `getSchema()` trigger; and a pgjdbc test that `getSchema()` and `setSchema()` leave the transaction state idle.
+9. **Regression tests?** The two added `ConnectionStateTest` cases, a checked and an unchecked exception from the reset; a PostgreSQL integration test with the `getSchema()` trigger; and a pgjdbc test that `getSchema()` and `setSchema()` leave the transaction state idle.
 10. **New PPCS conformance cases?** None now. See [`ppcs-integration.md`](ppcs-integration.md): one invariant is proposed for a future session-state family, subject to maintainer approval.
 11. **Which findings warrant upstream issues?** One HikariCP issue and one pgjdbc comment (§14).
 12. **How do these findings relate to PPCS's existing connection-reuse results?**
@@ -434,3 +434,32 @@ hikari/patch/make-overlay.sh && hikari/run-patched.sh /path/to/instance.json res
 ```
 
 **Incidental, not investigated (Src only).** HikariCP 7.1.0 `HikariConfig.setCredentialsProviderClassName()` assigns `this.exceptionOverrideClassName = credentialsProviderClassName` (line 893). It looks like a copy-paste slip. Outside this study's scope, and not run.
+
+## 18. Review follow-up (2026-10-25)
+
+A review of this report on 2026-10-25 raised five points before filing. Each was checked.
+
+1. **Is the entry really closed once it is marked evicted?** Yes.
+   - **Src, 7.1.0.** `PoolEntry.markEvicted()` sets the entry's `evict` flag. `close()`'s `finally` calls `PoolEntry.recycle()`, which calls `HikariPool.recycle()` (434–449). For a marked entry, that calls `closeConnection()` instead of `connectionBag.requite()`.
+   - **`closeConnection()`** (457–468) removes the entry from the bag. `ConcurrentBag.remove()` (268–282) succeeds because the entry is still `STATE_IN_USE`, owned by the closing thread. It then nulls the entry's connection (`PoolEntry.close()`), closes it on the closer thread, and refills the pool.
+   - **No other borrower can take the entry in between:** only `STATE_NOT_IN_USE` entries are borrowable.
+   - **Observed:** with the fix, HikariCP logs `Closing connection …: (connection was evicted)`, and the observer sees no backend after A's `close()`.
+2. **Does the fix cover rollback failures, and every exception?** Rollback, reset and `clearWarnings()` share one `try`, so revision 1 covered `SQLException`s from all three. It did not cover unchecked exceptions: they skip `catch (SQLException e)` and still reach `recycle()`.
+   - **Observed:** a second `ConnectionStateTest` case fails with revision 1. Its stub connection throws `IllegalStateException` from the isolation reset.
+   - **The proposal is now a completion flag:** `close()` marks the entry evicted in `finally` unless the cleanup completed ([`hikari/patch/hikaricp-7.1.0-evict-unless-reset.diff`](hikari/patch/hikaricp-7.1.0-evict-unless-reset.diff), seven lines plus both tests). `ConnectionStateTest`, 8 tests: 7.1.0 fails both new tests, revision 1 fails the unchecked one, the completion flag fails none.
+   - **On real PostgreSQL** the two versions behave the same. The 8 patched scenarios ([`output/hikari-patched-flag/`](output/hikari-patched-flag/)) and the read-only reproduction gave byte-identical output with each, 3 of 3. The class-load log names the flag overlay ([`hikari/patch/make-overlay.sh`](hikari/patch/make-overlay.sh) builds either).
+   - **Src, outside this issue:** an unchecked exception from `closeStatements()`, which runs before the `try`, leaves `close()` without recycling the entry at all. That is a leak, not reuse.
+3. **Lead with the most compelling consequence.** [`hikari/minimal/MinimalReproReadOnly.java`](hikari/minimal/MinimalReproReadOnly.java) uses HikariCP's defaults.
+   - **Unfixed:** identical output on 4.0.3, 5.1.0, 6.3.3, 7.0.2 and 7.1.0 (`059e6eab…`, 3 of 3 each). B, C and D get autocommit off and read-only on, and their inserts fail (`25006`, `25P02`, `25P02`), leaving no rows.
+   - **Log:** each borrower's validation query runs inside A's `BEGIN READ ONLY` transaction, then its insert fails (`output/server-log/sequences-review-2026-10-25.txt`).
+   - **With either fix:** B, C and D get the defaults, and all three rows land (`f7783954…`).
+   - Draft revision 2 leads with this case.
+4. **State the pool defect independently of the trigger.** Revision 2 does. It points at the first test, which reproduces the defect with HikariCP's own `StubConnection` and no database.
+5. **Disclose the suite precisely.** `RampUpDown` is not in HikariCP's default test selection. Surefire 3.0.0-M8, with no custom includes, runs only classes named `Test*`, `*Test`, `*Tests` and `*TestCase`, and revision 1's `-Dtest='!PostgresTest'` replaced that selection. Re-run with the default selection, excluding only `PostgresTest` (`-Dsurefire.excludesFile`), both new tests included in every run. Each ran 192 tests, with 2 skipped (both in `TomcatConcurrentBagLeakTest`), and `RampUpDown` did not run:
+   - **7.1.0:** 2 failures, the two new tests;
+   - **revision 1 (one line in the `catch`):** 1 failure, the unchecked-exception test;
+   - **the completion flag:** 0 failures.
+
+   Summaries: [`output/hikaricp-suite/default-selection-*.summary.txt`](output/hikaricp-suite/).
+
+**Changed artifacts:** draft revision 2; the pgjdbc comment draft, now marked secondary; `hikari/run-patched.sh` (the `OVERLAY` variable) and `hikari/patch/make-overlay.sh` (diff and jar arguments); new outputs in `output/hikari-versions/`, `output/hikari-patched-flag/`, `output/hikaricp-suite/`, and `output/server-log/*-review-2026-10-25*`; regenerated [`results-matrix.md`](results-matrix.md). The review-phase runs used a recreated server: same script, new token and passwords.
