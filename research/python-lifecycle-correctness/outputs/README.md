@@ -16,7 +16,7 @@ Raw evidence, kept as recorded. Nothing here was edited after recording except o
 | `linux-run1/` | F1 on Linux: a disposable `python:3.13-slim` container (Debian 13, kernel 6.8, aarch64, CPython 3.13.17) running `reproductions/run-linux-container.sh`. `image.txt` has the image digest; `console.txt` includes the minimal-reproduction runs |
 | `diag-run1/` | Uvicorn's registry at the lifespan boundary: `main` plus a diagnostic log line, without and with the bounded fix. Read the `diag:` line in each `rep-N.server.log`, or run `reproductions/diag_summary.py` |
 | `minimal-repro/` | `reproductions/minimal_repro.py`: a first pass, a hardened pass, and one manual run with `uvicorn`, `curl` and `kill` |
-| `regression-test/` | `reproductions/uvicorn_regression_test.py` inside Uvicorn's suite: the first version (`with-fix.txt`, `without-fix.txt`, `repeated.txt`) and the hardened one (`hardened-repeated.txt`) |
+| `regression-test/` | `reproductions/uvicorn_regression_test.py` inside Uvicorn's suite: the first version (`with-fix.txt`, `without-fix.txt`, `repeated.txt`), the hardened single test (`hardened-repeated.txt`), and the current two-test version (`two-tests-repeated.txt`) |
 | `stdlib-probe/` | `reproductions/wait_closed_probe.py` on Python 3.13.11, 3.14.2 and 3.9.9 |
 | `uvicorn-test-suite-with-fix.txt`, `uvicorn-test-suite-with-bounded-fix.txt` | Uvicorn's own suite on `main` plus each candidate fix |
 | `harness-development/` | Runs made while building the harness; not evidence for any finding |
