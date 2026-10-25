@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ppcs:schema:propagation:1",
+  "title": "PPCS transaction-outcome propagation record, version 1",
+  "description": "One subject of one scenario. The boundary is computed from the observations. Passwords and connection strings are never recorded. UNKNOWN, NOT_OBSERVED, and NOT_EXPOSED are distinct.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scenario",
+    "repetition_recorded",
+    "subject",
+    "layers",
+    "verified_outcome",
+    "verified_evidence",
+    "server_command_tag",
+    "capability_scope",
+    "driver_capabilities",
+    "capability_notes",
+    "driver_observation",
+    "intermediate_layers",
+    "framework_observation",
+    "application_observation",
+    "interpretation",
+    "information_loss_boundary",
+    "confidence",
+    "boundary_basis",
+    "evidence",
+    "limits",
+    "repetitions"
+  ],
+  "properties": {
+    "schema": { "const": "ppcs-propagation/1" },
+    "scenario": { "type": "string" },
+    "repetition_recorded": { "type": "integer", "minimum": 1 },
+    "subject": { "$ref": "#/$defs/subject" },
+    "layers": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "verified_outcome": { "$ref": "#/$defs/database_outcome" },
+    "client_knowledge": {
+      "enum": ["KNOWN", "UNKNOWN"],
+      "description": "What the client could establish. UNKNOWN means the acknowledgment did not arrive. The independent observer may still know the database outcome. Omitted on records written before this field existed; those records are KNOWN cases."
+    },
+    "verified_evidence": { "$ref": "#/$defs/verified_evidence" },
+    "server_command_tag": { "$ref": "#/$defs/tagged" },
+    "capability_scope": { "type": "string" },
+    "driver_capabilities": { "$ref": "#/$defs/capabilities" },
+    "capability_notes": { "$ref": "#/$defs/notes" },
+    "driver_observation": { "$ref": "#/$defs/driver_observation" },
+    "intermediate_layers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/intermediate" }
+    },
+    "framework_observation": { "$ref": "#/$defs/framework_observation" },
+    "application_observation": { "$ref": "#/$defs/application_observation" },
+    "interpretation": { "$ref": "#/$defs/interpretation" },
+    "information_loss_boundary": { "$ref": "#/$defs/boundary" },
+    "confidence": { "enum": ["HIGH", "MEDIUM", "LOW"] },
+    "boundary_basis": { "type": "string" },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "limits": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "repetitions": { "$ref": "#/$defs/repetitions" }
+  },
+  "$defs": {
+    "database_outcome": { "enum": ["COMMITTED", "ROLLED_BACK", "NOT_ATTEMPTED", "UNKNOWN"] },
+    "report": { "enum": ["REPORTED_SUCCESS", "REPORTED_FAILURE", "REPORTED_ROLLBACK", "REPORTED_UNKNOWN", "NO_RESULT", "NOT_APPLICABLE"] },
+    "boundary": { "enum": ["SERVER", "PROTOCOL", "DRIVER", "POOL", "TRANSACTION_MANAGER", "FRAMEWORK", "APPLICATION", "MULTIPLE", "NONE", "UNDETERMINED"] },
+    "capability": { "enum": ["EXPOSED", "INDIRECT", "INTERNAL_ONLY", "NOT_EXPOSED", "UNKNOWN", "NOT_APPLICABLE"] },
+    "observation": { "enum": ["OBSERVED", "INFERRED", "NOT_OBSERVED", "NOT_EXPOSED", "NOT_APPLICABLE"] },
+    "access": { "enum": ["public_return_value", "diagnostic_wrapper", "source_inspection", "not_applicable"] },
+    "named_version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "git_head"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "git_head": { "type": ["string", "null"] }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "framework", "driver", "pool", "runtime", "server"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["driver_control", "application_control", "framework"] },
+        "framework": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/named_version" }]
+        },
+        "driver": { "$ref": "#/$defs/named_version" },
+        "pool": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "version"],
+              "properties": {
+                "name": { "type": "string" },
+                "version": { "type": "string" }
+              }
+            }
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "server_version", "server_version_num", "image"],
+          "properties": {
+            "version": { "type": "string" },
+            "server_version": { "type": "string" },
+            "server_version_num": { "type": "integer" },
+            "image": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "presence", "observed", "folded_into", "component", "version", "note"],
+      "properties": {
+        "name": { "enum": ["server", "protocol", "driver", "pool", "transaction_manager", "framework", "application"] },
+        "presence": { "enum": ["separate", "folded", "absent"] },
+        "observed": { "type": "boolean" },
+        "folded_into": { "type": ["string", "null"] },
+        "component": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "note": { "type": "string" }
+      }
+    },
+    "verified_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pg_xact_status", "marker_visible", "xid", "backend_pid", "session_state", "session_query", "observer"],
+      "properties": {
+        "pg_xact_status": { "type": ["string", "null"] },
+        "marker_visible": { "type": ["boolean", "null"] },
+        "xid": { "type": ["string", "null"] },
+        "backend_pid": { "type": ["integer", "null"] },
+        "session_state": { "type": ["string", "null"] },
+        "session_query": { "type": ["string", "null"] },
+        "observer": { "const": "separate_connection" }
+      }
+    },
+    "tagged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "observation", "access", "basis"],
+      "properties": {
+        "value": { "type": ["string", "number", "null"] },
+        "observation": { "$ref": "#/$defs/observation" },
+        "access": { "$ref": "#/$defs/access" },
+        "basis": { "type": ["string", "null"] }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_tag",
+        "affected_row_count",
+        "sqlstate",
+        "transaction_status",
+        "connection_failure",
+        "commit_acknowledgment",
+        "unknown_commit_outcome",
+        "rollback_acknowledgment",
+        "connection_invalidation",
+        "pool_reset",
+        "savepoint_failure",
+        "nested_transactions"
+      ],
+      "properties": {
+        "command_tag": { "$ref": "#/$defs/capability" },
+        "affected_row_count": { "$ref": "#/$defs/capability" },
+        "sqlstate": { "$ref": "#/$defs/capability" },
+        "transaction_status": { "$ref": "#/$defs/capability" },
+        "connection_failure": { "$ref": "#/$defs/capability" },
+        "commit_acknowledgment": { "$ref": "#/$defs/capability" },
+        "unknown_commit_outcome": { "$ref": "#/$defs/capability" },
+        "rollback_acknowledgment": { "$ref": "#/$defs/capability" },
+        "connection_invalidation": { "$ref": "#/$defs/capability" },
+        "pool_reset": { "$ref": "#/$defs/capability" },
+        "savepoint_failure": { "$ref": "#/$defs/capability" },
+        "nested_transactions": { "$ref": "#/$defs/capability" }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_tag",
+        "affected_row_count",
+        "sqlstate",
+        "transaction_status",
+        "connection_failure",
+        "commit_acknowledgment",
+        "unknown_commit_outcome",
+        "rollback_acknowledgment",
+        "connection_invalidation",
+        "pool_reset",
+        "savepoint_failure",
+        "nested_transactions"
+      ],
+      "properties": {
+        "command_tag": { "type": "string" },
+        "affected_row_count": { "type": "string" },
+        "sqlstate": { "type": "string" },
+        "transaction_status": { "type": "string" },
+        "connection_failure": { "type": "string" },
+        "commit_acknowledgment": { "type": "string" },
+        "unknown_commit_outcome": { "type": "string" },
+        "rollback_acknowledgment": { "type": "string" },
+        "connection_invalidation": { "type": "string" },
+        "pool_reset": { "type": "string" },
+        "savepoint_failure": { "type": "string" },
+        "nested_transactions": { "type": "string" }
+      }
+    },
+    "commit_seen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sql", "command_tag", "command_present", "row_count", "row_count_present", "error_code", "settled", "transaction_status"],
+      "properties": {
+        "sql": { "type": "string" },
+        "command_tag": { "type": ["string", "null"] },
+        "command_present": { "type": "boolean" },
+        "row_count": { "type": ["number", "null"] },
+        "row_count_present": { "type": "boolean" },
+        "error_code": { "type": ["string", "null"] },
+        "settled": { "type": "string" },
+        "transaction_status": { "type": ["string", "null"] }
+      }
+    },
+    "driver_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_tag",
+        "row_count",
+        "sqlstate",
+        "transaction_status_after_statement_error",
+        "transaction_status_after_commit",
+        "query_settled",
+        "instrumentation",
+        "commits"
+      ],
+      "properties": {
+        "command_tag": { "$ref": "#/$defs/tagged" },
+        "row_count": { "$ref": "#/$defs/tagged" },
+        "sqlstate": { "$ref": "#/$defs/tagged" },
+        "transaction_status_after_statement_error": { "$ref": "#/$defs/tagged" },
+        "transaction_status_after_commit": { "$ref": "#/$defs/tagged" },
+        "query_settled": { "enum": ["resolved", "rejected", "not_observed"] },
+        "instrumentation": { "enum": ["none", "diagnostic_wrapper"] },
+        "commits": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/commit_seen" }
+        }
+      }
+    },
+    "intermediate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "component", "version", "observation", "note"],
+      "properties": {
+        "layer": { "enum": ["POOL", "TRANSACTION_MANAGER", "FRAMEWORK"] },
+        "component": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "observation": { "$ref": "#/$defs/observation" },
+        "note": { "type": "string" }
+      }
+    },
+    "framework_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "reported", "call", "threw", "resolved_value", "command_tag", "after_transaction_commit", "after_transaction_rollback", "basis"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "reported": { "$ref": "#/$defs/report" },
+        "call": { "type": ["string", "null"] },
+        "threw": { "type": ["boolean", "null"] },
+        "resolved_value": { "type": ["string", "null"] },
+        "command_tag": { "$ref": "#/$defs/tagged" },
+        "after_transaction_commit": { "type": ["integer", "null"] },
+        "after_transaction_rollback": { "type": ["integer", "null"] },
+        "basis": { "type": ["string", "null"] }
+      }
+    },
+    "application_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reported", "basis"],
+      "properties": {
+        "reported": { "$ref": "#/$defs/report" },
+        "basis": { "type": "string" }
+      }
+    },
+    "interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "defect_claim", "note"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "outcome_preserved",
+            "uncertainty_preserved",
+            "application_discarded_driver_result",
+            "framework_discarded_driver_result",
+            "driver_did_not_expose",
+            "pool_masked_driver_result",
+            "multiple_layers",
+            "transaction_manager_discarded_driver_result",
+            "server_outcome_insufficient",
+            "protocol_outcome_insufficient",
+            "undetermined"
+          ]
+        },
+        "defect_claim": { "const": "not_made" },
+        "note": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "layer", "statement", "package", "version", "git_head", "path", "symbol", "line"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["runtime", "source_inspection", "diagnostic_instrumentation"] },
+        "layer": { "type": "string" },
+        "statement": { "type": "string" },
+        "package": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "git_head": { "type": ["string", "null"] },
+        "path": { "type": ["string", "null"] },
+        "symbol": { "type": ["string", "null"] },
+        "line": { "type": ["integer", "null"] }
+      }
+    },
+    "repetition_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repetition", "verified_outcome", "driver_command_tag", "sqlstate", "application_reported", "framework_reported", "information_loss_boundary", "confidence"],
+      "properties": {
+        "repetition": { "type": "integer", "minimum": 1 },
+        "verified_outcome": { "$ref": "#/$defs/database_outcome" },
+        "driver_command_tag": { "type": ["string", "null"] },
+        "sqlstate": { "type": ["string", "null"] },
+        "application_reported": { "$ref": "#/$defs/report" },
+        "framework_reported": { "$ref": "#/$defs/report" },
+        "information_loss_boundary": { "$ref": "#/$defs/boundary" },
+        "confidence": { "enum": ["HIGH", "MEDIUM", "LOW"] }
+      }
+    },
+    "repetitions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "agreed", "compared", "runs"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 1 },
+        "agreed": { "type": "boolean" },
+        "compared": { "type": "array", "items": { "type": "string" } },
+        "runs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/repetition_run" } }
+      }
+    }
+  }
+}

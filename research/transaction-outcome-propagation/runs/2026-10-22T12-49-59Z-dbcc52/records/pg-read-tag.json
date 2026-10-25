@@ -1,0 +1,360 @@
+{
+  "schema": "ppcs-propagation/1",
+  "scenario": "TX-01A.caught-error-then-commit",
+  "repetition_recorded": 1,
+  "subject": {
+    "id": "pg-read-tag",
+    "kind": "driver_control",
+    "framework": null,
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf"
+    },
+    "pool": null,
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    },
+    "server": {
+      "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "server_version_num": 180006,
+      "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "layers": [
+    {
+      "name": "server",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "PostgreSQL",
+      "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "note": "The database outcome is pg_xact_status() and marker visibility on a second connection."
+    },
+    {
+      "name": "protocol",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "PostgreSQL frontend/backend protocol",
+      "version": null,
+      "note": "This run does not capture packets. A command tag inferred from node-postgres is that driver parsing CommandComplete."
+    },
+    {
+      "name": "driver",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg",
+      "version": "8.23.1",
+      "note": "Driver observations are fields on the pg query result, or Client.getTransactionStatus()."
+    },
+    {
+      "name": "pool",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject constructs a pg.Client. No pool is on the call path."
+    },
+    {
+      "name": "transaction_manager",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject calls the driver. There is no transaction manager."
+    },
+    {
+      "name": "framework",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "No persistence framework is on this call path."
+    },
+    {
+      "name": "application",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg-read-tag",
+      "version": null,
+      "note": "The application is the subject code in this experiment."
+    }
+  ],
+  "verified_outcome": "ROLLED_BACK",
+  "verified_evidence": {
+    "pg_xact_status": "aborted",
+    "marker_visible": false,
+    "xid": "33221",
+    "backend_pid": 1716701,
+    "session_state": "idle",
+    "session_query": "COMMIT",
+    "observer": "separate_connection"
+  },
+  "server_command_tag": {
+    "value": "ROLLBACK",
+    "observation": "INFERRED",
+    "access": "source_inspection",
+    "basis": "pg Result.command is the first token of the command-completion text (Result.addCommandComplete). This run did not capture the protocol packet. The inferred tag is the driver field that was observed."
+  },
+  "capability_scope": "pg.Client public API, taken from the pg-read-tag subject in this run and copied onto the other subjects. Untested capabilities stay UNKNOWN.",
+  "driver_capabilities": {
+    "command_tag": "EXPOSED",
+    "affected_row_count": "EXPOSED",
+    "sqlstate": "EXPOSED",
+    "transaction_status": "EXPOSED",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "EXPOSED",
+    "unknown_commit_outcome": "UNKNOWN",
+    "rollback_acknowledgment": "UNKNOWN",
+    "connection_invalidation": "UNKNOWN",
+    "pool_reset": "NOT_APPLICABLE",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "NOT_APPLICABLE"
+  },
+  "capability_notes": {
+    "command_tag": "Client.query('COMMIT') resolved with Result.command \"ROLLBACK\". The application can read that field on the public result.",
+    "affected_row_count": "Result.rowCount is a separate field from Result.command. On this COMMIT result it was null.",
+    "sqlstate": "The error caught from the duplicate insert has code 23505.",
+    "transaction_status": "Client.getTransactionStatus() returned \"E\" after the statement error once Client.readyForQuery was true, and \"I\" after COMMIT. The method returns the ReadyForQuery status byte Client stored. The query promise can reject on ErrorResponse before that byte is updated.",
+    "connection_failure": "TX-01A does not drop the connection. Distinguishing connection loss from a server-reported transaction failure was not tested.",
+    "commit_acknowledgment": "The acknowledgment recorded here is Result.command on the resolved COMMIT query.",
+    "unknown_commit_outcome": "TX-01B was not run. Whether this driver can represent an unknown commit without asserting success or failure is UNKNOWN in this inventory.",
+    "rollback_acknowledgment": "This scenario sends COMMIT after the statement error. A ROLLBACK command tag was not requested, so rollback acknowledgment was not tested.",
+    "connection_invalidation": "Removing an unsafe connection from a pool was not tested.",
+    "pool_reset": "This inventory is pg.Client. Pool reset is not a Client operation. The TypeORM subject uses pg-pool beside the driver, and this scenario does not record a reset statement.",
+    "savepoint_failure": "TX-02 was not run.",
+    "nested_transactions": "pg.Client executes the SQL it is given. It has no nested-transaction API of its own, so a nesting guarantee is not a Client capability."
+  },
+  "driver_observation": {
+    "command_tag": {
+      "value": "ROLLBACK",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Public return value of Client.query."
+    },
+    "row_count": {
+      "value": null,
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Result.rowCount on the COMMIT result."
+    },
+    "sqlstate": {
+      "value": "23505",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "The caught error has a string code property."
+    },
+    "transaction_status_after_statement_error": {
+      "value": "E",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Client.getTransactionStatus() after the caught insert error, once Client.readyForQuery was true."
+    },
+    "transaction_status_after_commit": {
+      "value": "I",
+      "observation": "OBSERVED",
+      "access": "public_return_value",
+      "basis": "Client.getTransactionStatus() after the COMMIT query settled."
+    },
+    "query_settled": "resolved",
+    "instrumentation": "none",
+    "commits": [
+      {
+        "sql": "COMMIT",
+        "command_tag": "ROLLBACK",
+        "command_present": true,
+        "row_count": null,
+        "row_count_present": true,
+        "error_code": null,
+        "settled": "resolved",
+        "transaction_status": "I"
+      }
+    ]
+  },
+  "intermediate_layers": [],
+  "framework_observation": {
+    "present": false,
+    "reported": "NOT_APPLICABLE",
+    "call": null,
+    "threw": null,
+    "resolved_value": null,
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_APPLICABLE",
+      "access": "not_applicable",
+      "basis": "This subject does not call a persistence framework."
+    },
+    "after_transaction_commit": null,
+    "after_transaction_rollback": null,
+    "basis": null
+  },
+  "application_observation": {
+    "reported": "REPORTED_ROLLBACK",
+    "basis": "The subject reads Result.command after Client.query('COMMIT'). The query resolved with command tag ROLLBACK."
+  },
+  "interpretation": {
+    "kind": "outcome_preserved",
+    "defect_claim": "not_made",
+    "note": "The application report follows Result.command. ROLLBACK is a reported rollback. A resolved promise alone is not the report."
+  },
+  "information_loss_boundary": "NONE",
+  "confidence": "HIGH",
+  "boundary_basis": "The independent check found a rollback, and the application-visible result reports a rollback or a failure.",
+  "evidence": [
+    {
+      "package": null,
+      "version": null,
+      "git_head": null,
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "runtime-outcome",
+      "kind": "runtime",
+      "layer": "database",
+      "statement": "A second connection read pg_xact_status() aborted for xid 33221 and marker visibility false. Session state idle."
+    },
+    {
+      "package": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf",
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "driver-command-tag",
+      "kind": "runtime",
+      "layer": "driver",
+      "statement": "COMMIT resolved with Result.command ROLLBACK, read by public_return_value."
+    },
+    {
+      "package": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf",
+      "path": "lib/result.js",
+      "symbol": "Result.addCommandComplete",
+      "line": 38,
+      "id": "pg-command-complete",
+      "kind": "source_inspection",
+      "layer": "driver",
+      "statement": "Result.command is the first token of the command-completion text. Result.rowCount is parsed from the same message into a separate field."
+    },
+    {
+      "package": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf",
+      "path": "lib/client.js",
+      "symbol": "Client.getTransactionStatus",
+      "line": 795,
+      "id": "pg-ready-for-query",
+      "kind": "source_inspection",
+      "layer": "driver",
+      "statement": "getTransactionStatus() returns the status byte stored from ReadyForQuery in _handleReadyForQuery."
+    },
+    {
+      "package": "typeorm",
+      "version": "1.1.2",
+      "git_head": null,
+      "path": "driver/postgres/PostgresQueryRunner.js",
+      "symbol": "PostgresQueryRunner.commitTransaction",
+      "line": 154,
+      "id": "typeorm-commit",
+      "kind": "source_inspection",
+      "layer": "framework",
+      "statement": "commitTransaction awaits query(\"COMMIT\"), clears the transaction flag, and broadcasts AfterTransactionCommit. The query result is not inspected."
+    },
+    {
+      "package": "typeorm",
+      "version": "1.1.2",
+      "git_head": null,
+      "path": "entity-manager/EntityManager.js",
+      "symbol": "EntityManager.transaction",
+      "line": 84,
+      "id": "typeorm-transaction",
+      "kind": "source_inspection",
+      "layer": "framework",
+      "statement": "transaction() awaits commitTransaction() and returns the callback result when the callback returns."
+    },
+    {
+      "package": "typeorm",
+      "version": "1.1.2",
+      "git_head": null,
+      "path": "driver/postgres/PostgresQueryRunner.js",
+      "symbol": "PostgresQueryRunner.query",
+      "line": 213,
+      "id": "typeorm-query-command",
+      "kind": "source_inspection",
+      "layer": "framework",
+      "statement": "query() reads raw.command for UPDATE and DELETE row counts. The default path returns raw.rows. commitTransaction ignores that return value."
+    },
+    {
+      "package": "pg-pool",
+      "version": "3.14.0",
+      "git_head": null,
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "pool-version",
+      "kind": "runtime",
+      "layer": "pool",
+      "statement": "The TypeORM subject sets poolSize 1, which uses pg-pool. Reset behavior was not recorded."
+    }
+  ],
+  "limits": [
+    "No packet capture. The server command tag is inferred from pg Result.command. Result.addCommandComplete stores the first token of the command-completion text.",
+    "TX-01B, TX-02, and TX-03 were not run.",
+    "Connection failure, unknown commit outcome, rollback acknowledgment, connection invalidation, and savepoint failure were not tested.",
+    "The TypeORM command tag is read by a diagnostic wrapper around pg.Client.prototype.query. That wrapper is not a TypeORM API.",
+    "Client.getTransactionStatus() returns the ReadyForQuery status byte the client stored. This run does not capture the ReadyForQuery packet."
+  ],
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "compared": [
+      "verified_outcome",
+      "driver_command_tag",
+      "sqlstate",
+      "application_reported",
+      "framework_reported",
+      "information_loss_boundary"
+    ],
+    "runs": [
+      {
+        "repetition": 1,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 2,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 3,
+        "verified_outcome": "ROLLED_BACK",
+        "driver_command_tag": "ROLLBACK",
+        "sqlstate": "23505",
+        "application_reported": "REPORTED_ROLLBACK",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      }
+    ]
+  }
+}

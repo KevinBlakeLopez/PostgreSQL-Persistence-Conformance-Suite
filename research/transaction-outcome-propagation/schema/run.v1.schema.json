@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ppcs:schema:propagation-run:1",
+  "title": "PPCS propagation run manifest, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "scenario", "command", "started_at", "finished_at", "server", "runtime", "driver", "framework", "records", "capability"],
+  "properties": {
+    "schema": { "const": "ppcs-propagation-run/1" },
+    "run_id": { "type": "string" },
+    "scenario": { "type": "string" },
+    "command": { "type": "string" },
+    "started_at": { "type": "string" },
+    "finished_at": { "type": "string" },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "server_version", "server_version_num", "image"],
+      "properties": {
+        "version": { "type": "string" },
+        "server_version": { "type": "string" },
+        "server_version_num": { "type": "integer" },
+        "image": { "type": ["string", "null"] }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "driver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "git_head"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "git_head": { "type": ["string", "null"] }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "git_head"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "git_head": { "type": ["string", "null"] }
+      }
+    },
+    "records": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "capability": { "type": "string" }
+  }
+}

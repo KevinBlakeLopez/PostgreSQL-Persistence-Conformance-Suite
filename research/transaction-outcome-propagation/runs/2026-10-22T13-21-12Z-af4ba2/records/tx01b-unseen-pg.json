@@ -1,0 +1,264 @@
+{
+  "schema": "ppcs-propagation/1",
+  "scenario": "TX-01B.commit-reply-unseen",
+  "repetition_recorded": 1,
+  "subject": {
+    "id": "tx01b-unseen-pg",
+    "kind": "driver_control",
+    "framework": null,
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1",
+      "git_head": "0980cefebe0ae461da8883703be049fe13ca96cf"
+    },
+    "pool": null,
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    },
+    "server": {
+      "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "server_version_num": 180006,
+      "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "layers": [
+    {
+      "name": "server",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "PostgreSQL",
+      "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "note": "The database outcome is pg_xact_status() and marker visibility on a second connection."
+    },
+    {
+      "name": "protocol",
+      "presence": "separate",
+      "observed": false,
+      "folded_into": null,
+      "component": "PostgreSQL frontend/backend protocol",
+      "version": null,
+      "note": "This run does not capture packets. A command tag inferred from node-postgres is that driver parsing CommandComplete."
+    },
+    {
+      "name": "driver",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "pg",
+      "version": "8.23.1",
+      "note": "Driver observations are fields on the pg query result, or Client.getTransactionStatus()."
+    },
+    {
+      "name": "pool",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject constructs a pg.Client. No pool is on the call path."
+    },
+    {
+      "name": "transaction_manager",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "This subject calls the driver. There is no transaction manager."
+    },
+    {
+      "name": "framework",
+      "presence": "absent",
+      "observed": false,
+      "folded_into": null,
+      "component": null,
+      "version": null,
+      "note": "No persistence framework is on this call path."
+    },
+    {
+      "name": "application",
+      "presence": "separate",
+      "observed": true,
+      "folded_into": null,
+      "component": "tx01b-unseen-pg",
+      "version": null,
+      "note": "The application is the subject code in this experiment."
+    }
+  ],
+  "verified_outcome": "COMMITTED",
+  "client_knowledge": "UNKNOWN",
+  "verified_evidence": {
+    "pg_xact_status": "committed",
+    "marker_visible": true,
+    "xid": "35438",
+    "backend_pid": 1742596,
+    "session_state": null,
+    "session_query": null,
+    "observer": "separate_connection"
+  },
+  "server_command_tag": {
+    "value": null,
+    "observation": "NOT_OBSERVED",
+    "access": "not_applicable",
+    "basis": "No driver command tag was observed, so no server command tag is inferred."
+  },
+  "capability_scope": "pg 8.23.1, from this scenario only.",
+  "driver_capabilities": {
+    "command_tag": "UNKNOWN",
+    "affected_row_count": "UNKNOWN",
+    "sqlstate": "UNKNOWN",
+    "transaction_status": "UNKNOWN",
+    "connection_failure": "UNKNOWN",
+    "commit_acknowledgment": "UNKNOWN",
+    "unknown_commit_outcome": "EXPOSED",
+    "rollback_acknowledgment": "UNKNOWN",
+    "connection_invalidation": "UNKNOWN",
+    "pool_reset": "UNKNOWN",
+    "savepoint_failure": "UNKNOWN",
+    "nested_transactions": "UNKNOWN"
+  },
+  "capability_notes": {
+    "command_tag": "This scenario did not establish this capability.",
+    "affected_row_count": "This scenario did not establish this capability.",
+    "sqlstate": "This scenario did not establish this capability.",
+    "transaction_status": "This scenario did not establish this capability.",
+    "connection_failure": "This scenario did not establish this capability.",
+    "commit_acknowledgment": "The proxy dropped 1 COMMIT reply batch(es). No command tag was parsed by the client.",
+    "unknown_commit_outcome": "The ending call rejected, so the application can avoid reporting success or a confirmed rollback.",
+    "rollback_acknowledgment": "This scenario did not establish this capability.",
+    "connection_invalidation": "This scenario did not establish this capability.",
+    "pool_reset": "This scenario did not establish this capability.",
+    "savepoint_failure": "This scenario did not establish this capability.",
+    "nested_transactions": "This scenario did not establish this capability."
+  },
+  "driver_observation": {
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "This API does not expose a command tag."
+    },
+    "row_count": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Row count was not the measurement in this scenario."
+    },
+    "sqlstate": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "public_return_value",
+      "basis": "Connection terminated unexpectedly"
+    },
+    "transaction_status_after_statement_error": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled at the statement error in this scenario."
+    },
+    "transaction_status_after_commit": {
+      "value": null,
+      "observation": "NOT_OBSERVED",
+      "access": "not_applicable",
+      "basis": "Not sampled."
+    },
+    "query_settled": "rejected",
+    "instrumentation": "none",
+    "commits": []
+  },
+  "intermediate_layers": [],
+  "framework_observation": {
+    "present": false,
+    "reported": "NOT_APPLICABLE",
+    "call": null,
+    "threw": null,
+    "resolved_value": null,
+    "command_tag": {
+      "value": null,
+      "observation": "NOT_APPLICABLE",
+      "access": "not_applicable",
+      "basis": "This subject does not call a persistence framework."
+    },
+    "after_transaction_commit": null,
+    "after_transaction_rollback": null,
+    "basis": null
+  },
+  "application_observation": {
+    "reported": "REPORTED_FAILURE",
+    "basis": "The ending call rejected after the proxy dropped the COMMIT reply: Connection terminated unexpectedly"
+  },
+  "interpretation": {
+    "kind": "uncertainty_preserved",
+    "defect_claim": "not_made",
+    "note": "The proxy forwards COMMIT, then closes the client socket before the client parses ReadyForQuery. The second connection can still see the database outcome. The client cannot."
+  },
+  "information_loss_boundary": "NONE",
+  "confidence": "HIGH",
+  "boundary_basis": "The client did not receive the acknowledgment. The application reported a failure or uncertainty, rather than a successful commit or a confirmed rollback.",
+  "evidence": [
+    {
+      "package": null,
+      "version": null,
+      "git_head": null,
+      "path": null,
+      "symbol": null,
+      "line": null,
+      "id": "runtime",
+      "kind": "runtime",
+      "layer": "database",
+      "statement": "pg_xact_status() committed, marker visible true, session absent, xid 35438."
+    }
+  ],
+  "limits": [
+    "Java and .NET are not installed in this environment, so pgjdbc and Npgsql were not executed.",
+    "The system Python has no psycopg module, so psycopg was not executed.",
+    "No packet capture. A server command tag is inferred only when a driver command tag was observed.",
+    "TX-02's missing savepoint name and TX-03's withheld ROLLBACK are client-side injections.",
+    "TX-01B.commit-reply-unseen uses harness/lib/pg-wire-proxy.mjs unchanged."
+  ],
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "compared": [
+      "verified_outcome",
+      "application_reported",
+      "information_loss_boundary",
+      "driver_command_tag"
+    ],
+    "runs": [
+      {
+        "repetition": 1,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 2,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      },
+      {
+        "repetition": 3,
+        "verified_outcome": "COMMITTED",
+        "driver_command_tag": null,
+        "sqlstate": null,
+        "application_reported": "REPORTED_FAILURE",
+        "framework_reported": "NOT_APPLICABLE",
+        "information_loss_boundary": "NONE",
+        "confidence": "HIGH"
+      }
+    ]
+  }
+}
