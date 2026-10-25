@@ -6,7 +6,7 @@ Investigation date: 2026-10-24. Written by: Claude Opus 5.5 (max).
 
 | ID | Project | Failure | Severity | Evidence | Classification | Upstream status |
 | --- | --- | --- | --- | --- | --- | --- |
-| F1 | Uvicorn 0.54.0 and `main` `e4981ad` | When `--timeout-graceful-shutdown` expires, Uvicorn cancels the request tasks and sends `lifespan.shutdown` without waiting for them. Those tasks unwind concurrently with lifespan shutdown, and on SIGTERM the process ends before they finish | Medium | 131 unpatched repetitions with an outside observer, order violated in all 131; 60 patched repetitions in order; minimal reproduction; draft regression test; bounded-shutdown experiments on two candidate fixes | **CONFIRMED DEFECT** (lifecycle order). How to remedy it is a maintainer decision | Raised from source alone in discussion #2422 (2024; unanswered, closed as outdated). Related unmerged PR #2882. No issue, PR or test covers it |
+| F1 | Uvicorn 0.54.0 and `main` `e4981ad` | When `--timeout-graceful-shutdown` expires, Uvicorn cancels the request tasks and sends `lifespan.shutdown` without waiting for them. Those tasks unwind concurrently with lifespan shutdown, and on SIGTERM the process ends before they finish | Medium | 166 unpatched repetitions with an outside observer (141 macOS, 25 Linux), order violated in all; Uvicorn's own registry at the lifespan boundary showed the connection open and the task running, 10 of 10; 85 patched repetitions in order; minimal reproduction; draft regression test; bounded-shutdown experiments on two candidate fixes | **CONFIRMED DEFECT** (lifecycle order). How to remedy it is a maintainer decision | Raised from source alone in discussion #2422 (2024; unanswered, closed as outdated). Related unmerged PR #2882. No issue, PR or test covers it |
 | F2 | Uvicorn before 0.41.0 | A signal that arrives during lifespan startup makes the server exit without sending lifespan shutdown | Medium (historical) | 0.40.0: shutdown sent 0 of 10; 0.54.0: 10 of 10 | **ALREADY FIXED** | Fixed by PR #2812, released in 0.41.0 (2026-02-16) |
 | F3 | Hypercorn 0.18.0 on Python 3.12+ | `graceful_timeout` is not enforced: shutdown waits for in-flight requests however long they take | Medium | 8 s of work with a 2 s timeout: exit after 8.6 s, request never cancelled, 10 of 10; stdlib probe of `Server.wait_closed()` | **DUPLICATE** | pgjones/hypercorn#308, open since 2025-06-23; fix PR #388 open |
 
@@ -17,6 +17,7 @@ The SIGTERM re-raise in `Server.capture_signals()` (candidate C3) is not reporte
 | Item | Value |
 | --- | --- |
 | Host | macOS 26.6.2, arm64 |
+| Linux | `python:3.13-slim` container (`sha256:d98cc29d3266…`, built 2026-10-21): Debian 13, kernel 6.8.0-64-generic, aarch64, CPython 3.13.17. It ran in the colima VM that was already running; nothing else was started or changed |
 | Interpreters | CPython 3.13.11 and 3.14.2 (Homebrew) |
 | Plain install (`pip install uvicorn`) | asyncio event loop, h11 0.16.0 |
 | Standard install (`uvicorn[standard]`) | `uvloop.Loop` (uvloop 0.23.0) and `HttpToolsProtocol` (httptools 0.9.0), both confirmed from `Config` |
@@ -111,10 +112,28 @@ Totals by category, from [tally.py](reproductions/tally.py) over `outputs/e1-run
 | E. Bounded fix, 0.5 s cleanup | 15 | 15 | 0 | 504.3 to 608.1 ms (median 605.7) |
 | F. Controls: work finishes in time, or no timeout | 30 | 30 | 0 | 505.4 to 606.6 ms (median 550.0) |
 
-So in 131 unpatched repetitions where the work outlived the timeout:
+So in 131 unpatched repetitions on macOS where the work outlived the timeout:
 
 - the order was violated in all 131;
 - the cleanup was lost in 109: always when it needed 0.5 s or 5 s, and in 3 of 25 when the backend answered at once (a race with lifespan shutdown).
+
+The same tally also covers the Linux run and the diagnostic build:
+
+| Category | Reps | Cleanup finished | Lifespan shutdown began before cleanup finished |
+| --- | --- | --- | --- |
+| G. Linux, unpatched, work outlives the timeout, 0.5 s cleanup (SIGTERM, SIGINT, standard install, shared pool, FastAPI) | 25 | **0** | **25** |
+| H. Linux, bounded fix | 15 | 15 | 0 |
+| I. Linux, control | 5 | 5 | 0 |
+| J. Diagnostic build, unpatched, work outlives the timeout | 10 | **0** | **10** |
+| K. Diagnostic build, bounded fix | 10 | 10 | 0 |
+| L. Diagnostic build, control | 5 | 5 | 0 |
+
+Across every run, then:
+
+- **Order:** violated in 166 of 166 unpatched repetitions where the work outlived the timeout.
+- **Cleanup:** lost in 144 of them.
+- **Fixed builds:** kept the order in 85 of 85.
+- **Controls:** normal in 40 of 40.
 
 Category A spans every variant:
 
@@ -138,7 +157,33 @@ Per-case tables are in [outputs/README.md](outputs/README.md) and in each run's 
 
 **Shared resource.** When the release goes through a lifespan-owned pool that lifespan shutdown closes first, the unpatched cleanup failed with `ConnectionError` raised inside the cleanup, 0 of 10 finished. Witness order: `request.cleanup.begin`, `lifespan.shutdown.begin`, `lifespan.pool.closed`, `request.cleanup.interrupted ConnectionError`. Both fixes completed it, 10 of 10.
 
-**A connection was still in use after lifespan shutdown.** Under SIGINT, the server log shows `Application shutdown complete.`, then `Finished server process`, then `Exception in ASGI application` for the request's second, message-less `CancelledError`, then the access-log line for the 500. A response was written on a request connection after the lifespan shutdown had completed. That is ASGI's "closed all active connections" observed false at the time `lifespan.shutdown` was sent. Under SIGTERM the connection stayed open until the process ended.
+### Connection state at the lifespan boundary
+
+The ASGI sentence concerns connections, not tasks, so the connection state was measured separately, in three independent ways.
+
+1. **Uvicorn's own registry.** This uses a diagnostic build ([uvicorn-diagnostic-registry-log.diff](reproductions/uvicorn-diagnostic-registry-log.diff), [run-diag.sh](reproductions/run-diag.sh), `outputs/diag-run1/`). It adds one log line immediately before `await self.lifespan.shutdown()`, reporting `server_state.connections`, each transport's `is_closing()`, and `server_state.tasks`. It is instrumentation, not a behavior change.
+
+   | Case | Registry at the lifespan boundary |
+   | --- | --- |
+   | Unpatched, work outlives the timeout (SIGTERM ×5, SIGINT ×5) | 1 connection, transport **open**; 1 task, **not done**, in 10 of 10 |
+   | Control: work finishes in time | 0 connections, 0 tasks, in 5 of 5 |
+   | Bounded fix, work outlives the timeout (SIGTERM ×5, SIGINT ×5) | 0 connections, 0 tasks, in 10 of 10 |
+
+2. **The client's observation**, Δ = time the client saw its connection end, minus time the lifespan's `CALL shutdown` reached the backend:
+
+   | Builds | Δ |
+   | --- | --- |
+   | Unpatched (macOS, Linux, diagnostic build) | **positive in 121 of 121**: +1.2 to +6.8 ms on macOS, +1.8 to +26.3 ms on Linux |
+   | Unbounded fix | −0.1 to −0.5 ms, 28 of 28 |
+   | Bounded fix, where the cleanup fit within the bound | negative in all repetitions |
+
+   Δ was positive with the bounded fix only where the task outlived the bound: the cancellation-suppressing and 5 s cleanup cases, as designed. On reading these numbers:
+   - **Common clock.** Both timestamps are taken in the harness process from the same clock (`time.time()`, wall clock). No clock step is visible in the data.
+   - **Conservative timing.** The lifespan timestamp is when the application's shutdown handler reached the backend, which is slightly after Uvicorn sent `lifespan.shutdown`. That makes the measured Δ smaller than the true one.
+   - **Resolution.** The client sees EOF a little after the server closes. The fixed builds bound this asymmetry: their Δ is −0.1 to −0.5 ms, in the true order. The unpatched minimum is +1.2 ms.
+3. **Response bytes on the connection after lifespan shutdown.** Under SIGINT, the client received the 500 for the cancelled request. Uvicorn's log shows `Application shutdown complete.`, then `Finished server process`, then `Exception in ASGI application` for the request's second, message-less `CancelledError`, then the access-log line for the 500. A log line is not a socket operation, so this is supporting evidence only. Under SIGTERM the connection stayed open until the process ended.
+
+Together: when Uvicorn sends `lifespan.shutdown` on this path, it still holds the request's connection, open, in its own registry, and the cancelled task is still running. The ASGI sentence "closed all active connections" is therefore not met.
 
 **Minimal reproduction.** Two passes, three runs per variant, in [outputs/minimal-repro/](outputs/minimal-repro/). The second pass is the hardened script:
 
@@ -256,9 +301,15 @@ Phase 2, runtime: each step was observed.
 
 ### Classification
 
-**CONFIRMED DEFECT,** in the lifecycle order. On the graceful-timeout path Uvicorn sends `lifespan.shutdown` while the request tasks it cancelled are still running and their connections are still open. That contradicts the ASGI lifespan specification's statement about when `lifespan.shutdown` is sent, and Uvicorn's own documentation of the shutdown order.
+**CONFIRMED DEFECT,** in the lifecycle order. Uvicorn begins lifespan shutdown immediately after cancelling timed-out request tasks, without waiting for their cancellation handlers to finish. Application resources can therefore be torn down while request cleanup is still using them, as shown with a pool. That claim stands on its own evidence.
 
-- **Reproducibility:** 131 of 131 repetitions, on the latest release and `main`.
+It also contradicts two documents:
+- **The ASGI lifespan specification.** At the moment Uvicorn sends `lifespan.shutdown`, its own registry still holds the request's connection, open, and the cancelled task is still running, against the spec's "closed all active connections".
+- **Uvicorn's own documentation of the shutdown order.**
+
+The case in brief:
+
+- **Reproducibility:** 166 of 166 unpatched repetitions, on the latest release and `main`, on macOS and Linux.
 - **Owner:** the responsible code is identified (`Server.shutdown`).
 - **Remedy:** a correction exists that keeps shutdown bounded. Wait, bound, or abort is the maintainer's choice.
 

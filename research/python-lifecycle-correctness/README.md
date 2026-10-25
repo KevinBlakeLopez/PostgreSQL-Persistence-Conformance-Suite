@@ -33,13 +33,14 @@ It is a research package for human review. Nothing was filed or posted upstream.
 | AnyIO, h11, uvloop, httptools | 4.15.1, 0.16.0, 0.23.0, 0.9.0 |
 | Python | CPython 3.13.11 and 3.14.2; 3.9.9 for one stdlib probe |
 | Event loops | asyncio (plain install), `uvloop.Loop` (standard install) |
-| OS | macOS 26.6.2, arm64 |
+| OS | macOS 26.6.2, arm64; Linux in a `python:3.13-slim` container (Debian 13, kernel 6.8, aarch64, CPython 3.13.17) |
 
 ## Main conclusions
 
 - **F1, CONFIRMED DEFECT (Uvicorn).** When `--timeout-graceful-shutdown` expires, Uvicorn cancels the request tasks and sends `lifespan.shutdown` without waiting for them.
-  - **Order:** in 131 of 131 unpatched repetitions where the work outlived the timeout, lifespan shutdown began 0.06 to 0.97 ms after the cancelled task's cleanup began, while that task and its connection were still active.
-  - **Lost cleanup:** that cleanup was lost in 109 of them. Under SIGTERM, the signal Uvicorn re-raises ends the process mid-cleanup; under SIGINT, `asyncio.run` cancels the cleanup again. When the cleanup used a pool that lifespan shutdown closes, it failed with `ConnectionError`.
+  - **Order:** in 166 of 166 unpatched repetitions on macOS and Linux where the work outlived the timeout, lifespan shutdown began within a few milliseconds of the cancelled task's cleanup starting (0.06 to 0.97 ms on macOS).
+  - **The registry agrees:** at that moment Uvicorn's own registry still held the request's connection, open, and the task still running.
+  - **Lost cleanup:** that cleanup was lost in 144 of them. Under SIGTERM, the signal Uvicorn re-raises ends the process mid-cleanup; under SIGINT, `asyncio.run` cancels the cleanup again. When the cleanup used a pool that lifespan shutdown closes, it failed with `ConnectionError`.
   - **Reach:** it holds on the latest release and `main`, Python 3.13 and 3.14, asyncio and uvloop, plain ASGI and FastAPI `BackgroundTasks`.
   - **Candidate fixes:** an unbounded wait fixes the order but makes shutdown hang on a request that suppresses its cancellation, and breaks force quit. A bounded wait (at most one more timeout period, honoring force exit) fixes the order for cleanup that fits within the bound and keeps shutdown bounded. Both pass Uvicorn's existing tests.
 - **F2, ALREADY FIXED (Uvicorn below 0.41.0).** A signal during lifespan startup skipped lifespan shutdown.
@@ -107,6 +108,13 @@ LC_VENVS=$LC_VENVS ./run-e3.sh     # bounded shutdown: suppressed cancellation, 
 # the uvicorn[standard] cases (outputs/e1-run3-standard)
 $LC_VENVS/venv-313/bin/python harness.py --reps 5 --case e1-18-standard-exceeds-term --python $LC_VENVS/venv-313-std/bin/python --timeout 2 --signal TERM
 $LC_VENVS/venv-313/bin/python harness.py --reps 5 --case e1-19-standard-exceeds-int  --python $LC_VENVS/venv-313-std/bin/python --timeout 2 --signal INT
+
+# Uvicorn's registry at the lifespan boundary (needs venv-313-diag and venv-313-fixb-diag:
+# main e4981ad + uvicorn-diagnostic-registry-log.diff, without and with the bounded fix)
+LC_VENVS=$LC_VENVS ./run-diag.sh && python3 diag_summary.py ../outputs/<diag run directory>
+
+# Linux: see the header of run-linux-container.sh (a disposable python:3.13-slim container;
+# the bounded fix goes in as a wheel built into the ignored .linux-build/ directory)
 
 # single-file reproduction (exits 1 when the cleanup did not finish before lifespan shutdown)
 $LC_VENVS/venv-313/bin/python minimal_repro.py [--sigint]

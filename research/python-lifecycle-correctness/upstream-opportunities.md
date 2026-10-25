@@ -8,7 +8,7 @@ Nothing has been filed, posted or proposed upstream. Upstream state was last che
 
 | Rank | Opportunity | Severity | Production reachability | Confidence | Fix feasibility | Upstream receptiveness | Impact per engineering hour | Remaining effort |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Uvicorn: lifespan shutdown overlaps the requests the graceful timeout cancelled (F1) | Medium | Needs `--timeout-graceful-shutdown` (opt-in) and work that outlives it, which is the case the option exists for. Also covers FastAPI `BackgroundTasks` | High: 131 of 131 repetitions; release and `main`; asyncio and uvloop | A bounded fix exists and is tested; the remedy is a design choice | High: very active maintainer (commits on 2026-10-24); shutdown is an active area in 2026 | High | About 1 h to a reviewed discussion post; 3 to 5 h more for a PR if invited |
+| 1 | Uvicorn: lifespan shutdown overlaps the requests the graceful timeout cancelled (F1) | Medium | Needs `--timeout-graceful-shutdown` (opt-in) and work that outlives it, which is the case the option exists for. Also covers FastAPI `BackgroundTasks` | High: 166 of 166 repetitions; release and `main`; macOS and Linux; asyncio and uvloop; Uvicorn's own registry at the boundary | A bounded fix exists and is tested; the remedy is a design choice | High: very active maintainer (commits on 2026-10-24); shutdown is an active area in 2026 | High | About 1 h to a reviewed discussion post; 3 to 5 h more for a PR if invited |
 | 2 | Hypercorn: validate the open fix for `graceful_timeout` on Python 3.12+ (F3) | Medium | Every Hypercorn deployment on Python 3.12+ with long requests | High for the behavior; PR #388 not tested | The fix is already proposed upstream | Uncertain: last push to the repository was 2025-11-08 | Medium | 1 to 2 h |
 | 3 | Uvicorn: document the post-timeout order, if maintainers decide the overlap is intended (fallback of 1) | Low | Same as 1 | Depends on the maintainers' answer | Documentation only | Depends on 1 | Low | 0.5 to 1 h |
 
@@ -59,7 +59,7 @@ None of these options gives a hard deadline under SIGINT for a task that suppres
 - **If a PR is invited:**
   - patch in the chosen form, regression tests and a documentation touch (`docs/settings.md`, possibly `docs/server-behavior.md`): 2 to 3 h, including running the suite and lint locally;
   - review iterations: 1 to 2 h.
-- **Optional before posting:** run the minimal reproduction on Linux, the platform of Uvicorn's CI (0.5 h). Everything here was recorded on macOS.
+- **Linux validation:** done, in a Debian 13 container, with the same results (findings.md).
 
 ## 2. Hypercorn: validate PR #388 (F3)
 

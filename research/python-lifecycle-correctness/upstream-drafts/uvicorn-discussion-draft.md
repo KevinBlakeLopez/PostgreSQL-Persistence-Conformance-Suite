@@ -65,12 +65,14 @@ async def app(scope, receive, send):
 
 </details>
 
-I saw the same order every time on 0.54.0 and on `main` (e4981ad), with CPython 3.13.11 and 3.14.2, with and without `uvicorn[standard]`, on macOS (arm64). I also checked it with a separate process standing in for a remote service: the cleanup's request reached it, but the server process ended before the answer came back. When the cleanup went through a pool that the lifespan shutdown closes, it failed with `ConnectionError`.
+I saw the same order every time on 0.54.0 and on `main` (e4981ad), with CPython 3.13 and 3.14, with and without `uvicorn[standard]`, on macOS (arm64) and Linux (Debian 13, aarch64). With a temporary log line just before `await self.lifespan.shutdown()`, `server_state.connections` still held the request's connection, with its transport not closing, and the cancelled task was not done.
+
+I also checked it with a separate process standing in for a remote service. The cleanup's request reached it, but the server process ended before the answer came back. When the cleanup went through a pool that the lifespan shutdown closes, it failed with `ConnectionError`.
 
 I tried two changes locally. Both pass the existing test suite:
 
 1. `await asyncio.wait(self.server_state.tasks)` after the cancel loop restores the order. But a request that suppresses its cancellation then hangs SIGTERM shutdown, and a second Ctrl+C no longer forces quit while it waits.
-2. Waiting for the cancelled tasks for at most another `timeout_graceful_shutdown`, and stopping on `force_exit` (polling like `_wait_tasks_to_complete`), restores the order for cleanup that fits in that window, and keeps shutdown bounded. Cleanup that takes longer is still cut off.
+2. Waiting for the cancelled tasks for at most another `timeout_graceful_shutdown`, and stopping on `force_exit` (polling like `_wait_tasks_to_complete`), restores the order for cleanup that fits in that window, and keeps shutdown bounded. The worst case becomes twice the configured timeout, and cleanup that takes longer is still cut off.
 
 Is waiting for the cancelled tasks, within some bound, how you'd want the server to behave after the timeout, or is the current overlap intended? If the approach is useful, I'm happy to prepare a PR with a regression test.
 

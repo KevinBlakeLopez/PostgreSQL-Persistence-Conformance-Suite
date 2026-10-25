@@ -11,14 +11,15 @@ The investigation asked whether widely used Python servers report a successful s
 - under SIGTERM, Uvicorn re-raises the signal after its shutdown sequence, and the process ends before those blocks finish;
 - under SIGINT, `asyncio.run` cancels them a second time.
 
-The logs read "Application shutdown complete." and "Finished server process", and the exit status is the ordinary one for that signal. This contradicts the ASGI lifespan specification ("closed all active connections") and Uvicorn's own lifespan documentation, which shows pending requests completing before `lifespan.shutdown`.
+The logs read "Application shutdown complete." and "Finished server process", and the exit status is the ordinary one for that signal.
 
 The evidence comes from an outside observer: a separate process the application talks to, standing in for a database or lock service. It shows the following:
 
-- In 131 of 131 unpatched repetitions where the work outlived the timeout, lifespan shutdown began within 1 ms of the cancelled task starting its cleanup.
-- The cleanup was lost in 109 of them, and in every case where it needed more time than the lifespan shutdown took.
+- In 166 of 166 unpatched repetitions (macOS and Linux) where the work outlived the timeout, lifespan shutdown began within a few milliseconds of the cancelled task starting its cleanup.
+- The cleanup was lost in 144 of them, and in every case where it needed more time than the lifespan shutdown took.
 - When the cleanup used a pool that lifespan shutdown closes, it failed with `ConnectionError`.
 - The same holds on Uvicorn 0.54.0 and `main`, Python 3.13 and 3.14, asyncio and uvloop, plain ASGI and FastAPI `BackgroundTasks`. In the FastAPI case the client had already received `202 Accepted`.
+- At the moment Uvicorn sends `lifespan.shutdown`, its own registry still holds the request's connection, open, with the task still running, in 10 of 10 instrumented runs. That contradicts the ASGI lifespan specification ("closed all active connections") and Uvicorn's own lifespan documentation.
 
 Two candidate fixes were tested against the same observer, Uvicorn's own suite, and adversarial cases:
 
@@ -39,7 +40,7 @@ Which trade-off to accept is the maintainers' decision. The only prior trace ups
 
 | ID | Project | Failure | Severity | Evidence | Classification | Upstream status |
 | --- | --- | --- | --- | --- | --- | --- |
-| F1 | Uvicorn 0.54.0, `main` `e4981ad` | Lifespan shutdown sent while the request tasks the graceful timeout cancelled are still running; their cleanup is then cut off (SIGTERM) or cancelled again (SIGINT) | Medium | 131 of 131 unpatched repetitions with an external observer; 60 of 60 patched; minimal reproduction; regression test; bounded-shutdown experiments | CONFIRMED DEFECT | Not tracked: discussion #2422 (source-only, closed as outdated); related PR #2882 closed |
+| F1 | Uvicorn 0.54.0, `main` `e4981ad` | Lifespan shutdown sent while the request tasks the graceful timeout cancelled are still running; their cleanup is then cut off (SIGTERM) or cancelled again (SIGINT) | Medium | 166 of 166 unpatched repetitions with an external observer (macOS and Linux); Uvicorn's registry at the boundary, 10 of 10; 85 of 85 patched; minimal reproduction; regression test; bounded-shutdown experiments | CONFIRMED DEFECT | Not tracked: discussion #2422 (source-only, closed as outdated); related PR #2882 closed |
 | F2 | Uvicorn below 0.41.0 | Signal during lifespan startup: lifespan shutdown never sent | Medium (historical) | 0.40.0: 0 of 10 sent; 0.54.0: 10 of 10 | ALREADY FIXED | PR #2812, 0.41.0 |
 | F3 | Hypercorn 0.18.0, Python 3.12+ | `graceful_timeout` not enforced | Medium | 10 of 10 (8.6 s shutdown with a 2 s timeout); stdlib probe | DUPLICATE | #308 open; PR #388 open |
 
@@ -62,9 +63,10 @@ Which trade-off to accept is the maintainers' decision. The only prior trace ups
 
   The timeout documentation permits terminating requests, but says nothing about doing so concurrently with lifespan shutdown. Completion of arbitrary cleanup is not claimed as a guarantee.
 - **Independent evidence.** A backend process recorded three states for every cleanup: request received, answer sent, application continued. Alongside it are the server's exit status and log order, the client's view, and an unbuffered witness file.
-  - Under SIGINT, the 500 for the cancelled request was written after "Finished server process".
+  - A diagnostic log line, reading Uvicorn's own `server_state` at the lifespan boundary, showed the request's connection open and its task not done (10 of 10). With the bounded fix or on the normal path, both were empty (15 of 15).
+  - The client saw its connection end after lifespan shutdown began in 121 of 121 unpatched repetitions, and before it with the fixes. Both timestamps come from one process.
   - With a shared pool, the cleanup failed with `ConnectionError` while lifespan shutdown was closing that pool.
-  - Both candidate fixes restore the order in the same harness.
+  - Both candidate fixes restore the order in the same harness, on macOS and Linux.
 - **Owner.** Uvicorn, `uvicorn/server.py`, `Server.shutdown()`. CPython's cancellation and `asyncio.run` behave as documented, and the application uses the documented pattern.
 
 ## Upstream opportunities
@@ -79,8 +81,8 @@ Details and remaining effort: [upstream-opportunities.md](upstream-opportunities
 
 | Item | Estimate |
 | --- | --- |
-| Time already spent | About 2.5 hours of active work, over about 4 hours of wall-clock time. The rest was the host asleep or the session idle |
-| Additional verification | 1 to 1.5 h: run the minimal reproduction and the core harness cases on Linux (all evidence so far is from macOS); optionally Gunicorn with `uvicorn-worker` |
+| Time already spent | About 3 hours of active work, over about 5 hours of wall-clock time. The rest was the host asleep or the session idle. This includes the Linux validation and the registry diagnostic |
+| Additional verification | Linux is done (Debian 13 container, 50 repetitions plus the minimal reproduction). Optional: Gunicorn with `uvicorn-worker`, 0.5 to 1 h |
 | Minimal fix | Done locally as the bounded diff (14 lines). 0.5 to 1 h to adapt it to whatever shape the maintainers prefer |
 | Regression tests | One drafted and checked (fails on `main`, passes with both fixes). About 1 h for the second test the bounded variant needs: a request that suppresses its cancellation must not delay shutdown past the bound |
 | Upstream submission | 0.5 to 1 h to review and approve the discussion text; 2 to 3 h for a PR if invited, plus review iterations |
