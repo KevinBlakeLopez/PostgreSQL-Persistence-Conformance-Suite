@@ -1,0 +1,376 @@
+{
+  "checkpoints": {
+    "after-nested": {
+      "dirty": 0,
+      "handled": {
+        "chain": [
+          "IntegrityError: (sqlite3.IntegrityError) negative balance",
+          "IntegrityError: negative balance"
+        ],
+        "driver": {
+          "message": "negative balance",
+          "primary_code": 19,
+          "sqlite_errorcode": 1811,
+          "sqlite_errorname": "SQLITE_CONSTRAINT_TRIGGER",
+          "type": "sqlite3.IntegrityError"
+        },
+        "message": "(sqlite3.IntegrityError) negative balance",
+        "type": "sqlalchemy.exc.IntegrityError"
+      },
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_in_nested_transaction": false,
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    },
+    "inside-nested": {
+      "dirty": 0,
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    }
+  },
+  "events": [
+    "pool.connect dbapi=0",
+    "pool.checkout dbapi=0",
+    "core.begin",
+    "core.commit",
+    "pool.reset dbapi=0 transaction_was_reset=False",
+    "pool.checkin dbapi=0",
+    "pool.checkout dbapi=0",
+    "core.begin",
+    "core.rollback",
+    "pool.reset dbapi=0 transaction_was_reset=False",
+    "pool.checkin dbapi=0"
+  ],
+  "observed": {
+    "after_nested": {
+      "dirty": 0,
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_in_nested_transaction": false,
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    },
+    "b_visible_to_observer_before_completion": false,
+    "configuration": {
+      "catch": "broad",
+      "config": "default",
+      "dbapi_at_connect": [
+        {
+          "autocommit": -1,
+          "in_transaction_at_connect": false,
+          "isolation_level": ""
+        }
+      ],
+      "layer": "session",
+      "path": "execute"
+    },
+    "handled_by_outer": {
+      "chain": [
+        "IntegrityError: (sqlite3.IntegrityError) negative balance",
+        "IntegrityError: negative balance"
+      ],
+      "type": "sqlalchemy.exc.IntegrityError"
+    },
+    "inside_nested": {
+      "dirty": 0,
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    },
+    "later_unit_N1": {
+      "dbapi_serials": [
+        0
+      ],
+      "ledger_after": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "outcome": "rolled back by AppError",
+      "sql_started": [
+        "BEGIN ",
+        "INSERT INTO ledger(token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'N1')",
+        "ROLLBACK"
+      ]
+    },
+    "nested_sql_started": [
+      "SAVEPOINT sa_savepoint_1",
+      "INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'I')",
+      "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+      "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+      "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+      "ROLLBACK TO SAVEPOINT sa_savepoint_1"
+    ],
+    "persisted_final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ]
+    },
+    "pool_at_end": {
+      "checked_out_after_gc": 0,
+      "checked_out_before_gc": 0,
+      "pool_events_during_gc": []
+    },
+    "pool_log": [],
+    "sink": [
+      [
+        "unit-1:after_rollback",
+        ""
+      ],
+      [
+        "unit-1:after_soft_rollback",
+        ""
+      ],
+      [
+        "unit-1:after_commit",
+        ""
+      ],
+      [
+        "application-confirmed",
+        "unit 1 completion returned normally"
+      ]
+    ],
+    "unit_1": {
+      "chain": null,
+      "completion_sql_started": [
+        "INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'B')",
+        "COMMIT"
+      ],
+      "outcome": "ok",
+      "persisted": {
+        "balances": [
+          [
+            1,
+            100
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          [
+            "A"
+          ],
+          [
+            "B"
+          ]
+        ]
+      },
+      "warnings": []
+    }
+  },
+  "observers": {
+    "after-N1": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "after-nested": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-unit-1": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    }
+  },
+  "pool_log_all": [],
+  "repetition": 1,
+  "token": "c7774c2bd40b43098773c58711b25369",
+  "trace": [
+    "dbapi0: BEGIN ",
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'A')",
+    "dbapi0: SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'I')",
+    "dbapi0: UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+    "dbapi0: UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+    "dbapi0: UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2",
+    "dbapi0: ROLLBACK TO SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'B')",
+    "dbapi0: COMMIT",
+    "dbapi0: BEGIN ",
+    "dbapi0: INSERT INTO ledger(token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'N1')",
+    "dbapi0: ROLLBACK"
+  ],
+  "trace_events": [
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "BEGIN "
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'A')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "SAVEPOINT sa_savepoint_1"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'I')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=(accounts.balance - 500) WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "ROLLBACK TO SAVEPOINT sa_savepoint_1"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'B')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "COMMIT"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "BEGIN "
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('c7774c2bd40b43098773c58711b25369', 'N1')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    }
+  ],
+  "unit_1_record": {
+    "returned": null,
+    "status": "ok",
+    "step": "unit-1",
+    "warnings": []
+  },
+  "variant": "default.session-execute.abort.catch-broad"
+}

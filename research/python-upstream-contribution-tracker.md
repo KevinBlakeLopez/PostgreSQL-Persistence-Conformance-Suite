@@ -39,7 +39,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-5 | SQLAlchemy (docs) | On a transactional psycopg 3 engine, the documented PostgreSQL reset recipe leaves the role, a custom GUC, `search_path`, `statement_timeout` and temp tables in place. On psycopg2, the driver in its URL, it raised on each tested return, and the pool discarded the connection | CONFIRMED on both drivers; CHK-3 | 4 (A5, B3) | READY_FOR_HUMAN_REVIEW | The author writes the discussion or docs PR from CHK-3's [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) |
 | PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | READY_FOR_HUMAN_REVIEW | Write and run the standalone script; draft the issue |
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
-| PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6 | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
+| PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
 | PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — | DEFERRED | Revisit after PY-1 and PY-2 |
 | PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
@@ -53,6 +53,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-18 | Django | TX-02 not-sent | PPCS; no trigger | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Tortoise ORM | Rollback skipped after a class-25 error in a nested block | Src only | — | DEFERRED | Mention only if the PY-8 discussion invites it |
 | PY-20 | Tortoise ORM | SQLite: after a COMMIT fails, the shared connection stays in the transaction, and later writes return normally and are lost | CONFIRMED with a deferred foreign key | — | NEEDS_VERIFICATION | Run CHK-8 |
+| PY-21 | SQLAlchemy | When SQLite ends the transaction by itself (a full disk, `ON CONFLICT ROLLBACK`, `RAISE(ROLLBACK)`), SQLAlchemy keeps its transaction active and reports the commit. With the ORM guide's SAVEPOINT loop and the SQLite dialect's `BEGIN` recipe, every record before the failure is lost while `session.commit()` returns | CONFIRMED on 2.1.6 and 2.0.55; on 2.1.6 also with a real disk full | — | READY_FOR_HUMAN_REVIEW | The author writes a discussion from the study's [`sqlalchemy-facts.md`](sqlite-transaction-state-divergence/upstream/sqlalchemy-facts.md), item SA-1 |
+| PY-22 | SQLAlchemy | `Session.close()` keeps the pooled connection checked out when the rollback inside it raises an error that is not a disconnect, as on SQLite with `autocommit=False`. #13657 fixed the same in Core's `Connection.close()` only | CONFIRMED on 2.1.6 and 2.0.55 | — | READY_FOR_HUMAN_REVIEW | The author writes it from `sqlalchemy-facts.md`, item SA-2 |
+| PY-23 | CPython `sqlite3` | With `autocommit=False`, after SQLite ends a transaction by itself, `commit()` and `rollback()` raise instead of doing nothing, no transaction is opened again, and later writes commit by themselves | CONFIRMED on 3.13.11, 3.13.17 and 3.14.2 | — | AWAITING_APPROVAL | Approval of the exact text of [the draft](sqlite-transaction-state-divergence/upstream/cpython-sqlite3-autocommit-false-draft.md), stored with its study |
 
 ## Scheduled items
 
@@ -257,11 +260,18 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **CHK-7,** `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (Ext; commit `3c9758b`), whose `FACTS.md` is the package for the author.
     - On 2.1.6 with psycopg 3.3.6, the unchanged script's stdout was byte-identical to the recorded output, 3 of 3.
     - The server log and `psql` show the next checkout's `COMMIT` committing the transaction whose `commit()` raised.
+- **SQLite consequence (2026-10-25).** [`sqlite-transaction-state-divergence/`](sqlite-transaction-state-divergence/findings.md), finding F6; SQLAlchemy 2.1.6, SQLite 3.54.1, Python 3.13.11.
+  - With `connect_args={"autocommit": False}`, after SQLite ends the transaction itself (`RAISE(ROLLBACK)` in these runs), `commit()` raises `cannot commit - no transaction is active`. The pool's reset then reports `transaction_was_reset=True` and does not run, 3 of 3. This is P5a's path.
+  - The consequence differs from PostgreSQL's. SQLite has already rolled back, so the next checkout gets the same connection with no transaction open: its write committed although its `commit()` raised, and the following unit's write committed although its `rollback()` raised. A pool reset that failed then invalidated the connection.
+  - Same through `conn.begin()`/`tx.commit()`, commit-as-you-go and `session.commit()`. `engine.begin()` is not affected: it rolls back, the pool's reset fails, and the connection is invalidated.
+  - Runs: `sqlite-transaction-state-divergence/output/sqlite02-core/2026-10-25T17-21-27Z-ca780e/` (`autocommit-false.{explicit,commit-as-you-go}.rollback.*`) and `…/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-continue`). The study's `upstream/sqlalchemy-facts.md`, item SA-3, states it for the author.
+  - Evidence commit `4d54f1b`, pushed to `main` on 2026-10-25.
 - **Upstream:** none found.
   - Re-checked 2026-10-25 for 2026-10-18 onward, with the review's twelve issue queries and five replacement discussion queries; no matching item was found.
   - #13699 (fixed in 2.1.6) touches `Connection.close()`, but it is a cancellation during the reset, not P5a.
   - Precedent: #13381, fixed.
 - **Confidence:** CONFIRMED for a `commit()` that fails before sending, on a healthy connection. The demonstrated triggers that replace no DBAPI method are a raising commit listener, and mixing psycopg's and SQLAlchemy's transaction APIs. Reachability through ordinary driver or OS failures, and production frequency, are not established.
+  - On SQLite there is a trigger that replaces no DBAPI method: SQLite ending the transaction itself, under `sqlite3`'s `autocommit=False` (see the SQLite consequence above). It was run with `RAISE(ROLLBACK)`. A real disk full ends the transaction the same way (that study's SQLITE-05c), but this path was not run end to end with one.
 - **Priority:** 7. It is ready, and can move earlier if the author prefers. Leave time after PY-5.
 - **Proposed action:** a Usage Questions discussion, written by the author in their own words. The venue was decided on 2026-10-18.
 - **Prerequisites:** CHK-7 and a fresh duplicate search, both done 2026-10-25 (UTC).
@@ -308,8 +318,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-18 | PPCS `6d8443` | — | None | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Src: `tortoise/backends/asyncpg/client.py:96-97`, `backends/base/client.py` (exits) | — | None | A run that shows a consequence | DEFERRED | — |
 | PY-20 | `python-upstream-contribution/py-8-tortoise-commit-translation/` (check 2; README "A separate candidate") | None found in PY-8's queries; not searched on its own | An issue, if CHK-8 holds | CHK-8 | NEEDS_VERIFICATION | Run CHK-8 |
+| PY-21 | `sqlite-transaction-state-divergence/` findings F1 and F2; runs `sqlite-transaction-state-divergence/output/sqlite05c-enospc/2026-10-25T17-22-54Z-9e213e/`, `…/sqlite05b-batch/2026-10-25T17-22-43Z-4b67f2/`, `…/minimal-matrix/2026-10-25T18-21-01Z-556213/` | None found on 2026-10-25 (that study's `upstream/duplicate-search.md`). Related: #2696 (2013, MySQL lost its savepoints), #5968 (2021, `ON CONFLICT IGNORE`) | A Usage Questions discussion, written by the author in their own words | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-1, after its "Before posting" checks |
+| PY-22 | `sqlite-transaction-state-divergence/` finding F3; `…/output/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-escape`); `…/repro/minimal/sa_session_close_leak.py` | None found. #13657 (discussion #13656) fixed the same symptom in Core's `Connection.close()`, commit `d29277af` | A report written by the author in their own words; #13657 began as a discussion | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-2 |
+| PY-23 | `sqlite-transaction-state-divergence/` finding F4; `…/output/sqlite01-raw/2026-10-25T17-21-27Z-737440/` (`pep249.rollback.*`); `…/repro/minimal/sqlite3_autocommit_false.py` | None found. Related: gh-112441 (2023, not planned; there the user's own SQL ended the transaction) | A CPython issue | Approval of the exact text | AWAITING_APPROVAL | Approve or edit `upstream/cpython-sqlite3-autocommit-false-draft.md`, then run its "Before filing" checks |
 
-All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's.
+All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's and those of PY-21 to PY-23. Theirs are under `research/sqlite-transaction-state-divergence/`, written `…/` after the first path in a row.
 
 ## Verification checks
 
@@ -598,3 +611,11 @@ The rest of this section is the plan as it stood before the commits.
   - **Status.** PY-4 moved to READY_FOR_HUMAN_REVIEW. Its post still waits on P5a's reception.
   - **Committed and pushed** at the maintainer's request: the evidence as `190173c`, and this tracker update in the commit after it.
   - **Nothing posted or filed.** The roadmap was not edited.
+- **2026-10-25, about 22:00 UTC.**
+  - **PY-7: added the SQLite consequence** from [`sqlite-transaction-state-divergence/`](sqlite-transaction-state-divergence/findings.md) (F6), at the maintainer's request, and a note on the SQLite trigger under Confidence. Status unchanged.
+  - Committed on branch `research/sqlite-state-divergence` with that study. Not pushed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-25, about 22:10 UTC.**
+  - **New: PY-21, PY-22 and PY-23** from the same study: F1 with F2, F3, and F4, at the maintainer's request. They are unranked, like PY-20; the roadmap was not edited.
+  - PY-23's draft is stored with its study, in `sqlite-transaction-state-divergence/upstream/`, not in `python-upstream-contribution/upstream-drafts/`.
+  - Committed on branch `research/sqlite-state-divergence`. Not pushed. Nothing posted or filed.
+- **2026-10-25, about 22:20 UTC.** Pushed to `main` at the maintainer's request, as a fast-forward from `68fa4e0`: the SQLite study (`4d54f1b`, `2c48f68`, `b8d8e48`, `8e82653`), the PY-7 note (`378bdd5`), PY-21 to PY-23 (`8de2fbb`), and this entry in the commit after it. Nothing posted or filed.

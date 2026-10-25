@@ -1,0 +1,103 @@
+{
+  "child": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": true,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": false
+    },
+    "before_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "django": "6.1.2",
+    "handled": {
+      "chain": [
+        "IntegrityError: negative balance",
+        "IntegrityError: negative balance"
+      ],
+      "driver": {
+        "message": "negative balance",
+        "primary_code": 19,
+        "sqlite_errorcode": 1811,
+        "sqlite_errorname": "SQLITE_CONSTRAINT_TRIGGER",
+        "type": "sqlite3.IntegrityError"
+      },
+      "message": "negative balance",
+      "type": "django.db.utils.IntegrityError"
+    },
+    "outcome": {
+      "returned": null,
+      "status": "ok",
+      "step": "atomic",
+      "warnings": []
+    },
+    "steps": [
+      {
+        "status": "ok",
+        "step": "write A"
+      }
+    ],
+    "trace": [
+      "BEGIN",
+      "INSERT INTO \"ledger\" (\"token\", \"step\") VALUES ('b13aad26fd7b4d31ac78c245033a7373', 'A') RETURNING \"ledger\".\"id\"",
+      "SAVEPOINT \"s8397070720_x1\"",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "ROLLBACK TO SAVEPOINT \"s8397070720_x1\""
+    ]
+  },
+  "observed": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "atomic_outcome": "ok",
+    "atomic_outcome_chain": null,
+    "child_returncode": 0,
+    "django": "6.1.2",
+    "handled": [
+      "IntegrityError: negative balance",
+      "IntegrityError: negative balance"
+    ],
+    "on_commit_ran": [],
+    "persisted": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": []
+    },
+    "state_after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": true,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": false
+    },
+    "write_b": "not-run"
+  },
+  "repetition": 3,
+  "stderr_tail": [],
+  "token": "b13aad26fd7b4d31ac78c245033a7373",
+  "variant": "rollback.raw.nested-catch-no-b"
+}

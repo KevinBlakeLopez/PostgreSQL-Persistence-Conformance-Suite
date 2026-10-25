@@ -1,0 +1,204 @@
+{
+  "detail": {
+    "after_commit": {
+      "in_transaction": false
+    },
+    "after_fault": {
+      "in_transaction": false,
+      "writer_view": {
+        "ledger": []
+      }
+    },
+    "after_write_b": {
+      "in_transaction": false
+    },
+    "fault": {
+      "error": {
+        "chain": [
+          "OperationalError: database or disk is full"
+        ],
+        "driver": {
+          "message": "database or disk is full",
+          "primary_code": 13,
+          "sqlite_errorcode": 13,
+          "sqlite_errorname": "SQLITE_FULL",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "database or disk is full",
+        "type": "sqlite3.OperationalError"
+      },
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "sql_started": [
+        "INSERT INTO blobs_unique(k, data) VALUES ('k1', randomblob(262144))"
+      ],
+      "status": "error",
+      "step": "fault",
+      "traceback_tail": [
+        "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+        "  File \"$STUDY/repro/sqlite05_realistic.py\", line 141, in <lambda>\n    fault_entry = step(\"fault\", lambda: conn.execute(spec[\"sql\"]).fetchall())\n                                        ~~~~~~~~~~~~^^^^^^^^^^^^^",
+        "sqlite3.OperationalError: database or disk is full"
+      ],
+      "warnings": []
+    },
+    "journal_mode": "wal",
+    "max_page_count_set": 14,
+    "page_count_before": 6,
+    "steps": [
+      {
+        "in_transaction_after": true,
+        "in_transaction_before": false,
+        "returned": -1,
+        "sql_started": [
+          "BEGIN"
+        ],
+        "status": "ok",
+        "step": "begin",
+        "warnings": []
+      },
+      {
+        "in_transaction_after": true,
+        "in_transaction_before": true,
+        "returned": 1,
+        "sql_started": [
+          "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'A')"
+        ],
+        "status": "ok",
+        "step": "write-a",
+        "warnings": []
+      },
+      {
+        "error": {
+          "chain": [
+            "OperationalError: database or disk is full"
+          ],
+          "driver": {
+            "message": "database or disk is full",
+            "primary_code": 13,
+            "sqlite_errorcode": 13,
+            "sqlite_errorname": "SQLITE_FULL",
+            "type": "sqlite3.OperationalError"
+          },
+          "message": "database or disk is full",
+          "type": "sqlite3.OperationalError"
+        },
+        "in_transaction_after": false,
+        "in_transaction_before": true,
+        "sql_started": [
+          "INSERT INTO blobs_unique(k, data) VALUES ('k1', randomblob(262144))"
+        ],
+        "status": "error",
+        "step": "fault",
+        "traceback_tail": [
+          "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+          "  File \"$STUDY/repro/sqlite05_realistic.py\", line 141, in <lambda>\n    fault_entry = step(\"fault\", lambda: conn.execute(spec[\"sql\"]).fetchall())\n                                        ~~~~~~~~~~~~^^^^^^^^^^^^^",
+          "sqlite3.OperationalError: database or disk is full"
+        ],
+        "warnings": []
+      },
+      {
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "returned": 1,
+        "sql_started": [
+          "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'B')"
+        ],
+        "status": "ok",
+        "step": "write-b",
+        "warnings": []
+      },
+      {
+        "error": {
+          "chain": [
+            "OperationalError: cannot commit - no transaction is active"
+          ],
+          "driver": {
+            "message": "cannot commit - no transaction is active",
+            "primary_code": 1,
+            "sqlite_errorcode": 1,
+            "sqlite_errorname": "SQLITE_ERROR",
+            "type": "sqlite3.OperationalError"
+          },
+          "message": "cannot commit - no transaction is active",
+          "type": "sqlite3.OperationalError"
+        },
+        "in_transaction_after": false,
+        "in_transaction_before": false,
+        "sql_started": [
+          "COMMIT"
+        ],
+        "status": "error",
+        "step": "commit",
+        "traceback_tail": [
+          "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+          "  File \"$STUDY/repro/sqlite05_realistic.py\", line 146, in <lambda>\n    step(\"commit\", lambda: conn.execute(\"COMMIT\").rowcount)\n                           ~~~~~~~~~~~~^^^^^^^^^^",
+          "sqlite3.OperationalError: cannot commit - no transaction is active"
+        ],
+        "warnings": []
+      }
+    ],
+    "trace": [
+      "PRAGMA journal_mode",
+      "PRAGMA page_count",
+      "PRAGMA max_page_count = 14",
+      "BEGIN",
+      "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'A')",
+      "INSERT INTO blobs_unique(k, data) VALUES ('k1', randomblob(262144))",
+      "SELECT step FROM ledger WHERE token = '48da27c2696a454b8b4c72031b46d7f8' ORDER BY id",
+      "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'B')",
+      "COMMIT"
+    ]
+  },
+  "observed": {
+    "child_returncode": null,
+    "commit": {
+      "error": "SQLITE_ERROR",
+      "message": "cannot commit - no transaction is active"
+    },
+    "fault_error": "SQLITE_FULL",
+    "fault_error_code": 13,
+    "fault_message": "database or disk is full",
+    "in_transaction_after_fault": false,
+    "journal_mode": "wal",
+    "persisted_ledger": [
+      [
+        "B"
+      ]
+    ],
+    "write_b": "ok",
+    "write_b_in_transaction_after": false,
+    "writer_sees_a_after_fault": false
+  },
+  "observer_final": {
+    "blob_rows": [
+      [
+        0
+      ]
+    ],
+    "ledger": [
+      [
+        "B"
+      ]
+    ],
+    "nums_rows": [
+      [
+        0
+      ]
+    ],
+    "observer_in_transaction": false
+  },
+  "repetition": 3,
+  "token": "48da27c2696a454b8b4c72031b46d7f8",
+  "trace": [
+    "PRAGMA journal_mode",
+    "PRAGMA page_count",
+    "PRAGMA max_page_count = 14",
+    "BEGIN",
+    "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'A')",
+    "INSERT INTO blobs_unique(k, data) VALUES ('k1', randomblob(262144))",
+    "SELECT step FROM ledger WHERE token = '48da27c2696a454b8b4c72031b46d7f8' ORDER BY id",
+    "INSERT INTO ledger(token, step) VALUES ('48da27c2696a454b8b4c72031b46d7f8', 'B')",
+    "COMMIT"
+  ],
+  "variant": "full-insert-one-row-unique.wal"
+}

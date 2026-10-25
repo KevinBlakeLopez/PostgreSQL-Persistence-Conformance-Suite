@@ -1,0 +1,79 @@
+{
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "--name",
+    "ppcs-sqlite-sd-enospc-95b569940f09",
+    "--tmpfs",
+    "/data:rw,size=16m",
+    "-e",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "-v",
+    "$STUDY/repro:/repro:ro",
+    "-v",
+    "$STUDY/.wheels-linux:/wheels:ro",
+    "python:3.13-slim@sha256:d98cc29d3266e535dd9da1099688d9cb3ca4753813571e071763d17725460962",
+    "sh",
+    "-c",
+    "pip install -q --no-index --no-deps /wheels/sqlalchemy-2.1.6-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl /wheels/typing_extensions-4.16.0-py3-none-any.whl >/dev/null 2>&1; python -I /repro/sqlite05c_enospc_container.py raw 95b569940f09422c9632d4af43976b93"
+  ],
+  "document": {
+    "free_at_end": 3145728,
+    "payload_bytes": 204800,
+    "python": "3.13.17",
+    "records": 30,
+    "result": {
+      "commit_error": {
+        "chain": [
+          "OperationalError: cannot commit - no transaction is active"
+        ],
+        "sqlite_errorcode": 1,
+        "sqlite_errorname": "SQLITE_ERROR"
+      },
+      "committed_seqs": [],
+      "failed_seq": 24,
+      "first_error": {
+        "chain": [
+          "OperationalError: database or disk is full"
+        ],
+        "sqlite_errorcode": 13,
+        "sqlite_errorname": "SQLITE_FULL"
+      },
+      "in_transaction_after_error": false
+    },
+    "setup": {
+      "db_bytes": 8192,
+      "free_after_filler": 3145728,
+      "free_before_filler": 16769024
+    },
+    "sqlite": "3.46.1",
+    "target_free_bytes": 3145728,
+    "variant": "raw"
+  },
+  "observed": {
+    "commit_error": [
+      "OperationalError: cannot commit - no transaction is active"
+    ],
+    "committed_seqs": [],
+    "container": {
+      "free_after_filler_mib": 3.0,
+      "python": "3.13.17",
+      "returncode": 0,
+      "sqlalchemy": null,
+      "sqlite": "3.46.1"
+    },
+    "failed_seq": 24,
+    "first_error": "SQLITE_FULL",
+    "first_error_chain": [
+      "OperationalError: database or disk is full"
+    ],
+    "in_transaction_after_error": false
+  },
+  "repetition": 2,
+  "stderr_tail": [],
+  "token": "95b569940f09422c9632d4af43976b93",
+  "variant": "raw"
+}

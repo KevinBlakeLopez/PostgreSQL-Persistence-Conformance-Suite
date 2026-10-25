@@ -1,0 +1,105 @@
+{
+  "child": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "after_write_b": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "before_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "django": "6.1.2",
+    "handled": null,
+    "outcome": {
+      "returned": null,
+      "status": "ok",
+      "step": "atomic",
+      "warnings": []
+    },
+    "steps": [
+      {
+        "status": "ok",
+        "step": "write A"
+      },
+      {
+        "status": "ok",
+        "step": "write B"
+      }
+    ],
+    "trace": [
+      "BEGIN",
+      "INSERT INTO \"ledger\" (\"token\", \"step\") VALUES ('897ba7619efa43f5b37e6da11f002786', 'A') RETURNING \"ledger\".\"id\"",
+      "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+      "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+      "INSERT INTO \"ledger\" (\"token\", \"step\") VALUES ('897ba7619efa43f5b37e6da11f002786', 'B') RETURNING \"ledger\".\"id\"",
+      "COMMIT"
+    ]
+  },
+  "observed": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "atomic_outcome": "ok",
+    "atomic_outcome_chain": null,
+    "child_returncode": 0,
+    "django": "6.1.2",
+    "handled": null,
+    "on_commit_ran": [
+      "on_commit"
+    ],
+    "persisted": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ]
+    },
+    "state_after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "write_b": "ok"
+  },
+  "repetition": 1,
+  "stderr_tail": [],
+  "token": "897ba7619efa43f5b37e6da11f002786",
+  "variant": "none.raw.plain-catch"
+}

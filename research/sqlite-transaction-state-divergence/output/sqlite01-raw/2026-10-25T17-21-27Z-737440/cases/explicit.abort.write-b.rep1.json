@@ -1,0 +1,471 @@
+{
+  "checkpoints": {
+    "after-complete": {
+      "in_transaction": false
+    },
+    "after-fault": {
+      "in_transaction": true,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    },
+    "after-next-unit": {
+      "in_transaction": false
+    },
+    "after-write-b": {
+      "in_transaction": true
+    },
+    "before-fault": {
+      "in_transaction": true,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observed": {
+    "complete": "ok",
+    "complete_sql_started": [
+      "COMMIT"
+    ],
+    "configuration": {
+      "autocommit": true,
+      "in_transaction_at_connect": false,
+      "isolation_level": "",
+      "mode": "explicit"
+    },
+    "fault": {
+      "error": "SQLITE_CONSTRAINT_TRIGGER",
+      "message": "negative balance"
+    },
+    "fault_error_code": 1811,
+    "in_transaction": {
+      "after-complete": false,
+      "after-fault": true,
+      "after-next-unit": false,
+      "after-write-b": true,
+      "before-fault": true
+    },
+    "next_unit": {
+      "rollback": "ok",
+      "rollback_sql_started": [
+        "ROLLBACK"
+      ],
+      "write": "ok"
+    },
+    "persisted_after_complete": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ]
+    },
+    "persisted_final": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ]
+    },
+    "recovery": null,
+    "write_b": {
+      "observer_saw_b_before_complete": false,
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'B')"
+      ],
+      "status": "ok"
+    },
+    "writer_view": {
+      "after-fault": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      },
+      "before-fault": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observers": {
+    "after-complete": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "after-fault": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-next-unit": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "after-write-b": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "final": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    }
+  },
+  "repetition": 1,
+  "steps": [
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "returned": -1,
+      "sql": "BEGIN",
+      "sql_started": [
+        "BEGIN"
+      ],
+      "status": "ok",
+      "step": "begin",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+      ],
+      "status": "ok",
+      "step": "write-a-debit",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'A')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'A')"
+      ],
+      "status": "ok",
+      "step": "write-a-ledger",
+      "warnings": []
+    },
+    {
+      "error": {
+        "chain": [
+          "IntegrityError: negative balance"
+        ],
+        "driver": {
+          "message": "negative balance",
+          "primary_code": 19,
+          "sqlite_errorcode": 1811,
+          "sqlite_errorname": "SQLITE_CONSTRAINT_TRIGGER",
+          "type": "sqlite3.IntegrityError"
+        },
+        "message": "negative balance",
+        "type": "sqlite3.IntegrityError"
+      },
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+      ],
+      "status": "error",
+      "step": "fault",
+      "traceback_tail": [
+        "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+        "  File \"$STUDY/repro/sqlite01_raw.py\", line 120, in <lambda>\n    return self.step(label, lambda: self.conn.execute(statement, params).rowcount, sql=statement)\n                                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^",
+        "sqlite3.IntegrityError: negative balance"
+      ],
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'B')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'B')"
+      ],
+      "status": "ok",
+      "step": "write-b",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "returned": -1,
+      "sql": "COMMIT",
+      "sql_started": [
+        "COMMIT"
+      ],
+      "status": "ok",
+      "step": "complete",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "returned": -1,
+      "sql": "BEGIN",
+      "sql_started": [
+        "BEGIN"
+      ],
+      "status": "ok",
+      "step": "next-begin",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'N')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'N')"
+      ],
+      "status": "ok",
+      "step": "next-write",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "returned": -1,
+      "sql": "ROLLBACK",
+      "sql_started": [
+        "ROLLBACK"
+      ],
+      "status": "ok",
+      "step": "next-rollback",
+      "warnings": []
+    }
+  ],
+  "token": "14423e08dd484587a62a940c1c152d9b",
+  "trace": [
+    "BEGIN",
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'A')",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = '14423e08dd484587a62a940c1c152d9b' ORDER BY id",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = '14423e08dd484587a62a940c1c152d9b' ORDER BY id",
+    "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'B')",
+    "COMMIT",
+    "BEGIN",
+    "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'N')",
+    "ROLLBACK"
+  ],
+  "trace_events": [
+    {
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'A')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT step FROM ledger WHERE token = '14423e08dd484587a62a940c1c152d9b' ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT step FROM ledger WHERE token = '14423e08dd484587a62a940c1c152d9b' ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'B')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "COMMIT"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('14423e08dd484587a62a940c1c152d9b', 'N')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    }
+  ],
+  "variant": "explicit.abort.write-b"
+}

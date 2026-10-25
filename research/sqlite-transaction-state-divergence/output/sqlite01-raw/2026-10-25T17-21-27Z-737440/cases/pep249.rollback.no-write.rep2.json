@@ -1,0 +1,411 @@
+{
+  "checkpoints": {
+    "after-complete": {
+      "in_transaction": false
+    },
+    "after-fault": {
+      "in_transaction": false,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            100
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": []
+      }
+    },
+    "after-next-unit": {
+      "in_transaction": false
+    },
+    "before-fault": {
+      "in_transaction": true,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observed": {
+    "complete": {
+      "error": "SQLITE_ERROR",
+      "message": "cannot commit - no transaction is active"
+    },
+    "complete_sql_started": [
+      "COMMIT"
+    ],
+    "configuration": {
+      "autocommit": false,
+      "in_transaction_at_connect": true,
+      "isolation_level": "",
+      "mode": "pep249"
+    },
+    "fault": {
+      "error": "SQLITE_CONSTRAINT_TRIGGER",
+      "message": "negative balance"
+    },
+    "fault_error_code": 1811,
+    "in_transaction": {
+      "after-complete": false,
+      "after-fault": false,
+      "after-next-unit": false,
+      "before-fault": true
+    },
+    "next_unit": {
+      "rollback": {
+        "error": "SQLITE_ERROR",
+        "message": "cannot rollback - no transaction is active"
+      },
+      "rollback_sql_started": [
+        "ROLLBACK"
+      ],
+      "write": "ok"
+    },
+    "persisted_after_complete": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": []
+    },
+    "persisted_final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "N"
+        ]
+      ]
+    },
+    "recovery": null,
+    "write_b": null,
+    "writer_view": {
+      "after-fault": {
+        "balances": [
+          [
+            1,
+            100
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": []
+      },
+      "before-fault": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observers": {
+    "after-complete": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-fault": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-next-unit": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "N"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "N"
+        ]
+      ],
+      "observer_in_transaction": false
+    }
+  },
+  "repetition": 2,
+  "steps": [
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+      ],
+      "status": "ok",
+      "step": "write-a-debit",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'A')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'A')"
+      ],
+      "status": "ok",
+      "step": "write-a-ledger",
+      "warnings": []
+    },
+    {
+      "error": {
+        "chain": [
+          "IntegrityError: negative balance"
+        ],
+        "driver": {
+          "message": "negative balance",
+          "primary_code": 19,
+          "sqlite_errorcode": 1811,
+          "sqlite_errorname": "SQLITE_CONSTRAINT_TRIGGER",
+          "type": "sqlite3.IntegrityError"
+        },
+        "message": "negative balance",
+        "type": "sqlite3.IntegrityError"
+      },
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+        "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+      ],
+      "status": "error",
+      "step": "fault",
+      "traceback_tail": [
+        "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+        "  File \"$STUDY/repro/sqlite01_raw.py\", line 120, in <lambda>\n    return self.step(label, lambda: self.conn.execute(statement, params).rowcount, sql=statement)\n                                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^",
+        "sqlite3.IntegrityError: negative balance"
+      ],
+      "warnings": []
+    },
+    {
+      "error": {
+        "chain": [
+          "OperationalError: cannot commit - no transaction is active"
+        ],
+        "driver": {
+          "message": "cannot commit - no transaction is active",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "cannot commit - no transaction is active",
+        "type": "sqlite3.OperationalError"
+      },
+      "in_transaction_after": false,
+      "in_transaction_before": false,
+      "method": "Connection.commit()",
+      "sql_started": [
+        "COMMIT"
+      ],
+      "status": "error",
+      "step": "complete",
+      "traceback_tail": [
+        "Traceback (most recent call last):",
+        "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+        "sqlite3.OperationalError: cannot commit - no transaction is active"
+      ],
+      "warnings": []
+    },
+    {
+      "in_transaction_after": false,
+      "in_transaction_before": false,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'N')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'N')"
+      ],
+      "status": "ok",
+      "step": "next-write",
+      "warnings": []
+    },
+    {
+      "error": {
+        "chain": [
+          "OperationalError: cannot rollback - no transaction is active"
+        ],
+        "driver": {
+          "message": "cannot rollback - no transaction is active",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "cannot rollback - no transaction is active",
+        "type": "sqlite3.OperationalError"
+      },
+      "in_transaction_after": false,
+      "in_transaction_before": false,
+      "method": "Connection.rollback()",
+      "sql_started": [
+        "ROLLBACK"
+      ],
+      "status": "error",
+      "step": "next-rollback",
+      "traceback_tail": [
+        "Traceback (most recent call last):",
+        "  File \"$STUDY/repro/common.py\", line 146, in call\n    value = fn()",
+        "sqlite3.OperationalError: cannot rollback - no transaction is active"
+      ],
+      "warnings": []
+    }
+  ],
+  "token": "b5cb0bf7b8644e1589e892f8976368f6",
+  "trace": [
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'A')",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = 'b5cb0bf7b8644e1589e892f8976368f6' ORDER BY id",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = 'b5cb0bf7b8644e1589e892f8976368f6' ORDER BY id",
+    "COMMIT",
+    "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'N')",
+    "ROLLBACK"
+  ],
+  "trace_events": [
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'A')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT step FROM ledger WHERE token = 'b5cb0bf7b8644e1589e892f8976368f6' ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 500 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "SELECT step FROM ledger WHERE token = 'b5cb0bf7b8644e1589e892f8976368f6' ORDER BY id"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "COMMIT"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('b5cb0bf7b8644e1589e892f8976368f6', 'N')"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "ROLLBACK"
+    }
+  ],
+  "variant": "pep249.rollback.no-write"
+}

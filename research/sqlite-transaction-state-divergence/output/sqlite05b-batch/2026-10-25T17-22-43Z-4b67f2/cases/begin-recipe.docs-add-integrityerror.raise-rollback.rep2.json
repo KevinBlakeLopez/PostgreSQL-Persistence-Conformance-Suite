@@ -1,0 +1,127 @@
+{
+  "events": [
+    "pool.connect dbapi=0",
+    "pool.checkout dbapi=0",
+    "core.begin",
+    "core.rollback",
+    "pool.reset dbapi=0 transaction_was_reset=False",
+    "pool.checkin dbapi=0"
+  ],
+  "observed": {
+    "application_claims_committed": [],
+    "application_skipped": [],
+    "claim_matches_database": true,
+    "configuration": {
+      "config": "begin-recipe",
+      "dbapi_at_connect": [
+        {
+          "autocommit": -1,
+          "in_transaction_at_connect": false,
+          "isolation_level": null
+        }
+      ],
+      "max_page_count": null,
+      "pattern": "docs-add-integrityerror",
+      "trigger": "raise-rollback"
+    },
+    "import_error_chain": [
+      "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_5",
+      "OperationalError: no such savepoint: sa_savepoint_5",
+      "IntegrityError: (sqlite3.IntegrityError) payload too large",
+      "IntegrityError: payload too large"
+    ],
+    "import_outcome": {
+      "message": "no such savepoint: sa_savepoint_5",
+      "sqlite_errorname": "SQLITE_ERROR",
+      "status": "error",
+      "type": "sqlalchemy.exc.OperationalError"
+    },
+    "per_record": [
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 1,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 2,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 3,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 4,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      }
+    ],
+    "persisted_seqs": [],
+    "pool_at_end": {
+      "checked_out_after_gc": 0,
+      "checked_out_before_gc": 0,
+      "pool_events_during_gc": []
+    },
+    "sink": [
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ]
+    ],
+    "warnings": []
+  },
+  "pool_log_all": [],
+  "repetition": 2,
+  "token": "4d14f562d58c4bbfa993c90585c87848",
+  "trace": [
+    "dbapi0: BEGIN",
+    "dbapi0: SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 1, x'0101010101010101010101010101010101010101010101010101010101010",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 1, x'0101010101010101010101010101010101010101010101010101010101010",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_1",
+    "dbapi0: SAVEPOINT sa_savepoint_2",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 2, x'0202020202020202020202020202020202020202020202020202020202020",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 2, x'0202020202020202020202020202020202020202020202020202020202020",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_2",
+    "dbapi0: SAVEPOINT sa_savepoint_3",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 3, x'0303030303030303030303030303030303030303030303030303030303030",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 3, x'0303030303030303030303030303030303030303030303030303030303030",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_3",
+    "dbapi0: SAVEPOINT sa_savepoint_4",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 4, x'0404040404040404040404040404040404040404040404040404040404040",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 4, x'0404040404040404040404040404040404040404040404040404040404040",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_4",
+    "dbapi0: SAVEPOINT sa_savepoint_5",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 5, x'0505050505050505050505050505050505050505050505050505050505050",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 5, x'0505050505050505050505050505050505050505050505050505050505050",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('4d14f562d58c4bbfa993c90585c87848', 5, x'0505050505050505050505050505050505050505050505050505050505050",
+    "dbapi0: ROLLBACK TO SAVEPOINT sa_savepoint_5"
+  ],
+  "variant": "begin-recipe.docs-add-integrityerror.raise-rollback"
+}

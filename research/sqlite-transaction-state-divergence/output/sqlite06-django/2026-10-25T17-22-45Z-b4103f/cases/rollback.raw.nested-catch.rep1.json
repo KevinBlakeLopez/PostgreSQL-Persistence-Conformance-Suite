@@ -1,0 +1,127 @@
+{
+  "child": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": true,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": false
+    },
+    "before_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": false,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": true
+    },
+    "django": "6.1.2",
+    "handled": {
+      "chain": [
+        "IntegrityError: negative balance",
+        "IntegrityError: negative balance"
+      ],
+      "driver": {
+        "message": "negative balance",
+        "primary_code": 19,
+        "sqlite_errorcode": 1811,
+        "sqlite_errorname": "SQLITE_CONSTRAINT_TRIGGER",
+        "type": "sqlite3.IntegrityError"
+      },
+      "message": "negative balance",
+      "type": "django.db.utils.IntegrityError"
+    },
+    "outcome": {
+      "error": {
+        "chain": [
+          "TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block."
+        ],
+        "message": "An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.",
+        "type": "django.db.transaction.TransactionManagementError"
+      },
+      "status": "error",
+      "step": "atomic",
+      "traceback_tail": [
+        "  File \"$STUDY/.venv/lib/python3.13/site-packages/django/db/backends/utils.py\", line 99, in _execute\n    self.db.validate_no_broken_transaction()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^",
+        "  File \"$STUDY/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py\", line 521, in validate_no_broken_transaction\n    raise TransactionManagementError(\n    ...<2 lines>...\n    ) from self.rollback_exc",
+        "django.db.transaction.TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block."
+      ],
+      "warnings": []
+    },
+    "steps": [
+      {
+        "status": "ok",
+        "step": "write A"
+      },
+      {
+        "error": {
+          "chain": [
+            "TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block."
+          ],
+          "message": "An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.",
+          "type": "django.db.transaction.TransactionManagementError"
+        },
+        "status": "error",
+        "step": "write B"
+      }
+    ],
+    "trace": [
+      "BEGIN",
+      "INSERT INTO \"ledger\" (\"token\", \"step\") VALUES ('f8db59051b914a4f9e153a501918881e', 'A') RETURNING \"ledger\".\"id\"",
+      "SAVEPOINT \"s8397070720_x1\"",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "UPDATE accounts SET balance = balance - 500 WHERE id = 2",
+      "ROLLBACK TO SAVEPOINT \"s8397070720_x1\""
+    ]
+  },
+  "observed": {
+    "after_block": {
+      "get_autocommit": true,
+      "in_atomic_block": false,
+      "needs_rollback": false,
+      "sqlite_in_transaction": false
+    },
+    "atomic_outcome": "TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.",
+    "atomic_outcome_chain": [
+      "TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block."
+    ],
+    "child_returncode": 0,
+    "django": "6.1.2",
+    "handled": [
+      "IntegrityError: negative balance",
+      "IntegrityError: negative balance"
+    ],
+    "on_commit_ran": [],
+    "persisted": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": []
+    },
+    "state_after_fault": {
+      "get_autocommit": false,
+      "in_atomic_block": true,
+      "needs_rollback": true,
+      "savepoint_ids": 0,
+      "sqlite_in_transaction": false
+    },
+    "write_b": "TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block."
+  },
+  "repetition": 1,
+  "stderr_tail": [],
+  "token": "f8db59051b914a4f9e153a501918881e",
+  "variant": "rollback.raw.nested-catch"
+}
