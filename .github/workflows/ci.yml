@@ -30,15 +30,10 @@ jobs:
         run: pnpm run pg:up
       - name: Methodology tests (controls and fixtures through the real runner)
         run: pnpm run test:methodology
-      - name: Whole suite except MG-02.first-deployment, compared with the recorded run
+      - name: Whole suite, compared with the recorded run
         # That file records Lucid, MikroORM, TypeORM, and pg-control. An unfiltered
         # run adds later adapters, and compareWith treats every new row as a difference.
-        # MG-02.first-deployment is left out of the comparison. For a migrator without a lock, its
-        # result depends on whether the two runners collide creating the history table, and that
-        # differs between this runner and a local machine. --case names every other case by prefix.
-        run: node harness/run.mjs --adapter=lucid,mikroorm,typeorm,pg-control --case=CTL-01,TX-,MG-02.held,MG-02.session-loss,MG-02.idle-session-timeout,MG-03 --expect=reports/examples/2026-10-22T01-26-51Z-fb52c8/run.json
-      - name: MG-02.first-deployment, kept as evidence and not compared
-        run: node harness/run.mjs --adapter=lucid,mikroorm,typeorm,pg-control --case=MG-02.first-deployment
+        run: node harness/run.mjs --adapter=lucid,mikroorm,typeorm,pg-control --expect=reports/examples/2026-10-24T14-19-00Z-4f477e/run.json
       - name: Keep the evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -74,13 +69,10 @@ jobs:
         run: composer install --no-interaction --no-scripts --working-dir=adapters/php
       - name: Start the disposable server
         run: pnpm run pg:up
-      - name: PHP adapters except MG-02.first-deployment
+      - name: PHP adapters
         # Compared with the PHP 8.5.12 recording, so a runtime the adapters refuse, or any changed
         # classification, fails the job instead of leaving INCONCLUSIVE rows in a passing run.
-        # MG-02.first-deployment is left out of the comparison, for the reason given in the suite job.
-        run: node harness/run.mjs --adapter=pdo-control,laravel --repeat=3 --case=CTL-01,TX-,MG-02.held,MG-02.session-loss,MG-02.idle-session-timeout,MG-03 --expect=reports/examples/2026-10-23T14-18-35Z-5a6ff7/run.json
-      - name: Laravel MG-02.first-deployment, kept as evidence and not compared
-        run: node harness/run.mjs --adapter=laravel --repeat=3 --case=MG-02.first-deployment
+        run: node harness/run.mjs --adapter=pdo-control,laravel --repeat=3 --expect=reports/examples/2026-10-24T14-25-38Z-b2394a/run.json
       - name: Keep the PHP evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -119,9 +111,7 @@ jobs:
       - name: jOOQ adapter
         # Compared with the recorded jOOQ run, so an adapter that does not start, or any changed
         # classification, fails the job instead of leaving INCONCLUSIVE rows in a passing run.
-        # MG-02.first-deployment stays in. jOOQ declares the migration cases unsupported, and the harness
-        # creates pg-control's history table before runners A and B start, so they cannot collide creating it.
-        run: node harness/run.mjs --adapter=jooq --repeat=3 --expect=reports/examples/2026-10-22T12-58-46Z-d4a7fc/run.json
+        run: node harness/run.mjs --adapter=jooq --repeat=3 --expect=reports/examples/2026-10-24T14-28-18Z-d11ad8/run.json
       - name: Keep the jOOQ evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

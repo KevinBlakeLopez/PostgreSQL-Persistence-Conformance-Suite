@@ -1,0 +1,347 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-25-38Z-b2394a",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-01B.conn-lost-before-commit",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "The connection is terminated after the last write, before COMMIT",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid(). The runner terminates that backend from its own connection, and waits until it has gone.",
+      "Wait settle_ms, so that the driver can observe the closed connection.",
+      "End the transaction normally, so that the framework attempts to commit.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pdo-control",
+      "version": "0.1.0",
+      "source_sha256": "aa269b57d3ed69f85e370439d4f38a2549ba1f2f172eacdb4fa3668da557e7f9"
+    },
+    "framework": {
+      "name": "pdo_pgsql",
+      "version": "8.5.12"
+    },
+    "driver": {
+      "name": "libpq",
+      "version": "18.6"
+    },
+    "components": {
+      "pdo_pgsql": "8.5.12",
+      "libpq": "18.6",
+      "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)"
+    },
+    "runtime": {
+      "name": "php",
+      "version": "8.5.12"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "configured",
+    "description": "Negative control. PDO::commit() returning true is reported as committed, including after a caught unique violation. A thrown commit() is reported as rolled_back. A thrown rollBack() keeps the handle. The next unit continues on that handle when beginTransaction reports an active transaction. ATTR_PERSISTENT is false.",
+    "configuration": {
+      "commit_outcome": "committed when PDO::commit returns true",
+      "commit_error": "reported as rolled_back",
+      "failed_rollback": "handle kept; next beginTransaction may continue on it",
+      "persistent": "PDO::ATTR_PERSISTENT false",
+      "connections": "one PDO handle at a time, not a pool",
+      "command_tag": "not exposed by pdo_pgsql"
+    },
+    "form": "PDO::beginTransaction(), prepared inserts against item and uniq, then PDO::commit() or PDO::rollBack(). One connection is held. It is not a pool."
+  },
+  "configuration": {
+    "pool_max": 1,
+    "settle_ms": 100
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "B",
+    "mechanism": "pg_terminate_backend(pid), run by the runner from its own connection.",
+    "injection_point": "After the last write, before the framework sends COMMIT.",
+    "preconditions": "The PID the adapter reports belongs to the case's database.",
+    "expected_server": "The backend exits, and its transaction is rolled back.",
+    "expected_client": "A connection error at COMMIT. No reply to COMMIT can arrive.",
+    "depends_on_internals": false
+  },
+  "knowledge": "Known not committed: the session ended before the framework tried to commit, so the driver refused to send COMMIT (\"Client has encountered a connection error and is not queryable\"). A report of rollback is justified; a report of success is not.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "PDO::commit() threw, which the unsafe policy reports as a rollback",
+    "contract": "The unsafe pdo-control policy reports committed when PDO::commit() returns true, including after a unique violation was caught in the same transaction. It does not read a command tag, and PDO::commit() does not return one. A true return is the success signal. When PDO::commit() throws, the policy reports rolled_back. When the body throws and PDO::rollBack() throws, the policy reports failed and keeps the PDO handle. The next unit calls PDO::beginTransaction(). If that throws \"already an active transaction\", the policy writes and calls PDO::commit() on the same handle. There is no Connection.setAutoCommit. This is not the JDBC unsafe policy's setAutoCommit(true) call.",
+    "error": {
+      "class": "PDOException",
+      "code": "HY000",
+      "message": "SQLSTATE[HY000]: General error: 7 FATAL: terminating connection due to administrator command server closed the connection unexpectedly This probably means the server terminated abnormally before or while processing the request."
+    },
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "before-end": {
+        "reported": {
+          "pid": 39205,
+          "xid": "5328"
+        },
+        "session": {
+          "pid": 39205,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "5328",
+          "xid_matches": true,
+          "backend_xmin": "5328",
+          "backend_start": "2026-10-24 14:26:35.914864+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "5328"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 39205,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "5328",
+              "xid_matches": null,
+              "backend_xmin": "5328",
+              "backend_start": "2026-10-24 14:26:35.914864+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1,
+        "action": {
+          "action": "terminate_backend",
+          "pid": 39205,
+          "terminated": true,
+          "gone": true
+        }
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "aborted",
+            "session": {
+              "pid": 39205,
+              "present": false
+            }
+          }
+        },
+        "adapter_sessions": 0
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "5328",
+        "pid": 39205,
+        "captured_at": "before-end",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:26:35.914864+00"
+      }
+    },
+    "markers": {
+      "tx": false
+    },
+    "marker_xmin": {
+      "tx": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-01B.1 held: the API reported: rolled_back",
+    "preconditions": [
+      {
+        "description": "the write of marker \"tx\" had reached PostgreSQL at `before-end` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `before-end`: item locked; transactionid [5328]"
+      },
+      {
+        "description": "the runner terminated the backend at `before-end`, and it had gone before the adapter resumed",
+        "met": true,
+        "detail": "terminated: true; gone: true"
+      },
+      {
+        "description": "PostgreSQL's outcome is the one the case produces (aborted), at report time and after the adapter exited",
+        "met": true,
+        "detail": "xid 5328 rolled back at report time (`after-end`); marker visible: false"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit.",
+        "holds": true,
+        "detail": "the API reported: rolled_back"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for pdo-control (unsafe)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected PASS, got PASS"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pdo-control --mode=unsafe --case=TX-01B.conn-lost-before-commit",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "new FaultingPdo",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid"
+      ],
+      "fault_trace": [
+        "BEGIN via PDO::beginTransaction",
+        "insert into item (name, qty) values (?, 0)",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "COMMIT via PDO::commit threw SQLSTATE[HY000]: General error: 7 FATAL: terminating connection due to administrator command server closed the connection unexpectedly This probably means the server terminated abnormally before or while processing the request."
+      ],
+      "commit": {
+        "commit_calls": 1,
+        "commit_return": null,
+        "commit_sqlstate": "HY000",
+        "in_transaction_before_commit": true,
+        "in_transaction_after_commit": true,
+        "command_tag_visible": false
+      },
+      "persistent": false,
+      "command_tag": null,
+      "command_tag_note": "pdo_pgsql does not expose PQcmdStatus. PDO::commit() return value is not a command tag."
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:26:35.664Z",
+    "finished_at": "2026-10-24T14:26:36.582Z",
+    "duration_ms": 918
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 324
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 294
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-01B.1 held: the API reported: rolled_back",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "tx": "aborted"
+        },
+        "markers": {
+          "tx": false
+        },
+        "duration_ms": 300
+      }
+    ]
+  }
+}

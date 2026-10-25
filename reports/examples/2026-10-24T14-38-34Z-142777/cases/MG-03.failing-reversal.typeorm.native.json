@@ -1,0 +1,295 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-38-34Z-142777",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "MG-03.failing-reversal",
+    "version": "1.0",
+    "family": "MG-03",
+    "family_title": "Rollback and history consistency",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A transactional migration's reversal deletes its marker and then fails",
+    "steps": [
+      "Runner A applies { m1 }.",
+      "Revert. m1's reversal deletes its marker and then raises an error. The migration is transactional, so the deletion is in the reversal's transaction.",
+      "Checkpoint `after-end`, as soon as the revert has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "typeorm",
+      "version": "0.1.0",
+      "source_sha256": "e5cec7da066257236c7f0992330b2b7bb905edfe30b4b8fad86d8367c3489d5d"
+    },
+    "framework": {
+      "name": "typeorm",
+      "version": "1.1.2"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "TypeORM's defaults, with the managed transaction API ds.transaction(callback).",
+    "configuration": {},
+    "form": "DataSource.runMigrations() and DataSource.undoLastMigration(), migrationsTableName migrations. The migration object is built for the case. Its name ends in a 13-digit timestamp, which MigrationExecutor.getMigrations() requires."
+  },
+  "configuration": {
+    "runners": [
+      "A"
+    ],
+    "pool_max": 10,
+    "reversal": {
+      "m1": "partial-then-error"
+    },
+    "transactional": true
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "A reported failure says the revert did not complete. For a transactional migration, the caller can treat the migration as still applied.",
+  "api_outcome": {
+    "reported": "failed",
+    "basis": "undoLastMigration() threw",
+    "contract": "TypeORM 1.1.2 DataSource.runMigrations() executes pending migrations and undoLastMigration() reverts the last one (data-source/DataSource.js). MigrationExecutor defaults to transaction mode \"all\": one transaction wraps every pending migration, and the history insert is inside it (migration/MigrationExecutor.js). There is no advisory lock.",
+    "error": {
+      "class": "Error",
+      "code": null,
+      "message": "the reversal failed on purpose after deleting the marker"
+    },
+    "steps": {
+      "runners": {
+        "A": {
+          "reported": "failed",
+          "exit_code": 1,
+          "api_error": {
+            "class": "Error",
+            "code": null,
+            "message": "the reversal failed on purpose after deleting the marker"
+          },
+          "basis": "undoLastMigration() threw",
+          "contract": "TypeORM 1.1.2 DataSource.runMigrations() executes pending migrations and undoLastMigration() reverts the last one (data-source/DataSource.js). MigrationExecutor defaults to transaction mode \"all\": one transaction wraps every pending migration, and the history insert is inside it (migration/MigrationExecutor.js). There is no advisory lock."
+        }
+      },
+      "enumerations": 0,
+      "repetition": 1
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inside-A": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "adapter_sessions": 0,
+        "sessions": []
+      }
+    },
+    "transactions": {},
+    "markers": {
+      "m1": true
+    },
+    "marker_xmin": null,
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    },
+    "marker_counts": {
+      "m1": 1
+    },
+    "history_counts": {
+      "m1": 1
+    },
+    "inside_migration": [],
+    "session_ended": false,
+    "apply_reported": "applied",
+    "after_revert": {
+      "marker_counts": {
+        "m1": 1
+      },
+      "history_counts": {
+        "m1": 1
+      }
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+    "preconditions": [
+      {
+        "description": "the migration was applied before the revert",
+        "met": true,
+        "detail": "apply reported applied"
+      },
+      {
+        "description": "runner A reported the revert",
+        "met": true,
+        "detail": "reported failed"
+      },
+      {
+        "description": "the marker count and the history count were read after the revert returned, before any later apply",
+        "met": true,
+        "detail": "marker 1; history 1"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "MG-03.3",
+        "statement": "If a migration's reversal fails, the operation reports failure and the migration's history entry remains; for a transactional migration, its marker also remains.",
+        "holds": true,
+        "detail": "revert reported failed; marker count 1; history entries 1"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for typeorm (native)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=typeorm --mode=native --case=MG-03.failing-reversal",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 108279): SELECT version()",
+        "c1(pid 108279): SELECT * FROM current_schema()",
+        "c1(pid 108279): SELECT * FROM \"information_schema\".\"tables\" WHERE \"table_schema\" = $1 AND \"table_name\" = $2",
+        "c1(pid 108279): CREATE TABLE \"migrations\" (\"id\" SERIAL NOT NULL, \"timestamp\" bigint NOT NULL, \"name\" character varying NOT NULL, CONSTRAINT \"PK_8c82d7f526340ab734260ea46be\" PRIMARY KEY (\"id\"))",
+        "c1(pid 108279): SELECT * FROM \"migrations\" \"migrations\" ORDER BY \"id\" DESC",
+        "c1(pid 108279): START TRANSACTION",
+        "c1(pid 108279): -> command tag START for: START TRANSACTION",
+        "c1(pid 108279): insert into item (name) values ($1)",
+        "c1(pid 108279): INSERT INTO \"migrations\"(\"timestamp\", \"name\") VALUES ($1, $2)",
+        "c1(pid 108279): COMMIT",
+        "c1(pid 108279): -> command tag COMMIT for: COMMIT"
+      ],
+      "commit_replies": [
+        "COMMIT"
+      ],
+      "trace_sees_framework_pg": true,
+      "logs": []
+    },
+    "stderr": null,
+    "stdout": [],
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:49:10.153Z",
+    "finished_at": "2026-10-24T14:49:10.979Z",
+    "duration_ms": 826
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 278
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 273
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "MG-03.3 held: revert reported failed; marker count 1; history entries 1",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "failed",
+        "fates": {},
+        "markers": {
+          "m1": true
+        },
+        "duration_ms": 275
+      }
+    ]
+  }
+}

@@ -62,18 +62,18 @@
     {
       "id": "MG-02.first-deployment",
       "family": "MG-02",
-      "version": "1.0",
+      "version": "1.1",
       "kind": "scenario",
-      "title": "Two runners released together against a database with no history storage",
+      "title": "Two runners create the history storage at once",
       "steps": [
-        "Runners A and B each connect and wait at a start barrier. The database has no history storage.",
-        "Release both at once. A runner that executes m1 waits at the gate K.",
+        "The database has no history storage: no framework history table, and no ppcs_history for the controls.",
+        "The runner holds the creation of the adapter's declared history table. In its own transaction it creates a table with that name and does not commit. Neither runner can see that table, so each runner's check for history storage finds none.",
+        "Runners A and B start. Each one either reaches the creation of the history table and waits, on the runner's transaction or on the other runner's creation, or waits on the framework's own coordination. A runner that the framework's coordination refuses outright reports failure instead. The runner waits until each runner is waiting on a lock or has reported failure, with at least one waiting, or until settings.hold_ms has passed.",
+        "The runner rolls its transaction back. When both runners were waiting on the creation, one creation commits and the other fails with a unique violation. A runner that executes m1 waits at the gate K.",
         "For the bound, each runner may exit, reach the gate, or wait on the framework's own coordination. Then release K and require both to finish within the deadline.",
         "Checkpoint `after-end`, as soon as both runners have returned: the runner records the state at report time."
       ],
-      "checkpoints": {
-        "barrier": { "roles": ["A", "B"] }
-      },
+      "checkpoints": {},
       "markers": ["m1"],
       "marker_writes": {
         "m1": { "transaction": "migration", "level": "top", "sent": "possibly-pending" }
@@ -85,9 +85,11 @@
         "pool_max": 10,
         "gate": "sql",
         "bound_ms": 3000,
-        "database": "uninitialized"
+        "database": "uninitialized",
+        "hold": "history-table",
+        "hold_ms": 10000
       },
-      "knowledge": "Neither runner can see, before it starts, that the other is about to apply the same migration. The database starts with no history row that could tell it so."
+      "knowledge": "Neither runner can see the other's uncommitted creation of the history table, so both conclude the database is new. Only one creation can commit, and the other fails with a unique violation. What the second runner does with that error decides the case. If it reports failure, or waits on the framework's own coordination, the migration runs once. If it treats the error as \"the table already exists\" and continues, it finds no history row and executes the migration while the first runner is inside it. A second runner that starts after the history table exists is MG-02.held."
     },
     {
       "id": "MG-02.session-loss",

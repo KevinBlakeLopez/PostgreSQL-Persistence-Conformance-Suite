@@ -1,0 +1,472 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-36-42Z-a550ea",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-03.statement-error-rollback-not-sent",
+    "version": "1.0",
+    "family": "TX-03",
+    "family_title": "Connection recovery and unsafe pool reuse",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A statement fails inside a transaction and its top-level ROLLBACK fails on the client; then the next unit of work runs on the same pool",
+    "steps": [
+      "Unit 1: start a transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `doomed`.",
+      "Checkpoint `unit1-after-write`: report pg_current_xact_id() and pg_backend_pid(). Then arm the client-side fault: the next top-level ROLLBACK fails in the driver and is not sent.",
+      "Insert the value 'taken' into uniq through the framework's ordinary write API, and do not catch the error. It fails with unique_violation (23505), which aborts the transaction. The framework attempts ROLLBACK, which fails, so the connection stays in its aborted transaction block.",
+      "When the fault fires, before the framework sees its error, the adapter's driver layer reports checkpoint `after-fault` (the backend PID): the runner records the fault's effect on the server.",
+      "Checkpoint `after-unit1`: report the same backend PID; the runner records that session's state.",
+      "Unit 2, the next unit of work on the same pool: start a transaction, write the marker `next`, checkpoint `unit2-after-write` (report pg_current_xact_id() and pg_backend_pid()), and end normally. Give up after settings.bound_ms and report the unit as pending.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own."
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "pg-control",
+      "version": "0.1.0",
+      "source_sha256": "1e833df8af22fd61c75bacc508ea0dc2cc05d3f95b40372541b5cccaf62d5f1a"
+    },
+    "framework": {
+      "name": "pg-control",
+      "version": "0.1.0"
+    },
+    "driver": {
+      "name": "pg",
+      "version": "8.23.1"
+    },
+    "components": {
+      "pg-pool": "3.14.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "v24.14.1"
+    }
+  },
+  "execution": {
+    "mode": "unsafe",
+    "kind": "control",
+    "description": "Negative control: ignores the command tag of the reply to COMMIT, reports any COMMIT error as a rollback, ignores failed savepoint rollbacks, returns a connection whose ROLLBACK failed to its pool as it is, and defers a write made before a nested scope into that scope's savepoint. It starts every transaction with a plain BEGIN, ignoring a requested isolation level.",
+    "configuration": {
+      "commit_reply": "ignored",
+      "commit_error": "reported as a rollback",
+      "failed_savepoint_rollback": "ignored",
+      "failed_rollback": "connection returned to the pool",
+      "write_before_nested_scope": "deferred into the nested scope's savepoint",
+      "isolation_level": "ignored: plain BEGIN"
+    },
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1,
+    "bound_ms": 5000
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "signature": "aborted-block",
+    "mechanism": "A unique_violation raised by PostgreSQL inside unit 1, which aborts its transaction, then a client-side injection in the adapter's driver layer (node-postgres, pg.Client.prototype.query): the top-level ROLLBACK fails without being sent, as a failed send would.",
+    "injection_point": "The framework's ROLLBACK of unit 1, after the failed statement.",
+    "preconditions": "The row 'taken' already exists in uniq (fixture). The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "Unit 1's transaction is already aborted: pg_xact_status() reports it aborted, and it holds no locks. Its connection stays in the aborted transaction block (\"idle in transaction (aborted)\"), where every statement except ROLLBACK fails with 25P02.",
+    "expected_client": "The unique violation, then an error from the framework's rollback; what the framework then does with the connection is under test. A unit of work given the connection as it is fails loudly with 25P02, instead of silently joining the open transaction as in TX-03.rollback-not-sent.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework received PostgreSQL's error for the failed statement, and knows that its ROLLBACK failed, so it knows that the connection is still inside a transaction block.",
+  "api_outcome": {
+    "reported": "rolled_back",
+    "basis": "the body threw; ROLLBACK failed, and the connection was kept",
+    "contract": "The unsafe control returns a connection whose ROLLBACK failed to its pool as it is, and reports a unit whose body threw as rolled back.",
+    "error": {
+      "class": "DatabaseError",
+      "code": "23505",
+      "message": "duplicate key value violates unique constraint \"uniq_code_key\""
+    },
+    "steps": {
+      "unit2": {
+        "outcome": "completed",
+        "elapsed_ms": 1,
+        "reported": "failed",
+        "basis": "the unit could not start a transaction",
+        "contract": "The unsafe control returns a connection whose ROLLBACK failed to its pool as it is, and reports a unit whose body threw as rolled back.",
+        "api_error": {
+          "class": "DatabaseError",
+          "code": "25P02",
+          "message": "current transaction is aborted, commands ignored until end of transaction block"
+        }
+      },
+      "violation": {
+        "class": "DatabaseError",
+        "code": "23505",
+        "message": "duplicate key value violates unique constraint \"uniq_code_key\""
+      },
+      "fault": {
+        "mode": "client-reject",
+        "fired": 1
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "unit1-after-write": {
+        "reported": {
+          "pid": 79752,
+          "xid": "11038"
+        },
+        "session": {
+          "pid": 79752,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11038",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:36:54.087007+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11038"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "in progress",
+            "session": {
+              "pid": 79752,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11038",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:36:54.087007+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-fault": {
+        "reported": {
+          "pid": 79752,
+          "xid": null
+        },
+        "session": {
+          "pid": 79752,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:36:54.087007+00",
+          "query": "insert into uniq (code) values ('taken')",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 79752,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:36:54.087007+00",
+              "query": "insert into uniq (code) values ('taken')",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-unit1": {
+        "reported": {
+          "pid": 79752,
+          "xid": null
+        },
+        "session": {
+          "pid": 79752,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:36:54.087007+00",
+          "query": "insert into uniq (code) values ('taken')",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 79752,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:36:54.087007+00",
+              "query": "insert into uniq (code) values ('taken')",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "unit1": {
+            "fate": "aborted",
+            "session": {
+              "pid": 79752,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:36:54.087007+00",
+              "query": "BEGIN",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "unit1": {
+        "xid": "11038",
+        "pid": 79752,
+        "captured_at": "unit1-after-write",
+        "session_xid_matches": true,
+        "fate": "aborted",
+        "backend_start": "2026-10-24 14:36:54.087007+00"
+      }
+    },
+    "markers": {
+      "doomed": false,
+      "next": false
+    },
+    "marker_xmin": {
+      "doomed": null,
+      "next": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "FAIL",
+    "reason": "TX-03.2 violated: next unit: completed, reported failed (25P02) after 1 ms; its transaction: not reached; next visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"doomed\" had reached PostgreSQL at `unit1-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `unit1-after-write`: item locked; transactionid [11038]"
+      },
+      {
+        "description": "the client-side fault (client-reject) fired exactly once",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "unit 1's failing statement failed with unique_violation (23505), as reported by the adapter",
+        "met": true,
+        "detail": "caught: 23505"
+      },
+      {
+        "description": "the next unit of work was attempted",
+        "met": true,
+        "detail": "next unit: completed"
+      },
+      {
+        "description": "the withheld ROLLBACK left unit 1's aborted transaction block in place: its session was \"idle in transaction (aborted)\", with no backend_xid, and pg_xact_status() already reported unit 1 aborted",
+        "met": true,
+        "detail": "at `after-fault`: session \"idle in transaction (aborted)\", backend_xid NULL; transactionid locks []; unit 1 pg_xact_status: aborted"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-03.1",
+        "statement": "Unrelated work never runs inside, or commits, a transaction whose rollback failed: that transaction is never committed, and the next unit of work runs in a transaction of its own.",
+        "holds": true,
+        "detail": "failed transaction: xid 11038 rolled back at report time (`after-unit1`); doomed visible: false; next unit's transaction: not reached"
+      },
+      {
+        "id": "TX-03.2",
+        "statement": "After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits.",
+        "holds": false,
+        "detail": "next unit: completed, reported failed (25P02) after 1 ms; its transaction: not reached; next visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": {
+      "invariants": [
+        "TX-03.2: After the failure, the next unit of work on the same pool completes within the bound (settings.bound_ms) and commits."
+      ],
+      "framework": "The unsafe control returns a connection whose ROLLBACK failed to its pool as it is, and reports a unit whose body threw as rolled back."
+    },
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for pg-control (unsafe)"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=pg-control --mode=unsafe --case=TX-03.statement-error-rollback-not-sent",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "trace": [
+        "c1(pid 79752): BEGIN",
+        "c1(pid 79752): -> command tag BEGIN for: BEGIN",
+        "c1(pid 79752): insert into item (name) values ($1)",
+        "c1(pid 79752): select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "c1(pid 79752): insert into uniq (code) values ('taken')",
+        "c1(pid 79752): -> ERROR 23505 duplicate key value violates unique constraint \"uniq_code_key\"",
+        "c1(pid 79752): ROLLBACK -- INJECTED client-side failure, statement NOT sent",
+        "c1(pid 79752): BEGIN",
+        "c1(pid 79752): -> ERROR 25P02 current transaction is aborted, commands ignored until end of transaction block"
+      ],
+      "commit_replies": []
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:36:53.864Z",
+    "finished_at": "2026-10-24T14:36:54.372Z",
+    "duration_ms": 508
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "FAIL",
+        "reason": "TX-03.2 violated: next unit: completed, reported failed (25P02) after 1 ms; its transaction: not reached; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 173
+      },
+      {
+        "repetition": 2,
+        "classification": "FAIL",
+        "reason": "TX-03.2 violated: next unit: completed, reported failed (25P02) after 1 ms; its transaction: not reached; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 170
+      },
+      {
+        "repetition": 3,
+        "classification": "FAIL",
+        "reason": "TX-03.2 violated: next unit: completed, reported failed (25P02) after 1 ms; its transaction: not reached; next visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "rolled_back",
+        "fates": {
+          "unit1": "aborted"
+        },
+        "markers": {
+          "doomed": false,
+          "next": false
+        },
+        "duration_ms": 165
+      }
+    ]
+  }
+}

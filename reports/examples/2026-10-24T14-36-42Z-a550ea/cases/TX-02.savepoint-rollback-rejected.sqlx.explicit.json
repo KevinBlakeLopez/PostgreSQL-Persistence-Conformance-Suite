@@ -1,0 +1,576 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-36-42Z-a550ea",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-02.savepoint-rollback-rejected",
+    "version": "1.1",
+    "family": "TX-02",
+    "family_title": "Failed savepoint rollback",
+    "family_version": "1.0",
+    "kind": "scenario",
+    "title": "A nested scope fails, and PostgreSQL rejects its ROLLBACK TO SAVEPOINT",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API, on a pool of one connection.",
+      "Write the marker `outer`, and make sure the write was sent.",
+      "Checkpoint `outer-after-write`: report pg_current_xact_id() and pg_backend_pid().",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure the write was sent.",
+      "Checkpoint `inner-after-write`: report the backend PID. The runner sees the savepoint's subtransaction lock.",
+      "Arm the client-side fault (the next ROLLBACK TO SAVEPOINT is rewritten to name a savepoint that does not exist, so PostgreSQL rejects it), then raise an application error in the nested scope.",
+      "When the fault fires, before the framework sees its error, the adapter's driver layer reports checkpoint `after-fault` (the backend PID): the runner records the fault's effect on the server.",
+      "The outer scope catches the nested scope's error.",
+      "The outer scope ends normally.",
+      "Checkpoint `after-outer`, after the outer transaction's API has returned: report the same backend PID. The runner records whether that session is still inside a transaction.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes."
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "sqlx",
+      "version": "0.1.0",
+      "source_sha256": "71626a19b77084148566c832ff2a38be46b23fa0d0e4e194232a897f7a2c6af3"
+    },
+    "framework": {
+      "name": "sqlx",
+      "version": "unknown"
+    },
+    "driver": {
+      "name": "sqlx-postgres",
+      "version": "unknown"
+    },
+    "components": {
+      "serde_json": "unknown",
+      "sqlx-core": "unknown",
+      "tokio": "unknown"
+    },
+    "runtime": {
+      "name": "rustc",
+      "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+    }
+  },
+  "execution": {
+    "mode": "explicit",
+    "kind": "native",
+    "description": "PgPool begin, Transaction::commit, and Transaction::rollback. A nested Transaction::begin is SAVEPOINT _sqlx_savepoint_N. max_connections is pool_max, min_connections is 0, and test_before_acquire is false. No after_release hook is installed. SQLx still calls ping before returning a connection to the pool; that is the pool, not an adapter mitigation.",
+    "configuration": {
+      "compile_time_macros": false,
+      "connection": "PgPool",
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "min_connections": 0,
+      "pool_max": 1,
+      "rollback": "Transaction::commit and Transaction::rollback",
+      "sslmode": "disable",
+      "statement_logging": false,
+      "test_before_acquire": false
+    },
+    "form": "Outer begin and Transaction::begin for SAVEPOINT _sqlx_savepoint_N. Nested rollback is Transaction::rollback. The savepoint is not an independent transaction."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "C",
+    "mechanism": "A client-side injection in the adapter's driver layer: ROLLBACK TO SAVEPOINT is rewritten before it is sent, to name a savepoint that does not exist. PostgreSQL rejects it with 3B001, which aborts the current subtransaction (the savepoint's). The error is PostgreSQL's; the trigger is artificial.",
+    "injection_point": "The framework's rollback of the nested scope.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "The savepoint's subtransaction is aborted: the session is \"idle in transaction (aborted)\" while the top-level transaction stays in progress. A ROLLBACK TO the existing savepoint recovers it; a COMMIT without recovery is answered with ROLLBACK, and commits nothing.",
+    "expected_client": "A PostgreSQL error from the nested scope's rollback.",
+    "depends_on_internals": true
+  },
+  "knowledge": "The framework receives PostgreSQL's error (3B001) for the savepoint rollback. If it then sends COMMIT without recovering, it receives the command tag ROLLBACK.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "Transaction::commit returned Ok",
+    "contract": "sqlx 0.9.0 Transaction::commit (sqlx-core/src/transaction.rs) returns Ok after PgTransactionManager::commit returns. That method (sqlx-postgres/src/transaction.rs) executes COMMIT, or RELEASE SAVEPOINT when nested, and returns Ok when execute returns Ok. PgConnection::run records CommandComplete only as rows_affected (sqlx-postgres/src/connection/executor.rs). A command tag of ROLLBACK is not an error. Transaction::rollback returns Ok when ROLLBACK or ROLLBACK TO SAVEPOINT returns Ok, and returns that statement's error otherwise. On that error the Transaction is still open, so Drop calls start_rollback, which queues a second rollback and does not wait.",
+    "error": null,
+    "steps": {
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "INSERT 0 1",
+          "SELECT 1",
+          "SAVEPOINT",
+          "INSERT 0 1",
+          "SELECT 1",
+          "ROLLBACK",
+          "COMMIT"
+        ],
+        "rewritten": [
+          "ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint"
+        ],
+        "simple_queries": [
+          "BEGIN",
+          "SAVEPOINT _sqlx_savepoint_1",
+          "ROLLBACK TO SAVEPOINT _sqlx_savepoint_1",
+          "ROLLBACK TO SAVEPOINT _sqlx_savepoint_1",
+          "COMMIT"
+        ],
+        "withheld": []
+      },
+      "fault": {
+        "fired": 1,
+        "mode": "rewrite",
+        "reply_codes": [
+          "3B001"
+        ]
+      },
+      "nested": {
+        "caught": true,
+        "completed": false,
+        "error": {
+          "class": "sqlx::Error",
+          "code": "3B001",
+          "message": "error returned from database: savepoint \"ppcs_no_such_savepoint\" does not exist at line 4642"
+        }
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "outer-after-write": {
+        "reported": {
+          "pid": 85004,
+          "xid": "11814"
+        },
+        "session": {
+          "pid": 85004,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11814",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:38:19.562678+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11814"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 85004,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11814",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:19.562678+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "inner-after-write": {
+        "reported": {
+          "pid": 85004,
+          "xid": "11814"
+        },
+        "session": {
+          "pid": 85004,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "11814",
+          "xid_matches": true,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:38:19.562678+00",
+          "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11814",
+            "11815"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 85004,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "11814",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:19.562678+00",
+              "query": "select pg_current_xact_id()::text, pg_backend_pid()",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-fault": {
+        "reported": {
+          "pid": 85004,
+          "xid": null
+        },
+        "session": {
+          "pid": 85004,
+          "present": true,
+          "state": "idle in transaction (aborted)",
+          "in_transaction": true,
+          "backend_xid": "11814",
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:38:19.562678+00",
+          "query": "ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "11814"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 85004,
+              "present": true,
+              "state": "idle in transaction (aborted)",
+              "in_transaction": true,
+              "backend_xid": "11814",
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:19.562678+00",
+              "query": "ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-outer": {
+        "reported": {
+          "pid": 85004,
+          "xid": null
+        },
+        "session": {
+          "pid": 85004,
+          "present": true,
+          "state": "idle",
+          "in_transaction": false,
+          "backend_xid": null,
+          "xid_matches": null,
+          "backend_xmin": null,
+          "backend_start": "2026-10-24 14:38:19.562678+00",
+          "query": "COMMIT",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": false,
+          "xids": [],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 85004,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:19.562678+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 85004,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:38:19.562678+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "11814",
+        "pid": 85004,
+        "captured_at": "outer-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-24 14:38:19.562678+00"
+      }
+    },
+    "markers": {
+      "outer": true,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": "11814",
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-02.1 held: the API reported: committed; xid 11814 committed at report time (`after-outer`); outer visible: true; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: \"idle\"",
+    "preconditions": [
+      {
+        "description": "the write of marker \"outer\" had reached PostgreSQL at `outer-after-write` (a row lock on item, in pg_locks)",
+        "met": true,
+        "detail": "locks at `outer-after-write`: item locked; transactionid [11814]"
+      },
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [11814, 11815]"
+      },
+      {
+        "description": "the client-side fault (rewrite) fired exactly once",
+        "met": true,
+        "detail": "fired: 1"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised sqlx::Error"
+      },
+      {
+        "description": "the runner observed the transaction's session after the outer API returned",
+        "met": true,
+        "detail": "session: \"idle\""
+      },
+      {
+        "description": "PostgreSQL rejected the rewritten ROLLBACK TO SAVEPOINT (3B001)",
+        "met": true,
+        "detail": "replies: [3B001]"
+      },
+      {
+        "description": "the rejection aborted only the subtransaction: the session was \"idle in transaction (aborted)\", and the top-level transaction was still in progress",
+        "met": true,
+        "detail": "at `after-fault`: session \"idle in transaction (aborted)\", backend_xid 11814; transactionid locks [11814]; top-level pg_xact_status: in progress"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-02.1",
+        "statement": "If the API reports that the outer transaction committed, PostgreSQL committed it, with the outer scope's writes and none of the failed nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: committed; xid 11814 committed at report time (`after-outer`); outer visible: true; inner (failed scope) visible: false"
+      },
+      {
+        "id": "TX-02.2",
+        "statement": "When the outer transaction's API has returned, the connection that ran it is no longer inside a transaction.",
+        "holds": true,
+        "detail": "the session after the outer API returned: \"idle\""
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for sqlx (explicit)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=sqlx --mode=explicit --case=TX-02.savepoint-rollback-rejected",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "compile_time_macros": false,
+      "driver": {
+        "command_tags": [
+          "SELECT 1",
+          "BEGIN",
+          "INSERT 0 1",
+          "SELECT 1",
+          "SAVEPOINT",
+          "INSERT 0 1",
+          "SELECT 1",
+          "ROLLBACK",
+          "COMMIT"
+        ],
+        "rewritten": [
+          "ROLLBACK TO SAVEPOINT ppcs_no_such_savepoint"
+        ],
+        "simple_queries": [
+          "BEGIN",
+          "SAVEPOINT _sqlx_savepoint_1",
+          "ROLLBACK TO SAVEPOINT _sqlx_savepoint_1",
+          "ROLLBACK TO SAVEPOINT _sqlx_savepoint_1",
+          "COMMIT"
+        ],
+        "withheld": []
+      },
+      "features": [
+        "runtime-tokio",
+        "postgres"
+      ],
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+      "sqlx": "unknown",
+      "sqlx_core": "unknown",
+      "sqlx_postgres": "unknown",
+      "tokio": "unknown"
+    },
+    "stderr": "sqlx-proxy: ROLLBACK TO SAVEPOINT _sqlx_savepoint_1 -> ROLLBACK\nsqlx-proxy: COMMIT -> COMMIT\n",
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:38:19.390Z",
+    "finished_at": "2026-10-24T14:38:19.871Z",
+    "duration_ms": 481
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: committed; xid 11814 committed at report time (`after-outer`); outer visible: true; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: \"idle\"",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 161
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: committed; xid 11819 committed at report time (`after-outer`); outer visible: true; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: \"idle\"",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 165
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-02.1 held: the API reported: committed; xid 11824 committed at report time (`after-outer`); outer visible: true; inner (failed scope) visible: false; TX-02.2 held: the session after the outer API returned: \"idle\"",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 155
+      }
+    ]
+  }
+}

@@ -1,0 +1,355 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-25-38Z-b2394a",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-04.nested-failure-contained",
+    "version": "1.1",
+    "family": "TX-04",
+    "family_title": "Nested transaction propagation",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "A nested scope fails; the caller handles the failure and commits",
+    "steps": [
+      "Start the outer transaction with the framework's ordinary transaction API.",
+      "Write the marker `outer` through the framework's ordinary write API. The framework decides when it is sent: one with a unit of work may keep it pending.",
+      "Start a nested scope with the framework's nested-transaction (savepoint) API. Write the marker `inner` in it, and make sure that write was sent.",
+      "Checkpoint `inner-after-write`: report pg_current_xact_id() (the top-level transaction's ID) and pg_backend_pid().",
+      "Raise an application error in the nested scope.",
+      "The outer scope catches the error and ends normally.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "laravel",
+      "version": "0.1.0",
+      "source_sha256": "048157c18c0ba7690daadbdc62ecc3aa0281274d733d657f4c482696c7dec474"
+    },
+    "framework": {
+      "name": "illuminate/database",
+      "version": "v13.38.0"
+    },
+    "driver": {
+      "name": "pdo_pgsql",
+      "version": "8.5.12"
+    },
+    "components": {
+      "illuminate/database": "v13.38.0",
+      "pdo_pgsql": "8.5.12",
+      "libpq": "18.6",
+      "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)"
+    },
+    "runtime": {
+      "name": "php",
+      "version": "8.5.12"
+    }
+  },
+  "execution": {
+    "mode": "explicit",
+    "kind": "native",
+    "description": "Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() on the same Capsule connection. A nested beginTransaction() is a savepoint. commit() at a level above 1 decrements Laravel's counter and does not send RELEASE SAVEPOINT. Eloquent creates write the markers. PDO::ATTR_PERSISTENT is false.",
+    "configuration": {
+      "api": "beginTransaction/commit/rollBack",
+      "writes": "Eloquent Item::query()->create and Uniq::query()->create",
+      "nested": "savepoint transN on the same connection",
+      "transactions_manager": "not set; Capsule does not install DatabaseTransactionsManager",
+      "persistent": "PDO::ATTR_PERSISTENT false",
+      "pool": "none; one connection on the Capsule manager",
+      "isolation": "connection config isolation_level, applied by PostgresConnector when set; transaction() takes no isolation argument",
+      "command_tag": "not read; PDO::commit() does not expose one"
+    },
+    "form": "Explicit Connection::beginTransaction(), the work, Connection::commit() or Connection::rollBack(). Nested beginTransaction() is a savepoint. Writes are Eloquent creates."
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "none"
+  },
+  "knowledge": "The caller knows that the nested scope failed: its error reached the caller. PostgreSQL answers the final COMMIT with COMMIT.",
+  "api_outcome": {
+    "reported": "committed",
+    "basis": "Connection::commit() returned. At level 1 that calls PDO::commit() and does not inspect its return value or a command tag.",
+    "contract": "Laravel 13.38.0 Connection::beginTransaction(), Connection::commit(), and Connection::rollBack() are the explicit API. The adapter calls beginTransaction(), runs the work, calls commit() when the work returns, and on a thrown error calls rollBack() and reports that error. commit() calls getPdo()->commit() only when transactionLevel() === 1, then decrements the counter and fires the committed event. It does not read a command tag. A nested beginTransaction() is SAVEPOINT transN. A nested rollBack() is ROLLBACK TO SAVEPOINT transN. A nested commit() does not send RELEASE SAVEPOINT. executeBeginTransactionStatement() does not take an isolation level. Session isolation, when requested, is PostgresConnector::configureIsolationLevel at connect time.",
+    "error": null,
+    "steps": {
+      "nested": {
+        "caught": true,
+        "error": {
+          "class": "Ppcs\\AppException",
+          "code": null,
+          "message": "application error: the request fails"
+        }
+      }
+    }
+  },
+  "database_outcome": {
+    "checkpoints": {
+      "inner-after-write": {
+        "reported": {
+          "pid": 37226,
+          "xid": "4940"
+        },
+        "session": {
+          "pid": 37226,
+          "present": true,
+          "state": "idle in transaction",
+          "in_transaction": true,
+          "backend_xid": "4940",
+          "xid_matches": true,
+          "backend_xmin": "4940",
+          "backend_start": "2026-10-24 14:25:57.882685+00",
+          "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+          "application_name": "ppcs-adapter"
+        },
+        "locks": {
+          "wrote_item": true,
+          "xids": [
+            "4940",
+            "4941"
+          ],
+          "read_item": false,
+          "siread": []
+        },
+        "transactions_now": {
+          "tx": {
+            "fate": "in progress",
+            "session": {
+              "pid": 37226,
+              "present": true,
+              "state": "idle in transaction",
+              "in_transaction": true,
+              "backend_xid": "4940",
+              "xid_matches": null,
+              "backend_xmin": "4940",
+              "backend_start": "2026-10-24 14:25:57.882685+00",
+              "query": "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      },
+      "after-end": {
+        "reported": {
+          "pid": null,
+          "xid": null
+        },
+        "session": null,
+        "locks": null,
+        "transactions_now": {
+          "tx": {
+            "fate": "committed",
+            "session": {
+              "pid": 37226,
+              "present": true,
+              "state": "idle",
+              "in_transaction": false,
+              "backend_xid": null,
+              "xid_matches": null,
+              "backend_xmin": null,
+              "backend_start": "2026-10-24 14:25:57.882685+00",
+              "query": "COMMIT",
+              "application_name": "ppcs-adapter"
+            }
+          }
+        },
+        "adapter_sessions": 1
+      }
+    },
+    "transactions": {
+      "tx": {
+        "xid": "4940",
+        "pid": 37226,
+        "captured_at": "inner-after-write",
+        "session_xid_matches": true,
+        "fate": "committed",
+        "backend_start": "2026-10-24 14:25:57.882685+00"
+      }
+    },
+    "markers": {
+      "outer": true,
+      "inner": false
+    },
+    "marker_xmin": {
+      "outer": "4940",
+      "inner": null
+    },
+    "stray_rows": [],
+    "sessions_at_end": [],
+    "fixture": {
+      "before": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9",
+      "after": "4a16d4dbdfecb19bc04a96c48d809b2de307822bf4efbc76bd40530e0a36e8e9"
+    }
+  },
+  "evaluation": {
+    "mechanism_exercised": null,
+    "classification": "PASS",
+    "reason": "TX-04.1 held: the API reported: committed; xid 4940 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+    "preconditions": [
+      {
+        "description": "the write of marker \"inner\" had reached PostgreSQL at `inner-after-write` (a subtransaction lock, in pg_locks)",
+        "met": true,
+        "detail": "locks at `inner-after-write`: item locked; transactionid [4940, 4941]"
+      },
+      {
+        "description": "the nested scope's error reached the outer scope, which handled it",
+        "met": true,
+        "detail": "nested scope: raised"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "TX-04.1",
+        "statement": "When a nested scope (a savepoint) fails, and the caller handles the failure and commits, PostgreSQL commits all of the caller's writes and none of the nested scope's writes.",
+        "holds": true,
+        "detail": "the API reported: committed; xid 4940 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false"
+      }
+    ],
+    "not_exercised": [],
+    "inconclusive_reason": null,
+    "contract_basis": null,
+    "gates": {
+      "controls": {
+        "held": true,
+        "detail": "CTL-01.commit and CTL-01.rollback PASSed for laravel (explicit)"
+      },
+      "case_controls": {
+        "held": true,
+        "detail": "pg-control (correct) expected PASS, got PASS, pg-control (unsafe) expected FAIL, got FAIL"
+      }
+    }
+  },
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=laravel --mode=explicit --case=TX-04.nested-failure-contained",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": {
+      "write_api": "eloquent",
+      "call_path": "Item::query()->create -> Eloquent Builder -> Connection::insert -> PDOStatement::execute; transaction via Connection::transaction or beginTransaction/commit/rollBack -> PDO::beginTransaction/commit/rollBack or exec(SAVEPOINT)",
+      "transaction_level_after": 0,
+      "pdo_class": "Ppcs\\FaultingPdo",
+      "persistent": false,
+      "transactions_manager": false,
+      "commit": {
+        "commit_calls": 1,
+        "commit_return": true,
+        "commit_sqlstate": "00000",
+        "in_transaction_before_commit": true,
+        "in_transaction_after_commit": false,
+        "command_tag_visible": false
+      },
+      "fault_trace": [
+        "set search_path to \"public\"",
+        "BEGIN via PDO::beginTransaction",
+        "insert into \"item\" (\"name\", \"qty\") values (?, ?) returning \"id\"",
+        "SAVEPOINT trans2",
+        "insert into \"item\" (\"name\", \"qty\") values (?, ?) returning \"id\"",
+        "select pg_current_xact_id()::text as xid, pg_backend_pid() as pid",
+        "ROLLBACK TO SAVEPOINT trans2",
+        "COMMIT via PDO::commit returned true"
+      ],
+      "command_tag": null
+    },
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:25:57.663Z",
+    "finished_at": "2026-10-24T14:25:58.169Z",
+    "duration_ms": 506
+  },
+  "repetitions": {
+    "count": 3,
+    "agreed": true,
+    "runs": [
+      {
+        "repetition": 1,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 4940 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 168
+      },
+      {
+        "repetition": 2,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 4945 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 172
+      },
+      {
+        "repetition": 3,
+        "classification": "PASS",
+        "reason": "TX-04.1 held: the API reported: committed; xid 4950 committed at report time (`after-end`); outer visible: true; inner (failed scope) visible: false",
+        "mechanism_exercised": null,
+        "not_exercised": [],
+        "reported": "committed",
+        "fates": {
+          "tx": "committed"
+        },
+        "markers": {
+          "outer": true,
+          "inner": false
+        },
+        "duration_ms": 166
+      }
+    ]
+  }
+}

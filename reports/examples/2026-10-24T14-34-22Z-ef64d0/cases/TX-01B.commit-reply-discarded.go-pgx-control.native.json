@@ -1,0 +1,144 @@
+{
+  "schema": "ppcs-result/1",
+  "run_id": "2026-10-24T14-34-22Z-ef64d0",
+  "harness": {
+    "ppcs_version": "0.3.0",
+    "sha256": "ca9a464603c516ee2c90b08f191d34bb84610025082210ec788e9092e04b34c5"
+  },
+  "specification": {
+    "id": "TX-01B.commit-reply-discarded",
+    "version": "1.1",
+    "family": "TX-01B",
+    "family_title": "Commit outcome after a connection or reply failure",
+    "family_version": "1.1",
+    "kind": "scenario",
+    "title": "COMMIT completes on the server, and the client discards the reply (client-side simulation)",
+    "steps": [
+      "Start a transaction with the framework's ordinary transaction API.",
+      "Write the marker `tx`.",
+      "Checkpoint `before-end`: report pg_current_xact_id() and pg_backend_pid().",
+      "Arm the client-side fault: the driver sends the next COMMIT, which PostgreSQL executes; the driver then closes its own connection and reports a connection error instead of the reply.",
+      "End the transaction normally, so that the framework sends COMMIT.",
+      "Checkpoint `after-end`, as soon as the API has returned: the runner records the state at report time."
+    ],
+    "invariants": [
+      {
+        "id": "TX-01B.1",
+        "statement": "When the connection or PostgreSQL's reply was lost around COMMIT, so that the client never received an acknowledgement of COMMIT, the API does not report a successful commit."
+      },
+      {
+        "id": "TX-01B.2",
+        "statement": "When COMMIT may have reached PostgreSQL and no reply arrived, the API does not report a confirmed rollback, through its result, its errors, or its rollback hooks or events."
+      }
+    ],
+    "catalog": "specifications",
+    "catalog_sha256": "2d44447a84ed37e609fdfa30c98084cd4bf31bad8436b8eacfc7ed44dfa5c449"
+  },
+  "subject": {
+    "adapter": {
+      "name": "go-pgx-control",
+      "version": "UNKNOWN",
+      "source_sha256": "95f360346aed8e58cf873092785c1b4646f564f81446354698452054fcd35086"
+    },
+    "framework": {
+      "name": "github.com/jackc/pgx/v5",
+      "version": "UNKNOWN"
+    },
+    "driver": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    },
+    "components": {},
+    "runtime": {
+      "name": "UNKNOWN",
+      "version": "UNKNOWN"
+    }
+  },
+  "execution": {
+    "mode": "native",
+    "kind": "native",
+    "description": "pgx.Conn.BeginTx, Tx.Commit, and Tx.Rollback on one connection. A nested Tx.Begin is a savepoint. Tx.Commit's return value is reported as the API result: nil is committed, pgx.ErrTxCommitRollback is rolled_back, and any other error is failed. Pooling is not used. After Conn.die closes the connection, the next transaction dials a replacement.",
+    "configuration": {},
+    "form": null
+  },
+  "configuration": {
+    "pool_max": 1
+  },
+  "server": {
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num": 180006,
+    "settings": {
+      "default_transaction_isolation": "read committed",
+      "default_transaction_read_only": "off",
+      "fsync": "on",
+      "idle_in_transaction_session_timeout": "0 ms",
+      "lock_timeout": "0 ms",
+      "max_connections": "100",
+      "ssl": "off",
+      "statement_timeout": "0 ms",
+      "synchronous_commit": "on",
+      "synchronous_standby_names": "",
+      "track_activities": "on",
+      "transaction_timeout": "0 ms"
+    },
+    "image": "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+  },
+  "fault": {
+    "category": "D",
+    "mechanism": "A client-side simulation inside the adapter's driver layer (node-postgres, pg.Client.prototype.query): COMMIT is sent and completes on the server; the client then closes its own connection, and the caller receives a connection error instead of the reply. It is not a network failure. Artifact: the driver has already parsed PostgreSQL's reply (its transaction status reads idle) before the simulated loss, where a real loss leaves it reading in-transaction. The case therefore establishes only whether the API claims an outcome after its COMMIT call fails, not behaviour that depends on the driver's state, such as pool recovery.",
+    "injection_point": "In the client, between the server's reply to COMMIT and its delivery to the framework.",
+    "preconditions": "The framework's statements pass through the instrumented pg module (recorded as trace_sees_framework_pg).",
+    "expected_server": "The transaction commits.",
+    "expected_client": "A connection error in place of the reply to COMMIT.",
+    "depends_on_internals": true
+  },
+  "knowledge": "None at the API level: the reply to COMMIT was discarded before the framework saw it. Only a later read can establish that the transaction committed.",
+  "api_outcome": {
+    "reported": "UNKNOWN",
+    "basis": null,
+    "contract": null,
+    "error": null,
+    "steps": {}
+  },
+  "database_outcome": {
+    "checkpoints": {},
+    "transactions": {},
+    "markers": null,
+    "marker_xmin": null,
+    "stray_rows": null,
+    "sessions_at_end": null,
+    "fixture": {
+      "before": null,
+      "after": null
+    }
+  },
+  "evaluation": {
+    "not_exercised": [],
+    "mechanism_exercised": null,
+    "classification": "UNSUPPORTED",
+    "reason": "The API under test is pgx.Tx.Commit. pgx v5.11.0 parses the command tag inside dbTx.Commit and returns ErrTxCommitRollback when the tag is ROLLBACK. QueryTracer.TraceQueryEnd runs inside Conn.Exec, before Commit chooses its return value, and cannot replace that return value. There is no supported hook between the parsed tag and Tx.Commit's return. The category E case, TX-01B.commit-reply-unseen, is the wire loss this adapter can run. This is not a claim that pgx reports the tag correctly.",
+    "unsupported_class": "capability-absent",
+    "preconditions": [],
+    "invariants": [],
+    "contract_basis": null
+  },
+  "repetitions": null,
+  "reproduction": {
+    "command": "node harness/run.mjs --adapter=go-pgx-control --mode=native --case=TX-01B.commit-reply-discarded",
+    "requires": "pnpm run setup, then pnpm run pg:up (README.md)"
+  },
+  "diagnostics": {
+    "adapter": null,
+    "stderr": null,
+    "stdout": null,
+    "protocol_errors": [],
+    "exit": null,
+    "timed_out": false
+  },
+  "timing": {
+    "started_at": "2026-10-24T14:34:39.597Z",
+    "finished_at": "2026-10-24T14:34:39.597Z",
+    "duration_ms": 0
+  }
+}
