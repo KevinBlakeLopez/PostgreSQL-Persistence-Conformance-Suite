@@ -20,6 +20,7 @@ Investigations here sit outside the PPCS harness (`AGENTS.md` rule 11). None of 
 | Folder | Question |
 | --- | --- |
 | [`sqlite-phase0/`](sqlite-phase0/) | SQLite transaction semantics through Python's `sqlite3`, and where the PostgreSQL cases do and do not carry over |
+| [`sqlite-transaction-state-divergence/`](sqlite-transaction-state-divergence/) | When SQLite ends a transaction by itself, do SQLAlchemy, Django and `sqlite3` notice, keep later work out of it, and avoid reporting success? Nothing filed; `upstream/` holds a SQLAlchemy facts package and a CPython draft |
 
 The MySQL baseline and the Drizzle follow-ups are under [`investigations/`](../investigations/).
 
