@@ -11,9 +11,9 @@ This document is the contract between the application and its acceptance tests. 
 - The schema is created and changed with Alembic. The tests run `alembic upgrade head` from the repository root.
 - Dependencies are declared in `pyproject.toml` with exact versions and locked with `uv`. Python stays at one version from V1 to V7, chosen to support the persistence stack at both ends of V7's window.
 - Identifiers are `bigint` columns generated as identity.
-- Timestamps are `timestamptz` columns set by PostgreSQL through a default of `now()`. The application never writes them.
+- Timestamps are `timestamptz` columns whose values come from PostgreSQL's `now()`, never from the application. A creation time is set by a column default when the row is inserted. The only later write is V6's archival, which sets `archived_at` to `now()`. A migration may copy an existing timestamp, as V2's does for each item's first revision.
 - The user table is named `app_user`, because `user` is reserved in PostgreSQL.
-- Every table carries `organization_id`. Composite foreign keys keep it equal to the organization of the row's parent and author.
+- Every table except `organization` carries `organization_id`. Composite foreign keys keep it equal to the organization of the row's parent and author.
 - Isolation between organizations is the application's job. PostgreSQL row-level security is not used.
 - From V4, the DSN passed to `open_service` points at a proxy the tests run. The application must not require TLS.
 
@@ -83,7 +83,7 @@ V2's migration does five things, in one Alembic revision:
 1. creates `evidence_revision`;
 2. gives every existing evidence item one revision holding its organization, content, author, and creation time;
 3. adds `evidence.current_revision_id` and points it at that revision;
-4. adds `event.revision_id` and fills it, for every existing event, with the first revision of its evidence item;
+4. adds `event.revision_id`, fills it, for every existing event, with the first revision of its evidence item, and then makes it not null;
 5. drops `evidence.content`.
 
 ### `evidence_revision`
@@ -119,7 +119,7 @@ The current revision is a pointer on the evidence item, not a flag on the revisi
 
 | Column | Type | Rule |
 | --- | --- | --- |
-| `revision_id` | `bigint` | Set on every event after V2's migration. (`revision_id`, `organization_id`) references `evidence_revision` (`id`, `organization_id`) |
+| `revision_id` | `bigint` | Not null. (`revision_id`, `organization_id`) references `evidence_revision` (`id`, `organization_id`) |
 | `kind` | `text` | `evidence_created` or `revision_created` |
 
 ## Tables after V3
@@ -213,7 +213,7 @@ When a revision is archived, all of its events are archived in the same statemen
 V7 adds no tables and no service calls. It changes versions.
 
 1. The harness replaces the pinned versions of psycopg, `psycopg_pool`, SQLAlchemy, and Alembic, wherever each is installed, with the versions current at the end of V7's window, and updates the lock. It changes nothing else.
-2. Before the agent changes anything, the harness runs the full suite on the new versions and records which checks fail.
+2. Before the agent changes anything, the harness runs the full suite on the new versions and records which checks fail. That record is the breakage before upgrade repair.
 3. The agent then makes every earlier check pass on the new versions.
 
 Pinning a package back to an older version, or copying old library code into the application, is a departure.
@@ -425,7 +425,7 @@ Expected counts come from the fixture's plan. Expected latest event times come f
 
 - **V5-1.** On the small fixture, `report` returns exactly the expected `claims_with_current_evidence`, `evidence_by_state`, and `latest_event_at`.
 - **V5-2.** The same on the large fixture.
-- **V5-3.** The statement count is the same on both fixtures. A difference is an N+1 load and fails. There is no time limit.
+- **V5-3.** The statement count is the same on both fixtures. Any difference fails this check, whatever its cause. There is no time limit.
 - **V5-4.** The item with no assigned reviewer is counted as pending.
 - **V5-5.** After `revise_evidence` on an item whose current revision was approved, the report counts that item as pending, and its latest event time is the new revision's event.
 - **V5-6.** `report` is an organization-wide read: the proxy saw no value of the second organization.
