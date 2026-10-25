@@ -1,6 +1,17 @@
 # Draft: psycopg, follow-up comment on psycopg/psycopg#1453
 
-**Not posted.** Prepared 2026-10-24. Written by: Claude Opus 5.5 (max).
+**Posted 2026-10-24** as `KevinBlakeLopez`: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348 The posted body matches the comment below; it was compared through the API. Prepared 2026-10-24. Written by: Claude Opus 5.5 (max).
+
+**Checked just before posting, about 21:53 UTC.** #1453 was open, with no comment and no timeline event. `master` was still `99356800e`, and no commit had touched the linked files. PyPI `latest` was 3.3.6.
+
+**Revised later on 2026-10-24,** after an outside adversarial review. Four changes:
+
+- **The compatibility paragraph.** The first version said that no test catches a database error inside `transaction()`. That was false: see `test_outer_transaction_error` under "Source facts". The paragraph now names that test, and says that a `status`-only fix conflicts with neither test.
+- **The savepoint control.** It now says where the error is caught.
+- **"Not run"** is narrowed to a `COMMIT` sent while a pipeline is still open.
+- **The program note.** One sentence in `<details>` now discloses the initial forced `DROP DATABASE`.
+
+After the reviewer's recheck, "When I ran its body" became "When I ran the same steps outside pytest". The script replaces `pytest.raises` with `try`/`except`, and the pytest test itself was not run.
 
 This is tracker item PY-1b in [`../../python-upstream-contribution-tracker.md`](../../python-upstream-contribution-tracker.md). It is a regular comment on https://github.com/psycopg/psycopg/issues/1453, which `KevinBlakeLopez` filed on 2026-10-21 (PY-1a). It is not a new issue.
 
@@ -16,7 +27,8 @@ Everything between the two rules below is the proposed comment. The rest of this
 3. Re-check `master`. If any of these files changed after `99356800e`, re-check the linked line ranges:
    - `psycopg/psycopg/transaction.py`;
    - `docs/basic/transactions.rst`;
-   - `tests/test_connection_async.py`.
+   - `tests/test_connection_async.py`;
+   - `tests/test_pipeline.py`.
 4. Check PyPI for a release after 3.3.6, and read its changelog for a related fix.
 5. After posting, record the comment in `docs/upstream-submissions.md`, and in the tracker. Check that file for another session's uncommitted edits first.
 
@@ -31,7 +43,11 @@ Everything between the two rules below is the proposed comment. The rest of this
 - **The program and its output** are [`../../python-ecosystem-contribution-audit/psycopg_transaction_block.py`](../../python-ecosystem-contribution-audit/psycopg_transaction_block.py) and [`.txt`](../../python-ecosystem-contribution-audit/psycopg_transaction_block.txt).
   - SHA-256 `951bcb4917cd777486591391f7be3f075d913f0070946d83c1e11de5cb39148b` and `079ce18aacc8e1a07a6b26c708b66dbeb21532a80a88895442c270299579c296`, re-verified on 2026-10-24.
   - Both are pasted below unchanged. The program's docstring still says "Diagnostic, not a PPCS case" and names the throwaway port. It is left as it ran, so the pasted program is the one that produced the output.
-- **The run:** 2026-10-24T14:10:49Z. PostgreSQL 18.6 (PPCS's pinned digest), psycopg 3.3.6 (binary, libpq 18.0.6), Python 3.13.11. Three repetitions, plus a normal-block control and a savepoint control. See [`../../python-ecosystem-contribution-audit/README.md`](../../python-ecosystem-contribution-audit/README.md).
+- **The run:** 2026-10-24T14:10:49Z. PostgreSQL 18.6 (PPCS's pinned digest), psycopg 3.3.6 (binary, libpq 18.6; `psycopg.pq.version()` prints `180006`), Python 3.13.11. Three repetitions, plus a normal-block control and a savepoint control. See [`../../python-ecosystem-contribution-audit/README.md`](../../python-ecosystem-contribution-audit/README.md).
+- **The pipeline test's pattern:** [`../psycopg-pipeline-test-check/`](../psycopg-pipeline-test-check/README.md).
+  - It is the basis for "When I ran the same steps outside pytest …".
+  - Its arms are the test's body, and the body plus a marker, three repetitions each.
+  - The driver was `INERROR` at block exit, the block did not raise, `status` was `committed`, and the transaction was `aborted`.
 
 **Source facts behind the comment's third and fourth paragraphs.** All read at `99356800e`; the code is identical to 3.3.6.
 
@@ -46,7 +62,10 @@ Everything between the two rules below is the proposed comment. The rest of this
   - Both paths reach `_exec_command`. A check placed there, or in a helper both call, would cover both. That is a design observation, not part of the comment.
 - **`_exec_command`** (443–493) raises only for a status other than `COMMAND_OK` or `TUPLES_OK`. In pipeline mode it queues the command and returns `None` (459–468).
 - **`test_auto_transaction_fail`.** `tests/test_connection_async.py`, 401–421, with `await aconn.commit()` at 418. The sync copy is `tests/test_connection.py`, 405–425, with `conn.commit()` at 422.
-- **No test catches a database error inside a `transaction()` block.** An AST scan of `tests/` at `99356800e` found two try/except statements inside `transaction()` blocks. Both catch `ZeroDivisionError` (`test_transaction.py:606`, `test_transaction_async.py:613`).
+- **A test exits a `transaction()` block normally after a caught database error.**
+  - **Where:** `test_outer_transaction_error`, in `tests/test_pipeline.py` (506–511) and `tests/test_pipeline_async.py` (507–512).
+  - **How it catches.** It uses `pytest.raises` around a pipeline inside `conn.transaction()`. The first scan looked only for try/except, found just two `ZeroDivisionError` handlers, and missed it.
+  - **Not a conflict:** `test_errors_raised_on_nested_transaction_exit` (`test_pipeline.py`, 260–273) catches outside an inner savepoint block. Its outer transaction is not aborted.
 - **Docs,** `docs/basic/transactions.rst`:
   - the block contract, 158–162;
   - `status`, 347–350;
@@ -55,11 +74,11 @@ Everything between the two rules below is the proposed comment. The rest of this
 **Deliberately left out:**
 
 - **CHK-1 was not run.** It is optional, and the task said not to delay the comment for it. So the comment says nothing about a `COMMIT` that itself raises (the roadmap's H-a), except to list it as not run.
-- **The `57014`, `40P01` and `40001` results (PY-12).** They were observed through SQLAlchemy Core, which calls `Connection.commit()`, not `transaction()`. They could be added in one line.
+- **The `57014`, `40P01` and `40001` results (PY-12).** They were observed through SQLAlchemy Core, which calls `Connection.commit()`, not `transaction()`. On 2026-10-24 the maintainer decided to keep them out, so that the comment stays narrow.
 - **A fix design.** The roadmap's narrowest fix (§7) stays internal until the maintainer answers.
 - **SQLAlchemy and Django.** The issue body already covers them as callers.
 
-**Length.** Outside `<details>`: 13 paragraphs and bullets, 332 words. That is about 29 lines at 100 characters per line, near the low end of the roadmap's 30–40.
+**Length.** Outside `<details>`: 13 paragraphs and bullets, 375 words. That is about 32 lines at 100 characters per line, within the roadmap's 30–40.
 
 ---
 
@@ -69,7 +88,7 @@ I caught a `UniqueViolation` inside `with conn.transaction() as tx:` and let the
 
 - the block exited without raising, and `tx.status` was `committed`;
 - from a separate connection, `pg_xact_status()` of the transaction's ID was `aborted`, the row inserted before the error was gone, and the session was `idle` with last statement `COMMIT`;
-- the control, where an inner `conn.transaction()` (a savepoint) catches the same error, committed, and its row was visible.
+- the control, where the failing insert runs inside an inner `conn.transaction()` (a savepoint) and the error is caught just outside it, committed, and its row was visible.
 
 The documentation says:
 
@@ -80,14 +99,16 @@ I would expect the block to raise here, or at least `tx.status` not to be `commi
 
 A fix in `Connection.commit()` alone would not reach this path. `BaseTransaction._commit_gen` ([transaction.py#L133-L140](https://github.com/psycopg/psycopg/blob/99356800e90aa0e7b604f652d714ef0f33422b47/psycopg/psycopg/transaction.py#L133-L140)) does not call `Connection._commit_gen`. It sends `COMMIT` through `_exec_command` itself and does not keep the result. It also sets `status = COMMITTED` before sending the command.
 
-A qualification to my report above: `test_auto_transaction_fail` ([test_connection_async.py#L401-L421](https://github.com/psycopg/psycopg/blob/99356800e90aa0e7b604f652d714ef0f33422b47/tests/test_connection_async.py#L401-L421), and its sync copy) calls `commit()` after a failed statement and expects it to return, leaving the connection `IDLE` and the row gone. Making `commit()` raise, as I asked, would fail that test, so the current behaviour may be intended. I found no test of `transaction()` that catches a database error inside the block, and the documentation quoted above presents `status` as the final outcome.
+A qualification to my report above: `test_auto_transaction_fail` ([test_connection_async.py#L401-L421](https://github.com/psycopg/psycopg/blob/99356800e90aa0e7b604f652d714ef0f33422b47/tests/test_connection_async.py#L401-L421), and its sync copy) calls `commit()` after a failed statement and expects it to return, leaving the connection `IDLE` and the row gone. Making `commit()` raise, as I asked, would fail that test, so the current behaviour may be intended. The block has a similar test: `test_outer_transaction_error` ([test_pipeline.py#L506-L511](https://github.com/psycopg/psycopg/blob/99356800e90aa0e7b604f652d714ef0f33422b47/tests/test_pipeline.py#L506-L511), and its async copy) catches a database error inside `transaction()` and expects the block to exit normally. When I ran the same steps outside pytest, the transaction was aborted and `tx.status` was `committed`, as above. Correcting `status` alone would not conflict with either test.
 
-Not run: `AsyncConnection.transaction()` (it shares `BaseTransaction._commit_gen`), pipeline mode, and a `COMMIT` that itself raises.
+Not run: `AsyncConnection.transaction()` (it shares `BaseTransaction._commit_gen`), a `COMMIT` sent while a pipeline is still open, and a `COMMIT` that itself raises.
 
 If it helps, I'm happy to write tests for the `transaction()` path, or a PR, once you have decided what the block should do in this case.
 
 <details>
 <summary>Program and complete output</summary>
+
+Run it against a disposable server: it first drops any database named `audit_psycopg_tx`, then creates it, and drops it at the end.
 
 ```python
 """psycopg Connection.transaction() after a caught 23505. Diagnostic, not a PPCS case.
