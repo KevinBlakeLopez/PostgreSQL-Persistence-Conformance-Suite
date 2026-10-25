@@ -1,0 +1,65 @@
+async def save(
+        self,
+        using_db: BaseDBAsyncClient | None = None,
+        update_fields: Iterable[str] | None = None,
+        force_create: bool = False,
+        force_update: bool = False,
+    ) -> None:
+        """
+        Creates/Updates the current model object.
+
+        :param update_fields: If provided, it should be a tuple/list of fields by name.
+
+            This is the subset of fields that should be updated.
+            If the object needs to be created ``update_fields`` will be ignored.
+        :param using_db: Specific DB connection to use instead of default bound
+        :param force_create: Forces creation of the record
+        :param force_update: Forces updating of the record
+
+        :raises IncompleteInstanceError: If the model is partial and the fields are not available for persistence.
+        :raises IntegrityError: If the model can't be created or updated (specifically if force_create or force_update has been set)
+        :raises OperationalError: If update_fields include pk field.
+        """
+        await self._set_async_default_field()
+        db = using_db or self._choose_db(True)
+        executor = db.executor_class(model=self.__class__, db=db)
+        if self._partial:
+            if update_fields:
+                for field in update_fields:
+                    if not hasattr(self, self._meta.pk_attr):
+                        raise IncompleteInstanceError(
+                            f"{self.__class__.__name__} is a partial model without primary key fetchd. Partial update not available"
+                        )
+                    if not hasattr(self, field):
+                        raise IncompleteInstanceError(
+                            f"{self.__class__.__name__} is a partial model, field '{field}' is not available"
+                        )
+            else:
+                raise IncompleteInstanceError(
+                    f"{self.__class__.__name__} is a partial model, can only be saved with the relevant update_field provided"
+                )
+        await self._pre_save(db, update_fields)
+
+        if force_create:
+            await executor.execute_insert(self)
+            created = True
+        elif force_update:
+            rows = await executor.execute_update(self, update_fields)
+            if rows == 0:
+                raise IntegrityError(f"Can't update object that doesn't exist. PK: {self.pk}")
+            created = False
+        else:
+            if self._saved_in_db or update_fields:
+                if self.pk is None:
+                    await executor.execute_insert(self)
+                    created = True
+                else:
+                    await executor.execute_update(self, update_fields)
+                    created = False
+            else:
+                # TODO: Do a merge/upsert operation here instead. Let the executor determine an optimal strategy for each DB engine.
+                await executor.execute_insert(self)
+                created = True
+
+        self._saved_in_db = True
+        await self._post_save(db, created, update_fields)

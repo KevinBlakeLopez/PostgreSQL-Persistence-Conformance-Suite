@@ -1,0 +1,45 @@
+Verifier interpreter: 3.13.11 (main, Dec  5 2025, 16:06:33) [Clang 17.0.0 (clang-1700.4.4.1)]
+Fresh server identity/version, non-root user, completion and removal recorded: ppcs-independent-9494ecd996de PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+Exact script: asyncpg_commit_rollback.py 891ffa6a9efc9332f5d3991f904fec5379bd760dc0fc4fe36baca06cd0b0c104
+Exact script: psycopg_transaction_block.py 951bcb4917cd777486591391f7be3f075d913f0070946d83c1e11de5cb39148b
+Exact script: psycopg_pipeline_outer_error.py ddfdcc36e25235c8a269ee23d651c649ed3d08549df7dd77b5f8c51b81dc2540
+PyPI wheel: asyncpg 0.32.0 c032869fd9c3c9fd1a86ad67e53f63906159068087c2674dd1e19be3cffff571
+PyPI wheel: uvloop 0.23.0 2dcff2d69be43e6559e5dad2c5a7a2dbfb60e05a77311b6c4b7a4a8123d86c65
+PyPI wheel: psycopg 3.3.6 a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631
+PyPI wheel: psycopg-binary 3.3.6 373704aea331d3f3e3402c125a1543f5875e2986ebb54f97d1647942161f803f
+MATCH after masking only transaction IDs: asyncpg-asyncio-rep1
+MATCH after masking only transaction IDs: asyncpg-asyncio-rep2
+MATCH after masking only transaction IDs: asyncpg-asyncio-rep3
+MATCH after masking only transaction IDs: asyncpg-uvloop-rep1
+MATCH after masking only transaction IDs: asyncpg-uvloop-rep2
+MATCH after masking only transaction IDs: asyncpg-uvloop-rep3
+BYTE-IDENTICAL original/fresh stdout: psycopg-transaction 079ce18aacc8e1a07a6b26c708b66dbeb21532a80a88895442c270299579c296
+BYTE-IDENTICAL original/fresh stdout: psycopg-pipeline 4a44bf998bdca14f5162b98773d7d60bfaed08bf77bd5ff92ae3e390bd68999e
+Independent psql check: 24/24 match; 18 aborted, 6 committed.
+Fresh log match: asyncpg-asyncio-rep1 repro-managed pid 58 xid 756 controls ['BEGIN;', 'COMMIT;'] lines 52 - 65
+Fresh log match: asyncpg-asyncio-rep1 repro-explicit pid 59 xid 757 controls ['BEGIN;', 'COMMIT;'] lines 76 - 89
+Fresh log match: asyncpg-asyncio-rep1 repro-raw pid 60 xid 758 controls ['BEGIN', 'COMMIT'] lines 100 - 113
+Fresh log match: asyncpg-asyncio-rep1 repro-control pid 61 xid 759 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 124 - 141
+Fresh log match: asyncpg-asyncio-rep2 repro-managed pid 65 xid 766 controls ['BEGIN;', 'COMMIT;'] lines 170 - 183
+Fresh log match: asyncpg-asyncio-rep2 repro-explicit pid 66 xid 767 controls ['BEGIN;', 'COMMIT;'] lines 194 - 207
+Fresh log match: asyncpg-asyncio-rep2 repro-raw pid 67 xid 768 controls ['BEGIN', 'COMMIT'] lines 218 - 231
+Fresh log match: asyncpg-asyncio-rep2 repro-control pid 68 xid 769 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 242 - 259
+Fresh log match: asyncpg-asyncio-rep3 repro-managed pid 72 xid 776 controls ['BEGIN;', 'COMMIT;'] lines 288 - 301
+Fresh log match: asyncpg-asyncio-rep3 repro-explicit pid 73 xid 777 controls ['BEGIN;', 'COMMIT;'] lines 312 - 325
+Fresh log match: asyncpg-asyncio-rep3 repro-raw pid 74 xid 778 controls ['BEGIN', 'COMMIT'] lines 336 - 349
+Fresh log match: asyncpg-asyncio-rep3 repro-control pid 75 xid 779 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 360 - 377
+Fresh log match: asyncpg-uvloop-rep1 repro-managed pid 79 xid 786 controls ['BEGIN;', 'COMMIT;'] lines 406 - 419
+Fresh log match: asyncpg-uvloop-rep1 repro-explicit pid 80 xid 787 controls ['BEGIN;', 'COMMIT;'] lines 430 - 443
+Fresh log match: asyncpg-uvloop-rep1 repro-raw pid 81 xid 788 controls ['BEGIN', 'COMMIT'] lines 454 - 467
+Fresh log match: asyncpg-uvloop-rep1 repro-control pid 82 xid 789 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 478 - 495
+Fresh log match: asyncpg-uvloop-rep2 repro-managed pid 86 xid 796 controls ['BEGIN;', 'COMMIT;'] lines 524 - 537
+Fresh log match: asyncpg-uvloop-rep2 repro-explicit pid 87 xid 797 controls ['BEGIN;', 'COMMIT;'] lines 548 - 561
+Fresh log match: asyncpg-uvloop-rep2 repro-raw pid 88 xid 798 controls ['BEGIN', 'COMMIT'] lines 572 - 585
+Fresh log match: asyncpg-uvloop-rep2 repro-control pid 89 xid 799 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 596 - 613
+Fresh log match: asyncpg-uvloop-rep3 repro-managed pid 93 xid 806 controls ['BEGIN;', 'COMMIT;'] lines 642 - 655
+Fresh log match: asyncpg-uvloop-rep3 repro-explicit pid 94 xid 807 controls ['BEGIN;', 'COMMIT;'] lines 666 - 679
+Fresh log match: asyncpg-uvloop-rep3 repro-raw pid 95 xid 808 controls ['BEGIN', 'COMMIT'] lines 690 - 703
+Fresh log match: asyncpg-uvloop-rep3 repro-control pid 96 xid 809 controls ['BEGIN;', 'SAVEPOINT __asyncpg_savepoint_d__;', 'ROLLBACK TO __asyncpg_savepoint_d__;', 'COMMIT;'] lines 714 - 731
+Psycopg original-block server log: 6 caught/recovered sessions; each has unique violation and final COMMIT.
+Psycopg pipeline-pattern server log: 6/6 undefined-column errors then COMMIT; no CREATE TABLE executed.
+ALL CHECKS PASSED: 8/8 standalone executions exited 0; no result discrepancies.

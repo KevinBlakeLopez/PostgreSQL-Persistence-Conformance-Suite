@@ -1,0 +1,169 @@
+tests/test_concurrency.py:227-235
+with pytest.raises(RuntimeError, match="rollback caller transaction"):
+        async with in_transaction("models") as connection:
+            instance, created = await UniqueNameRequired.update_or_create(
+                name="race", defaults={"optional": "loser"}, using_db=connection
+            )
+            assert created is False
+            assert instance.optional == "loser"
+            assert (await UniqueNameRequired.get(name="race")).optional == "loser"
+            raise RuntimeError("rollback caller transaction")
+
+tests/test_bulk.py:182-187
+with pytest.raises(IntegrityError):
+        async with in_transaction():
+            await UniqueName.bulk_create(
+                [UniqueName(name=str(i)) for i in range(10)]
+                + [UniqueName(name=str(i)) for i in range(10)]
+            )
+
+tests/test_bulk.py:195-197
+with pytest.raises(IntegrityError):
+        async with in_transaction():
+            await UUIDPkModel.bulk_create([UUIDPkModel(id=val) for _ in range(10)])
+
+tests/test_transactions.py:29-36
+with pytest.raises(SomeException):
+        async with in_transaction():
+            tournament = Tournament(name="Test")
+            await tournament.save()
+            await Tournament.filter(id=tournament.id).update(name="Updated name")
+            saved_event = await Tournament.filter(name="Updated name").first()
+            assert saved_event.id == tournament.id
+            raise SomeException("Some error")
+
+tests/test_transactions.py:101-108
+with pytest.raises(SomeException):
+        async with in_transaction():
+            tournament = await Tournament.create(name="Test")
+            async with in_transaction():
+                tournament.name = "Nested"
+                await tournament.save()
+
+            raise SomeException("Some error")
+
+tests/test_transactions.py:117-126
+with pytest.raises(SomeException, match="Error 2"):
+        async with in_transaction():
+            await Tournament.create(name="Test1")
+            with pytest.raises(SomeException, match="Error 1"):
+                async with in_transaction():
+                    await Tournament.create(name="Test2")
+                    raise SomeException("Error 1")
+
+            await Tournament.create(name="Test3")
+            raise SomeException("Error 2")
+
+tests/test_transactions.py:269-272
+with pytest.raises(TransactionManagementError):
+        async with in_transaction() as connection:
+            await connection.rollback()
+            await connection.rollback()
+
+tests/test_transactions.py:279-282
+with pytest.raises(TransactionManagementError):
+        async with in_transaction() as connection:
+            await connection.commit()
+            await connection.commit()
+
+tests/test_transactions.py:292-297
+try:
+        async with in_transaction():
+            await query
+            raise KeyError("moo")
+    except KeyError:
+        pass
+
+tests/test_transactions.py:322-327
+try:
+        async with in_transaction():
+            await query
+            raise KeyError("moo")
+    except KeyError:
+        pass
+
+tests/test_transactions.py:352-357
+try:
+        async with in_transaction():
+            await query
+            raise KeyError("moo")
+    except KeyError:
+        pass
+
+tests/test_transactions.py:379-386
+try:
+        async with in_transaction():
+            query = Tournament.all().values("name")
+            await Tournament.create(name="Test1")
+            result = await query
+            raise KeyError("moo")
+    except KeyError:
+        pass
+
+tests/test_transactions.py:410-413
+with pytest.raises(ValueError, match="rollback"):
+        async with conn._in_transaction() as tx_conn:
+            tx_conn.rollback = Mock(side_effect=ValueError("rollback"))
+            raise ValueError("initial exception")
+
+tests/test_transactions.py:423-425
+with pytest.raises(ValueError, match="commit"):
+        async with conn._in_transaction() as tx_conn:
+            tx_conn.commit = Mock(side_effect=ValueError("commit"))
+
+tests/test_transactions.py:84-89
+with pytest.raises(SomeException):
+            async with in_transaction():
+                tournament = await Tournament.create(name="Nested")
+                saved_tournament = await Tournament.filter(name="Nested").first()
+                assert tournament.id == saved_tournament.id
+                raise SomeException("Some error")
+
+tests/test_transactions.py:138-141
+with pytest.raises(SomeException, match="Inner 1"):
+            async with in_transaction():
+                await Tournament.create(name="Inner 1")
+                raise SomeException("Inner 1")
+
+tests/test_transactions.py:145-148
+with pytest.raises(SomeException, match="Inner 2"):
+            async with in_transaction():
+                await Tournament.create(name="Inner 2")
+                raise SomeException("Inner 2")
+
+tests/test_transactions.py:166-169
+with pytest.raises(SomeException, match="Inner 1"):
+            async with in_transaction():
+                await Tournament.create(name="Inner 1")
+                raise SomeException("Inner 1")
+
+tests/test_transactions.py:120-123
+with pytest.raises(SomeException, match="Error 1"):
+                async with in_transaction():
+                    await Tournament.create(name="Test2")
+                    raise SomeException("Error 1")
+
+tests/test_manual_sql.py:30-35
+try:
+        async with in_transaction() as conn:
+            await conn.execute_query("INSERT INTO author (name) VALUES ('Foo')")
+            raise ValueError("oops")
+    except ValueError:
+        pass
+
+tests/test_manual_sql.py:56-62
+try:
+        async with in_transaction() as conn:
+            await conn.execute_query("INSERT INTO author (name) VALUES ('Foo')")
+            await conn.commit()
+            raise ValueError("oops")
+    except ValueError:
+        pass
+
+tests/test_two_databases.py:125-130
+with pytest.raises(
+        ParamsError,
+        match="You are running with multiple databases, so you should specify connection_name",
+    ):
+        async with in_transaction():
+            pass

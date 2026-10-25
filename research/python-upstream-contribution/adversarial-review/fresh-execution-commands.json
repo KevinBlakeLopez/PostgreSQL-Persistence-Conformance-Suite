@@ -1,0 +1,285 @@
+[
+  {
+    "started_at_utc": "2026-10-24T21:38:40.612595+00:00",
+    "ended_at_utc": "2026-10-24T21:38:40.772361+00:00",
+    "argv": [
+      "docker",
+      "run",
+      "--rm",
+      "-d",
+      "--name",
+      "ppcs-independent-9494ecd996de",
+      "--user",
+      "postgres",
+      "--read-only",
+      "--tmpfs",
+      "/tmp:rw,nosuid,nodev,size=256m,mode=1777",
+      "-p",
+      "127.0.0.1:55537:55537",
+      "--entrypoint",
+      "bash",
+      "postgres:18.6@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+      "-c",
+      "initdb -D /tmp/fresh-pg --username=postgres --auth=trust --encoding=UTF8 --no-locale && printf '%s\\n' 'host all all 172.17.0.1/32 trust' >> /tmp/fresh-pg/pg_hba.conf && exec postgres -D /tmp/fresh-pg -p 55537 -k /tmp -c 'listen_addresses=*' -c log_statement=all -c log_error_verbosity=verbose -c 'log_line_prefix=%m [%p] app=%a xid=%x ' -c cluster_name=fresh-9494ecd996de400e8c5d58435ec10920"
+    ],
+    "returncode": 0,
+    "output": "docker-start.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:40.772752+00:00",
+    "ended_at_utc": "2026-10-24T21:38:40.817771+00:00",
+    "argv": [
+      "docker",
+      "exec",
+      "ppcs-independent-9494ecd996de",
+      "pg_isready",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "55537",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres"
+    ],
+    "returncode": 2,
+    "stdout": "127.0.0.1:55537 - no response\n"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:41.069210+00:00",
+    "ended_at_utc": "2026-10-24T21:38:41.116109+00:00",
+    "argv": [
+      "docker",
+      "exec",
+      "ppcs-independent-9494ecd996de",
+      "pg_isready",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "55537",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres"
+    ],
+    "returncode": 0,
+    "stdout": "127.0.0.1:55537 - accepting connections\n"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:41.116463+00:00",
+    "ended_at_utc": "2026-10-24T21:38:41.151809+00:00",
+    "argv": [
+      "docker",
+      "exec",
+      "ppcs-independent-9494ecd996de",
+      "id"
+    ],
+    "returncode": 0,
+    "output": "server-os-user.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:41.152234+00:00",
+    "ended_at_utc": "2026-10-24T21:38:41.195052+00:00",
+    "argv": [
+      "docker",
+      "exec",
+      "ppcs-independent-9494ecd996de",
+      "cat",
+      "/tmp/fresh-pg/pg_hba.conf"
+    ],
+    "returncode": 0,
+    "output": "pg_hba.conf.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:41.195527+00:00",
+    "ended_at_utc": "2026-10-24T21:38:41.208582+00:00",
+    "argv": [
+      "docker",
+      "inspect",
+      "--format",
+      "{{json .Config.User}} {{json .Image}} {{json .HostConfig.Tmpfs}} {{json .HostConfig.PortBindings}}",
+      "ppcs-independent-9494ecd996de"
+    ],
+    "returncode": 0,
+    "output": "docker-identity.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:43.511836+00:00",
+    "ended_at_utc": "2026-10-24T21:38:43.651504+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "-m",
+      "pip",
+      "freeze",
+      "--all"
+    ],
+    "returncode": 0,
+    "output": "pip-freeze.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:43.651989+00:00",
+    "ended_at_utc": "2026-10-24T21:38:44.317714+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "asyncio"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-asyncio-rep1.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:44.318249+00:00",
+    "ended_at_utc": "2026-10-24T21:38:44.435163+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "asyncio"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-asyncio-rep2.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:44.435743+00:00",
+    "ended_at_utc": "2026-10-24T21:38:44.543394+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "asyncio"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-asyncio-rep3.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:44.543958+00:00",
+    "ended_at_utc": "2026-10-24T21:38:44.868702+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "uvloop"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-uvloop-rep1.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:44.869312+00:00",
+    "ended_at_utc": "2026-10-24T21:38:44.979688+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "uvloop"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-uvloop-rep2.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:44.980215+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.089619+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/asyncpg_commit_rollback.py",
+      "uvloop"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres",
+    "output": "asyncpg-uvloop-rep3.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.090098+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.243715+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/psycopg_transaction_block.py"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres?application_name=fresh-psycopg",
+    "output": "psycopg-transaction.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.244193+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.379941+00:00",
+    "argv": [
+      "/private/tmp/ppcs-fresh-run-20261024/venv/bin/python",
+      "-I",
+      "/private/tmp/ppcs-fresh-run-20261024/psycopg_pipeline_outer_error.py"
+    ],
+    "returncode": 0,
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:55537/postgres?application_name=fresh-pipeline",
+    "output": "psycopg-pipeline.out"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.381075+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.427606+00:00",
+    "argv": [
+      "docker",
+      "exec",
+      "ppcs-independent-9494ecd996de",
+      "psql",
+      "-X",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "55537",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-A",
+      "-F",
+      "|",
+      "-c",
+      "select run,arm,xid,expected,pg_xact_status(xid::text::xid8) as actual from (values ('asyncpg-asyncio-rep1','managed',756,'aborted'),('asyncpg-asyncio-rep1','explicit',757,'aborted'),('asyncpg-asyncio-rep1','raw',758,'aborted'),('asyncpg-asyncio-rep1','control',759,'committed'),('asyncpg-asyncio-rep2','managed',766,'aborted'),('asyncpg-asyncio-rep2','explicit',767,'aborted'),('asyncpg-asyncio-rep2','raw',768,'aborted'),('asyncpg-asyncio-rep2','control',769,'committed'),('asyncpg-asyncio-rep3','managed',776,'aborted'),('asyncpg-asyncio-rep3','explicit',777,'aborted'),('asyncpg-asyncio-rep3','raw',778,'aborted'),('asyncpg-asyncio-rep3','control',779,'committed'),('asyncpg-uvloop-rep1','managed',786,'aborted'),('asyncpg-uvloop-rep1','explicit',787,'aborted'),('asyncpg-uvloop-rep1','raw',788,'aborted'),('asyncpg-uvloop-rep1','control',789,'committed'),('asyncpg-uvloop-rep2','managed',796,'aborted'),('asyncpg-uvloop-rep2','explicit',797,'aborted'),('asyncpg-uvloop-rep2','raw',798,'aborted'),('asyncpg-uvloop-rep2','control',799,'committed'),('asyncpg-uvloop-rep3','managed',806,'aborted'),('asyncpg-uvloop-rep3','explicit',807,'aborted'),('asyncpg-uvloop-rep3','raw',808,'aborted'),('asyncpg-uvloop-rep3','control',809,'committed')) as t(run,arm,xid,expected) order by xid;"
+    ],
+    "returncode": 0,
+    "output": "psql-xact-status.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.428161+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.442574+00:00",
+    "argv": [
+      "docker",
+      "logs",
+      "ppcs-independent-9494ecd996de"
+    ],
+    "returncode": 0,
+    "output": "server.log"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.443021+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.560615+00:00",
+    "argv": [
+      "docker",
+      "stop",
+      "--time",
+      "10",
+      "ppcs-independent-9494ecd996de"
+    ],
+    "returncode": 0,
+    "output": "docker-stop.txt"
+  },
+  {
+    "started_at_utc": "2026-10-24T21:38:45.561098+00:00",
+    "ended_at_utc": "2026-10-24T21:38:45.579160+00:00",
+    "argv": [
+      "docker",
+      "inspect",
+      "ppcs-independent-9494ecd996de"
+    ],
+    "returncode": 1,
+    "output": "docker-removed.txt"
+  }
+]

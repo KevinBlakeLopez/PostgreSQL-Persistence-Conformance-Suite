@@ -1,0 +1,1044 @@
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+creating directory /tmp/fresh-pg ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /tmp/fresh-pg -l logfile start
+
+2026-10-24 21:38:41.012 UTC [1] app= xid=0 LOG:  00000: starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-24 21:38:41.012 UTC [1] app= xid=0 LOCATION:  PostmasterMain, postmaster.c:1103
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOG:  00000: listening on IPv4 address "0.0.0.0", port 55537
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOCATION:  ListenServerPort, pqcomm.c:662
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOG:  00000: listening on IPv6 address "::", port 55537
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOCATION:  ListenServerPort, pqcomm.c:662
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOG:  00000: listening on Unix socket "/tmp/.s.PGSQL.55537"
+2026-10-24 21:38:41.013 UTC [1] app= xid=0 LOCATION:  ListenServerPort, pqcomm.c:658
+2026-10-24 21:38:41.013 UTC [31] app= xid=0 LOG:  00000: database system was shut down at 2026-10-24 21:38:41 UTC
+2026-10-24 21:38:41.013 UTC [31] app= xid=0 LOCATION:  StartupXLOG, xlog.c:5510
+2026-10-24 21:38:41.014 UTC [1] app= xid=0 LOG:  00000: database system is ready to accept connections
+2026-10-24 21:38:41.014 UTC [1] app= xid=0 LOCATION:  process_pm_child_exit, postmaster.c:2331
+2026-10-24 21:38:43.544 UTC [54] app=fresh-verifier xid=0 LOG:  00000: statement: select current_setting('cluster_name'), version(), current_setting('server_version_num')
+2026-10-24 21:38:43.544 UTC [54] app=fresh-verifier xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:43.545 UTC [54] app=fresh-verifier xid=0 LOG:  00000: statement: select name,setting from pg_settings where name in ('synchronous_commit','default_transaction_isolation','statement_timeout','idle_in_transaction_session_timeout','log_statement','log_error_verbosity','port')
+2026-10-24 21:38:43.545 UTC [54] app=fresh-verifier xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.272 UTC [55] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:44.272 UTC [55] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.273 UTC [55] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.273 UTC [55] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.273 UTC [55] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:44.273 UTC [55] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.303 UTC [56] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:44.303 UTC [56] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.305 UTC [56] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:44.305 UTC [56] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.306 UTC [56] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.306 UTC [56] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.312 UTC [58] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.312 UTC [58] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.313 UTC [58] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:44.313 UTC [58] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.313 UTC [58] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.314 UTC [58] app=repro-managed xid=756 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.315 UTC [58] app=repro-managed xid=756 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.315 UTC [58] app=repro-managed xid=756 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.316 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.316 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '756'
+2026-10-24 21:38:44.316 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.317 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.317 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.317 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.318 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.318 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '58'
+2026-10-24 21:38:44.318 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.322 UTC [59] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.322 UTC [59] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.323 UTC [59] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:44.323 UTC [59] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.323 UTC [59] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.324 UTC [59] app=repro-explicit xid=757 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '757'
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.325 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.326 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.326 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '59'
+2026-10-24 21:38:44.326 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.329 UTC [60] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:44.329 UTC [60] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.330 UTC [60] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:44.330 UTC [60] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.330 UTC [60] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.330 UTC [60] app=repro-raw xid=758 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.330 UTC [60] app=repro-raw xid=758 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:44.331 UTC [60] app=repro-raw xid=758 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.331 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.331 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '758'
+2026-10-24 21:38:44.331 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '60'
+2026-10-24 21:38:44.332 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.335 UTC [61] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.335 UTC [61] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.336 UTC [61] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:44.336 UTC [61] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.336 UTC [61] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.337 UTC [61] app=repro-control xid=759 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.338 UTC [61] app=repro-control xid=759 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.338 UTC [61] app=repro-control xid=759 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.338 UTC [61] app=repro-control xid=759 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.338 UTC [61] app=repro-control xid=759 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.338 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.338 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '759'
+2026-10-24 21:38:44.338 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '61'
+2026-10-24 21:38:44.339 UTC [57] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.341 UTC [55] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.341 UTC [55] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.342 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:44.342 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:44.342 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=5, longest=0.001 s, average=0.000 s; distance=4399 kB, estimate=4399 kB; lsn=0/1BAD280, redo lsn=0/1BAD228
+2026-10-24 21:38:44.342 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:44.407 UTC [62] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:44.407 UTC [62] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.407 UTC [62] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.407 UTC [62] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.408 UTC [62] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:44.408 UTC [62] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.420 UTC [63] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:44.420 UTC [63] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.421 UTC [63] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:44.421 UTC [63] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.422 UTC [63] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.422 UTC [63] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.428 UTC [65] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.428 UTC [65] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.429 UTC [65] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:44.429 UTC [65] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.429 UTC [65] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.430 UTC [65] app=repro-managed xid=766 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.431 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.431 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '766'
+2026-10-24 21:38:44.431 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.432 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.432 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.432 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.433 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.433 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '65'
+2026-10-24 21:38:44.433 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.437 UTC [66] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.437 UTC [66] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.437 UTC [66] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:44.437 UTC [66] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.437 UTC [66] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.438 UTC [66] app=repro-explicit xid=767 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.438 UTC [66] app=repro-explicit xid=767 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.438 UTC [66] app=repro-explicit xid=767 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.438 UTC [66] app=repro-explicit xid=767 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.439 UTC [66] app=repro-explicit xid=767 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.439 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.439 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '767'
+2026-10-24 21:38:44.439 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '66'
+2026-10-24 21:38:44.440 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.443 UTC [67] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:44.443 UTC [67] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.444 UTC [67] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:44.444 UTC [67] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.444 UTC [67] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.445 UTC [67] app=repro-raw xid=768 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.446 UTC [67] app=repro-raw xid=768 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:44.446 UTC [67] app=repro-raw xid=768 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '768'
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.446 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.447 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.447 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '67'
+2026-10-24 21:38:44.447 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.450 UTC [68] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.450 UTC [68] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.451 UTC [68] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:44.451 UTC [68] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.451 UTC [68] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.451 UTC [68] app=repro-control xid=769 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.451 UTC [68] app=repro-control xid=769 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.452 UTC [68] app=repro-control xid=769 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.453 UTC [68] app=repro-control xid=769 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.453 UTC [68] app=repro-control xid=769 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '769'
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.453 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.454 UTC [64] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.454 UTC [64] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '68'
+2026-10-24 21:38:44.454 UTC [64] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.456 UTC [62] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.456 UTC [62] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.456 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:44.456 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:44.459 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.003 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4399 kB, estimate=4399 kB; lsn=0/1FF91C0, redo lsn=0/1FF9168
+2026-10-24 21:38:44.459 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:44.524 UTC [69] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:44.524 UTC [69] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.524 UTC [69] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.524 UTC [69] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.525 UTC [69] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:44.525 UTC [69] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.534 UTC [70] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:44.534 UTC [70] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.535 UTC [70] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:44.535 UTC [70] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.536 UTC [70] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.536 UTC [70] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.541 UTC [72] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.541 UTC [72] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.542 UTC [72] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:44.542 UTC [72] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.542 UTC [72] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.543 UTC [72] app=repro-managed xid=776 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.544 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.544 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '776'
+2026-10-24 21:38:44.544 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.545 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.545 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.545 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.546 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.546 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '72'
+2026-10-24 21:38:44.546 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.549 UTC [73] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.549 UTC [73] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.550 UTC [73] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:44.550 UTC [73] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.550 UTC [73] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.551 UTC [73] app=repro-explicit xid=777 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.552 UTC [73] app=repro-explicit xid=777 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.552 UTC [73] app=repro-explicit xid=777 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '777'
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.552 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.553 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.553 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '73'
+2026-10-24 21:38:44.553 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.556 UTC [74] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:44.556 UTC [74] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.556 UTC [74] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:44.556 UTC [74] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.556 UTC [74] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.557 UTC [74] app=repro-raw xid=778 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.557 UTC [74] app=repro-raw xid=778 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:44.558 UTC [74] app=repro-raw xid=778 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.558 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.558 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '778'
+2026-10-24 21:38:44.558 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '74'
+2026-10-24 21:38:44.559 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.562 UTC [75] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.562 UTC [75] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.562 UTC [75] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:44.562 UTC [75] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.562 UTC [75] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.563 UTC [75] app=repro-control xid=779 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.563 UTC [75] app=repro-control xid=779 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.564 UTC [75] app=repro-control xid=779 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.565 UTC [75] app=repro-control xid=779 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.565 UTC [75] app=repro-control xid=779 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '779'
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.565 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.566 UTC [71] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.566 UTC [71] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '75'
+2026-10-24 21:38:44.566 UTC [71] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.568 UTC [69] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.568 UTC [69] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.568 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:44.568 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:44.568 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4400 kB, estimate=4400 kB; lsn=0/24451C8, redo lsn=0/2445170
+2026-10-24 21:38:44.568 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:44.841 UTC [76] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:44.841 UTC [76] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.841 UTC [76] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.841 UTC [76] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.842 UTC [76] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:44.842 UTC [76] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.855 UTC [77] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:44.855 UTC [77] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.856 UTC [77] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:44.856 UTC [77] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.857 UTC [77] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.857 UTC [77] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.863 UTC [79] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.863 UTC [79] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.864 UTC [79] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:44.864 UTC [79] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.864 UTC [79] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.865 UTC [79] app=repro-managed xid=786 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.866 UTC [79] app=repro-managed xid=786 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.866 UTC [79] app=repro-managed xid=786 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.867 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.867 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '786'
+2026-10-24 21:38:44.867 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.868 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.868 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.868 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.869 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.869 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '79'
+2026-10-24 21:38:44.869 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.873 UTC [80] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.873 UTC [80] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.873 UTC [80] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:44.873 UTC [80] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.873 UTC [80] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.874 UTC [80] app=repro-explicit xid=787 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.874 UTC [80] app=repro-explicit xid=787 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.875 UTC [80] app=repro-explicit xid=787 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.875 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.875 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '787'
+2026-10-24 21:38:44.875 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '80'
+2026-10-24 21:38:44.876 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.879 UTC [81] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:44.879 UTC [81] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.880 UTC [81] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:44.880 UTC [81] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.880 UTC [81] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.881 UTC [81] app=repro-raw xid=788 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.882 UTC [81] app=repro-raw xid=788 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:44.882 UTC [81] app=repro-raw xid=788 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '788'
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.882 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.883 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.883 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '81'
+2026-10-24 21:38:44.883 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.886 UTC [82] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.886 UTC [82] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.887 UTC [82] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:44.887 UTC [82] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.887 UTC [82] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.887 UTC [82] app=repro-control xid=789 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.887 UTC [82] app=repro-control xid=789 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:44.888 UTC [82] app=repro-control xid=789 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.889 UTC [82] app=repro-control xid=789 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.889 UTC [82] app=repro-control xid=789 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '789'
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.889 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.890 UTC [78] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.890 UTC [78] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '82'
+2026-10-24 21:38:44.890 UTC [78] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.892 UTC [76] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.892 UTC [76] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.892 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:44.892 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:44.892 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4400 kB, estimate=4400 kB; lsn=0/2891290, redo lsn=0/2891238
+2026-10-24 21:38:44.892 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:44.963 UTC [83] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.972 UTC [84] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:44.972 UTC [84] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.973 UTC [84] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:44.973 UTC [84] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.973 UTC [84] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.973 UTC [84] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.978 UTC [86] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.978 UTC [86] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.979 UTC [86] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:44.979 UTC [86] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.979 UTC [86] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.980 UTC [86] app=repro-managed xid=796 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.981 UTC [86] app=repro-managed xid=796 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.981 UTC [86] app=repro-managed xid=796 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.981 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.981 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '796'
+2026-10-24 21:38:44.981 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.982 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.982 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:44.982 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.983 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.983 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '86'
+2026-10-24 21:38:44.983 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.986 UTC [87] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.986 UTC [87] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.987 UTC [87] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:44.987 UTC [87] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.987 UTC [87] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.987 UTC [87] app=repro-explicit xid=797 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.987 UTC [87] app=repro-explicit xid=797 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:44.988 UTC [87] app=repro-explicit xid=797 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.988 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.988 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '797'
+2026-10-24 21:38:44.988 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '87'
+2026-10-24 21:38:44.989 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.992 UTC [88] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:44.992 UTC [88] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.993 UTC [88] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:44.993 UTC [88] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.993 UTC [88] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.993 UTC [88] app=repro-raw xid=798 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:44.993 UTC [88] app=repro-raw xid=798 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:44.994 UTC [88] app=repro-raw xid=798 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.994 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:44.994 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '798'
+2026-10-24 21:38:44.994 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '88'
+2026-10-24 21:38:44.995 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:44.998 UTC [89] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:44.998 UTC [89] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:44.999 UTC [89] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:44.999 UTC [89] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:44.999 UTC [89] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.000 UTC [89] app=repro-control xid=799 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.001 UTC [89] app=repro-control xid=799 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:45.001 UTC [89] app=repro-control xid=799 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.001 UTC [89] app=repro-control xid=799 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:45.001 UTC [89] app=repro-control xid=799 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '799'
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:45.001 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.002 UTC [85] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.002 UTC [85] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '89'
+2026-10-24 21:38:45.002 UTC [85] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.004 UTC [83] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:45.004 UTC [83] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.004 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:45.004 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:45.004 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4400 kB, estimate=4400 kB; lsn=0/2CDD410, redo lsn=0/2CDD3B8
+2026-10-24 21:38:45.004 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOG:  00000: execute __asyncpg_stmt_1__: show server_version
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOG:  00000: statement: drop database if exists asyncpg_commit_rollback with (force)
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOG:  00000: statement: create database asyncpg_commit_rollback
+2026-10-24 21:38:45.070 UTC [90] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.079 UTC [91] app=repro-setup xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:45.079 UTC [91] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.080 UTC [91] app=repro-setup xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:45.080 UTC [91] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.081 UTC [91] app=repro-setup xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.081 UTC [91] app=repro-setup xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.086 UTC [93] app=repro-managed xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:45.086 UTC [93] app=repro-managed xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.087 UTC [93] app=repro-managed xid=0 LOG:  00000: execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-24 21:38:45.087 UTC [93] app=repro-managed xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:45.087 UTC [93] app=repro-managed xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOG:  00000: execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:45.088 UTC [93] app=repro-managed xid=806 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.089 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:45.089 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '806'
+2026-10-24 21:38:45.089 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.090 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:45.090 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-24 21:38:45.090 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.091 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.091 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '93'
+2026-10-24 21:38:45.091 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.094 UTC [94] app=repro-explicit xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:45.094 UTC [94] app=repro-explicit xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.095 UTC [94] app=repro-explicit xid=0 LOG:  00000: execute __asyncpg_stmt_7__: insert into item (name) values ($1)
+2026-10-24 21:38:45.095 UTC [94] app=repro-explicit xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:45.095 UTC [94] app=repro-explicit xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.095 UTC [94] app=repro-explicit xid=807 LOG:  00000: execute __asyncpg_stmt_8__: select pg_current_xact_id()::text
+2026-10-24 21:38:45.095 UTC [94] app=repro-explicit xid=807 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:45.096 UTC [94] app=repro-explicit xid=807 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.096 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:45.096 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '807'
+2026-10-24 21:38:45.096 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '94'
+2026-10-24 21:38:45.097 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.102 UTC [95] app=repro-raw xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.102 UTC [95] app=repro-raw xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.103 UTC [95] app=repro-raw xid=0 LOG:  00000: execute __asyncpg_stmt_9__: insert into item (name) values ($1)
+2026-10-24 21:38:45.103 UTC [95] app=repro-raw xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:45.103 UTC [95] app=repro-raw xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.103 UTC [95] app=repro-raw xid=808 LOG:  00000: execute __asyncpg_stmt_a__: select pg_current_xact_id()::text
+2026-10-24 21:38:45.103 UTC [95] app=repro-raw xid=808 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.104 UTC [95] app=repro-raw xid=808 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.104 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:45.104 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '808'
+2026-10-24 21:38:45.104 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '95'
+2026-10-24 21:38:45.105 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.108 UTC [96] app=repro-control xid=0 LOG:  00000: statement: BEGIN;
+2026-10-24 21:38:45.108 UTC [96] app=repro-control xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=0 LOG:  00000: execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=809 LOG:  00000: execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=809 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=809 LOG:  00000: statement: SAVEPOINT __asyncpg_savepoint_d__;
+2026-10-24 21:38:45.109 UTC [96] app=repro-control xid=809 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOG:  00000: statement: ROLLBACK TO __asyncpg_savepoint_d__;
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOG:  00000: statement: COMMIT;
+2026-10-24 21:38:45.110 UTC [96] app=repro-control xid=809 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_4__: select pg_xact_status($1::text::xid8)
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '809'
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_5__: select count(*) from item where name = $1
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = 'control'
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOG:  00000: execute __asyncpg_stmt_6__: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 DETAIL:  Parameters: $1 = '96'
+2026-10-24 21:38:45.111 UTC [92] app=repro-witness xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.113 UTC [90] app=repro-admin xid=0 LOG:  00000: statement: drop database asyncpg_commit_rollback with (force)
+2026-10-24 21:38:45.113 UTC [90] app=repro-admin xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.114 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:45.114 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:45.114 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4400 kB, estimate=4400 kB; lsn=0/3129670, redo lsn=0/3129618
+2026-10-24 21:38:45.114 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:45.198 UTC [97] app=fresh-psycopg xid=0 LOG:  00000: statement: show server_version
+2026-10-24 21:38:45.198 UTC [97] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.199 UTC [97] app=fresh-psycopg xid=0 LOG:  00000: statement: drop database if exists audit_psycopg_tx with (force)
+2026-10-24 21:38:45.199 UTC [97] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.199 UTC [97] app=fresh-psycopg xid=0 LOG:  00000: statement: create database audit_psycopg_tx
+2026-10-24 21:38:45.199 UTC [97] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.208 UTC [98] app=fresh-psycopg xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:45.208 UTC [98] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.209 UTC [98] app=fresh-psycopg xid=0 LOG:  00000: statement: create table uniq (id serial primary key, code text not null unique)
+2026-10-24 21:38:45.209 UTC [98] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.209 UTC [98] app=fresh-psycopg xid=0 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.209 UTC [98] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.211 UTC [99] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.211 UTC [99] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.212 UTC [99] app=fresh-psycopg xid=0 LOG:  00000: statement: insert into item (name) values ('control')
+2026-10-24 21:38:45.212 UTC [99] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.212 UTC [99] app=fresh-psycopg xid=816 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.212 UTC [99] app=fresh-psycopg xid=816 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.214 UTC [100] app=fresh-psycopg xid=0 LOG:  00000: statement: select count(*) from item where name = 'control'
+2026-10-24 21:38:45.214 UTC [100] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.216 UTC [101] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.216 UTC [101] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.217 UTC [101] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.217 UTC [101] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-1'
+2026-10-24 21:38:45.217 UTC [101] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.217 UTC [101] app=fresh-psycopg xid=817 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.217 UTC [101] app=fresh-psycopg xid=817 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.218 UTC [101] app=fresh-psycopg xid=817 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '817'
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-1'
+2026-10-24 21:38:45.220 UTC [102] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.221 UTC [102] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.221 UTC [102] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '101'
+2026-10-24 21:38:45.221 UTC [102] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.228 UTC [103] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.228 UTC [103] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.228 UTC [103] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.228 UTC [103] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-1'
+2026-10-24 21:38:45.228 UTC [103] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: SAVEPOINT "_pg3_2"
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.229 UTC [103] app=fresh-psycopg xid=818 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: ROLLBACK TO "_pg3_2"
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: RELEASE "_pg3_2"
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.230 UTC [103] app=fresh-psycopg xid=818 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.233 UTC [104] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.233 UTC [104] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '818'
+2026-10-24 21:38:45.233 UTC [104] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.234 UTC [104] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.234 UTC [104] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-1'
+2026-10-24 21:38:45.234 UTC [104] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.235 UTC [104] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.235 UTC [104] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '103'
+2026-10-24 21:38:45.235 UTC [104] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.237 UTC [105] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.237 UTC [105] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.237 UTC [105] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.237 UTC [105] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-2'
+2026-10-24 21:38:45.237 UTC [105] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.238 UTC [105] app=fresh-psycopg xid=820 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.240 UTC [106] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.240 UTC [106] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '820'
+2026-10-24 21:38:45.240 UTC [106] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-2'
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '105'
+2026-10-24 21:38:45.241 UTC [106] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.244 UTC [107] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.244 UTC [107] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.244 UTC [107] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.244 UTC [107] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-2'
+2026-10-24 21:38:45.244 UTC [107] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: SAVEPOINT "_pg3_2"
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.245 UTC [107] app=fresh-psycopg xid=821 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: ROLLBACK TO "_pg3_2"
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: RELEASE "_pg3_2"
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.246 UTC [107] app=fresh-psycopg xid=821 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.248 UTC [108] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.248 UTC [108] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '821'
+2026-10-24 21:38:45.248 UTC [108] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-2'
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '107'
+2026-10-24 21:38:45.249 UTC [108] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-3'
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=823 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.252 UTC [109] app=fresh-psycopg xid=823 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.253 UTC [109] app=fresh-psycopg xid=823 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.255 UTC [110] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.255 UTC [110] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '823'
+2026-10-24 21:38:45.255 UTC [110] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'caught-3'
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '109'
+2026-10-24 21:38:45.256 UTC [110] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.258 UTC [111] app=fresh-psycopg xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.258 UTC [111] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-3'
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: SAVEPOINT "_pg3_2"
+2026-10-24 21:38:45.259 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 ERROR:  23505: duplicate key value violates unique constraint "uniq_code_key"
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 DETAIL:  Key (code)=(taken) already exists.
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOCATION:  _bt_check_unique, nbtinsert.c:666
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 STATEMENT:  insert into uniq (code) values ('taken')
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: ROLLBACK TO "_pg3_2"
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: RELEASE "_pg3_2"
+2026-10-24 21:38:45.260 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.261 UTC [111] app=fresh-psycopg xid=824 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.261 UTC [111] app=fresh-psycopg xid=824 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.262 UTC [112] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.262 UTC [112] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '824'
+2026-10-24 21:38:45.262 UTC [112] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.263 UTC [112] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.263 UTC [112] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = 'recovered-3'
+2026-10-24 21:38:45.263 UTC [112] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.264 UTC [112] app=fresh-psycopg xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.264 UTC [112] app=fresh-psycopg xid=0 DETAIL:  Parameters: $1 = '111'
+2026-10-24 21:38:45.264 UTC [112] app=fresh-psycopg xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.265 UTC [113] app=fresh-psycopg xid=0 LOG:  00000: statement: drop database audit_psycopg_tx with (force)
+2026-10-24 21:38:45.265 UTC [113] app=fresh-psycopg xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.266 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:45.266 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:45.266 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4401 kB, estimate=4401 kB; lsn=0/3575CB0, redo lsn=0/3575C58
+2026-10-24 21:38:45.266 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:45.357 UTC [114] app=fresh-pipeline xid=0 LOG:  00000: statement: show server_version
+2026-10-24 21:38:45.357 UTC [114] app=fresh-pipeline xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.358 UTC [114] app=fresh-pipeline xid=0 LOG:  00000: statement: drop database if exists chk_pipeline_outer with (force)
+2026-10-24 21:38:45.358 UTC [114] app=fresh-pipeline xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.358 UTC [114] app=fresh-pipeline xid=0 LOG:  00000: statement: create database chk_pipeline_outer
+2026-10-24 21:38:45.358 UTC [114] app=fresh-pipeline xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.366 UTC [115] app=fresh-pipeline xid=0 LOG:  00000: statement: create table item (id serial primary key, name text not null)
+2026-10-24 21:38:45.366 UTC [115] app=fresh-pipeline xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.369 UTC [116] app=chk-pipe-x1 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.369 UTC [116] app=chk-pipe-x1 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.370 UTC [116] app=chk-pipe-x1 xid=0 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.370 UTC [116] app=chk-pipe-x1 xid=0 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.370 UTC [116] app=chk-pipe-x1 xid=0 STATEMENT:  select error
+2026-10-24 21:38:45.370 UTC [116] app=chk-pipe-x1 xid=0 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.370 UTC [116] app=chk-pipe-x1 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.372 UTC [117] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.372 UTC [117] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '116'
+2026-10-24 21:38:45.372 UTC [117] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 STATEMENT:  select error
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.375 UTC [118] app=chk-pipe-x2 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.378 UTC [119] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.378 UTC [119] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '118'
+2026-10-24 21:38:45.378 UTC [119] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 STATEMENT:  select error
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.380 UTC [120] app=chk-pipe-x3 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.382 UTC [121] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.382 UTC [121] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '120'
+2026-10-24 21:38:45.382 UTC [121] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.384 UTC [122] app=chk-pipe-w1 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.384 UTC [122] app=chk-pipe-w1 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.385 UTC [122] app=chk-pipe-w1 xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.385 UTC [122] app=chk-pipe-w1 xid=0 DETAIL:  Parameters: $1 = 'm1'
+2026-10-24 21:38:45.385 UTC [122] app=chk-pipe-w1 xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.385 UTC [122] app=chk-pipe-w1 xid=829 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.385 UTC [122] app=chk-pipe-w1 xid=829 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.386 UTC [122] app=chk-pipe-w1 xid=829 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.386 UTC [122] app=chk-pipe-w1 xid=829 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.386 UTC [122] app=chk-pipe-w1 xid=829 STATEMENT:  select error
+2026-10-24 21:38:45.386 UTC [122] app=chk-pipe-w1 xid=829 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.386 UTC [122] app=chk-pipe-w1 xid=829 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '829'
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = 'm1'
+2026-10-24 21:38:45.388 UTC [123] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.389 UTC [123] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.389 UTC [123] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '122'
+2026-10-24 21:38:45.389 UTC [123] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.391 UTC [124] app=chk-pipe-w2 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.391 UTC [124] app=chk-pipe-w2 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=0 DETAIL:  Parameters: $1 = 'm2'
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=830 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=830 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=830 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=830 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.392 UTC [124] app=chk-pipe-w2 xid=830 STATEMENT:  select error
+2026-10-24 21:38:45.393 UTC [124] app=chk-pipe-w2 xid=830 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.393 UTC [124] app=chk-pipe-w2 xid=830 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.394 UTC [125] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.394 UTC [125] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '830'
+2026-10-24 21:38:45.394 UTC [125] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = 'm2'
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '124'
+2026-10-24 21:38:45.395 UTC [125] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.397 UTC [126] app=chk-pipe-w3 xid=0 LOG:  00000: statement: BEGIN
+2026-10-24 21:38:45.397 UTC [126] app=chk-pipe-w3 xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=0 LOG:  00000: execute <unnamed>: insert into item (name) values ($1)
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=0 DETAIL:  Parameters: $1 = 'm3'
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=831 LOG:  00000: statement: select pg_current_xact_id()::text
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=831 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=831 ERROR:  42703: column "error" does not exist at character 8
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=831 LOCATION:  errorMissingColumn, parse_relation.c:3854
+2026-10-24 21:38:45.398 UTC [126] app=chk-pipe-w3 xid=831 STATEMENT:  select error
+2026-10-24 21:38:45.399 UTC [126] app=chk-pipe-w3 xid=831 LOG:  00000: statement: COMMIT
+2026-10-24 21:38:45.399 UTC [126] app=chk-pipe-w3 xid=831 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.400 UTC [127] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-24 21:38:45.400 UTC [127] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '831'
+2026-10-24 21:38:45.400 UTC [127] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.401 UTC [127] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select count(*) from item where name = $1
+2026-10-24 21:38:45.401 UTC [127] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = 'm3'
+2026-10-24 21:38:45.401 UTC [127] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.402 UTC [127] app=fresh-pipeline xid=0 LOG:  00000: execute <unnamed>: select state, query from pg_stat_activity where pid = $1
+2026-10-24 21:38:45.402 UTC [127] app=fresh-pipeline xid=0 DETAIL:  Parameters: $1 = '126'
+2026-10-24 21:38:45.402 UTC [127] app=fresh-pipeline xid=0 LOCATION:  exec_execute_message, postgres.c:2230
+2026-10-24 21:38:45.402 UTC [114] app=fresh-pipeline xid=0 LOG:  00000: statement: drop database chk_pipeline_outer with (force)
+2026-10-24 21:38:45.402 UTC [114] app=fresh-pipeline xid=0 LOCATION:  exec_simple_query, postgres.c:1070
+2026-10-24 21:38:45.402 UTC [29] app= xid=0 LOG:  00000: checkpoint starting: immediate force wait
+2026-10-24 21:38:45.402 UTC [29] app= xid=0 LOCATION:  LogCheckpointStart, xlog.c:6704
+2026-10-24 21:38:45.402 UTC [29] app= xid=0 LOG:  00000: checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4376 kB, estimate=4399 kB; lsn=0/39BBE48, redo lsn=0/39BBDF0
+2026-10-24 21:38:45.402 UTC [29] app= xid=0 LOCATION:  LogCheckpointEnd, xlog.c:6794
+2026-10-24 21:38:45.459 UTC [134] app=psql xid=0 LOG:  00000: statement: select run,arm,xid,expected,pg_xact_status(xid::text::xid8) as actual from (values ('asyncpg-asyncio-rep1','managed',756,'aborted'),('asyncpg-asyncio-rep1','explicit',757,'aborted'),('asyncpg-asyncio-rep1','raw',758,'aborted'),('asyncpg-asyncio-rep1','control',759,'committed'),('asyncpg-asyncio-rep2','managed',766,'aborted'),('asyncpg-asyncio-rep2','explicit',767,'aborted'),('asyncpg-asyncio-rep2','raw',768,'aborted'),('asyncpg-asyncio-rep2','control',769,'committed'),('asyncpg-asyncio-rep3','managed',776,'aborted'),('asyncpg-asyncio-rep3','explicit',777,'aborted'),('asyncpg-asyncio-rep3','raw',778,'aborted'),('asyncpg-asyncio-rep3','control',779,'committed'),('asyncpg-uvloop-rep1','managed',786,'aborted'),('asyncpg-uvloop-rep1','explicit',787,'aborted'),('asyncpg-uvloop-rep1','raw',788,'aborted'),('asyncpg-uvloop-rep1','control',789,'committed'),('asyncpg-uvloop-rep2','managed',796,'aborted'),('asyncpg-uvloop-rep2','explicit',797,'aborted'),('asyncpg-uvloop-rep2','raw',798,'aborted'),('asyncpg-uvloop-rep2','control',799,'committed'),('asyncpg-uvloop-rep3','managed',806,'aborted'),('asyncpg-uvloop-rep3','explicit',807,'aborted'),('asyncpg-uvloop-rep3','raw',808,'aborted'),('asyncpg-uvloop-rep3','control',809,'committed')) as t(run,arm,xid,expected) order by xid;
+2026-10-24 21:38:45.459 UTC [134] app=psql xid=0 LOCATION:  exec_simple_query, postgres.c:1070

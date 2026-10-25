@@ -1,0 +1,39 @@
+Review date: 2026-10-24
+No database reproduction, harness, upstream tests, package installation, or upstream mutation was executed.
+Paths below use PPCS for the checkout and REVIEW_TMP for the temporary download/check directory.
+Reviewer interpreter: /opt/homebrew/bin/python3.14, Python 3.14.2 (Clang 17.0.0).
+
+Read-only artifact checks (executed with these arguments, using absolute paths for the variables):
+  /opt/homebrew/bin/python3.14 -I "$REVIEW_TMP/checks.py" "$PPCS" "$REVIEW_TMP" > "$REVIEW_TMP/checks.txt"
+  cd "$PPCS"
+  /opt/homebrew/bin/python3.14 -I research/python-upstream-contribution/chk-2-asyncpg/server_log_sessions.py research/python-upstream-contribution/chk-2-asyncpg/output > "$REVIEW_TMP/server-log-recheck.txt"
+
+checks.py includes the harmless zsh metasyntax check; it invokes printf, never the reproduction program.
+The retained server_log_sessions.py copy is byte-identical to the existing script used above.
+
+Acquisition:
+  curl -sS -L --max-time 25 <URL> -o <temporary-response-file>
+  curl -sS -L --max-time 60 https://api.github.com/repos/psycopg/psycopg/tarball/master -o "$REVIEW_TMP/upstream/psycopg.tar.gz"
+  curl -sS -L --max-time 60 https://api.github.com/repos/MagicStack/asyncpg/tarball/master -o "$REVIEW_TMP/upstream/asyncpg.tar.gz"
+  tar -xzf "$REVIEW_TMP/upstream/psycopg.tar.gz" -C "$REVIEW_TMP/upstream"
+  tar -xzf "$REVIEW_TMP/upstream/asyncpg.tar.gz" -C "$REVIEW_TMP/upstream"
+
+Exact URLs and search queries are in request-manifest.json. Per-request timeouts varied from25 to60seconds.
+Issue/PR queries were /search/issues?per_page=100&q=<URL-encoded query>.
+The checks.py archive directory names correspond to the default-branch heads verified on the review date.
+For later replay, use the full SHAs in upstream-checks.json in place of master to obtain the same source trees.
+Release archives use 3.3.6 for psycopg and v0.32.0 for asyncpg.
+
+Evidence handling:
+  Both posted fenced Python blocks and output blocks were compared as bytes to their originals.
+  Source archives and full public HTTP responses stayed in the temporary directory.
+  upstream-checks.json retains selected public API fields, all search titles/links/states, and pinned source excerpts.
+  No credentials or authentication headers were used in the requests.
+
+Repository-preservation checks:
+  git status --porcelain=v1
+  git rev-parse HEAD
+  git branch --show-current
+  git diff --binary
+  git diff 905e797 -- research/python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md research/python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md
+The preexisting tracked diff hash and draft file hashes were checked again before saving the deliverables.

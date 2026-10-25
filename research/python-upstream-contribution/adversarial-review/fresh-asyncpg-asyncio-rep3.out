@@ -1,0 +1,19 @@
+python 3.13.11, asyncpg 0.32.0, event loop asyncio.unix_events._UnixSelectorEventLoop, Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+managed: async with con.transaction(), error caught inside the block
+  caught UniqueViolationError (23505)
+  the block exited normally
+  PostgreSQL: pg_xact_status(776) aborted, marker visible False, session idle, last statement 'COMMIT;'
+explicit: tr.start(), error caught, tr.commit()
+  caught UniqueViolationError (23505)
+  commit() returned None
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(777) aborted, marker visible False, session idle, last statement 'COMMIT;'
+raw: execute('BEGIN'), error caught, execute('COMMIT')
+  caught UniqueViolationError (23505)
+  execute('COMMIT') returned 'ROLLBACK'
+  PostgreSQL: pg_xact_status(778) aborted, marker visible False, session idle, last statement 'COMMIT'
+control: async with con.transaction(), error caught around a nested con.transaction() (savepoint)
+  caught UniqueViolationError (23505) outside the savepoint block
+  the block exited normally
+  PostgreSQL: pg_xact_status(779) committed, marker visible True, session idle, last statement 'COMMIT;'
