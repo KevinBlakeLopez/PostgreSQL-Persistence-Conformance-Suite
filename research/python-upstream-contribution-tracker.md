@@ -53,6 +53,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-18 | Django | TX-02 not-sent | PPCS; no trigger | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Tortoise ORM | Rollback skipped after a class-25 error in a nested block | Src only | — | DEFERRED | Mention only if the PY-8 discussion invites it |
 | PY-20 | Tortoise ORM | SQLite: after a COMMIT fails, the shared connection stays in the transaction, and later writes return normally and are lost | CONFIRMED with a deferred foreign key | — | NEEDS_VERIFICATION | Run CHK-8 |
+| PY-21 | SQLAlchemy | When SQLite ends the transaction by itself (a full disk, `ON CONFLICT ROLLBACK`, `RAISE(ROLLBACK)`), SQLAlchemy keeps its transaction active and reports the commit. With the ORM guide's SAVEPOINT loop and the SQLite dialect's `BEGIN` recipe, every record before the failure is lost while `session.commit()` returns | CONFIRMED on 2.1.6 and 2.0.55; on 2.1.6 also with a real disk full | — | READY_FOR_HUMAN_REVIEW | The author writes a discussion from the study's [`sqlalchemy-facts.md`](sqlite-transaction-state-divergence/upstream/sqlalchemy-facts.md), item SA-1 |
+| PY-22 | SQLAlchemy | `Session.close()` keeps the pooled connection checked out when the rollback inside it raises an error that is not a disconnect, as on SQLite with `autocommit=False`. #13657 fixed the same in Core's `Connection.close()` only | CONFIRMED on 2.1.6 and 2.0.55 | — | READY_FOR_HUMAN_REVIEW | The author writes it from `sqlalchemy-facts.md`, item SA-2 |
+| PY-23 | CPython `sqlite3` | With `autocommit=False`, after SQLite ends a transaction by itself, `commit()` and `rollback()` raise instead of doing nothing, no transaction is opened again, and later writes commit by themselves | CONFIRMED on 3.13.11, 3.13.17 and 3.14.2 | — | AWAITING_APPROVAL | Approval of the exact text of [the draft](sqlite-transaction-state-divergence/upstream/cpython-sqlite3-autocommit-false-draft.md), stored with its study |
 
 ## Scheduled items
 
@@ -315,8 +318,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-18 | PPCS `6d8443` | — | None | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Src: `tortoise/backends/asyncpg/client.py:96-97`, `backends/base/client.py` (exits) | — | None | A run that shows a consequence | DEFERRED | — |
 | PY-20 | `python-upstream-contribution/py-8-tortoise-commit-translation/` (check 2; README "A separate candidate") | None found in PY-8's queries; not searched on its own | An issue, if CHK-8 holds | CHK-8 | NEEDS_VERIFICATION | Run CHK-8 |
+| PY-21 | `sqlite-transaction-state-divergence/` findings F1 and F2; runs `sqlite-transaction-state-divergence/output/sqlite05c-enospc/2026-10-25T17-22-54Z-9e213e/`, `…/sqlite05b-batch/2026-10-25T17-22-43Z-4b67f2/`, `…/minimal-matrix/2026-10-25T18-21-01Z-556213/` | None found on 2026-10-25 (that study's `upstream/duplicate-search.md`). Related: #2696 (2013, MySQL lost its savepoints), #5968 (2021, `ON CONFLICT IGNORE`) | A Usage Questions discussion, written by the author in their own words | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-1, after its "Before posting" checks |
+| PY-22 | `sqlite-transaction-state-divergence/` finding F3; `…/output/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-escape`); `…/repro/minimal/sa_session_close_leak.py` | None found. #13657 (discussion #13656) fixed the same symptom in Core's `Connection.close()`, commit `d29277af` | A report written by the author in their own words; #13657 began as a discussion | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-2 |
+| PY-23 | `sqlite-transaction-state-divergence/` finding F4; `…/output/sqlite01-raw/2026-10-25T17-21-27Z-737440/` (`pep249.rollback.*`); `…/repro/minimal/sqlite3_autocommit_false.py` | None found. Related: gh-112441 (2023, not planned; there the user's own SQL ended the transaction) | A CPython issue | Approval of the exact text | AWAITING_APPROVAL | Approve or edit `upstream/cpython-sqlite3-autocommit-false-draft.md`, then run its "Before filing" checks |
 
-All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's.
+All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's and those of PY-21 to PY-23. Theirs are under `research/sqlite-transaction-state-divergence/`, written `…/` after the first path in a row.
 
 ## Verification checks
 
@@ -608,3 +614,7 @@ The rest of this section is the plan as it stood before the commits.
 - **2026-10-25, about 22:00 UTC.**
   - **PY-7: added the SQLite consequence** from [`sqlite-transaction-state-divergence/`](sqlite-transaction-state-divergence/findings.md) (F6), at the maintainer's request, and a note on the SQLite trigger under Confidence. Status unchanged.
   - Committed on branch `research/sqlite-state-divergence` with that study. Not pushed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-25, about 22:10 UTC.**
+  - **New: PY-21, PY-22 and PY-23** from the same study: F1 with F2, F3, and F4, at the maintainer's request. They are unranked, like PY-20; the roadmap was not edited.
+  - PY-23's draft is stored with its study, in `sqlite-transaction-state-divergence/upstream/`, not in `python-upstream-contribution/upstream-drafts/`.
+  - Committed on branch `research/sqlite-state-divergence`. Not pushed. Nothing posted or filed.
