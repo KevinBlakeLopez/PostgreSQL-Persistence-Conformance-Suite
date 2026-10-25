@@ -60,6 +60,7 @@ The upstream states below were last checked 2026-10-14 to 2026-10-17, as shown p
 | PI1 | prisma/orm #20496 | Comment | The `ROLLBACK` command tag on `COMMIT` that #20496's caught-error report lacks, and where Prisma 7.10.1 leaves it unread | **Submitted** | Posted 2026-10-23 as a comment on #20496. No pull request. #20496 was still open, with no comment after 2023-08-07. Same-day search found no newer report. npm `latest` was 7.10.1. `prisma/prisma` redirects to `prisma/orm` | [prisma.md](../research/production-reachability/upstream-drafts/prisma.md) |
 | PY-1b | psycopg/psycopg #1453 | Comment | `with conn.transaction() as tx:` exits normally, and `tx.status` is `committed`, after PostgreSQL aborted the transaction | **Submitted** | Posted 2026-10-24 as a comment on #1453 (P1). No pull request. #1453 was still open with no comments. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [psycopg-1453-comment.md](../research/python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md) |
 | PY-2 | MagicStack/asyncpg #1400 | Issue | `Transaction.commit()` and `async with conn.transaction()` return normally when PostgreSQL answers `COMMIT` with `ROLLBACK` | **Submitted** | Filed 2026-10-24. No pull request. Same-day search found no duplicate. PyPI `latest` was 0.32.0. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [asyncpg-commit-rollback.md](../research/python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md) |
+| PY-3 | tortoise/tortoise-orm #2383 | Issue | `Model.save()` returns normally and writes nothing after the instance's INSERT was rolled back | **Submitted** | Filed 2026-10-25. No pull request; one is offered if the maintainers pick a direction. Same-day search found no duplicate. PyPI `latest` was 1.1.9. One follow-up around 2026-11-08; decide around 2026-11-22 (§4) | [tortoise-save-after-rollback.md](../research/python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md) |
 
 ## 2. Order
 
@@ -69,9 +70,9 @@ This is the remaining work. L1 is submitted (#1202 and #1203). L2 is submitted (
 
 Do not resume a row from the historical priority table once its item is submitted.
 
-No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
+No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. PY-3 was filed 2026-10-25 as tortoise/tortoise-orm #2383. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
 
-Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
+Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, PY-3, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
 
 ### Priority (set 2026-10-17)
 
@@ -252,7 +253,7 @@ These come from the production-reachability runs on 2026-10-19. The main run is 
 - **Making knex's `commit()` reject.** #3847 settled that contract.
 - **A Lucid fork.** Excluded by the persistence standard (PS-IM-1).
 
-### 3.9 Python: psycopg `transaction()` and asyncpg (PY-1b, PY-2)
+### 3.9 Python: psycopg `transaction()`, asyncpg and Tortoise (PY-1b, PY-2, PY-3)
 
 These come from [`python-upstream-contribution-roadmap.md`](../research/python-upstream-contribution-roadmap.md). Their status is kept in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md).
 
@@ -271,6 +272,12 @@ These come from [`python-upstream-contribution-roadmap.md`](../research/python-u
 - **Before filing:** a same-day duplicate search found nothing, and PyPI `latest` was 0.32.0.
 - **Downstream:** Tortoise and SQLAlchemy are named only as callers. Do not file them separately.
 
+**PY-3. Tortoise `Model.save()` after a rollback. Submitted 2026-10-25** as https://github.com/tortoise/tortoise-orm/issues/2383 Posted as `KevinBlakeLopez`. The filed title and body match the draft, compared through the API.
+
+- **What it contains:** a standalone reproduction (CHK-5: three runs per backend on asyncpg and psycopg, independently re-run by an outside reviewer); the default-path line that ignores `execute_update()`'s count; the savepoint case; and a question: reset `_saved_in_db` per rolled-back scope, or act on a 0-row UPDATE. A PR is offered for either.
+- **Before filing:** no issue or PR created or updated after 01:30 UTC; `develop` still `ad0d6ce2b`; PyPI `latest` 1.1.9; #2293 open; #1212 without comments.
+- **Not this issue:** PY-8 (COMMIT-time exception translation) is separate and not filed.
+
 ## 4. Waiting for replies
 
 **For L1, L2 and A1** ([decision brief](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/persistence-decision-brief.md)):
@@ -283,7 +290,7 @@ These come from [`python-upstream-contribution-roadmap.md`](../research/python-u
 
 Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no follow-up date. Y1 was checked 2026-10-20: no reply after the 2026-10-18 comment.
 
-**PY-1b and PY-2** follow the Python roadmap's rule (§14 of [`python-upstream-contribution-roadmap.md`](../research/python-upstream-contribution-roadmap.md)). Send one polite follow-up around 2026-11-07 if there is no reply, and decide around 2026-11-21. Expect asyncpg to be slow: its maintainer described an overwhelmed inbox in asyncpg #1355.
+**PY-1b, PY-2 and PY-3** follow the Python roadmap's rule (§14 of [`python-upstream-contribution-roadmap.md`](../research/python-upstream-contribution-roadmap.md)). Send one polite follow-up around 2026-11-07 if there is no reply, and decide around 2026-11-21; for PY-3, follow up around 2026-11-08 and decide around 2026-11-22. Expect asyncpg to be slow: its maintainer described an overwhelmed inbox in asyncpg #1355.
 
 **J1 has a reply, and the use-case question is answered.** Dave Cramer, 2026-10-20, on https://github.com/pgjdbc/pgjdbc/issues/4494 said `commit()` should report the rollback and asked for the use case. The use case was posted 2026-10-21: https://github.com/pgjdbc/pgjdbc/issues/4494#issuecomment-6316574491 Wait for his next reply. No second pgjdbc issue.
 
@@ -321,6 +328,7 @@ Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no 
 | A1 | 2026-10-21 | https://github.com/orgs/adonisjs/discussions/5166 | 2026-11-04 (one follow-up); decide around 2026-11-18 (§4) | — | waiting |
 | PY-1b | 2026-10-24 | https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348 | 2026-11-07 (one follow-up); decide around 2026-11-21 (§4) | — | waiting |
 | PY-2 | 2026-10-24 | https://github.com/MagicStack/asyncpg/issues/1400 | 2026-11-07 (one follow-up); decide around 2026-11-21 (§4) | — | waiting |
+| PY-3 | 2026-10-25 | https://github.com/tortoise/tortoise-orm/issues/2383 | 2026-11-08 (one follow-up); decide around 2026-11-22 (§4) | — | waiting |
 
 ## Change log
 
@@ -364,3 +372,6 @@ Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no 
   - **PY-2:** filed as https://github.com/MagicStack/asyncpg/issues/1400
   - **Before posting:** #1453 was open, with no comment. Both default branches and the linked files were unchanged. PyPI `latest` was psycopg 3.3.6 and asyncpg 0.32.0. There was no new asyncpg duplicate.
   - **After posting:** both posted texts match the drafts, compared through the API.
+- **2026-10-25.** PY-3 submitted as https://github.com/tortoise/tortoise-orm/issues/2383 Posted as `KevinBlakeLopez` after approval of the exact text, which was revised after an outside adversarial review. No pull request. Status Submitted. One follow-up around 2026-11-08; decide around 2026-11-22.
+  - **Before filing:** no tortoise-orm issue or PR had been created or updated after 01:30 UTC. `develop` was still `ad0d6ce2b`, so the linked lines held. PyPI `latest` was 1.1.9. #2293 was open; #1212 had no comments.
+  - **After filing:** the posted title and body match the draft, compared through the API.

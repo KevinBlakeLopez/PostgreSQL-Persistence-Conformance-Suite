@@ -1,6 +1,23 @@
 # Draft: Tortoise ORM, new issue in tortoise/tortoise-orm
 
-**Not filed.** Status: AWAITING_APPROVAL. Prepared 2026-10-24 (PDT), from CHK-5 and checks run 2026-10-25 between about 01:05 and 01:35 UTC. Written by: Claude Opus 5.5 (max).
+**Filed 2026-10-25, 03:20 UTC,** as `KevinBlakeLopez`: https://github.com/tortoise/tortoise-orm/issues/2383 The filed title and body match the text below; they were compared through the API.
+
+**Checked just before filing, about 03:20 UTC:**
+- No tortoise-orm issue or PR had been created or updated after 01:30 UTC. The API searches `rollback save`, `saved_in_db` and `save after rollback` returned the same counts as before (7, 0, 3).
+- `develop` was still `ad0d6ce2b`, so the linked lines held.
+- PyPI `latest` was 1.1.9.
+- #2293 was open and unmerged; #1212 had no comments.
+
+Prepared 2026-10-24 (PDT), from CHK-5 and checks run 2026-10-25 between about 01:05 and 01:35 UTC. Written by: Claude Opus 5.5 (max).
+
+**Revised 2026-10-25 (UTC),** after an outside adversarial review. The review reproduced all six runs and found no defect in them. The changes:
+
+- **The source bullet** separates what comes from the source from what the runs showed.
+- **The setup paragraph** gives one install line, `tortoise-orm[asyncpg,psycopg]==1.1.9`. The review found that neither backend extra alone runs both commands. The line was then checked in a fresh virtualenv (see "Evidence").
+- **The environment bullet** says that `develop` was compared, not run.
+- **The comparison bullet** says that SQLAlchemy's retry adds the object, made transient by the rollback, to a session again.
+- **Option 1** calls #2293 an open PR that proposes its tracking. **Option 2** dates #1212.
+- **Internal notes:** the test claims are narrowed and labelled, the `force_update` tests are described exactly, #2293's timeline is corrected, and a MySQL lead is recorded under "Deliberately left out".
 
 This is tracker item PY-3 in [`../../python-upstream-contribution-tracker.md`](../../python-upstream-contribution-tracker.md). It would be a new issue at https://github.com/tortoise/tortoise-orm/issues/new, using the "Bug report" template.
 
@@ -38,19 +55,21 @@ Everything between the two rules below is the proposed issue body. The rest of t
   - **#1094** (open, `help wanted`, last updated 2023-10-01): asyncpg's "Resetting connection with an active transaction". It shares only a symptom. Not cited.
   - **#1212** (open since 2022-08-03, no comments): `save(force_update=True)` raises "Can't update object that doesn't exist" on MySQL for a row that was just fetched. Cited as the caution on option 2.
   - **#242** (closed 2019): a `save()` that inserted nothing, for an instance given a value for a generated primary key. A collaborator suggested there that `save()` "could raise an error (or log a warning) if no rows where affected". It was resolved in 0.15.0 by rejecting values for generated fields, and the mechanism was never established. Not cited (see "Deliberately left out").
-  - **PR #2293** (open since 2026-10-03, by an outside contributor). It adds `on_commit()` with a stack of callback frames, one per transaction and savepoint level. A frame is dropped on rollback and merged into its parent on release (`tortoise/backends/base/client.py` in the PR's diff). `waketzheng` reviewed it on 2026-10-05; the author replied on 2026-10-07. Cited in option 1, for that scope tracking.
+  - **PR #2293** (open since 2026-10-03, by an outside contributor). It adds `on_commit()` with a stack of callback frames, one per transaction and savepoint level. A frame is dropped on rollback and merged into its parent on release (`tortoise/backends/base/client.py` in the PR's diff). `waketzheng` commented on 2026-10-05 with questions before merging (an issue comment, not a GitHub review); the author answered the same day and asked for another look on 2026-10-07. Cited in option 1, for that scope tracking.
   - **#417** (closed 2020): users set `_saved_in_db = False` by hand to copy an instance. `clone()` now does that.
   - **21 issues and PRs created on 2026-10-24** between 12:44 and 17:46 UTC (#2362–#2382). Their subjects are validators, URL parsing, hashing, prefetching and `clone()`. None concerns `save()` after a rollback.
 - **The template.** `.github/ISSUE_TEMPLATE/bug_report.md` asks for: Describe the bug; To Reproduce ("preferably a small code snippet"); Expected behavior; Additional context. The body follows it.
 - **Policy.** `docs/CONTRIBUTING.rst` says "If you want to contribute, check out the issues, or just create a PR", and asks to look for an existing issue or pull request first. Neither it, `docs/CODE_OF_CONDUCT.rst` nor `.github/PULL_REQUEST_TEMPLATE.md` states an AI policy.
 - **Activity.** `waketzheng` merged outside contributors' PRs on 2026-10-24 (#2320, #2358, #2342), and released 1.1.9 (#2302).
-- **Tests on `develop`.** These come from a read-only AST scan of `tests/`: 1,969 test functions, with nothing imported or run.
-  - **No test reuses an instance after a caught exception rolled back its transaction.** That covers saving, deleting or refreshing it. Of the exception-catching blocks, 22 open a transaction, counting `pytest.raises`, `assertRaises`, `assertRaisesRegex`, `suppress` and `try`/`except`. None of them reuses an instance bound inside it.
+- **Tests on `develop`** (source reading). A read-only AST scan of `tests/`: 1,969 test functions, with nothing imported or run. The outside review repeated the scan independently, and also read the helpers, transaction decorators and fixture teardown that it points to.
+  - **I found no test that calls `save()`, `delete()` or `refresh_from_db()` on the same inserted instance after its transaction or savepoint rolled back.** Of the exception-catching blocks, 22 open a transaction, counting `pytest.raises`, `assertRaises`, `assertRaisesRegex`, `suppress` and `try`/`except`; none of them does it. Neither do the four explicit `rollback()` calls (`tests/test_manual_sql.py` 47, `tests/test_transactions.py` 49 and 271–272). Some tests read a retained ID after a rollback, as below.
   - **No test saves an instance again after `delete()`.**
-  - **`test_force_update_raise` and `test_noid_force_update_raise`** (`tests/test_model_methods.py`, from 539 and 851) expect `IntegrityError` from `save(force_update=True)` on a missing primary key.
+  - **`test_force_update_raise` and `test_noid_force_update_raise`** (`tests/test_model_methods.py`, 539–542 and 851–854) set a primary key for which no row exists (`id=tournament_model.id + 100`, `id=noid_model.id + 100`), and expect `IntegrityError` from `save(force_update=True)`.
   - **`test_nested_tx_do_not_commit`** (`tests/test_transactions.py`, 99–110) reads `tournament.id` after its INSERT was rolled back. It does not save it again.
 
   None of these is cited in the issue.
+
+**Re-checked 2026-10-25, about 03:00 UTC,** read-only with `gh`: `develop` is still `ad0d6ce2b`; the latest release is still 1.1.9 (published 2026-10-14); #2293 is open and unmerged; #1212 has no comments.
 
 **Evidence.**
 
@@ -60,7 +79,8 @@ Everything between the two rules below is the proposed issue body. The rest of t
   - The log excerpt is `output/server-log-extract.txt`, lines 16–25 and 39–50, unchanged: the `retry` arm's two transactions in that run.
   - The witness, `psql` and the server's statement log agree for all 144 transactions.
 - **The count `save()` receives.** In the wrapped runs (`chk5_update_count.py`), `execute_update()` returned 0 to `save()` in all 30 calls.
-- **Controls.** Django 6.1.2 and SQLAlchemy 2.1.5 persisted all four retry variants, three runs each.
+- **Controls.** Django 6.1.2 and SQLAlchemy 2.1.5 persisted all four retry variants, three runs each. SQLAlchemy's rollback makes the object transient, and its retry adds the object to a session again.
+- **The install line,** checked 2026-10-25 at 03:01 UTC, after the review. In a fresh virtualenv with only `tortoise-orm[asyncpg,psycopg]==1.1.9`, run from a directory holding only the program, both commands exited 0. Their outputs equal the recorded ones apart from the transaction IDs: [`../chk-5-tortoise/output/install-check/`](../chk-5-tortoise/output/install-check/).
 
 **Source facts** (`develop` `ad0d6ce2b`; the functions are identical in 1.1.9, where `save()` is 4 lines higher):
 
@@ -78,8 +98,9 @@ Everything between the two rules below is the proposed issue body. The rest of t
 - **An exception class, or a patch.** The roadmap's corrections (§7) wait for the maintainers.
 - **Framing the two retries as two remedies.** Both sent an UPDATE that matched no row, so the issue says only that changing a field makes no difference.
 - **Snapshotting all instance state on rollback.** That would be a redesign.
+- **A MySQL lead for option 2. Source reading only; not run on MySQL.** Django's MySQL backend sets `CLIENT.FOUND_ROWS`, with the comment "We need the number of potentially affected rows after an "UPDATE", not the number of changed rows" (`django/db/backends/mysql/base.py`, 232–234, Django 6.1.2). Nothing in `tortoise/` sets a client flag. #1212's script changes the value before saving, so this would explain #1212 only if the row already held the new value, for example on a second run. Check it on MySQL before any PR for option 2.
 
-**Length.** Outside `<details>`: 28 non-empty source lines, including the table and the two-line command block: 601 words, about 58 lines at 100 characters per line (link targets not counted). The program, the 41-line output and the 22-line log excerpt are in 3 `<details>` blocks.
+**Length.** Outside `<details>`: 28 non-empty source lines, including the table and the two-line command block: 642 words, about 61 lines at 100 characters per line (link targets not counted). Before the revision it was 601 words, about 58 lines. The program, the 41-line output and the 22-line log excerpt are in 3 `<details>` blocks.
 
 ---
 
@@ -102,7 +123,7 @@ The script below runs these arms, each with a new instance, and reads the outcom
 | `control` (a new instance, saved once) | returned normally | committed | 1 |
 | `force_update` (as `retry`, with `save(force_update=True)`) | raised `IntegrityError` | rolled back | 0 |
 
-Run it against a disposable server. `DATABASE_URL` must be able to create databases: the program first drops any database named `tortoise_save_after_rollback`, creates it, and drops it at the end. It needs asyncpg, and also psycopg with psycopg_pool for the second command.
+Run it against a disposable server. `DATABASE_URL` must be able to create databases: the program first drops any database named `tortoise_save_after_rollback`, creates it, and drops it at the end. Install `tortoise-orm[asyncpg,psycopg]==1.1.9`: both commands also use asyncpg, for the setup and witness connections.
 
 ```
 DATABASE_URL=postgresql://postgres@127.0.0.1:5432/postgres python tortoise_save_after_rollback.py asyncpg
@@ -391,14 +412,14 @@ The second `save()` should either write the row or raise. It should not return n
 
 **Additional context**
 
-- Tortoise ORM 1.1.9 with asyncpg 0.32.0, and with psycopg 3.3.6 (psycopg_pool 3.3.3), on PostgreSQL 18.6; Python 3.13.11 on macOS arm64. Three runs per backend gave the same result. I ran only the two PostgreSQL backends. `Model.save()` is unchanged on `develop`.
-- `save()` takes the update path because `_saved_in_db` is set, calls `execute_update()`, and ignores the count it returns ([models.py#L1186-L1192](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1186-L1192)). `_saved_in_db = True` is set after the statement ([models.py#L1198](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1198)), and nothing resets it when the transaction or savepoint rolls back. With `force_update=True` the same count raises ([models.py#L1180-L1183](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1180-L1183)). When I ran the script with `execute_update()` wrapped, it returned 0 every time, and in the server log `auto_explain` showed each UPDATE matching 0 rows.
-- Django 6.1.2 and SQLAlchemy 2.1.5 persisted the same four retries on the same server.
+- Tortoise ORM 1.1.9 with asyncpg 0.32.0, and with psycopg 3.3.6 (psycopg_pool 3.3.3), on PostgreSQL 18.6; Python 3.13.11 on macOS arm64. Three runs per backend gave the same result. I ran only the two PostgreSQL backends. I didn't run `develop`, but `Model.save()` is unchanged there.
+- From the source: `save()` takes the update path because `_saved_in_db` is set, calls `execute_update()`, and ignores the count it returns ([models.py#L1186-L1192](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1186-L1192)). It sets `_saved_in_db = True` after the statement ([models.py#L1198](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1198)), and I found nothing in Tortoise that resets it when the transaction or savepoint rolls back. With `force_update=True` the same count raises ([models.py#L1180-L1183](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/models.py#L1180-L1183)). In the runs, `_saved_in_db` was still `True` after every rollback; with `execute_update()` wrapped, it returned 0 for every retry, and `auto_explain` showed each retry's UPDATE matching 0 rows.
+- Django 6.1.2 persisted all four retries on the same server. So did SQLAlchemy 2.1.5, where the rollback makes the object transient and the retry adds it to a session again.
 
 Which direction would you prefer? Or is saving an instance again after a rollback not meant to be supported?
 
-1. Reset `_saved_in_db` for the instances inserted in a transaction or savepoint when that scope rolls back. The savepoint arms show that this has to work per savepoint level, since the outer transaction still commits. #2293 adds the same kind of per-scope tracking for `on_commit()` callbacks.
-2. When the UPDATE in the default path matches no row, raise as `force_update=True` does, or fall back to an INSERT as Django does. Two cautions: `execute_update()` also returns 0 without sending anything when no field needs updating ([executor.py#L489-L490](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/backends/base/executor.py#L489-L490)), and #1212 reports `force_update=True` raising on MySQL for a row that exists, so the count may not be reliable on every backend.
+1. Reset `_saved_in_db` for the instances inserted in a transaction or savepoint when that scope rolls back. The savepoint arms show that this has to work per savepoint level, since the outer transaction still commits. Open PR #2293 proposes the same kind of per-scope tracking for `on_commit()` callbacks.
+2. When the UPDATE in the default path matches no row, raise as `force_update=True` does, or fall back to an INSERT as Django does. Two cautions: `execute_update()` also returns 0 without sending anything when no field needs updating ([executor.py#L489-L490](https://github.com/tortoise/tortoise-orm/blob/ad0d6ce2b878f6d5188374eabb61d80484aedfa4/tortoise/backends/base/executor.py#L489-L490)), and #1212 (2022, on 0.18.1 and 0.19.2) reported a count of 0 on MySQL for a row that exists, so the count may not be reliable on every backend.
 
 If one of these works for you, I'm happy to prepare a PR with regression tests for the plain and savepoint cases.
 
