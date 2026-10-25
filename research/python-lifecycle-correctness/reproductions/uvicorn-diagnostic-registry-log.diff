@@ -1,0 +1,19 @@
+diff --git a/uvicorn/server.py b/uvicorn/server.py
+index 380e70a..22471e9 100644
+--- a/uvicorn/server.py
++++ b/uvicorn/server.py
+@@ -303,6 +303,14 @@ class Server:
+             for t in self.server_state.tasks:
+                 t.cancel(msg="Task cancelled, timeout graceful shutdown exceeded")
+ 
++        # DIAGNOSTIC INSTRUMENTATION (lifecycle research): Uvicorn's own registry at the lifespan boundary.
++        logger.info(
++            "diag: at lifespan shutdown: %d connection(s) registered %s, %d task(s), %d not done",
++            len(self.server_state.connections),
++            ["closing" if c.transport.is_closing() else "open" for c in self.server_state.connections],
++            len(self.server_state.tasks),
++            sum(not t.done() for t in self.server_state.tasks),
++        )
+         # Send the lifespan shutdown event, and wait for application shutdown.
+         if not self.force_exit:
+             await self.lifespan.shutdown()
