@@ -129,13 +129,13 @@ Source: `docs/upstream-submissions.md` as it exists on `36dd52f`. This inspectio
 | ID | Recorded link | What it covers |
 | --- | --- | --- |
 | K1 | https://github.com/knex/knex/issues/6547 | `executionPromise` resolves when PostgreSQL rolls back at `COMMIT` |
-| Y2 | https://github.com/kysely-org/kysely/issues/2157 | `commit()` sets `isCommitted` when the transaction did not commit. Filed 2026-10-21. Issue only |
+| Y2 | https://github.com/kysely-org/kysely/issues/2157 | `commit()` sets `isCommitted` when the transaction did not commit. Filed 2026-10-21. Issue only. The maintainer opened fix PR #2161 on 2026-10-21; open on 2026-10-25 |
 | P1 | https://github.com/psycopg/psycopg/issues/1453 | `Connection.commit()` returns on command tag `ROLLBACK`. Filed 2026-10-21. Issue only |
 | T3 | https://github.com/typeorm/typeorm/issues/12992 | `afterTransactionCommit` runs on that command tag. Filed 2026-10-21. Issue only |
 | D1 | https://github.com/drizzle-team/drizzle-orm/issues/6572 | `db.transaction()` resolves on that command tag. Filed 2026-10-22. Issue only |
 | M3 | https://github.com/mikro-orm/mikro-orm/issues/8476 | `em.transactional()` resolves on that `COMMIT`. Closed 2026-10-22 as completed via #8499. The 7.2.5 rows in section 4 stay. The follow-up is `research/production-reachability/runs/2026-10-22T12-18-31Z-928c75` |
 | L2 | https://github.com/adonisjs/lucid/issues/1205 | Lucid reports success and runs commit hooks without a commit. Submitted 2026-10-21. Issue only |
-| J1 | https://github.com/pgjdbc/pgjdbc/issues/4494 | Should `Connection.commit()` report the rollback tag? Use case answered 2026-10-21. Waiting on the maintainer |
+| J1 | https://github.com/pgjdbc/pgjdbc/issues/4494 | Should `Connection.commit()` report the rollback tag? Use case answered 2026-10-21. A maintainer opened PRs #4499 (opt-in `raiseExceptionOnSilentRollback`) and #4496 (XA) on 2026-10-22; both open on 2026-10-25 |
 
 **Nearby, and not the same finding.**
 
