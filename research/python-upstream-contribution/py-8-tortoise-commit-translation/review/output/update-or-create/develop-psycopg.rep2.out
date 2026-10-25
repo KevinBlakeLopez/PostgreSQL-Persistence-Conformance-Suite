@@ -1,0 +1,69 @@
+tortoise from: develop; bb64129415e770df is the wrapper's source digest
+1. update path: update_or_create(code='A', defaults={'parent_id': 999}); 'A' exists
+  raised psycopg.errors.ForeignKeyViolation: insert or update on table "item" violates foreign key constraint "item_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1369 update_or_create
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:263 commit
+    contextlib.py:221 __aexit__
+    psycopg/connection_async.py:392 transaction
+    psycopg/transaction.py:305 __aexit__
+    psycopg/connection_async.py:519 wait
+    psycopg/waiting.py:177 wait_async
+    psycopg/transaction.py:115 _exit_gen
+    psycopg/transaction.py:140 _commit_gen
+    psycopg/_connection_base.py:483 _exec_command
+  rows with code 'A' (id, parent_id, value): [(1, 1, 1)]
+2. create path: update_or_create(code='B', defaults={'parent_id': 999, 'value': 1})
+  raised psycopg.errors.ForeignKeyViolation: insert or update on table "item" violates foreign key constraint "item_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1376 update_or_create
+    tortoise/models.py:1309 _create_or_get
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:263 commit
+    contextlib.py:221 __aexit__
+    psycopg/connection_async.py:392 transaction
+    psycopg/transaction.py:305 __aexit__
+    psycopg/connection_async.py:519 wait
+    psycopg/waiting.py:177 wait_async
+    psycopg/transaction.py:115 _exit_gen
+    psycopg/transaction.py:140 _commit_gen
+    psycopg/_connection_base.py:483 _exec_command
+  rows with code 'B' (id, parent_id, value): []
+3. race: a competitor's uncommitted row holds code 'C'
+  the competitor's row has id 3
+  update_or_create() waits: Lock/transactionid on 'COMMIT'
+  the competitor committed
+  update_or_create(code='C', defaults={'value': 2, 'parent_id': 1})
+  raised psycopg.errors.UniqueViolation: duplicate key value violates unique constraint "item_code_key"
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: 23505
+  raised through:
+    tortoise/models.py:1376 update_or_create
+    tortoise/models.py:1309 _create_or_get
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:263 commit
+    contextlib.py:221 __aexit__
+    psycopg/connection_async.py:392 transaction
+    psycopg/transaction.py:305 __aexit__
+    psycopg/connection_async.py:519 wait
+    psycopg/waiting.py:177 wait_async
+    psycopg/transaction.py:115 _exit_gen
+    psycopg/transaction.py:140 _commit_gen
+    psycopg/_connection_base.py:483 _exec_command
+  rows with code 'C' (id, parent_id, value): [(3, 1, 1)]
+4. control: update_or_create(code='D', defaults={'value': 1, 'parent_id': 1})
+  returned created=True, id=5, parent_id=1, value=1
+   then update_or_create(code='D', defaults={'value': 2})
+  returned created=False, id=5, parent_id=1, value=2
+  rows with code 'D' (id, parent_id, value): [(5, 1, 2)]

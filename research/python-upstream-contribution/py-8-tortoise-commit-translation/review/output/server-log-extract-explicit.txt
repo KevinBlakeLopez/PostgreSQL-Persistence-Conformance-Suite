@@ -1,0 +1,456 @@
+2026-10-25 05:08:24.804 UTC [108] app=[unknown] vxid=6/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-asyncpg-explicit-r1
+2026-10-25 05:08:24.805 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:24.806 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:24.807 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:24.807 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:24.808 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=757 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:24.808 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=757 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:24.808 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=757 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:24.808 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/2 xid=757 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:24.809 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:24.812 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:24.812 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:24.813 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:24.813 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:24.813 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/4 xid=758 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:24.814 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:24.816 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:24.816 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=759 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=759 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=759 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/6 xid=759 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:24.817 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:24.819 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:24.819 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:24.820 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:24.820 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:24.820 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/8 xid=760 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:24.821 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid=6/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:24.823 UTC [108] app=py8-reuse-develop-asyncpg-explicit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.028 user=postgres database=py8_explicit_commit host=172.17.0.1 port=46854
+2026-10-25 05:08:25.096 UTC [111] app=[unknown] vxid=9/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-asyncpg-explicit-r2
+2026-10-25 05:08:25.097 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.098 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.099 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.099 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:25.099 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=766 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.100 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=766 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.100 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=766 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.100 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/2 xid=766 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:25.100 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.103 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.103 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.104 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.104 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:25.104 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/4 xid=767 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.104 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.106 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.106 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=768 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=768 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=768 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.107 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/6 xid=768 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:25.108 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.109 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.110 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.110 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.110 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:25.110 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/8 xid=769 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.111 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid=9/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.112 UTC [111] app=py8-reuse-develop-asyncpg-explicit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.025 user=postgres database=py8_explicit_commit host=172.17.0.1 port=46888
+2026-10-25 05:08:25.395 UTC [114] app=[unknown] vxid=12/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-asyncpg-explicit-r3
+2026-10-25 05:08:25.396 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.397 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.399 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.399 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:25.399 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=775 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.400 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=775 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.400 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=775 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.400 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/2 xid=775 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:25.400 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.403 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.403 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.403 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.403 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:25.404 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/4 xid=776 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.404 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.406 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.406 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=777 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=777 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=777 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/6 xid=777 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:25.407 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.409 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:25.409 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.410 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.410 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:25.410 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/8 xid=778 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:25.410 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid=12/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:25.412 UTC [114] app=py8-reuse-develop-asyncpg-explicit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.027 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43446
+2026-10-25 05:08:25.663 UTC [117] app=[unknown] vxid=15/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-psycopg-explicit-r1
+2026-10-25 05:08:25.664 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.664 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.665 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.666 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.666 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:25.667 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=784 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.667 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=784 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.667 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=784 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.667 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/3 xid=784 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:25.670 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.670 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.671 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.671 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.671 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:25.671 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/5 xid=785 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.673 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.673 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.673 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=786 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=786 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=786 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.674 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/7 xid=786 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:25.676 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.676 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.676 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.677 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.677 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:25.677 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid=15/9 xid=787 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.678 UTC [117] app=py8-reuse-develop-psycopg-explicit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.018 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43476
+2026-10-25 05:08:25.980 UTC [120] app=[unknown] vxid=18/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-psycopg-explicit-r2
+2026-10-25 05:08:25.982 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.983 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.984 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.986 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.986 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:25.987 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=793 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.988 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=793 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:25.988 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=793 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:25.988 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/3 xid=793 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:25.993 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.994 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:25.994 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:25.995 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:25.995 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:25.996 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/5 xid=794 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:25.999 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:25.999 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.000 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.000 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.000 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:26.001 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=795 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.001 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=795 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.001 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=795 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.001 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/7 xid=795 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:26.002 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:26.003 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.003 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.004 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.004 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:26.004 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid=18/9 xid=796 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.006 UTC [120] app=py8-reuse-develop-psycopg-explicit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.032 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43502
+2026-10-25 05:08:26.279 UTC [123] app=[unknown] vxid=21/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-develop-psycopg-explicit-r3
+2026-10-25 05:08:26.280 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:26.280 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.280 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=802 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=802 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=802 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.282 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/3 xid=802 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:26.285 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:26.285 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.286 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.286 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.286 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:26.287 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/5 xid=803 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.288 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:26.288 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.289 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.289 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.289 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:26.290 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=804 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.290 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=804 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.290 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=804 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.290 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/7 xid=804 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:26.291 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:26.292 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:26.292 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.293 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.293 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:26.293 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid=21/9 xid=805 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:26.294 UTC [123] app=py8-reuse-develop-psycopg-explicit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.018 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43526
+2026-10-25 05:08:26.547 UTC [126] app=[unknown] vxid=24/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-asyncpg-explicit-r1
+2026-10-25 05:08:26.548 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.549 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=811 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=811 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=811 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.551 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/2 xid=811 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:26.552 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.555 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.555 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.556 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.556 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:26.556 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/4 xid=812 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.557 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.559 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.559 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.560 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.560 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:26.561 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=813 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.561 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=813 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.561 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=813 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.561 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/6 xid=813 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:26.561 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.563 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.563 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.564 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.564 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:26.564 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/8 xid=814 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.565 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid=24/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.566 UTC [126] app=py8-reuse-branch-asyncpg-explicit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.029 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43540
+2026-10-25 05:08:26.801 UTC [129] app=[unknown] vxid=27/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-asyncpg-explicit-r2
+2026-10-25 05:08:26.803 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.803 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=820 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=820 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=820 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.805 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/2 xid=820 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:26.806 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.809 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.809 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.810 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.810 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:26.810 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/4 xid=821 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.810 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.812 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.812 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.812 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.812 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:26.813 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=822 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.813 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=822 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:26.813 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=822 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:26.813 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/6 xid=822 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:26.813 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.815 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:26.815 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:26.816 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:26.816 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:26.816 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/8 xid=823 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:26.817 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid=27/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:26.819 UTC [129] app=py8-reuse-branch-asyncpg-explicit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.026 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43554
+2026-10-25 05:08:27.035 UTC [132] app=[unknown] vxid=30/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-asyncpg-explicit-r3
+2026-10-25 05:08:27.036 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:27.037 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.038 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.038 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:27.039 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=829 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:27.039 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=829 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.039 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=829 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.039 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/2 xid=829 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:27.040 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:27.043 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:27.043 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.043 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/4 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.043 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:27.044 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/4 xid=830 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:27.044 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:27.045 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:27.046 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.046 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.046 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:27.046 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=831 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:27.047 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=831 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.047 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=831 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.047 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/6 xid=831 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 05:08:27.047 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:27.049 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/8 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 05:08:27.049 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.049 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/8 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.049 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:27.050 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/8 xid=832 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 05:08:27.050 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid=30/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_advisory_unlock_all();
+	CLOSE ALL;
+	UNLISTEN *;
+	RESET ALL;
+2026-10-25 05:08:27.051 UTC [132] app=py8-reuse-branch-asyncpg-explicit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.025 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43592
+2026-10-25 05:08:27.252 UTC [135] app=[unknown] vxid=33/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-psycopg-explicit-r1
+2026-10-25 05:08:27.253 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.253 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.253 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.254 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.254 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:27.255 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=838 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.255 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=838 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.255 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=838 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.255 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/3 xid=838 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.258 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.258 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.258 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.259 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.259 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:27.259 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/5 xid=839 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.261 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.261 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.261 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=840 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=840 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=840 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.262 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/7 xid=840 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.264 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.264 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.264 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.265 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.265 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:27.265 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid=33/9 xid=841 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.267 UTC [135] app=py8-reuse-branch-psycopg-explicit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.017 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43612
+2026-10-25 05:08:27.511 UTC [138] app=[unknown] vxid=36/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-psycopg-explicit-r2
+2026-10-25 05:08:27.512 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.513 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.513 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.514 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.514 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:27.515 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=847 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.515 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=847 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.515 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=847 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.515 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/3 xid=847 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.518 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.518 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.518 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.519 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.519 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:27.519 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/5 xid=848 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.521 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.521 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.521 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=849 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=849 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=849 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.522 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/7 xid=849 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.524 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.524 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.525 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.525 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.525 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:27.526 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid=36/9 xid=850 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.528 UTC [138] app=py8-reuse-branch-psycopg-explicit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.019 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43634
+2026-10-25 05:08:27.721 UTC [141] app=[unknown] vxid=39/1 xid=0 sqlstate=00000 LOG:  connection authorized: user=postgres database=py8_explicit_commit application_name=py8-reuse-branch-psycopg-explicit-r3
+2026-10-25 05:08:27.721 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/2 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.722 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.722 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.723 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.723 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a', $2 = '999'
+2026-10-25 05:08:27.723 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=856 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.724 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=856 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.724 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=856 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.724 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/3 xid=856 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.726 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/4 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.726 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.726 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/5 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.727 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.727 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'a-follow-up', $2 = '1'
+2026-10-25 05:08:27.727 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/5 xid=857 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.728 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/6 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.729 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.729 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.729 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.729 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b', $2 = '999'
+2026-10-25 05:08:27.730 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=858 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.730 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=858 sqlstate=23503 ERROR:  insert or update on table "explicit_item" violates foreign key constraint "explicit_item_parent_id_fkey"
+2026-10-25 05:08:27.730 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=858 sqlstate=23503 DETAIL:  Key (parent_id)=(999) is not present in table "parent".
+2026-10-25 05:08:27.730 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/7 xid=858 sqlstate=23503 STATEMENT:  COMMIT
+2026-10-25 05:08:27.731 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/8 xid=0 sqlstate=00000 LOG:  statement: 
+2026-10-25 05:08:27.731 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/9 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 05:08:27.732 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/9 xid=0 sqlstate=00000 LOG:  statement: SELECT pg_backend_pid() AS v
+2026-10-25 05:08:27.732 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO "explicit_item" ("label","parent_id") VALUES ($1,$2) RETURNING "id"
+2026-10-25 05:08:27.732 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'b-follow-up', $2 = '1'
+2026-10-25 05:08:27.732 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid=39/9 xid=859 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 05:08:27.734 UTC [141] app=py8-reuse-branch-psycopg-explicit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.015 user=postgres database=py8_explicit_commit host=172.17.0.1 port=43652

@@ -1,0 +1,27 @@
+candidate C1; tortoise.backends.psycopg.client.TransactionWrapper source bb64129415e770df
+outer block writes note 1; a nested block catches IntegrityError, then exits normally
+  the nested INSERT raised tortoise.exceptions.IntegrityError; the nested block catches it
+  raised tortoise.exceptions.TransactionManagementError: current transaction is aborted, commands ignored until end of transaction block
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: psycopg.errors.InFailedSqlTransaction
+  driver error code: 25P02
+  raised through:
+    tortoise/backends/base/client.py:406 __aexit__
+    tortoise/backends/psycopg/client.py:267 release_savepoint
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/psycopg/client.py:218 _translate_exceptions
+  log records while the blocks exited: 3
+    WARNING psycopg.pool: rolling back returned connection: <psycopg.AsyncConnection [INERROR] (host=127.0.0.1 port=55497 user=postgres database=py8_nested_release) at 0x…>
+    WARNING psycopg.pool: rollback failed: ProgrammingError: Explicit rollback() forbidden within a Transaction context. (Either raise Rollback() or allow an exception to propagate out of the context.). Discarding connection <psycopg.AsyncConnection [INERROR] (host=127.0.0.1 port=55497 user=postgres database=py8_nested_release) at 0x…>
+    WARNING psycopg.pool: discarding closed connection: <psycopg.AsyncConnection [BAD] at 0x…>
+  outer transaction pg_xact_status(1004): aborted
+  rows in note with id=1: 0
+  backends of this pool still connected: 0
+follow-up: in_transaction() writes note 2, on the same pool of one connection
+  the follow-up block exited normally
+  same backend as the first transaction: False
+  follow-up pg_xact_status(1006): committed
+  rows in note with id=2: 1
+  log records during the follow-up: 0
+  log records while closing: 0

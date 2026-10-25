@@ -1,0 +1,55 @@
+.........................................                                [100%]
+==================================== PASSES ====================================
+_______________________ test_rollback_raising_exception ________________________
+------------------------------ Captured log call -------------------------------
+WARNING  psycopg.pool:pool_async.py:864 rolling back returned connection: <psycopg.AsyncConnection [INTRANS] (host=127.0.0.1 port=55497 user=postgres database=test_7de17ebf30294bf2a292baed5385f89e) at 0x10d8e7420>
+WARNING  psycopg.pool:pool_async.py:868 rollback failed: ProgrammingError: Explicit rollback() forbidden within a Transaction context. (Either raise Rollback() or allow an exception to propagate out of the context.). Discarding connection <psycopg.AsyncConnection [INTRANS] (host=127.0.0.1 port=55497 user=postgres database=test_7de17ebf30294bf2a292baed5385f89e) at 0x10d8e7420>
+WARNING  psycopg.pool:pool_async.py:791 discarding closed connection: <psycopg.AsyncConnection [BAD] at 0x10d8e7420>
+________________________ test_commit_raising_exception _________________________
+------------------------------ Captured log call -------------------------------
+WARNING  psycopg.pool:pool_async.py:864 rolling back returned connection: <psycopg.AsyncConnection [INTRANS] (host=127.0.0.1 port=55497 user=postgres database=test_8c2d8118f832405a9afba50aeb8452d9) at 0x10d8e66a0>
+WARNING  psycopg.pool:pool_async.py:868 rollback failed: ProgrammingError: Explicit rollback() forbidden within a Transaction context. (Either raise Rollback() or allow an exception to propagate out of the context.). Discarding connection <psycopg.AsyncConnection [INTRANS] (host=127.0.0.1 port=55497 user=postgres database=test_8c2d8118f832405a9afba50aeb8452d9) at 0x10d8e66a0>
+WARNING  psycopg.pool:pool_async.py:791 discarding closed connection: <psycopg.AsyncConnection [BAD] at 0x10d8e66a0>
+=========================== short test summary info ============================
+PASSED tests/test_transactions.py::test_transactions
+PASSED tests/test_transactions.py::test_get_or_create_transaction_using_db
+PASSED tests/test_transactions.py::test_consequent_nested_transactions
+PASSED tests/test_transactions.py::test_caught_exception_in_nested_transaction
+PASSED tests/test_transactions.py::test_nested_tx_do_not_commit
+PASSED tests/test_transactions.py::test_nested_rollback_does_not_enable_autocommit
+PASSED tests/test_transactions.py::test_nested_savepoint_rollbacks
+PASSED tests/test_transactions.py::test_nested_savepoint_rollback_but_other_succeed
+PASSED tests/test_transactions.py::test_three_nested_transactions
+PASSED tests/test_transactions.py::test_transaction_decorator
+PASSED tests/test_transactions.py::test_transaction_decorator_defined_before_init
+PASSED tests/test_transactions.py::test_transaction_decorator_fail
+PASSED tests/test_transactions.py::test_transaction_with_m2m_relations
+PASSED tests/test_transactions.py::test_transaction_exception_1
+PASSED tests/test_transactions.py::test_transaction_exception_2
+PASSED tests/test_transactions.py::test_insert_await_across_transaction_fail
+PASSED tests/test_transactions.py::test_insert_await_across_transaction_success
+PASSED tests/test_transactions.py::test_update_await_across_transaction_fail
+PASSED tests/test_transactions.py::test_update_await_across_transaction_success
+PASSED tests/test_transactions.py::test_delete_await_across_transaction_fail
+PASSED tests/test_transactions.py::test_delete_await_across_transaction_success
+PASSED tests/test_transactions.py::test_select_await_across_transaction_fail
+PASSED tests/test_transactions.py::test_select_await_across_transaction_success
+PASSED tests/test_transactions.py::test_rollback_raising_exception
+PASSED tests/test_transactions.py::test_commit_raising_exception
+PASSED tests/test_transactions.py::test_commit_raising_integrity_error
+PASSED tests/test_transactions.py::test_get_or_create_commit_raising_integrity_error
+PASSED tests/test_concurrency.py::test_nonconcurrent_get_or_create_isolated
+PASSED tests/test_concurrency.py::test_concurrent_create_applies_defaults[defaults_pair0-get_or_create]
+PASSED tests/test_concurrency.py::test_concurrent_create_applies_defaults[defaults_pair1-get_or_create]
+PASSED tests/test_concurrency.py::test_update_or_create_race_in_existing_transaction
+PASSED tests/test_concurrency.py::test_concurrent_get_or_create_isolated
+PASSED tests/test_concurrency.py::test_concurrent_transactions_with_multiple_ops
+PASSED tests/test_concurrency.py::test_concurrent_transactions_with_single_op
+PASSED tests/test_concurrency.py::test_nested_concurrent_transactions_with_multiple_ops
+PASSED tests/test_concurrency.py::test_concurrency_read_transactioned
+PASSED tests/test_concurrency.py::test_concurrency_create_transactioned
+PASSED tests/test_concurrency.py::test_nonconcurrent_get_or_create_transactioned
+PASSED tests/test_concurrency.py::test_concurrent_transactions_lazy_init
+PASSED tests/test_model_methods.py::test_get_or_create
+PASSED tests/test_model_methods.py::test_noid_get_or_create
+41 passed, 93 deselected in 4.37s

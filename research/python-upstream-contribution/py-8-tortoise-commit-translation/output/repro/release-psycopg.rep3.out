@@ -1,0 +1,74 @@
+python 3.13.11, tortoise-orm 1.1.9, backend psycopg (psycopg 3.3.6, psycopg_pool 3.3.3), Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+DeferredChild.create(parent_id=999) inside in_transaction()
+  create() returned; the block exits normally
+  raised psycopg.errors.ForeignKeyViolation: insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: 23503
+  raised through:
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:263 commit
+    contextlib.py:221 __aexit__
+    psycopg/connection_async.py:401 transaction
+    psycopg/transaction.py:305 __aexit__
+    psycopg/connection_async.py:532 wait
+    psycopg/waiting.py:231 wait_async
+    psycopg/transaction.py:115 _exit_gen
+    psycopg/transaction.py:140 _commit_gen
+    psycopg/_connection_base.py:487 _exec_command
+  pg_xact_status(813): aborted
+  rows in deferred_child with id=1: 0
+ImmediateChild.create(parent_id=999) inside in_transaction()
+  raised tortoise.exceptions.IntegrityError: insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1398 create
+    tortoise/models.py:1174 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/psycopg/client.py:150 execute_insert
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/psycopg/client.py:213 _translate_exceptions
+  pg_xact_status(814): aborted
+  rows in immediate_child with id=1: 0
+DeferredChild.get_or_create(id=2, defaults={'parent_id': 999})
+  raised psycopg.errors.ForeignKeyViolation: insert or update on table "deferred_child" violates foreign key constraint "deferred_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: tortoise.exceptions.DoesNotExist
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1290 get_or_create
+    tortoise/models.py:1302 _create_or_get
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/psycopg/client.py:263 commit
+    contextlib.py:221 __aexit__
+    psycopg/connection_async.py:401 transaction
+    psycopg/transaction.py:305 __aexit__
+    psycopg/connection_async.py:532 wait
+    psycopg/waiting.py:231 wait_async
+    psycopg/transaction.py:115 _exit_gen
+    psycopg/transaction.py:140 _commit_gen
+    psycopg/_connection_base.py:487 _exec_command
+  rows in deferred_child with id=2: 0
+ImmediateChild.get_or_create(id=2, defaults={'parent_id': 999})
+  raised tortoise.exceptions.IntegrityError: insert or update on table "immediate_child" violates foreign key constraint "immediate_child_parent_id_fkey"
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: psycopg.errors.ForeignKeyViolation
+  driver error code: 23503
+  raised through:
+    tortoise/models.py:1290 get_or_create
+    tortoise/models.py:1309 _create_or_get
+    tortoise/models.py:1303 _create_or_get
+    tortoise/models.py:1398 create
+    tortoise/models.py:1174 save
+    tortoise/backends/base/executor.py:342 execute_insert
+    tortoise/backends/psycopg/client.py:150 execute_insert
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/psycopg/client.py:213 _translate_exceptions
+  rows in immediate_child with id=2: 0

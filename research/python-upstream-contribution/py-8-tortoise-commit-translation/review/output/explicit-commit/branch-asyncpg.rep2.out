@@ -1,0 +1,37 @@
+tortoise from: branch; a0000a60297d7cfa is the wrapper's source digest
+(a) conn.commit() inside the block fails; the block does not catch it
+  the block raised:
+  raised asyncpg.exceptions._base.InterfaceError: cannot rollback; the transaction is in error state
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: tortoise.exceptions.IntegrityError
+  driver error code: None
+  raised through:
+    tortoise/backends/base/client.py:379 __aexit__
+    tortoise/backends/asyncpg/client.py:218 rollback
+    asyncpg/transaction.py:227 rollback
+    asyncpg/transaction.py:195 __rollback
+    asyncpg/transaction.py:173 __check_state
+    asyncpg/transaction.py:163 __check_state_base
+  backend state after the block: 'idle'
+  rows with label 'a': 0
+  follow-up block: same backend as the arm: True; backend state after it 'idle'; its row committed: True
+(b) conn.commit() inside the block fails; the block catches the error and exits normally
+  conn.commit() raised tortoise.exceptions.IntegrityError; the block catches it
+  the block raised:
+  raised asyncpg.exceptions._base.InterfaceError: cannot commit; the transaction is in error state
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: None
+  raised through:
+    tortoise/backends/base/client.py:381 __aexit__
+    tortoise/backends/asyncpg/client.py:203 commit
+    asyncpg/transaction.py:219 commit
+    asyncpg/transaction.py:176 __commit
+    asyncpg/transaction.py:173 __check_state
+    asyncpg/transaction.py:163 __check_state_base
+  backend state after the block: 'idle'
+  rows with label 'b': 0
+  follow-up block: same backend as the arm: True; backend state after it 'idle'; its row committed: True
+log records: 0
