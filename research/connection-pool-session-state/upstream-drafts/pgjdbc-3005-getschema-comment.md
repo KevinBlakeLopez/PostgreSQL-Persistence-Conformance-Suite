@@ -4,7 +4,7 @@
 
 **Before posting, re-check:** #3005 is still open and has no newer comment covering `getSchema()`; `master` still implements `getSchema()` with `createStatement().executeQuery("select current_schema()")`.
 
-**Evidence:** [`../README.md`](../README.md) §6, and `output/hikari-minimal/pgjdbc-getschema.rep{1,2,3}.out` (byte-identical).
+**Evidence:** [`../README.md`](../README.md) §8, and `output/hikari-minimal/pgjdbc-getschema.rep{1,2,3}.out` (byte-identical).
 
 ---
 

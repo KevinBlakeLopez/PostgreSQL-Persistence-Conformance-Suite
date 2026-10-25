@@ -2,9 +2,9 @@
 
 **Status: DRAFT. Not filed.** Filing needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a new issue on `brettwooldridge/HikariCP`. The repository has no CONTRIBUTING file, issue template or AI policy (checked 2026-10-24); its README asks for pull requests against `dev`.
 
-**Before filing, re-check:** `dev` still has `ProxyConnection.close()` as quoted (it was identical to 7.1.0 at `a4d93f4f8`, 2026-06-14); no newer HikariCP or pgjdbc release changes the behaviour; the duplicate searches in [`../README.md`](../README.md#upstream-duplicate-searches) still find nothing new.
+**Before filing, re-check:** `dev` still has `ProxyConnection.close()` as quoted (it was identical to 7.1.0 at `a4d93f4f8`, 2026-06-14); no newer HikariCP or pgjdbc release changes the behaviour; the duplicate searches in [`../README.md`](../README.md#15-upstream-duplicate-searches) §15 still find nothing new.
 
-**Evidence behind every sentence:** [`../README.md`](../README.md) §6 (F-H2) and the outputs it cites.
+**Evidence behind every sentence:** [`../README.md`](../README.md) §8 (F-H2) and the outputs it cites.
 
 ---
 
@@ -123,7 +123,7 @@ B runs inside A's SERIALIZABLE transaction and reads A's snapshot. The PostgreSQ
 Two more consequences from the same mechanism, also 3 of 3:
 
 - With `schema=public` configured and `setSchema("tenant_a")` as A's last call, B's committed unqualified insert lands in `tenant_a`.
-- With the pool's defaults (autoCommit=true, readOnly=false), a read-only report (`setReadOnly(true)`, `setAutoCommit(false)`, query, `commit()`, then `getSchema()` for a log line) leaves the connection with autocommit off and read-only on. Every later borrower's insert fails, first with `25006`, then with `25P02`. HikariCP's alive check ran before each of those borrows and passed: pgjdbc's `isValid()` treats `25P02` as alive. It held for all three later borrowers I tried. I did not test how long it lasts.
+- With the pool's defaults (autoCommit=true, readOnly=false), a read-only report (`setReadOnly(true)`, `setAutoCommit(false)`, query, `commit()`, then `getSchema()` for a log line) leaves the connection with autocommit off and read-only on. Each of the next three borrowers got it that way, and their inserts failed, first with `25006`, then with `25P02`. HikariCP's alive check ran before each borrow and passed: pgjdbc's `isValid()` treats `25P02` as alive. I did not test how long it lasts.
 
 **Suggested fix:** when the rollback or the reset throws, mark the entry evicted, so `recycle()` closes it instead of returning it:
 
