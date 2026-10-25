@@ -1,0 +1,10 @@
+scenario: open-transaction
+A         SET ROLE, SET search_path, BEGIN, insert (no COMMIT or ROLLBACK)                     done
+A         release()                                                                            returned
+B         same physical session as A                                                           true
+observer  B's backend at checkout, before B's first statement                                  idle in transaction
+B         current_user | search_path                                                           ssc_tenant_a | tenant_a, public
+B         insert (B expects autocommit)                                                        ok
+observer  where B's insert is visible                                                          not visible
+observer  A's insert                                                                           not visible
+observer  A's insert after pool.end() closed the connection                                    not visible

@@ -1,0 +1,8 @@
+scenario: async-cancel-close
+A         committed SET search_path; insert left uncommitted                                   done
+A         close() cancelled 0.1 s into a 0.5 s reset                                           raised CancelledError
+observer  A's uncommitted insert after close                                                   not visible
+B         same physical session as A                                                           False
+B         search_path                                                                          "$user", public
+observer  where B's committed insert landed                                                    public
+observer  A's insert after B's commit                                                          not visible

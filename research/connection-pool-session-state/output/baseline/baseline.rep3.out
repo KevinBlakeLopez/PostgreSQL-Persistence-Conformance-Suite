@@ -1,0 +1,67 @@
+server: PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)
+A application_name     after SET (no transaction)                                 ppcs_borrower_a
+A application_name     after BEGIN; SET; COMMIT                                   set_in_committed_tx
+A application_name     after BEGIN; SET; ROLLBACK                                 set_in_committed_tx
+A application_name     failing statement in that transaction                      22012
+A application_name     after the failed transaction's ROLLBACK                    set_in_committed_tx
+A application_name     after RESET ALL                                            ssc_baseline_s
+A application_name     after SET then DISCARD ALL                                 ssc_baseline_s
+B search_path          unqualified insert after SET                               ['tenant_a/ssc_app']
+B search_path          after BEGIN; SET tenant_b; ROLLBACK                        ['tenant_a/ssc_app']
+B search_path          after BEGIN; SET tenant_b; COMMIT                          ['tenant_b/ssc_app']
+B search_path          after RESET ALL                                            ['public/ssc_app']
+B search_path          after SET tenant_a then DISCARD ALL                        ['public/ssc_app']
+C advisory lock        after pg_advisory_lock(123456) outside a transaction       [123456]
+C advisory lock        after BEGIN; SELECT 1; COMMIT                              [123456]
+C advisory lock        after a failed transaction and ROLLBACK                    [123456]
+C advisory lock        competing connection pg_try_advisory_lock(123456)          False
+C advisory lock        same session pg_try_advisory_lock(123456) (reentrant)      True
+C advisory lock        lock taken inside a transaction, then ROLLBACK             [123456, 123457]
+C advisory lock        pg_advisory_unlock_all() inside an aborted block           25P02
+C advisory lock        after that ROLLBACK                                        [123456, 123457]
+C advisory lock        after RESET ALL                                            [123456, 123457]
+C advisory lock        after pg_advisory_unlock_all()                             none
+C advisory lock        after re-lock then DISCARD ALL                             none
+D temp table           after CREATE TEMP TABLE (no transaction)                   ['ppcs_session_probe']
+D temp table           after BEGIN; CREATE TEMP TABLE second; ROLLBACK            ['ppcs_session_probe']
+D temp table           unqualified insert with a temp 'item' present              nowhere visible
+D temp table           after RESET ALL                                            ['item', 'ppcs_session_probe']
+D temp table           after DISCARD ALL                                          none
+E LISTEN               channels after LISTEN (no transaction)                     ['ppcs_probe_channel']
+E LISTEN               after BEGIN; LISTEN second; ROLLBACK                       ['ppcs_probe_channel']
+E LISTEN               notification delivered after RESET ALL                     ['after-reset-all']
+E LISTEN               channels after DISCARD ALL                                 None
+F SET LOCAL            inside the transaction                                     ppcs_transaction_local
+F SET LOCAL            after ROLLBACK                                             ssc_baseline_s
+F SET LOCAL            after COMMIT                                               ssc_baseline_s
+F SET LOCAL            set_config(..., is_local=true) after COMMIT                
+F SET LOCAL            set_config(..., is_local=false), no transaction            tenant_a
+F SET LOCAL            custom GUC after RESET ALL                                 ''
+G role                 current_user after SET ROLE ssc_tenant_a                   ssc_tenant_a
+G role                 current_user after RESET ALL                               ssc_tenant_a
+G role                 inserted_by of an insert after RESET ALL                   ['public/ssc_tenant_a']
+G role                 current_user after DISCARD ALL                             ssc_app
+G role                 after BEGIN; SET ROLE; ROLLBACK                            ssc_app
+G role                 after SET ROLE then RESET ROLE                             ssc_app
+G session authz        session_user after SET SESSION AUTHORIZATION               ssc_app
+G session authz        session_user after RESET ALL                               ssc_app
+G session authz        session_user after DISCARD ALL                             postgres
+H tx characteristics   isolation of the next transaction                          serializable
+H tx characteristics   statement_timeout leak: pg_sleep(0.2)                      57014
+H tx characteristics   isolation after RESET ALL                                  read committed
+H tx characteristics   statement_timeout after RESET ALL                          0
+I prepared             SQL PREPAREs after one in a rolled-back tx                 ['ppcs_p1', 'ppcs_p2']
+I cursor               WITH HOLD cursor after COMMIT                              ['ppcs_c1']
+I prepared             after RESET ALL                                            ['ppcs_p1', 'ppcs_p2']
+I cursor               after RESET ALL                                            ['ppcs_c1']
+I cursor               after CLOSE ALL                                            None
+I prepared             after DISCARD ALL                                          None
+J open transaction     next unit's BEGIN: result, notices                         ok, ['25001']
+J open transaction     next unit runs in unit 1's transaction ID                  True
+J open transaction     unit 1's row after unit 2's COMMIT                         ['public/ssc_app']
+J open transaction     unit 1's transaction fate (pg_xact_status)                 committed
+K termination          old session's statement after pg_terminate_backend         raised AdminShutdown
+K termination          new session: role | search_path | channels                 ssc_app | "$user", public | no channels
+K termination          new session's advisory locks                               none
+K termination          new session's temp tables                                  none
+K termination          advisory lock 42 free for a competitor                     True

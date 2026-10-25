@@ -1,0 +1,7 @@
+scenario: sync-reset-raises
+A         committed SET search_path; insert left uncommitted                                   done
+A         block exited with an application error                                               done
+observer  A's uncommitted insert after the return                                              not visible
+B         same physical session as A                                                           False
+B         search_path                                                                          "$user", public
+observer  where B's committed insert landed                                                    public

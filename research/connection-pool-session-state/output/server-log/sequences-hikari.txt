@@ -1,0 +1,214 @@
+== ssc-hikari-iso-reset: 13 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T5: <empty query>
+  T6: show transaction_isolation
+== ssc-hikari-schema-unconfigured: 13 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: select current_schema()
+  T4: SET SESSION search_path TO 'tenant_a'
+  T5: select current_schema()
+  T6: select current_schema()
+  T7: <empty query>
+  T8: select current_schema()
+  T9: insert into item(label) values ('B-unqualified')
+== ssc-hikari-schema-configured: 13 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION search_path TO 'public'
+  T4: select current_schema()
+  T5: SET SESSION search_path TO 'tenant_a'
+  T6: select current_schema()
+  T7: select current_schema()
+  T8: SET SESSION search_path TO 'public'
+  T9: <empty query>
+  T10: select current_schema()
+  T11: insert into item(label) values ('B-unqualified')
+== ssc-hikari-setup-schema-noautocommit: 13 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'tenant_b' | select current_schema() | insert into item(label) values ('A-unqualified') | [xid] ROLLBACK
+  T4: BEGIN | select current_schema() | COMMIT
+  T5: <empty query>
+  T6: BEGIN | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-hikari-reset-undone: 13 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: BEGIN | SET SESSION search_path TO 'tenant_a' | select current_schema() | insert into item(label) values ('A-unqualified') | [xid] COMMIT
+  T5: BEGIN | SET SESSION search_path TO 'public' | select current_schema() | insert into item(label) values ('B-unqualified') | [xid] ROLLBACK
+  T6: BEGIN | select current_schema() | COMMIT
+  T7: BEGIN | insert into item(label) values ('C-unqualified') | [xid] COMMIT
+== ssc-hikari-reset-fails: 33 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: BEGIN | select current_schema() | <empty query> | SHOW TRANSACTION ISOLATION LEVEL | show transaction_isolation | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T5: BEGIN | show transaction_isolation | COMMIT
+ sequence 2 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: BEGIN | select current_schema()
+ sequence 3 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | show transaction_isolation | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T4: BEGIN | show transaction_isolation | COMMIT
+== ssc-hikari-reset-fails-control: 22 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 22 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T5: <empty query>
+  T6: SHOW TRANSACTION ISOLATION LEVEL
+  T7: BEGIN | show transaction_isolation | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T8: BEGIN | show transaction_isolation | COMMIT
+== ssc-hikari-reset-fails-readonly: 33 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 13 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select current_schema() | <empty query> | insert into item(label) values ('B-unqualified') | ERROR 25006
+ sequence 2 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select current_schema()
+ sequence 3 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: insert into item(label) values ('B-unqualified')
+== ssc-hikari-reset-fails-configured-getschema: 28 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | select current_schema() | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T6: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+ sequence 2 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | select current_schema()
+ sequence 3 (seen on 9 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-setschema: 30 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SET SESSION search_path TO 'tenant_a' | select current_schema() | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T6: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+ sequence 2 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SET SESSION search_path TO 'tenant_a' | select current_schema()
+ sequence 3 (seen on 10 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-savepoint: 28 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SAVEPOINT JDBC_SAVEPOINT_0 | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T6: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+ sequence 2 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SAVEPOINT JDBC_SAVEPOINT_0
+ sequence 3 (seen on 9 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-none: 20 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 20 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T6: <empty query>
+  T7: BEGIN | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T8: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-reset-fails-configured-evicted: 20 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN | SET SESSION search_path TO 'public' | COMMIT
+  T4: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T5: BEGIN | SET SESSION search_path TO 'tenant_a' | select current_schema()
+ sequence 2 (seen on 10 backend(s)):
+  T1: BEGIN | SET SESSION search_path TO 'public' | <empty query> | show transaction_isolation | select current_schema() | select (now() < statement_timestamp() - interval '500 milliseconds')::text | select v::text from public.probe_row | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+  T2: BEGIN | show transaction_isolation | select current_schema() | COMMIT
+== ssc-hikari-readonly-report-poison: 28 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*)::text from public.item | COMMIT
+  T4: BEGIN READ ONLY | select current_schema() | <empty query> | insert into item(label) values ('B-unqualified') | ERROR 25006 | <empty query> | ERROR 25P02 | <empty query> | ERROR 25P02
+ sequence 2 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*)::text from public.item | COMMIT
+  T4: BEGIN READ ONLY | select current_schema()
+ sequence 3 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: insert into item(label) values ('B-unqualified')
+  T3: <empty query>
+  T4: insert into item(label) values ('C-unqualified')
+  T5: <empty query>
+  T6: insert into item(label) values ('D-unqualified')
+== ssc-hikari-reset-fails-isolate-internal: 10 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 10 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: BEGIN | select current_schema() | <empty query> | ROLLBACK
+  T5: BEGIN | show transaction_isolation | select v::text from public.probe_row | COMMIT
+== ssc-hikari-raw-sql-state: 9 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 9 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION search_path TO 'public'
+  T4: SET search_path TO tenant_a, public
+  T5: SET ROLE ssc_tenant_a
+  T6: select pg_advisory_lock(4713)
+  T7: CREATE TEMP TABLE ssc_temp_probe (id int)
+  T8: select current_user || ' | ' || current_setting('search_path')
+  T9: select (to_regclass('pg_temp.ssc_temp_probe') is not null)::text
+  T10: insert into item(label) values ('B-unqualified')
+  T11: RESET ROLE | select pg_advisory_unlock_all()
+== ssc-hikari-readonly-report-override: 12 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 6 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: BEGIN READ ONLY | select count(*)::text from public.item | COMMIT
+  T4: BEGIN READ ONLY | select current_schema()
+ sequence 2 (seen on 6 backend(s)):
+  T1: <empty query>
+  T2: insert into item(label) values ('B-unqualified')
+== ssc-hikari-autocommit-reset-commits: 3 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 3 backend(s)):
+  T1: <empty query>
+  T2: SHOW TRANSACTION ISOLATION LEVEL
+  T3: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
+  T4: BEGIN | select current_schema() | COMMIT
+  T5: SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+  T6: show transaction_isolation

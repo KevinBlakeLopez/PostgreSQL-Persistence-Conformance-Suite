@@ -1,0 +1,18 @@
+== ssc-node-open-transaction: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SET ROLE ssc_tenant_a
+  T2: SET search_path TO tenant_a, public
+  T3: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] select current_user || ' | ' || current_setting('search_path') v | [xid] insert into item(label) values ('B-unqualified')
+== ssc-node-aborted-transaction: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SET ROLE ssc_tenant_a
+  T2: SET search_path TO tenant_a, public
+  T3: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] select 1/0 | ERROR 22012 | [xid] select current_user || ' | ' || current_setting('search_path') v | ERROR 25P02
+== ssc-node-release-err: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: SET ROLE ssc_tenant_a
+  T2: SET search_path TO tenant_a, public
+  T3: BEGIN | insert into item(label) values ('A-uncommitted')
+ sequence 2 (seen on 4 backend(s)):
+  T1: select current_user || ' | ' || current_setting('search_path') v
+  T2: insert into item(label) values ('B-unqualified')

@@ -1,0 +1,18 @@
+scenario: reset-fails-configured-getschema
+Z         commit(), then close()                                                                       returned normally
+A         getSchema()                                                                                  public
+observer  pool backend before A's close()                                                              state=idle in transaction xact_open=true xid=false xmin=true
+observer  committed probe_row.v = 1 after A's last statement                                           done
+A         close()                                                                                      threw SQLException SQLSTATE 25001: Cannot change transaction isolation level in the middle of a transaction.
+observer  pool backend after A's close()                                                               state=idle in transaction xact_open=true xid=false xmin=true
+B         same physical session as A                                                                   true
+B         show transaction_isolation                                                                   serializable
+B         current_schema()                                                                             public
+B         B's first statement is not its transaction's first (now() < statement_timestamp() - 500 ms)  true
+B         probe_row.v as B reads it (observer committed 1)                                             0
+observer  where B's committed unqualified insert landed                                                public/ssc_app
+B         close()                                                                                      returned normally
+C         same physical session as B                                                                   true
+C         show transaction_isolation                                                                   serializable
+C         current_schema()                                                                             public
+C         close()                                                                                      returned normally

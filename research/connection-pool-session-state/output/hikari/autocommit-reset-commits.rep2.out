@@ -1,0 +1,9 @@
+scenario: autocommit-reset-commits
+A         setAutoCommit(false), setTransactionIsolation(SERIALIZABLE), getSchema()                     public
+observer  pool backend before A's close()                                                              state=idle in transaction xact_open=true xid=false xmin=true
+A         close()                                                                                      returned normally
+observer  pool backend after A's close()                                                               state=idle xact_open=false xid=false xmin=false
+B         same physical session as A                                                                   true
+B         getAutoCommit() through the pool                                                             true
+B         show transaction_isolation                                                                   read committed
+B         close()                                                                                      returned normally

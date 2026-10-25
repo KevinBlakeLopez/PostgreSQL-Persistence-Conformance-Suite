@@ -1,0 +1,7 @@
+scenario: async-cancel-in-query
+A         committed SET search_path; insert left uncommitted; long query                       done
+A         task cancelled 0.3 s in                                                              CancelledError
+observer  A's uncommitted insert after the return                                              not visible
+B         same physical session as A                                                           True
+B         search_path                                                                          tenant_a, public
+observer  where B's committed insert landed                                                    tenant_a

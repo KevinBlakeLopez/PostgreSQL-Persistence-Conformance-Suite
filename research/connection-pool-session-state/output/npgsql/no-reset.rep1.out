@@ -1,0 +1,13 @@
+scenario: no-reset
+A         current_user | search_path after the session changes                                 ssc_tenant_a | tenant_a, public
+A         Close()                                                                              returned
+observer  advisory lock 4712 holders while the connector is idle in the pool                   1 backend(s) of the pool
+observer  temp tables of the idle connector's backend                                          ssc_temp_probe
+competitor pg_try_advisory_lock(4712) while the connector is idle                               False
+B         same physical session as A                                                           True
+B         first statement: current_user | search_path | channels                               ssc_tenant_a | tenant_a, public | ppcs_probe_channel
+B         SQL-level prepared statement ssc_user_stmt still defined                             True
+observer  advisory lock 4712 holders after B's first statement                                 1 backend(s) of the pool
+observer  temp tables of B's backend after B's first statement                                 ssc_temp_probe
+observer  where B's unqualified insert landed                                                  tenant_a
+competitor pg_try_advisory_lock(4712) after B's first statement                                 False

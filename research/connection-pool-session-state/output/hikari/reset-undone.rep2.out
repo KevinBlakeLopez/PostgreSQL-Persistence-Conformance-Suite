@@ -1,0 +1,14 @@
+scenario: reset-undone
+Z         commit(), then close()                                                                       returned normally
+observer  pool backend before A                                                                        state=idle xact_open=false xid=false xmin=false
+observer  where A's committed unqualified insert landed                                                tenant_a/ssc_app
+A         setSchema("tenant_a"), insert, commit(), then close()                                        returned normally
+observer  pool backend after A's close()                                                               state=idle in transaction xact_open=true xid=false xmin=false
+B         same physical session as A                                                                   true
+B         current_schema() at checkout                                                                 public
+B         current_schema() after B's rollback()                                                        tenant_a
+B         close()                                                                                      returned normally
+observer  pool backend after B's close()                                                               state=idle xact_open=false xid=false xmin=false
+C         same physical session as A                                                                   true
+observer  where C's committed unqualified insert landed                                                tenant_a/ssc_app
+C         close()                                                                                      returned normally

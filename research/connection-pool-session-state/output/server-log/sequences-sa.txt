@@ -1,0 +1,26 @@
+== ssc-sa-async-normal-close: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN; | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK;
+  T2: BEGIN; | SET search_path TO tenant_a, public | COMMIT;
+  T3: BEGIN; | insert into item(label) values ('A-uncommitted') | [xid] ROLLBACK;
+  T4: BEGIN; | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT;
+== ssc-sa-async-cancel-close: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN; | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK;
+  T2: BEGIN; | SET search_path TO tenant_a, public | COMMIT;
+  T3: BEGIN; | insert into item(label) values ('A-uncommitted') | [xid] ROLLBACK;
+ sequence 2 (seen on 4 backend(s)):
+  T1: BEGIN; | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT;
+== ssc-sa-sync-normal-close: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | RELEASE "_pg3_1" | ROLLBACK
+  T2: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T3: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] ROLLBACK
+  T4: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-sa-sync-rollback-fails: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | RELEASE "_pg3_1" | ROLLBACK
+  T2: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T3: BEGIN | insert into item(label) values ('A-uncommitted') | FATAL 57P01
+ sequence 2 (seen on 4 backend(s)):
+  T1: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT

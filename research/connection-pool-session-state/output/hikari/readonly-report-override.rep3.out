@@ -1,0 +1,10 @@
+scenario: readonly-report-override
+A         setReadOnly(true), setAutoCommit(false), report query                                        0
+A         commit(), then getSchema() for a log line                                                    public
+A         close()                                                                                      threw SQLException SQLSTATE 25001: Cannot change transaction read-only property in the middle of a transaction.
+observer  pool backend after A's close()                                                               no backend
+B         same physical session as A                                                                   false
+B         getAutoCommit() | isReadOnly() through the pool                                              true | false
+B         insert (expects the pool default, autocommit)                                                ok
+observer  where B's insert is visible                                                                  public/ssc_app
+B         close()                                                                                      returned normally
