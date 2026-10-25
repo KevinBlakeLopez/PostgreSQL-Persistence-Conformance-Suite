@@ -9,7 +9,7 @@ import statistics
 import sys
 from pathlib import Path
 
-RUNS = ("e1-run1", "e1-run2", "e1-run3-standard", "e3-run1")
+RUNS = ("e1-run1", "e1-run2", "e1-run3-standard", "e3-run1", "linux-run1", "diag-run1")
 # Run 1's Hypercorn cases are excluded everywhere: the harness lost track of the worker process.
 EXCLUDED = {("e1-run1", "e1-08-hypercorn-exceeds-term"), ("e1-run1", "e1-09-hypercorn-exceeds-int")}
 
@@ -28,6 +28,15 @@ CATEGORIES = {
     "E. bounded fix, 0.5 s cleanup": ["e3-05-fixb-exceeds-term", "e3-06-fixb-exceeds-int", "e3-10-fixb-shared-term"],
     "F. controls: work finishes in time / no timeout": [
         "e1-01-in-time-term", "e1-02-in-time-int", "e1-07-fastapi-bg-no-timeout-term"],
+    "G. Linux, unpatched, work outlives timeout, 0.5 s cleanup": [
+        "linux-02-exceeds-term", "linux-03-exceeds-int", "linux-04-standard-exceeds-term", "linux-05-shared-term",
+        "linux-06-fastapi-bg-exceeds-term"],
+    "H. Linux, bounded fix, 0.5 s cleanup": ["linux-07-fixb-exceeds-term", "linux-08-fixb-exceeds-int",
+                                            "linux-09-fixb-shared-term"],
+    "I. Linux, control": ["linux-01-in-time-term"],
+    "J. diagnostic build, unpatched, work outlives timeout": ["d-02-diag-exceeds-term", "d-03-diag-exceeds-int"],
+    "K. diagnostic build, bounded fix": ["d-04-fixb-diag-exceeds-term", "d-05-fixb-diag-exceeds-int"],
+    "L. diagnostic build, control": ["d-01-diag-in-time-term"],
 }
 
 

@@ -16,6 +16,8 @@ BUILDS = {
     "venv-313-fix": "main e4981ad + fix",
     "venv-313-fixb": "main e4981ad + bounded fix",
     "venv-313-std": "0.54.0 [standard]",
+    "venv-313-diag": "main e4981ad + diagnostic log",
+    "venv-313-fixb-diag": "main e4981ad + bounded fix + diagnostic log",
 }
 
 
