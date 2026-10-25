@@ -136,3 +136,7 @@ ee6f3ec061d547caf7129ca6ca85d4d87531387b9f19dd9ff96973fc7627bdec  output/p7.rep3
 ```
 
 Identical hashes across repetitions mean the repetitions printed byte-identical output. That is expected here, because the outputs hold no transaction IDs, PIDs, or timestamps.
+
+## P8, added 2026-10-25
+
+[`p8-uvicorn-shutdown/`](p8-uvicorn-shutdown/README.md) holds P8: Uvicorn's graceful-shutdown timeout expiring while a SQLAlchemy `AsyncSession` COMMIT waits at P3's gate. It ran on 2026-10-24, after the report, in its own container, `ppcs-gap-uvicorn-pg`, not the one above. Its README has its own environment, commands, results and SHA-256 list; the list above does not cover it.

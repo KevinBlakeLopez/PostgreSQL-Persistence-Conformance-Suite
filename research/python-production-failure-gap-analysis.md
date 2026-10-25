@@ -19,7 +19,7 @@ This analysis asks which production-reachable correctness and reliability failur
 | Label | Meaning |
 | --- | --- |
 | **PPCS** | A recorded run in this repository. Three repetitions; suite runs are gated by CTL-01 and `pg-control` |
-| **Probe** | A premise probe for this analysis (P1–P7, or a psql check), with its output in `python-production-failure-gap-analysis/output/`. Three repetitions, all agreeing. Not gated |
+| **Probe** | A premise probe for this analysis (P1–P7, or a psql check), with its output in `python-production-failure-gap-analysis/output/`. P8, added 2026-10-25, has its own directory, `python-production-failure-gap-analysis/p8-uvicorn-shutdown/`. Three repetitions, all agreeing. Not gated |
 | **Src** | Source reading of the installed version, with file and line. Not a runtime observation |
 | **Doc** | Documentation, quoted. Fetched 2026-10-24 by this analysis's research subagents and taken from their notes; not fetched a second time |
 | **Upstream** | Issue-tracker state on 2026-10-24, from the same subagents. The links can change |
@@ -45,6 +45,8 @@ PPCS's Python evidence is deep on one axis: what a transaction API reports after
    - Uvicorn's graceful-shutdown timeout produces both: under SIGTERM the process ends before the cancelled request's cleanup finishes, and under SIGINT `asyncio.run` cancels the request a second time ([Uvicorn discussion #3232](https://github.com/Kludex/uvicorn/discussions/3232)).
    - That discussion's evidence is a stand-in service, not PostgreSQL. This report does not measure PostgreSQL's outcome on that path.
    - §7.1 has the details.
+
+   **Update, added 2026-10-25.** Probe P8 measures that path. Uvicorn's graceful-shutdown timeout expired while a SQLAlchemy `AsyncSession` COMMIT waited at P3's gate, on asyncpg and on psycopg. PostgreSQL committed every time, after the process had exited. Under SIGINT, `after_rollback` fired first, as in P3's level-triggered rows. Under SIGTERM, the application's cleanup never ran, and the client got no response (§7.1).
 2. **Session state that survives the connection pool** (§7.2). A unit of work set state and committed; the next unit of work on the same pool of one ran with it:
    - **`SET ROLE`** carried over in all six pools measured, including asyncpg's, whose reset is documented to reset "all session configuration variables".
    - **The rest** carried over in five pools: `search_path`, custom GUCs, `statement_timeout`, session advisory locks, and temp tables. Those five are psycopg_pool, SQLAlchemy's pool on psycopg and on asyncpg, Django's persistent connections, and Django's native pool. The next unit's unqualified insert landed in the previous unit's schema, as the previous unit's role.
@@ -344,6 +346,15 @@ That is reported in [Uvicorn discussion #3232](https://github.com/Kludex/uvicorn
 P3's edge-triggered rows ended aborted, in a loop that kept running after the one cancel. Both drivers could therefore send their cancel and finish. They do not show what PostgreSQL does on this shutdown path, and this report does not measure it.
 
 A design that adopts §7.1 should add the path as a third cancellation style: one cancel, then process exit (SIGTERM) or a second cancel (SIGINT).
+
+**Update, added 2026-10-25: Probe P8 measures this path** ([`p8-uvicorn-shutdown/`](python-production-failure-gap-analysis/p8-uvicorn-shutdown/README.md)). Uvicorn 0.54.0 ran with `--timeout-graceful-shutdown 1`, and P3's gate held each request's SQLAlchemy `AsyncSession` COMMIT past the timeout. The interrupted runs covered asyncpg and psycopg, SQLAlchemy 2.1.5 and 2.1.6, and SIGTERM and SIGINT, three times per cell. Every repetition agreed:
+
+- **PostgreSQL committed all 24 interrupted transactions,** after the process had exited. At exit every backend was still waiting in COMMIT, and no cancel request reached the server (server log).
+- **SIGINT:** `after_rollback` and `after_soft_rollback` fired before exit, the handler saw `CancelledError`, and the client got HTTP 500. PostgreSQL then committed. That is P3's level-triggered outcome, without anyio.
+- **SIGTERM:** no exception reached the handler, its `finally` never ran, no ORM commit or rollback event fired, and the client's connection closed without a response.
+- **Control** (SQLAlchemy 2.1.6 only): when the gate opened inside the graceful window, every signal agreed with PostgreSQL: committed, `after_commit`, HTTP 200.
+
+P8 is a premise probe like P1–P7. Its README states the caveats: in production a COMMIT must outlast the whole graceful timeout, the timeout is off by default, and Kubernetes and systemd send SIGTERM, not SIGINT.
 
 **Classification.**
 
@@ -670,3 +681,5 @@ So the FAIL-shape rows did send COMMIT, and Django never did.
 | Default (`reset_on_return` rollback) | All carried |
 | The documented recipe on psycopg 3 | **All carried** |
 | `rollback()`, then `DISCARD ALL` in autocommit | All reset |
+
+**P8. Uvicorn's graceful-shutdown timeout, with COMMIT gated** (added 2026-10-25). §7.1's update summarizes it. The table by release, driver and signal is in [`p8-uvicorn-shutdown/README.md`](python-production-failure-gap-analysis/p8-uvicorn-shutdown/README.md).
