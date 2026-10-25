@@ -274,6 +274,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Finding:** under anyio level-triggered cancellation, `after_rollback` fires. PostgreSQL then commits.
 - **Evidence:**
   - `research/python-production-failure-gap-analysis/p3_cancellation.py` and `output/p3.jsonl`, `p3b.jsonl`, `p3c-sa216.jsonl`;
+  - added 2026-10-25: `research/python-production-failure-gap-analysis/p8-uvicorn-shutdown/` (P8). The same claim without anyio, from Uvicorn's graceful-shutdown timeout under SIGINT; it does not replace CHK-4;
   - Src: `orm/session.py:1377-1380` and `engine/base.py:2697-2742`. This code path is shared with PY-7.
 - **Upstream:** none found. Precedent: #12728.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
