@@ -1,0 +1,119 @@
+{
+  "after_worker_shutdown_hook_ran": true,
+  "argv": [
+    "$WORKTREE/research/python-dramatiq-lifecycle/reproductions/experiments.py",
+    "d7",
+    "--variant",
+    "fault-asyncio",
+    "--reps",
+    "3",
+    "--tag",
+    "fix-redis-reconnect",
+    "--ports",
+    "56397,56398"
+  ],
+  "dir": "outputs/d7/fault-asyncio-host-fix-redis-reconnect/20261025T030513Z-rep1",
+  "environment": {
+    "dramatiq": "2.2.1",
+    "dramatiq_build": "master 08d711a + fix-redis-reconnect",
+    "dramatiq_path": "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.11",
+    "redis_config": {
+      "appendfsync": "always",
+      "appendonly": "yes"
+    },
+    "redis_py": "8.1.0",
+    "redis_server": "8.6.2",
+    "sha256": {
+      "broker.py": "8397b2703fc83b36a64c2c73f81f9bf3b1d243fcf0ccbb67d859d146d539c6b3",
+      "brokers/redis.py": "7325ea6bb8219477f3f35a8252614bdd3f0ec233a3234f8d26134d7c8ad2b441",
+      "brokers/redis/dispatch.lua": "ba4d872e4fb204ebc3f73ca4719265a9946d70e847856c125314f01a8c90540c",
+      "cli.py": "176704d8646ef2e9a150c148d951256c6eee59d800b4d6b4fc602a5a3b1e8991",
+      "middleware/retries.py": "633c6739e95f3930b835258ab62d9d24be17b3416670d9e060fcf1c17513993d",
+      "worker.py": "921e4128e508a89d0dbfbde7b4ba85ed9a6b780e95b830a6f2cebde49a3f774b"
+    }
+  },
+  "executed_by_replacement": [
+    "d7-1",
+    "d7-2"
+  ],
+  "experiment": "d7",
+  "finished_at": 1792897523.9995468,
+  "held_after_exit": {
+    "dramatiq:__acks__.8248891d-003e-44b8-95db-9aac7cb10f1b.default": [
+      "6208d04b-1960-44dc-9e0f-400f0748a125"
+    ]
+  },
+  "held_before_requeue": {
+    "dramatiq:__acks__.8248891d-003e-44b8-95db-9aac7cb10f1b.default": [
+      "6208d04b-1960-44dc-9e0f-400f0748a125"
+    ]
+  },
+  "held_while_first_executes": {
+    "dramatiq:__acks__.8248891d-003e-44b8-95db-9aac7cb10f1b.default": [
+      "6208d04b-1960-44dc-9e0f-400f0748a125",
+      "8b610a35-2fff-45ea-8a88-c93c90e618a7"
+    ]
+  },
+  "log_markers_worker1": {
+    "Acknowledging message": 1,
+    "Consumer encountered a connection error": 0,
+    "Consumer encountered an unexpected error": 0,
+    "Exception in thread": 0,
+    "Failed to post_process_message": 0,
+    "Failed to requeue messages": 1,
+    "Re-enqueueing": 1,
+    "Rejecting message": 0,
+    "Restarting consumer": 0,
+    "Retries exceeded": 0,
+    "Retrying message": 0,
+    "Unexpected failure in after_process_message": 0,
+    "Unhandled error during post_process_message": 0,
+    "Worker has been shut down": 1
+  },
+  "message_ids": [
+    "9301bec1-be4b-46a6-90a4-0675d01d442f",
+    "276107b5-d810-4f4a-b30d-44dba792d2f0",
+    "d0c12b2c-d392-4dff-a7b9-040af418b87e"
+  ],
+  "places_final": {
+    "276107b5-d810-4f4a-b30d-44dba792d2f0": [],
+    "9301bec1-be4b-46a6-90a4-0675d01d442f": [],
+    "d0c12b2c-d392-4dff-a7b9-040af418b87e": []
+  },
+  "queue_after_exit": [
+    "1f621218-fa13-49a1-ace6-51048a560d03"
+  ],
+  "queue_before_requeue": [
+    "1f621218-fa13-49a1-ace6-51048a560d03"
+  ],
+  "recovery_seconds_after_replacement_boot": 0.0,
+  "rep": 1,
+  "variant": "fault-asyncio-host-fix-redis-reconnect",
+  "worker1_broker_id": "8248891d-003e-44b8-95db-9aac7cb10f1b",
+  "worker1_exit": 0,
+  "worker1_heartbeat_age_ms_after_exit": 5516,
+  "worker1_hung": false,
+  "worker1_log_tail": [
+    "    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^",
+    "  File \"$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/worker.py\", line 469, in requeue_messages",
+    "    self.consumer.requeue(messages)",
+    "    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^",
+    "  File \"$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/brokers/redis.py\", line 339, in requeue",
+    "    raise ConnectionClosed(e) from None",
+    "dramatiq.errors.ConnectionClosed: Error 61 connecting to 127.0.0.1:56397. Connection refused.",
+    "[2026-10-24 20:05:19,575] [PID 67099] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.",
+    "[2026-10-24 20:05:19,575] [PID 67099] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...",
+    "[2026-10-24 20:05:19,575] [PID 67099] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.",
+    "[2026-10-24 20:05:19,575] [PID 67099] [MainThread] [dramatiq.middleware.asyncio.AsyncIO] [INFO] Stopping event loop...",
+    "[2026-10-24 20:05:19,575] [PID 67099] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down."
+  ],
+  "worker2_exit": 0,
+  "worker_env": {
+    "PPCS_ASYNCIO": "1",
+    "PPCS_BARRIER_CONSUMER_SHUTDOWN": "1",
+    "PPCS_BROKER_FORM": "host"
+  }
+}

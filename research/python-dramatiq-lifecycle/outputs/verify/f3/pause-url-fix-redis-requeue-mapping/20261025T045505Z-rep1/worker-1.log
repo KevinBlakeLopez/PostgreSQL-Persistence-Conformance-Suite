@@ -1,0 +1,312 @@
+[2026-10-24 21:55:05,288] [PID 44141] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 21:55:05,259] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 21:55:05,283] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 21:55:05,283] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 21:55:05,283] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 21:55:05,285] [PID 44148] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 21:55:05,285] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 21:55:05,285] [PID 44148] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 21:55:05,285] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 21:55:05,285] [PID 44148] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 21:55:05,287] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 21:55:05,296] [PID 44148] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:55:05,304] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '2dfa7c32-3f8f-4af1-b7ac-ee2d6ebf8649' onto delay queue.
+[2026-10-24 21:55:05,304] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '92d0435e-82c3-4e2f-a63e-02ad82251299' onto delay queue.
+[2026-10-24 21:55:05,304] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message 'e6e11147-5eb1-4a09-bd25-c95528e68d9f' onto delay queue.
+[2026-10-24 21:55:05,308] [PID 44148] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:55:10,320] [PID 44148] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56394,db=0)>, details: not connected
+[2026-10-24 21:55:10,320] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 345, in __next__
+    data = self.message_cache.pop(0)
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 64, in _read_from_socket
+    data = sock.recv(socket_read_size)
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/worker.py", line 314, in run
+    for message in self.consumer:
+                   ^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 364, in __next__
+    self.message_cache = messages = self.broker.do_fetch(
+                                    ~~~~~~~~~~~~~~~~~~~~^
+        self.queue_name,
+        ^^^^^^^^^^^^^^^^
+        self.prefetch - self.outstanding_message_count,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 889, in _execute_command
+    result = conn.retry.call_with_retry(
+        lambda: self._send_command_parse_response(
+    ...<3 lines>...
+        with_failure_count=True,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 890, in <lambda>
+    lambda: self._send_command_parse_response(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        conn, command_name, *args, **options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 819, in _send_command_parse_response
+    return self.parse_response(conn, command_name, **options)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 935, in parse_response
+    response = connection.read_response()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/connection.py", line 1407, in read_response
+    response = self._parser.read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 40, in read_response
+    result = self._read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 65, in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 117, in readline
+    self._read_from_socket(timeout=timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 77, in _read_from_socket
+    raise TimeoutError("Timeout reading from socket")
+redis.exceptions.TimeoutError: Timeout reading from socket
+[2026-10-24 21:55:10,320] [PID 44148] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56394,db=0)>, details: not connected
+[2026-10-24 21:55:10,325] [PID 44148] [Thread-3] [dramatiq.brokers.redis._RedisConsumer] [DEBUG] Re-enqueueing ['e536b2d0-8922-4c6a-a3d2-86ff6290ab2a', '008da51e-e886-4b8b-85eb-8e1bec97e618', '4fb5921a-1d72-45d4-80b8-8a6d9829c49f'] on queue 'default.DQ'.
+[2026-10-24 21:55:10,325] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 345, in __next__
+    data = self.message_cache.pop(0)
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 64, in _read_from_socket
+    data = sock.recv(socket_read_size)
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/worker.py", line 314, in run
+    for message in self.consumer:
+                   ^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 364, in __next__
+    self.message_cache = messages = self.broker.do_fetch(
+                                    ~~~~~~~~~~~~~~~~~~~~^
+        self.queue_name,
+        ^^^^^^^^^^^^^^^^
+        self.prefetch - self.outstanding_message_count,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 889, in _execute_command
+    result = conn.retry.call_with_retry(
+        lambda: self._send_command_parse_response(
+    ...<3 lines>...
+        with_failure_count=True,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 890, in <lambda>
+    lambda: self._send_command_parse_response(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        conn, command_name, *args, **options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 819, in _send_command_parse_response
+    return self.parse_response(conn, command_name, **options)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 935, in parse_response
+    response = connection.read_response()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/connection.py", line 1407, in read_response
+    response = self._parser.read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 40, in read_response
+    result = self._read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 65, in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 117, in readline
+    self._read_from_socket(timeout=timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 77, in _read_from_socket
+    raise TimeoutError("Timeout reading from socket")
+redis.exceptions.TimeoutError: Timeout reading from socket
+[2026-10-24 21:55:10,326] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:55:10,327] [PID 44148] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:55:13,329] [PID 44148] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:55:15,328] [PID 44148] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56394,db=0)>, details: not connected
+[2026-10-24 21:55:15,328] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:55:18,331] [PID 44148] [Thread-2] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56394,db=0)>, details: not connected
+[2026-10-24 21:55:18,331] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [CRITICAL] Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 345, in __next__
+    data = self.message_cache.pop(0)
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 64, in _read_from_socket
+    data = sock.recv(socket_read_size)
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/worker.py", line 314, in run
+    for message in self.consumer:
+                   ^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 364, in __next__
+    self.message_cache = messages = self.broker.do_fetch(
+                                    ~~~~~~~~~~~~~~~~~~~~^
+        self.queue_name,
+        ^^^^^^^^^^^^^^^^
+        self.prefetch - self.outstanding_message_count,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 889, in _execute_command
+    result = conn.retry.call_with_retry(
+        lambda: self._send_command_parse_response(
+    ...<3 lines>...
+        with_failure_count=True,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 890, in <lambda>
+    lambda: self._send_command_parse_response(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        conn, command_name, *args, **options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 819, in _send_command_parse_response
+    return self.parse_response(conn, command_name, **options)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/client.py", line 935, in parse_response
+    response = connection.read_response()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/connection.py", line 1407, in read_response
+    response = self._parser.read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 40, in read_response
+    result = self._read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 65, in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 117, in readline
+    self._read_from_socket(timeout=timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-requeue-mapping/lib/python3.13/site-packages/redis/_parsers/socket.py", line 77, in _read_from_socket
+    raise TimeoutError("Timeout reading from socket")
+redis.exceptions.TimeoutError: Timeout reading from socket
+[2026-10-24 21:55:18,333] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:55:18,333] [PID 44148] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:55:25,510] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'dc352966-10b9-4eff-82ad-770fcfe134b8' onto work queue.
+[2026-10-24 21:55:25,510] [PID 44148] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('probe-now', {'default': 'ok'}) with id 'dc352966-10b9-4eff-82ad-770fcfe134b8'.
+[2026-10-24 21:55:25,511] [PID 44148] [Thread-4] [app.job] [DEBUG] Received args=('probe-now', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:55:25,515] [PID 44148] [Thread-4] [app.job] [DEBUG] Completed after 4.31ms.
+[2026-10-24 21:55:25,516] [PID 44148] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'dc352966-10b9-4eff-82ad-770fcfe134b8'.
+[2026-10-24 21:55:25,775] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad' onto delay queue.
+[2026-10-24 21:55:28,227] [PID 44148] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad' on queue 'default'.
+[2026-10-24 21:55:28,231] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad'.
+[2026-10-24 21:55:29,048] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad' onto work queue.
+[2026-10-24 21:55:29,048] [PID 44148] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('probe-delayed', {'default': 'ok'}) with id '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad'.
+[2026-10-24 21:55:29,048] [PID 44148] [Thread-4] [app.job] [DEBUG] Received args=('probe-delayed', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:55:29,052] [PID 44148] [Thread-4] [app.job] [DEBUG] Completed after 4.01ms.
+[2026-10-24 21:55:29,053] [PID 44148] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '9a53261c-2fed-4ea5-bf35-8fbfdaea14ad'.
+[2026-10-24 21:55:30,007] [PID 44148] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:56:05,345] [PID 44141] [MainThread] [dramatiq.MainProcess] [INFO] Sending signal 'SIGTERM' to subprocesses...
+[2026-10-24 21:56:05,346] [PID 44148] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Stopping worker process...
+[2026-10-24 21:56:05,486] [PID 44148] [MainThread] [dramatiq.middleware.shutdown.ShutdownNotifications] [DEBUG] Sending shutdown notification to worker threads...
+[2026-10-24 21:56:05,486] [PID 44148] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-24 21:56:05,486] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping workers...
+[2026-10-24 21:56:05,486] [PID 44148] [MainThread] [dramatiq.worker.WorkerThread] [DEBUG] Stopping worker thread...
+[2026-10-24 21:56:06,177] [PID 44148] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Worker thread stopped.
+[2026-10-24 21:56:06,178] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Workers stopped.
+[2026-10-24 21:56:06,178] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping consumers...
+[2026-10-24 21:56:06,178] [PID 44148] [MainThread] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:56:06,178] [PID 44148] [MainThread] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:56:06,263] [PID 44148] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:56:06,319] [PID 44148] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:56:06,319] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers stopped.
+[2026-10-24 21:56:06,319] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Requeueing in-memory messages...
+[2026-10-24 21:56:06,319] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.
+[2026-10-24 21:56:06,319] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...
+[2026-10-24 21:56:06,319] [PID 44148] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.
+[2026-10-24 21:56:06,320] [PID 44148] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.

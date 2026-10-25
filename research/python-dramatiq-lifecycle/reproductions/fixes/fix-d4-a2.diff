@@ -1,0 +1,62 @@
+diff --git a/dramatiq/brokers/redis.py b/dramatiq/brokers/redis.py
+index c04ca08..25ae63a 100644
+--- a/dramatiq/brokers/redis.py
++++ b/dramatiq/brokers/redis.py
+@@ -181,7 +181,10 @@ class RedisBroker(Broker):
+ 
+         self.logger.debug("Enqueueing message %r on queue %r.", message.message_id, queue_name)
+         self.emit_before("enqueue", message, delay)
+-        self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
++        try:
++            self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
++        except redis.ConnectionError as e:
++            raise ConnectionClosed(e) from None
+         self.emit_after("enqueue", message, delay)
+         return message
+ 
+diff --git a/dramatiq/middleware/retries.py b/dramatiq/middleware/retries.py
+index 2f4ccf7..2718e4e 100644
+--- a/dramatiq/middleware/retries.py
++++ b/dramatiq/middleware/retries.py
+@@ -22,10 +22,14 @@ import traceback
+ from typing import Callable, Optional
+ 
+ from ..common import compute_backoff
+-from ..errors import Retry
++from ..errors import BrokerConnectionError, Retry
+ from ..logging import get_logger
+ from .middleware import Middleware
+ 
++#: The number of seconds to wait before trying to enqueue a retry
++#: again after a connection error.
++RETRY_ENQUEUE_DELAY_SECS = 5
++
+ #: The default minimum amount of backoff to apply to retried tasks.
+ DEFAULT_MIN_BACKOFF = 15000
+ 
+@@ -144,5 +148,24 @@ class Retries(Middleware):
+             max_backoff = min(max_backoff, DEFAULT_MAX_BACKOFF)
+             _, delay = compute_backoff(retries, factor=min_backoff, max_backoff=max_backoff)
+ 
++        # Like the worker's ack retries: the original is only acked after
++        # this returns, so keep trying while the broker is unreachable.
++        while True:
++            try:
++                broker.enqueue(message, delay=delay)
++                break
++            except BrokerConnectionError as e:
++                self.logger.warning(
++                    "Failed to enqueue a retry for message %r due to a connection error: %s\n"
++                    "The operation will be retried in %s seconds until the connection recovers.",
++                    message.message_id,
++                    e,
++                    RETRY_ENQUEUE_DELAY_SECS,
++                )
++                time.sleep(RETRY_ENQUEUE_DELAY_SECS)
++            except Exception:
++                self.logger.exception("Failed to enqueue a retry for message %r. Marking it as failed.", message.message_id)
++                message.fail()
++                return
++
+         self.logger.info("Retrying message %r in %d milliseconds.", message.message_id, delay)
+-        broker.enqueue(message, delay=delay)

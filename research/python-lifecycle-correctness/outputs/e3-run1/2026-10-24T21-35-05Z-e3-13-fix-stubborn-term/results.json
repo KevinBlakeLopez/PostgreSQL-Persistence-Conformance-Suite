@@ -1,0 +1,392 @@
+{
+  "meta": {
+    "case": "e3-13-fix-stubborn-term",
+    "argv": [
+      "--timeout",
+      "2",
+      "--hard-limit",
+      "20",
+      "--reps",
+      "3",
+      "--case",
+      "e3-13-fix-stubborn-term",
+      "--python",
+      "<venvs>/venv-313-fix/bin/python",
+      "--stubborn",
+      "--signal",
+      "TERM"
+    ],
+    "started_utc": "2026-10-24T21-35-05Z",
+    "host": {
+      "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64"
+    },
+    "versions": {
+      "python": "3.13.11",
+      "implementation": "CPython",
+      "uvicorn": "0.54.0",
+      "starlette": "1.10.0",
+      "fastapi": "0.162.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0"
+    },
+    "settings": {
+      "server": "uvicorn",
+      "app": "asgi",
+      "signal": "TERM",
+      "timeout": 2,
+      "work_delay": 60.0,
+      "release_delay": 0.5,
+      "hold_startup": false,
+      "shield": false,
+      "shared": false,
+      "stubborn": true,
+      "second_signal": null,
+      "hard_limit": 20.0,
+      "reps": 3
+    },
+    "summary": [
+      {
+        "rep": 1,
+        "returncode": -9,
+        "hung": true,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 20.008,
+        "second_signal_after_s": null,
+        "cleanup_started": false,
+        "cleanup_acknowledged_by_backend": false,
+        "cleanup_finished": false,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 20.008,
+          "status_line": "",
+          "bytes": 0
+        }
+      },
+      {
+        "rep": 2,
+        "returncode": -9,
+        "hung": true,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 20.008,
+        "second_signal_after_s": null,
+        "cleanup_started": false,
+        "cleanup_acknowledged_by_backend": false,
+        "cleanup_finished": false,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 20.0084,
+          "status_line": "",
+          "bytes": 0
+        }
+      },
+      {
+        "rep": 3,
+        "returncode": -9,
+        "hung": true,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 20.003,
+        "second_signal_after_s": null,
+        "cleanup_started": false,
+        "cleanup_acknowledged_by_backend": false,
+        "cleanup_finished": false,
+        "lifespan_shutdown_sent": false,
+        "lifespan_shutdown_before_cleanup_finished": false,
+        "http_connection_end_minus_lifespan_shutdown_s": null,
+        "client": {
+          "ended": "eof",
+          "ended_at": 20.0031,
+          "status_line": "",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "rep": 1,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65045",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -9,
+      "hung": true,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.081,
+      "signal_to_exit_s": 20.008,
+      "second_signal_after_s": null,
+      "client": {
+        "ended": "eof",
+        "ended_at": 20.008,
+        "status_line": "",
+        "bytes": 0
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.0022,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0021,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.2022,
+          3,
+          "CALL work request"
+        ],
+        [
+          20.0076,
+          3,
+          "EOF"
+        ],
+        [
+          20.0078,
+          1,
+          "EOF"
+        ],
+        [
+          20.0079,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          20.0079,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          20.008,
+          2,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": false,
+      "cleanup_acknowledged_by_backend": false,
+      "cleanup_finished": false,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877705.965356 25231 lifespan.startup.begin",
+        "1792877705.966109 25231 lifespan.startup.done",
+        "1792877705.968038 25231 request.begin",
+        "1792877708.169947 25231 request.cancellation.suppressed"
+      ]
+    },
+    {
+      "rep": 2,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65059",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -9,
+      "hung": true,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.134,
+      "signal_to_exit_s": 20.008,
+      "second_signal_after_s": null,
+      "client": {
+        "ended": "eof",
+        "ended_at": 20.0084,
+        "status_line": "",
+        "bytes": 0
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.0522,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0521,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.1512,
+          3,
+          "CALL work request"
+        ],
+        [
+          20.0081,
+          3,
+          "EOF"
+        ],
+        [
+          20.0082,
+          1,
+          "EOF"
+        ],
+        [
+          20.0083,
+          2,
+          "EOF"
+        ],
+        [
+          20.0084,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          20.0084,
+          3,
+          "REPLY-ABANDONED work request"
+        ]
+      ],
+      "cleanup_started": false,
+      "cleanup_acknowledged_by_backend": false,
+      "cleanup_finished": false,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877726.061005 25314 lifespan.startup.begin",
+        "1792877726.061666 25314 lifespan.startup.done",
+        "1792877726.113591 25314 request.begin",
+        "1792877728.264691 25314 request.cancellation.suppressed"
+      ]
+    },
+    {
+      "rep": 3,
+      "command": [
+        "<venvs>/venv-313-fix/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "65073",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -9,
+      "hung": true,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.161,
+      "signal_to_exit_s": 20.003,
+      "second_signal_after_s": null,
+      "client": {
+        "ended": "eof",
+        "ended_at": 20.0031,
+        "status_line": "",
+        "bytes": 0
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": null,
+      "backend_events": [
+        [
+          -0.0534,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.0533,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.1494,
+          3,
+          "CALL work request"
+        ],
+        [
+          20.003,
+          3,
+          "EOF"
+        ],
+        [
+          20.003,
+          2,
+          "EOF"
+        ],
+        [
+          20.003,
+          1,
+          "EOF"
+        ],
+        [
+          20.0031,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          20.0031,
+          3,
+          "REPLY-ABANDONED work request"
+        ]
+      ],
+      "cleanup_started": false,
+      "cleanup_acknowledged_by_backend": false,
+      "cleanup_finished": false,
+      "lifespan_shutdown_sent": false,
+      "lifespan_shutdown_before_cleanup_finished": false,
+      "witness": [
+        "1792877746.230284 25667 lifespan.startup.begin",
+        "1792877746.230939 25667 lifespan.startup.done",
+        "1792877746.284102 25667 request.begin",
+        "1792877748.433526 25667 request.cancellation.suppressed"
+      ]
+    }
+  ]
+}

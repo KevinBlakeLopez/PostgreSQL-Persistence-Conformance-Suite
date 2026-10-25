@@ -7,7 +7,8 @@ This is the working tracker for [`python-upstream-contribution-roadmap.md`](pyth
 - **Nothing here is filed unless its row links a filing.** Filed so far:
   - PY-1a: [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), 2026-10-21;
   - PY-1b: [a comment on #1453](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348), 2026-10-24;
-  - PY-2: [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), 2026-10-24.
+  - PY-2: [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), 2026-10-24;
+  - PY-3: [tortoise/tortoise-orm#2383](https://github.com/tortoise/tortoise-orm/issues/2383), 2026-10-25.
 - **The filing log is still [`docs/upstream-submissions.md`](../docs/upstream-submissions.md).** PY-1a is its P1. When an item is posted, record it there, and update the row here.
 - **Every post needs approval** of its exact text and destination (`AGENTS.md` rule 9).
 - **SQLAlchemy text must be written by its author,** in their own words. No agent posts there.
@@ -34,11 +35,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — (A1) | UPSTREAM_ALREADY_TRACKED | Wait on #1453. PY-1b adds to it |
 | PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED | 1 (A1, B1) | SUBMITTED | Posted 2026-10-24 ([comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348)). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
 | PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
-| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | AWAITING_APPROVAL | Approve the exact text of the [drafted issue](python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md). Not filed |
-| PY-5 | SQLAlchemy (docs) | The documented PostgreSQL reset recipe resets nothing on psycopg 3 | CONFIRMED on psycopg 3 | 4 (A5, B3) | NEEDS_VERIFICATION | Run CHK-3, then hand the evidence package to the author |
+| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). One follow-up around 2026-11-08 if silent; decide around 2026-11-22 |
+| PY-5 | SQLAlchemy (docs) | On a transactional psycopg 3 engine, the documented PostgreSQL reset recipe leaves the role, a custom GUC, `search_path`, `statement_timeout` and temp tables in place. On psycopg2, the driver in its URL, it raised on each tested return, and the pool discarded the connection | CONFIRMED on both drivers; CHK-3 | 4 (A5, B3) | READY_FOR_HUMAN_REVIEW | The author writes the discussion or docs PR from CHK-3's [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) |
 | PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | READY_FOR_HUMAN_REVIEW | Write and run the standalone script; draft the issue |
-| PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Prepare the PR and its test; run the touched backends locally |
-| PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | Run CHK-7. The author then writes and posts |
+| PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
+| PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6 | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a cancelled `COMMIT` that PostgreSQL then commits | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | 8 (A7, B8) | NEEDS_VERIFICATION | Run CHK-4, or PP-3 |
 | PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — | DEFERRED | Revisit after PY-1 and PY-2 |
 | PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
@@ -51,6 +52,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-17 | Django | Migration locking (MG-02) | PPCS | — | DOCUMENTATION_ONLY | Optional forum note. Not scheduled |
 | PY-18 | Django | TX-02 not-sent | PPCS; no trigger | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Tortoise ORM | Rollback skipped after a class-25 error in a nested block | Src only | — | DEFERRED | Mention only if the PY-8 discussion invites it |
+| PY-20 | Tortoise ORM | SQLite: after a COMMIT fails, the shared connection stays in the transaction, and later writes return normally and are lost | CONFIRMED with a deferred foreign key | — | NEEDS_VERIFICATION | Run CHK-8 |
 
 ## Scheduled items
 
@@ -168,25 +170,40 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - a conditional PR offer.
 - **Left out of the draft:** PY-8, PY-19, #1094, and the transaction-ID signal. #242 is optional: the draft offers one line for the maintainer to add.
 - **Prerequisites:** CHK-5, done 2026-10-25. Repeat the draft's pre-filing checks on the day of filing. A release after 1.1.9 means running the program again first.
-- **Status:** AWAITING_APPROVAL
-- **Next concrete step:** approval of the exact title, body and destination (`AGENTS.md` rule 9). Nothing is filed.
+- **Filed:** 2026-10-25, as [tortoise/tortoise-orm#2383](https://github.com/tortoise/tortoise-orm/issues/2383), posted as `KevinBlakeLopez` after approval of the exact text, which was revised after an outside adversarial review. The filed title and body match the draft. Recorded in [`docs/upstream-submissions.md`](../docs/upstream-submissions.md) (commit `38bf2a7`).
+- **Status:** SUBMITTED
+- **Next concrete step:** wait for the maintainers. One polite follow-up around 2026-11-08 if there is no reply; decide around 2026-11-22. A pull request is offered only if they pick a direction.
 
 ### PY-5: SQLAlchemy PostgreSQL reset-on-return recipe
 
-- **Project:** SQLAlchemy documentation. 2.1.5 `dialects/postgresql/base.py:277-336`, unchanged on `main` `10f4d1e2d`.
-- **Finding:** on psycopg 3 the recipe resets nothing. Role, GUC, `search_path`, `statement_timeout` and temp tables all carry over. Its URL is psycopg2's, but its calls are psycopg 3's.
+- **Project:** SQLAlchemy documentation, `dialects/postgresql/base.py:275-336`. The file is byte-identical on 2.1.5, 2.1.6 and `main` `10f4d1e2d` (re-checked 2026-10-25).
+- **Finding:** its URL is psycopg2's, but its calls are psycopg 3's.
+  - **On psycopg 3, on a transactional (default) engine,** its statements run inside one transaction, which its own `rollback()` aborts. The role, a custom GUC, `search_path`, `statement_timeout` and temp tables all carry over.
+    - Its `CLOSE ALL` still takes effect: WITH HOLD cursors are closed despite the rollback.
+    - On an AUTOCOMMIT engine the recipe resets everything measured except the role.
+  - **On psycopg2,** `dbapi_connection.execute()` raised `AttributeError` on each tested return. The pool logged "Exception during reset or similar" and invalidated the connection, so unit 2 got a new connection with none of the measured state.
 - **Evidence:**
-  - `research/python-production-failure-gap-analysis/p7_sa_reset_recipe.py` and `output/p7.rep{1,2,3}.out`;
+  - **CHK-3,** [`python-upstream-contribution/chk-3-sa-reset-recipe/`](python-upstream-contribution/chk-3-sa-reset-recipe/README.md), on SQLAlchemy 2.1.6: three runs per driver, the server's statement log, `psql`, a 64-line demo, and a supplement run after an outside review. [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) there is the package for the author;
+  - `research/python-production-failure-gap-analysis/p7_sa_reset_recipe.py` and `output/p7.rep{1,2,3}.out` (2.1.5);
   - the psql checks in that directory's README;
-  - Src: `pool/base.py:1043-1053` and `1451-1467`;
-  - the page's own search-path note (`base.py:340-372`).
-- **Upstream:** none found (issues and discussions, 2026-10-24).
-- **Confidence:** CONFIRMED on psycopg 3. psycopg2 is a HYPOTHESIS (H-d).
+  - Src (2.1.6):
+    - `pool/base.py:1465-1474`: the event is dispatched before the pool's own reset;
+    - `1041-1060`: an exception from it is logged, and the record invalidated;
+  - the page's own search-path note (`base.py:338-371`).
+- **The corrected example (roadmap §7),** run in CHK-3:
+  - it resets all five measured items on both drivers, and keeps the connection. That holds under the default `pool_reset_on_return` too, and when a connection is returned with its transaction open (supplement);
+  - it keeps an AUTOCOMMIT engine in autocommit;
+  - it discards a `search_path` set by the docs' connect-time recipe, while one from startup `options` survives;
+  - added: REPEATABLE READ survives, and psycopg 3's prepared statements keep working.
+- **Upstream:** the recorded queries found no matching report (issues, pull requests and discussions, 2026-10-25).
+  - In discussion #12486 (2025-03), a maintainer pointed a user whose `SET ROLE` and `search_path` carried over to this recipe.
+  - Discussion #6905 (2022-08) is a precedent: a hook's `DISCARD TEMPORARY` did not persist until the hook committed.
+- **Confidence:** CONFIRMED on psycopg 3 and psycopg2. H-d held.
 - **Priority:** 4.
 - **Proposed action:** a corrected example: roll back, then `DISCARD ALL` in autocommit, restoring autocommit afterwards, with notes on scope (roadmap §7). The author writes the discussion or docs PR.
-- **Prerequisites:** CHK-3. The author writes every word of the prose.
-- **Status:** NEEDS_VERIFICATION
-- **Next concrete step:** run CHK-3: the statement log, psycopg2, and the corrected example on both drivers.
+- **Prerequisites:** CHK-3, done 2026-10-25 (UTC). The author writes every word of the prose.
+- **Status:** READY_FOR_HUMAN_REVIEW
+- **Next concrete step:** the author reads CHK-3's `FACTS.md` and writes the discussion or docs PR in their own words. No agent drafts or posts the text.
 
 ### PY-6: asyncpg `Connection.reset()` and `SET ROLE`
 
@@ -206,31 +223,50 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 ### PY-8: Tortoise COMMIT-time exception translation
 
-- **Project:** Tortoise ORM 1.1.9. `develop` `536fc3abd`.
-- **Finding:** `commit()` and `rollback()` lack `translate_exceptions`; `begin()` has it. A deferred-FK violation at `COMMIT` therefore arrives as a raw `asyncpg.exceptions.ForeignKeyViolationError`.
-- **Evidence:**
-  - `research/python-production-failure-gap-analysis/output/p45.rep{1,2,3}.out` (`p5_tortoise`);
-  - Src: `tortoise/backends/asyncpg/client.py:189-208`, and the same pattern in the psycopg, MySQL, SQLite and ODBC clients.
-- **Upstream:** none found.
+- **Project:** Tortoise ORM 1.1.9, the latest release when checked, and `develop` `ad0d6ce2b878` (re-checked 2026-10-25, 03:14–03:20 UTC). The transaction code is byte-identical in both.
+- **Finding:** an integrity error raised by `COMMIT`, such as a deferred foreign key, reaches the application as the driver's exception, not as `tortoise.exceptions.IntegrityError`.
+  - Observed on asyncpg, psycopg and SQLite, 3 of 3 each, on 1.1.9 and on `develop`.
+  - `get_or_create()` and `update_or_create()` then skip their `IntegrityError` fallback.
+- **Correction (2026-10-25).** This item and roadmap §3.2 H said that every backend decorates `begin()`. SQLite's `begin()` catches only `OperationalError`, inline, and ODBC's translates nothing (Src).
+- **Evidence:** [`python-upstream-contribution/py-8-tortoise-commit-translation/`](python-upstream-contribution/py-8-tortoise-commit-translation/README.md), committed as `2757a35`:
+  - step 1: the reproduction; check 1, a nested block's failed `RELEASE`; check 2, SQLite after a failed COMMIT; and four candidate changes, measured against them and against Tortoise's suite;
+  - step 2: the branch, its tests and its suite runs;
+  - [`review/`](python-upstream-contribution/py-8-tortoise-commit-translation/review/README.md): a package for an independent review, with verbatim materials, checks of `update_or_create()`, connection reuse and an explicit `commit()`, and an assessment. Its verdict was READY WITH MINOR CHANGES, and the change was applied;
+  - P5's original runs: `research/python-production-failure-gap-analysis/output/p45.rep{1,2,3}.out` (`p5_tortoise`).
+- **The chosen approach (the maintainer, 2026-10-25):** `commit()` translates only integrity errors, on asyncpg and psycopg.
+  - Decorating `commit()` with the full translator made a failed nested `RELEASE` skip the outer rollback.
+  - Translating on SQLite made `get_or_create()` return a row that was never committed (PY-20).
+  - `rollback()` is left alone: no reachable case changed.
+- **The branch:** `fix/commit-integrity-error` in a local clone, from `develop` `ad0d6ce2b878`, uncommitted. Its diff is the evidence's `branch/fix-v2.patch`.
+  - Its two tests fail on `develop` and pass on the branch.
+  - The full suites on SQLite, asyncpg and psycopg gain only those tests.
+  - `ruff`, `mypy`, `bandit`, the build and `twine check` pass.
+- **Upstream:** no duplicate found (34 queries, 2026-10-25). Open PR #2293 adds a line inside every `commit()`.
 - **Confidence:** CONFIRMED.
-- **Priority:** 6. It is independent of PY-3 and can be done at any time.
-- **Proposed action:** a PR that adds translation to `commit()` and `rollback()` in each backend, with a deferred-FK test. The description asks whether the omission was deliberate.
-- **Prerequisites:** run Tortoise's test suite locally for the touched backends.
+- **Priority:** 6. It is independent of PY-3.
+- **Proposed action:** one PR, as on the branch. Its description asks whether leaving `commit()` untranslated was deliberate, and states the compatibility change. MySQL and ODBC are neither changed nor run.
 - **Status:** READY_FOR_HUMAN_REVIEW
-- **Next concrete step:** a branch from `develop`, the change, the test, and the local runs.
+- **Next concrete step:** draft the PR text and the commit message for approval. The user forks, pushes and opens the PR. After that, the changelog's `(#XXXX)` gets the PR number.
 
 ### PY-7: SQLAlchemy P5a (failed `commit()`, then `close()`)
 
-- **Project:** SQLAlchemy Core, 1.4.0 to 2.1.5. `RootTransaction` on `main` `10f4d1e2d` is unchanged. 2.1.6 has not been run.
+- **Project:** SQLAlchemy Core. The runs covered 1.4.0, 1.4.54, 2.0.55 and 2.1.5 (2026-10-18), and 2.1.6 (CHK-7). `RootTransaction` on `main` `10f4d1e2d` is unchanged. 2.1.6 changed `Connection.close()` and `_finalize_fairy` (#13699), but the reproduced path behaves as before (Src, and the CHK-7 runs).
 - **Finding:** `close()` sends no ROLLBACK, and `transaction_was_reset` is True while the transaction is open. The next checkout commits the doomed writes.
-- **Evidence:** `../python-orm-transactions/docs/sqlalchemy-p5a-close-review.md` and `check/p5a_close_v2.{py,out}` (Ext; commit `cca9b98`, on that repository's `origin/main`).
-- **Upstream:** none found (2026-10-18). Precedent: #13381, fixed.
-- **Confidence:** CONFIRMED. Reachability is limited to a commit listener that raises, or to mixing APIs.
+- **Evidence:**
+  - `../python-orm-transactions/docs/sqlalchemy-p5a-close-review.md` and `check/p5a_close_v2.{py,out}` (Ext; commit `cca9b98`, on that repository's `origin/main`);
+  - **CHK-7,** `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (Ext; commit `3c9758b`), whose `FACTS.md` is the package for the author.
+    - On 2.1.6 with psycopg 3.3.6, the unchanged script's stdout was byte-identical to the recorded output, 3 of 3.
+    - The server log and `psql` show the next checkout's `COMMIT` committing the transaction whose `commit()` raised.
+- **Upstream:** none found.
+  - Re-checked 2026-10-25 for 2026-10-18 onward, with the review's twelve issue queries and five replacement discussion queries; no matching item was found.
+  - #13699 (fixed in 2.1.6) touches `Connection.close()`, but it is a cancellation during the reset, not P5a.
+  - Precedent: #13381, fixed.
+- **Confidence:** CONFIRMED for a `commit()` that fails before sending, on a healthy connection. The demonstrated triggers that replace no DBAPI method are a raising commit listener, and mixing psycopg's and SQLAlchemy's transaction APIs. Reachability through ordinary driver or OS failures, and production frequency, are not established.
 - **Priority:** 7. It is ready, and can move earlier if the author prefers. Leave time after PY-5.
 - **Proposed action:** a Usage Questions discussion, written by the author in their own words. The venue was decided on 2026-10-18.
-- **Prerequisites:** CHK-7, and a fresh duplicate search.
+- **Prerequisites:** CHK-7 and a fresh duplicate search, both done 2026-10-25 (UTC).
 - **Status:** READY_FOR_HUMAN_REVIEW
-- **Next concrete step:** run CHK-7 on 2.1.6.
+- **Next concrete step:** the author writes and posts, in their own words, in Usage Questions. The draft's script and Observed block are still valid on 2.1.6. Its line numbers are 2.1.5's; CHK-7's `FACTS.md` maps them to 2.1.6.
 
 ### PY-4: SQLAlchemy `after_rollback` during a cancelled `COMMIT`
 
@@ -264,8 +300,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-17 | PPCS `reports/examples/2026-10-21T20-00-04Z-178fa4` | Django #30490, #34610 | Optional forum note | — | DOCUMENTATION_ONLY | Not scheduled |
 | PY-18 | PPCS `6d8443` | — | None | — | CLOSED_NO_ACTION | Keep in PPCS |
 | PY-19 | Src: `tortoise/backends/asyncpg/client.py:96-97`, `backends/base/client.py` (exits) | — | None | A run that shows a consequence | DEFERRED | — |
+| PY-20 | `python-upstream-contribution/py-8-tortoise-commit-translation/` (check 2; README "A separate candidate") | None found in PY-8's queries; not searched on its own | An issue, if CHK-8 holds | CHK-8 | NEEDS_VERIFICATION | Run CHK-8 |
 
-All `output/` paths are under `research/python-production-failure-gap-analysis/`.
+All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's.
 
 ## Verification checks
 
@@ -275,11 +312,12 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | --- | --- | --- | --- |
 | CHK-1 | PY-1b | Optional | NOT_STARTED. Not run for the PY-1b draft |
 | CHK-2 | PY-2 | Required before posting | DONE 2026-10-24. Reproduced, with no discrepancy from P1: [`python-upstream-contribution/chk-2-asyncpg/`](python-upstream-contribution/chk-2-asyncpg/README.md) |
-| CHK-3 | PY-5 | Required | NOT_STARTED |
+| CHK-3 | PY-5 | Required | DONE 2026-10-25 (UTC). The measured arms reproduced on both drivers, and the corrected example reset all five measured items. A supplement after the outside review narrowed "resets nothing": [`python-upstream-contribution/chk-3-sa-reset-recipe/`](python-upstream-contribution/chk-3-sa-reset-recipe/README.md) |
 | CHK-4 | PY-4 | Required (or PP-3) | NOT_STARTED |
 | CHK-5 | PY-3 | Recommended before the issue; required before a PR | DONE 2026-10-25 (UTC). Reproduced on both PostgreSQL backends, the savepoint variant included, with no discrepancy from P4: [`python-upstream-contribution/chk-5-tortoise/`](python-upstream-contribution/chk-5-tortoise/README.md) |
 | CHK-6 | PY-6 | Optional | NOT_STARTED |
-| CHK-7 | PY-7 | Required | NOT_STARTED |
+| CHK-7 | PY-7 | Required | DONE 2026-10-25 (UTC). Reproduced on SQLAlchemy 2.1.6, 3 of 3, with output byte-identical to the recorded run: `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (commit `3c9758b`) |
+| CHK-8 | PY-20 | Required before an issue | NOT_STARTED. A duplicate search of its own, and the `SQLITE_BUSY` trigger (a reader holding the file during COMMIT), which SQLite documents and which has not been run |
 
 ### CHK-2 result (2026-10-24)
 
@@ -335,6 +373,42 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 - **(b)** The savepoint variant loses the write too.
 - **(c)** The psycopg backend behaves the same.
 - **The added changed-field arms.** Neither retry path skips SQL.
+
+### CHK-3 result (2026-10-25)
+
+**The setup:**
+
+- containers `ppcs-chk3-sa-reset-pg` (the program and the psql checks) and then `ppcs-chk3-demo-pg` (the demo), PPCS's pinned 18.6 digest, both on `127.0.0.1:55492`, with tmpfs, `log_statement=all` and connection logging. Both removed. `ppcs-postgres` was not touched;
+- SQLAlchemy 2.1.6, in one virtualenv with psycopg 3.3.6 and another with psycopg2-binary 2.9.13, Python 3.13.11;
+- the login `app_login`, not a superuser, a member of `tenant_a`.
+
+**The results,** each in 3 of 3 runs, with byte-identical output per driver:
+
+| Question | psycopg 3 | psycopg2 |
+| --- | --- | --- |
+| (a), (b): the documented recipe | The hook ran on every return. It sent `BEGIN`, `CLOSE ALL`, `RESET ALL`, `DISCARD TEMP` and `ROLLBACK` in one transaction, which is `aborted`. All five state items carried over | The hook raised `AttributeError` (`execute`) on each tested return. The pool logged it and invalidated the connection. The next checkout was a new backend, with none of the five items |
+| (c): the corrected example | All five reset; same connection | All five reset; same connection |
+| (d): on an AUTOCOMMIT engine | Autocommit kept (P7's variant, as a control, loses it) | Autocommit kept |
+| (e): connect-time `SET SESSION search_path` | Lost after the first return | Lost |
+| (e): startup `options` | Survives | Survives |
+| Added: REPEATABLE READ | Survives | Survives. psycopg2 adds `SET default_transaction_isolation TO DEFAULT` per return |
+| Added: prepared statements | psycopg sends `DEALLOCATE ALL` and re-prepares, with no error | — |
+| Supplement: `CLOSE ALL` and a WITH HOLD cursor (`psql`) | The recipe's rolled-back block still closes the cursor; an empty rolled-back block does not | — |
+| Supplement: the documented recipe on an AUTOCOMMIT engine | Resets everything measured except the role | — (the hook raises first) |
+| Supplement: the corrected example, default `pool_reset_on_return` | All five reset | All five reset |
+| Supplement: a connection returned with its transaction open | `transaction_was_reset=True`; the uncommitted row never appears; all five reset (state carries over without a hook) | The same |
+
+**Agreement.** The witness, the server's statement log, and `psql` (the reset transactions' fates, and all 48 rows) agree. The program's hash was the same before and after its six runs. A 64-line demo, run three times per driver, reproduced the documented and corrected results.
+
+### CHK-7 result (2026-10-25)
+
+- **The run.** `check/p5a_close_v2.py`, unchanged, on SQLAlchemy 2.1.6 with psycopg 3.3.6. It used its own container, `chk7-p5a-pg` on `127.0.0.1:55454` (the script's URL), with tmpfs and `log_statement=all`, since removed.
+- **3 of 3 runs** exited 0, with stdout byte-identical to the recorded `.out`. After masking the paths, stderr differs from the saved 2026-10-18 run of the draft's script in two line numbers, each appearing twice:
+  - `pool/base.py` 1485 → 1492, from SQLAlchemy 2.1.6;
+  - the script's frame 31 → 38, from v2's added reset listener.
+
+  The v2 script's own 2026-10-18 stderr was not saved.
+- **Independent confirmation.** In the server log, the next checkout's insert and `COMMIT` share the `doomed` insert's virtual transaction, with no `ROLLBACK` between them. `psql` reads those transactions as `committed`.
 
 ## Evidence preservation (PP-1)
 
@@ -413,6 +487,17 @@ The rest of this section is the plan as it stood before the commits.
     - Option (b) does not depend on nesting.
     - The recommendation stands: ask the maintainers. The draft presents both options without choosing.
   - **The added control** (a field changed before the retry, at the maintainer's request) changed nothing. Both retry paths send an UPDATE.
+- **CHK-3 and CHK-7 (2026-10-25 UTC).** The five-item result on a transactional engine, and the P5a reproduction, remain CONFIRMED. One earlier wording was too broad.
+  - **"The recipe resets nothing"** (roadmap §1 and §3.2 E, and this tracker before the check) holds only for the five measured items on a transactional psycopg 3 engine. The recipe's `CLOSE ALL` does close WITH HOLD cursors. On an AUTOCOMMIT engine the recipe resets everything measured except the role (the CHK-3 supplement, after an outside review).
+  - **Refinements for PY-5:**
+    - "The hook ran" was an inference from P7. It is now observed: a counter, and the statements in the server log.
+    - H-d held for each tested return. On psycopg2 the effect is not leaked state but no connection reuse, because every tested return discarded the connection.
+    - Two Judg or Src claims in roadmap §3.2 E.3 are now observed: startup `options` survive `DISCARD ALL`, and psycopg 3 recovers its prepared statements.
+  - **Line numbers.** On 2.1.6 the code PY-5 and PY-7 cite sits lower: `RootTransaction` by 5 lines, and `_reset`, `_close_special` and `_checkin` by 7. The P5a draft, and PY-5's earlier Src lines, are 2.1.5's. Both `FACTS.md` files give the 2.1.6 lines.
+
+- **PY-8 (2026-10-25 UTC). No conclusion changed.** PY-8 stays CONFIRMED, now on three backends.
+  - **A correction.** Not every backend decorates `begin()` (see PY-8).
+  - **A new item.** Check 2 found PY-20, which is independent of PY-8. It is the reason the PR leaves SQLite alone.
 
 ## Change log
 
@@ -440,3 +525,34 @@ The rest of this section is the plan as it stood before the commits.
   - Re-checked upstream for PY-3: no duplicate; `develop` moved to `ad0d6ce2b`, with `save()` unchanged; PyPI's latest is still 1.1.9.
   - Drafted the PY-3 issue; it is not filed. PY-3 moved to AWAITING_APPROVAL.
   - Nothing committed.
+- **2026-10-25, about 02:00 UTC (2026-10-24 PDT).**
+  - **Ran CHK-7.** P5a reproduced on SQLAlchemy 2.1.6, 3 of 3, with output byte-identical to the recorded run. Its evidence and `FACTS.md` are in `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/`, uncommitted there.
+  - **Ran CHK-3.** The measured arms reproduced on both drivers, and the corrected example reset all five measured items on psycopg 3 and psycopg2: [`python-upstream-contribution/chk-3-sa-reset-recipe/`](python-upstream-contribution/chk-3-sa-reset-recipe/README.md), with `FACTS.md`.
+  - **Re-checked upstream** for PY-5 and PY-7:
+    - no duplicate;
+    - the recipe's text is unchanged on `main`;
+    - #13699 is related code, not P5a;
+    - 2.1.6 is still the latest release.
+  - **Status.** PY-5 moved to READY_FOR_HUMAN_REVIEW. PY-7 stays READY_FOR_HUMAN_REVIEW. Both await their author's own text.
+  - **Nothing committed, posted or filed.** `docs/upstream-submissions.md` was not edited.
+- **2026-10-25, about 03:30 UTC (2026-10-24 PDT).**
+  - **An outside adversarial review** rated CHK-3 and CHK-7 SOUND WITH CHANGES, this tracker ACCURATE WITH CHANGES, and the commit plan NOT READY. Every required run reproduced byte for byte.
+  - **I verified its findings and accepted all of them:**
+    - "resets nothing" was too broad;
+    - CHK-3's fact 6 was wrong for psycopg2;
+    - CHK-7 generalized its xid reasoning;
+    - this tracker misattributed a stderr line shift;
+    - the commit plan did not check committed blobs.
+  - **The maintainer approved the CHK-3 supplement:** `CLOSE ALL` with a WITH HOLD cursor, the documented recipe on an AUTOCOMMIT engine, the corrected example under the default reset, and a connection returned with its transaction open. 3 of 3 runs each; results as in "CHK-3 result".
+  - **Corrected:** both `FACTS.md` files, both READMEs, this tracker's PY-5, PY-7, CHK-3 and CHK-7 text, and the commit plan, which now builds commits outside the shared index.
+  - **Nothing committed, posted or filed.** The review's own files stay local.
+- **2026-10-25, about 14:46 UTC (2026-10-25 PDT).** Committed at the maintainer's approval:
+  - the CHK-7 evidence as `3c9758b`, in `../python-orm-transactions`;
+  - the CHK-3 evidence as `f9daa31`;
+  - this tracker update, in the commit after `f9daa31`.
+- **2026-10-25, 03:14–14:05 UTC.** PY-8 steps 1 and 2, and a review package.
+  - Ran step 1's checks and candidates, implemented the chosen approach on a local Tortoise branch, and ran the review checks: [`python-upstream-contribution/py-8-tortoise-commit-translation/`](python-upstream-contribution/py-8-tortoise-commit-translation/README.md).
+  - The changelog wording the review recommended was applied at the maintainer's request.
+  - Committed and pushed at the maintainer's request: the evidence as `2757a35`, a correction of three times in its READMEs as `ed8e236`, and this tracker update in the commit after it. The Tortoise branch is not committed, and nothing is filed.
+  - New: PY-20 and CHK-8.
+  - **PY-3 recorded as SUBMITTED** ([#2383](https://github.com/tortoise/tortoise-orm/issues/2383), filed 2026-10-25 by another session and logged in `docs/upstream-submissions.md` in `38bf2a7`): the header list, the summary row and PY-3's status. This tracker had not been updated when it was filed.

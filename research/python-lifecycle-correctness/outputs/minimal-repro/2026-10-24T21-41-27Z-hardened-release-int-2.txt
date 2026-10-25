@@ -1,0 +1,47 @@
+$ venv-313/bin/python minimal_repro.py --sigint
+INFO:     Started server process [29131]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:50096 (Press CTRL+C to quit)
+app: request started
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+ERROR:    Cancel 1 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+app: cleanup started
+app: lifespan shutdown
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29131]
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "<research>/reproductions/minimal_repro.py", line 34, in app
+    await asyncio.Event().wait()  # outlives the graceful-shutdown timeout
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError: Task cancelled, timeout graceful shutdown exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<venvs>/venv-313/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 411, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venvs>/venv-313/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<research>/reproductions/minimal_repro.py", line 37, in app
+    await asyncio.sleep(0.5)  # one more awaited step, e.g. a rollback
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/tasks.py", line 718, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+INFO:     127.0.0.1:50097 - "GET / HTTP/1.1" 500 Internal Server Error
+--- sent SIGINT; server exit status 0
+--- cleanup finished: NO; finished before lifespan shutdown: NO
+(script exit status 1)

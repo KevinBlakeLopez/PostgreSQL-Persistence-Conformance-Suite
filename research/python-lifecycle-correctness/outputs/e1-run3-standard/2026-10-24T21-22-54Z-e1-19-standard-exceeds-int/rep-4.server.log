@@ -1,0 +1,55 @@
+INFO:     Started server process [19357]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:64334 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+ERROR:    Cancel 1 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19357]
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "<research>/reproductions/backend_link.py", line 70, in unit_of_work
+    await link.call("work")
+  File "<research>/reproductions/backend_link.py", line 49, in call
+    if not await self.reader.readline():
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 562, in readline
+    line = await self.readuntil(sep)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 677, in readuntil
+    await self._wait_for_data('readuntil')
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 539, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError: Task cancelled, timeout graceful shutdown exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<venvs>/venv-313-std/lib/python3.13/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venvs>/venv-313-std/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<research>/reproductions/asgi_app.py", line 24, in app
+    await unit_of_work("request", on_done=respond)
+  File "<research>/reproductions/backend_link.py", line 83, in unit_of_work
+    await link.call("release")
+  File "<research>/reproductions/backend_link.py", line 49, in call
+    if not await self.reader.readline():
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 562, in readline
+    line = await self.readuntil(sep)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 677, in readuntil
+    await self._wait_for_data('readuntil')
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 539, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError
+INFO:     127.0.0.1:64338 - "GET / HTTP/1.1" 500 Internal Server Error

@@ -1,0 +1,58 @@
+Exception during reset or similar
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1020, in _finalize_fairy
+    fairy._reset(
+    ~~~~~~~~~~~~^
+        pool,
+        ^^^^^
+    ...<2 lines>...
+        asyncio_safe=can_manipulate_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1466, in _reset
+    pool.dispatch.reset(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.dbapi_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/event/attr.py", line 514, in __call__
+    fn(*args, **kw)
+    ~~^^^^^^^^^^^^^
+  File "<here>/demo_reset_recipe.py", line 20, in _reset_postgresql
+    dbapi_connection.execute("CLOSE ALL")
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'
+Exception during reset or similar
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1020, in _finalize_fairy
+    fairy._reset(
+    ~~~~~~~~~~~~^
+        pool,
+        ^^^^^
+    ...<2 lines>...
+        asyncio_safe=can_manipulate_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1466, in _reset
+    pool.dispatch.reset(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.dbapi_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/event/attr.py", line 514, in __call__
+    fn(*args, **kw)
+    ~~^^^^^^^^^^^^^
+  File "<here>/demo_reset_recipe.py", line 20, in _reset_postgresql
+    dbapi_connection.execute("CLOSE ALL")
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'

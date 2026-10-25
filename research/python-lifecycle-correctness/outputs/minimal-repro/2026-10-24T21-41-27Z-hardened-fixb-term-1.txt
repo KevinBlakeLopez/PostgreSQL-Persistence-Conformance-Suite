@@ -1,0 +1,37 @@
+$ venv-313-fixb/bin/python minimal_repro.py 
+INFO:     Started server process [29223]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:50115 (Press CTRL+C to quit)
+app: request started
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+ERROR:    Cancel 1 running task(s), timeout graceful shutdown exceeded
+app: cleanup started
+app: cleanup finished
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "<venvs>/venv-313-fixb/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 407, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venvs>/venv-313-fixb/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<research>/reproductions/minimal_repro.py", line 34, in app
+    await asyncio.Event().wait()  # outlives the graceful-shutdown timeout
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError: Task cancelled, timeout graceful shutdown exceeded
+INFO:     127.0.0.1:50116 - "GET / HTTP/1.1" 500 Internal Server Error
+INFO:     Waiting for application shutdown.
+app: lifespan shutdown
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29223]
+--- sent SIGTERM; server exit status -15
+--- cleanup finished: yes; finished before lifespan shutdown: yes
+(script exit status 0)

@@ -1,0 +1,343 @@
+{
+ "program": "chk3_supplement.py",
+ "driver": "psycopg",
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.6",
+  "psycopg": "3.3.6",
+  "impl": "binary",
+  "libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "results": [
+  {
+   "arm": "documented-autocommit",
+   "what": "the documented recipe on an AUTOCOMMIT engine",
+   "engine": {
+    "pool_reset_on_return": null,
+    "isolation_level": "AUTOCOMMIT"
+   },
+   "flow": "committed",
+   "unit1": {
+    "autocommit": true
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": true,
+    "saw": {
+     "current_user": "tenant_a",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed"
+    },
+    "row_visible_to_witness_before_unit_ended": true
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by tenant_a"
+    ],
+    "unit1_uncommitted_row": "n/a",
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": true,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": true
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": true,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": true
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-default-reset",
+   "what": "the corrected example with the default pool_reset_on_return",
+   "engine": {},
+   "flow": "committed",
+   "unit1": {
+    "autocommit": false
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed"
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_uncommitted_row": "n/a",
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "default-open-transaction",
+   "what": "control: no hook; connection returned with a transaction open",
+   "engine": {},
+   "flow": "open",
+   "unit1": {
+    "autocommit": false,
+    "status_when_returned": "INTRANS"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "tenant_a",
+     "session_user": "app_login",
+     "app.tenant_id": "a",
+     "search_path": "tenant_s, public",
+     "statement_timeout": "54321ms",
+     "temp_table_visible": true,
+     "transaction_isolation": "read committed"
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "tenant_s.item by tenant_a"
+    ],
+    "unit1_uncommitted_row": [
+     "NOT VISIBLE"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 1
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": true,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-open-transaction",
+   "what": "the corrected example; connection returned with a transaction open",
+   "engine": {
+    "pool_reset_on_return": null
+   },
+   "flow": "open",
+   "unit1": {
+    "autocommit": false,
+    "status_when_returned": "INTRANS"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed"
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_uncommitted_row": [
+     "NOT VISIBLE"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": true,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-open-transaction-default-reset",
+   "what": "the corrected example with the default reset; connection returned with a transaction open",
+   "engine": {},
+   "flow": "open",
+   "unit1": {
+    "autocommit": false,
+    "status_when_returned": "INTRANS"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed"
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_uncommitted_row": [
+     "NOT VISIBLE"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": true,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+scenario: reset-fails-control
+Z         commit(), then close()                                                                       returned normally
+observer  pool backend before A's close()                                                              state=idle xact_open=false xid=false xmin=false
+observer  committed probe_row.v = 1 after A's last statement                                           done
+A         close()                                                                                      returned normally
+observer  pool backend after A's close()                                                               state=idle xact_open=false xid=false xmin=false
+B         same physical session as A                                                                   true
+B         getTransactionIsolation() through the pool                                                   READ_COMMITTED
+B         show transaction_isolation                                                                   read committed
+B         B's first statement is not its transaction's first (now() < statement_timestamp() - 500 ms)  false
+B         probe_row.v as B reads it (observer committed 1)                                             1
+observer  where B's committed insert landed                                                            public/ssc_app
+B         close()                                                                                      returned normally
+C         same physical session as A                                                                   true
+C         show transaction_isolation                                                                   read committed
+C         close()                                                                                      returned normally

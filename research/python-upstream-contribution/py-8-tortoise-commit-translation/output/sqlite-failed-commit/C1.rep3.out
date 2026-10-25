@@ -1,0 +1,69 @@
+candidate C1; tortoise.backends.sqlite.client.SqliteTransactionWrapper source 5b73d8440546ae44
+before anything:
+    connections.get('default') is SqliteClient
+    in_transaction() would return SqliteTransactionContext
+    shared connection in_transaction: False
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+1. in_transaction() with an INSERT that violates the deferred foreign key
+  raised tortoise.exceptions.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): True
+  __cause__: None
+  __context__: sqlite3.IntegrityError
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    tortoise/backends/sqlite/client.py:208 __aexit__
+    connections.get('default') is SqliteClient
+    in_transaction() would return SqliteTransactionContext
+    shared connection in_transaction: True
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+2. plain Note.create(id=1) outside a transaction block
+  returned normally
+    connections.get('default') is SqliteClient
+    in_transaction() would return SqliteTransactionContext
+    shared connection in_transaction: True
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+3. in_transaction() writes note 2
+  raised sqlite3.IntegrityError: FOREIGN KEY constraint failed
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: SQLITE_CONSTRAINT_FOREIGNKEY
+  raised through:
+    asyncio/tasks.py:507 wait_for
+    tortoise/backends/sqlite/client.py:197 __aenter__
+    tortoise/backends/sqlite/client.py:238 begin
+    aiosqlite/core.py:193 commit
+    aiosqlite/core.py:160 _execute
+    aiosqlite/core.py:63 _connection_worker_thread
+    connections.get('default') is SqliteTransactionWrapper
+    in_transaction() would return NestedTransactionContext
+    shared connection in_transaction: True
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+4. in_transaction() writes note 3
+  returned normally
+    connections.get('default') is SqliteTransactionWrapper
+    in_transaction() would return NestedTransactionContext
+    shared connection in_transaction: True
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+5. plain Note.create(id=4) outside a transaction block
+  returned normally
+    connections.get('default') is SqliteTransactionWrapper
+    in_transaction() would return NestedTransactionContext
+    shared connection in_transaction: True
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+6. Tortoise.close_connections()
+  raised builtins.AttributeError: 'SqliteTransactionWrapper' object has no attribute 'filename'
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: None
+  __context__: None
+  driver error code: None
+  raised through:
+    tortoise/__init__.py:478 close_connections
+    tortoise/context.py:442 close_connections
+    tortoise/connection.py:277 close_all
+    tortoise/backends/sqlite/client.py:101 close
+    shared connection in_transaction: (closed)
+    committed, read by a separate connection: deferred_child rows 0, note ids []
+7. the shared aiosqlite connection is closed directly
+  already closed
+    committed, read by a separate connection: deferred_child rows 0, note ids []

@@ -1,0 +1,136 @@
+[2026-10-24 21:43:30,047] [PID 34965] [MainThread] [dramatiq.MainProcess] [INFO] Dramatiq '2.2.1' is booting up.
+[2026-10-24 21:43:30,010] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading broker...
+[2026-10-24 21:43:30,038] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Loading modules...
+[2026-10-24 21:43:30,038] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Sending forks to main process...
+[2026-10-24 21:43:30,038] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [DEBUG] Starting worker threads...
+[2026-10-24 21:43:30,040] [PID 34971] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for queue 'default'.
+[2026-10-24 21:43:30,040] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Running consumer thread...
+[2026-10-24 21:43:30,040] [PID 34971] [MainThread] [dramatiq.worker._WorkerMiddleware] [DEBUG] Adding consumer for delay queue 'default.DQ'.
+[2026-10-24 21:43:30,040] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Running consumer thread...
+[2026-10-24 21:43:30,040] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Running worker thread...
+[2026-10-24 21:43:30,047] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Worker process is ready for action.
+[2026-10-24 21:43:30,052] [PID 34971] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:43:30,061] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' onto delay queue.
+[2026-10-24 21:43:30,061] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99' onto delay queue.
+[2026-10-24 21:43:30,061] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '379db19d-6553-45d9-93f6-771ec6e69407' onto delay queue.
+[2026-10-24 21:43:30,061] [PID 34971] [Thread-2] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:43:55,787] [PID 34971] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' on queue 'default'.
+[2026-10-24 21:43:56,089] [PID 34971] [Thread-3] [redis.client] [DEBUG] Operation failed, with connection: <redis.connection.Connection(host=127.0.0.1,port=56393,db=0)>, details: not connected
+[2026-10-24 21:43:56,090] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [CRITICAL] Consumer encountered an unexpected error.
+Traceback (most recent call last):
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/worker.py", line 321, in run
+    self.handle_delayed_messages()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/worker.py", line 362, in handle_delayed_messages
+    self.broker.enqueue(new_message)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 184, in enqueue
+    self.do_enqueue(queue_name, message.options["redis_message_id"], message.encode())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/dramatiq/brokers/redis.py", line 278, in do_dispatch
+    return dispatch(args=args, keys=keys)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/commands/core.py", line 10936, in __call__
+    return client.evalsha(self.sha, len(keys), *args)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/commands/core.py", line 11294, in evalsha
+    return self._evalsha("EVALSHA", sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/commands/core.py", line 11262, in _evalsha
+    return self.execute_command(command, sha, numkeys, *keys_and_args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/client.py", line 867, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/client.py", line 889, in _execute_command
+    result = conn.retry.call_with_retry(
+        lambda: self._send_command_parse_response(
+    ...<3 lines>...
+        with_failure_count=True,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/client.py", line 890, in <lambda>
+    lambda: self._send_command_parse_response(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        conn, command_name, *args, **options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/client.py", line 819, in _send_command_parse_response
+    return self.parse_response(conn, command_name, **options)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/client.py", line 935, in parse_response
+    response = connection.read_response()
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/connection.py", line 1407, in read_response
+    response = self._parser.read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 40, in read_response
+    result = self._read_response(
+        disable_decoding=disable_decoding,
+        push_request=push_request,
+        timeout=timeout,
+    )
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/_parsers/resp3.py", line 65, in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/_parsers/socket.py", line 117, in readline
+    self._read_from_socket(timeout=timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$SCRATCH/scratchpad/venvs/fix-redis-reconnect/lib/python3.13/site-packages/redis/_parsers/socket.py", line 67, in _read_from_socket
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+[2026-10-24 21:43:56,100] [PID 34971] [Thread-3] [dramatiq.brokers.redis._RedisConsumer] [DEBUG] Re-enqueueing ['15889284-94de-4391-af44-1d50f20c5312', '1b10945a-266a-49a9-b147-e20eb86982b0', 'a7b475c4-a53b-47ae-b793-78741f11a2ad'] on queue 'default.DQ'.
+[2026-10-24 21:43:56,102] [PID 34971] [Thread-3] [redis.connection] [DEBUG] Failed to enable maintenance notifications: unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+[2026-10-24 21:43:56,106] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [INFO] Restarting consumer in 3.00 seconds.
+[2026-10-24 21:43:56,540] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' onto work queue.
+[2026-10-24 21:43:56,540] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('delayed-0', {'default': 'ok'}) with id '1a55157a-3a0f-4412-97dc-2ee4ad739690'.
+[2026-10-24 21:43:56,540] [PID 34971] [Thread-4] [app.job] [DEBUG] Received args=('delayed-0', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:43:56,544] [PID 34971] [Thread-4] [app.job] [DEBUG] Completed after 4.04ms.
+[2026-10-24 21:43:56,545] [PID 34971] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '1a55157a-3a0f-4412-97dc-2ee4ad739690'.
+[2026-10-24 21:43:59,118] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' onto delay queue.
+[2026-10-24 21:43:59,118] [PID 34971] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' on queue 'default'.
+[2026-10-24 21:43:59,123] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message '1a55157a-3a0f-4412-97dc-2ee4ad739690'.
+[2026-10-24 21:43:59,130] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99' onto delay queue.
+[2026-10-24 21:43:59,130] [PID 34971] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99' on queue 'default'.
+[2026-10-24 21:43:59,135] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99'.
+[2026-10-24 21:43:59,140] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Pushing message '379db19d-6553-45d9-93f6-771ec6e69407' onto delay queue.
+[2026-10-24 21:43:59,140] [PID 34971] [Thread-3] [dramatiq.broker.RedisBroker] [DEBUG] Enqueueing message '379db19d-6553-45d9-93f6-771ec6e69407' on queue 'default'.
+[2026-10-24 21:43:59,145] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Acknowledging message '379db19d-6553-45d9-93f6-771ec6e69407'.
+[2026-10-24 21:43:59,219] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '1a55157a-3a0f-4412-97dc-2ee4ad739690' onto work queue.
+[2026-10-24 21:43:59,219] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99' onto work queue.
+[2026-10-24 21:43:59,219] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('delayed-0', {'default': 'ok'}) with id '1a55157a-3a0f-4412-97dc-2ee4ad739690'.
+[2026-10-24 21:43:59,219] [PID 34971] [Thread-4] [app.job] [DEBUG] Received args=('delayed-0', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:43:59,221] [PID 34971] [Thread-4] [app.job] [DEBUG] Completed after 1.35ms.
+[2026-10-24 21:43:59,221] [PID 34971] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '1a55157a-3a0f-4412-97dc-2ee4ad739690'.
+[2026-10-24 21:43:59,226] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('delayed-1', {'default': 'ok'}) with id 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99'.
+[2026-10-24 21:43:59,226] [PID 34971] [Thread-4] [app.job] [DEBUG] Received args=('delayed-1', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:43:59,231] [PID 34971] [Thread-4] [app.job] [DEBUG] Completed after 4.88ms.
+[2026-10-24 21:43:59,231] [PID 34971] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message 'eb14c3a4-5d4c-40e0-ba8e-aba8c2f44b99'.
+[2026-10-24 21:43:59,249] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Pushing message '379db19d-6553-45d9-93f6-771ec6e69407' onto work queue.
+[2026-10-24 21:43:59,249] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Received message job('delayed-2', {'default': 'ok'}) with id '379db19d-6553-45d9-93f6-771ec6e69407'.
+[2026-10-24 21:43:59,250] [PID 34971] [Thread-4] [app.job] [DEBUG] Received args=('delayed-2', {'default': 'ok'}) kwargs={}.
+[2026-10-24 21:43:59,254] [PID 34971] [Thread-4] [app.job] [DEBUG] Completed after 4.51ms.
+[2026-10-24 21:43:59,255] [PID 34971] [Thread-4] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Acknowledging message '379db19d-6553-45d9-93f6-771ec6e69407'.
+[2026-10-24 21:44:30,050] [PID 34965] [MainThread] [dramatiq.MainProcess] [INFO] Sending signal 'SIGTERM' to subprocesses...
+[2026-10-24 21:44:30,051] [PID 34971] [MainThread] [dramatiq.WorkerProcess(0)] [INFO] Stopping worker process...
+[2026-10-24 21:44:30,256] [PID 34971] [MainThread] [dramatiq.middleware.shutdown.ShutdownNotifications] [DEBUG] Sending shutdown notification to worker threads...
+[2026-10-24 21:44:30,256] [PID 34971] [MainThread] [dramatiq.worker.Worker] [INFO] Shutting down...
+[2026-10-24 21:44:30,256] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping workers...
+[2026-10-24 21:44:30,256] [PID 34971] [MainThread] [dramatiq.worker.WorkerThread] [DEBUG] Stopping worker thread...
+[2026-10-24 21:44:30,364] [PID 34971] [Thread-4] [dramatiq.worker.WorkerThread] [DEBUG] Worker thread stopped.
+[2026-10-24 21:44:30,364] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Workers stopped.
+[2026-10-24 21:44:30,364] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Stopping consumers...
+[2026-10-24 21:44:30,364] [PID 34971] [MainThread] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:44:30,364] [PID 34971] [MainThread] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Stopping consumer thread...
+[2026-10-24 21:44:30,804] [PID 34971] [Thread-3] [dramatiq.worker.ConsumerThread(default.DQ)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:44:30,872] [PID 34971] [Thread-2] [dramatiq.worker.ConsumerThread(default)] [DEBUG] Consumer thread stopped.
+[2026-10-24 21:44:30,872] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers stopped.
+[2026-10-24 21:44:30,872] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Requeueing in-memory messages...
+[2026-10-24 21:44:30,872] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Done requeueing in-progress messages.
+[2026-10-24 21:44:30,872] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Closing consumers...
+[2026-10-24 21:44:30,872] [PID 34971] [MainThread] [dramatiq.worker.Worker] [DEBUG] Consumers closed.
+[2026-10-24 21:44:30,873] [PID 34971] [MainThread] [dramatiq.worker.Worker] [INFO] Worker has been shut down.

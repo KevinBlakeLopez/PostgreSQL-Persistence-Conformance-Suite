@@ -1,0 +1,39 @@
+INFO:     Started server process [41165]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:50704 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+ERROR:    Cancel 1 running task(s), timeout graceful shutdown exceeded
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "<venvs>/venv-313-fixb-diag/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 407, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venvs>/venv-313-fixb-diag/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<research>/reproductions/asgi_app.py", line 24, in app
+    await unit_of_work("request", on_done=respond)
+  File "<research>/reproductions/backend_link.py", line 86, in unit_of_work
+    await link.call("work")
+  File "<research>/reproductions/backend_link.py", line 59, in call
+    line = await self.reader.readline()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 562, in readline
+    line = await self.readuntil(sep)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 677, in readuntil
+    await self._wait_for_data('readuntil')
+  File "<python-3.13>/lib/python3.13/asyncio/streams.py", line 539, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError: Task cancelled, timeout graceful shutdown exceeded
+INFO:     127.0.0.1:50709 - "GET / HTTP/1.1" 500 Internal Server Error
+INFO:     diag: at lifespan shutdown: 0 connection(s) registered [], 0 task(s), 0 not done
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [41165]

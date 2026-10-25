@@ -1,0 +1,9 @@
+scenario: raw-sql-state
+A         SQL: SET search_path, SET ROLE, pg_advisory_lock, CREATE TEMP TABLE                          done
+A         close()                                                                                      returned normally
+B         same physical session as A                                                                   true
+B         current_user | search_path                                                                   ssc_tenant_a | tenant_a, public
+B         ssc_temp_probe visible                                                                       true
+observer  advisory lock 4713 held by the pool's backend                                                true
+observer  where B's unqualified insert landed, and as whom                                             tenant_a/ssc_tenant_a
+B         close()                                                                                      returned normally

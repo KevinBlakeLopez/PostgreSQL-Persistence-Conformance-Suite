@@ -1,0 +1,10 @@
+scenario: aborted-transaction
+A         failing statement inside the transaction                                             error 22012
+A         SET ROLE, SET search_path, BEGIN, insert (no COMMIT or ROLLBACK)                     done
+A         release()                                                                            returned
+B         same physical session as A                                                           true
+observer  B's backend at checkout, before B's first statement                                  idle in transaction (aborted)
+B         first statement                                                                      error 25P02
+observer  where B's insert is visible                                                          not visible
+observer  A's insert                                                                           not visible
+observer  A's insert after pool.end() closed the connection                                    not visible

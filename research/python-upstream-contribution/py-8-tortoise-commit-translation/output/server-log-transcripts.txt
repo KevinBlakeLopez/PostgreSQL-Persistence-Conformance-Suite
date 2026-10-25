@@ -1,0 +1,537 @@
+py8-repro-release-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-repro-release-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+py8-repro-develop-asyncpg: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-repro-develop-psycopg: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+py8-nested-asyncpg-develop: 6 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT __asyncpg_savepoint_4__; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE SAVEPOINT __asyncpg_savepoint_4__; | ERROR 25P02 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-nested-asyncpg-C1: 6 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT __asyncpg_savepoint_4__; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE SAVEPOINT __asyncpg_savepoint_4__; | ERROR 25P02 | ROLLBACK
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-nested-asyncpg-C2: 6 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT __asyncpg_savepoint_4__; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE SAVEPOINT __asyncpg_savepoint_4__; | ERROR 25P02 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-nested-asyncpg-C3: 6 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT __asyncpg_savepoint_4__; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE SAVEPOINT __asyncpg_savepoint_4__; | ERROR 25P02 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+py8-nested-psycopg-develop: 6 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT "_pg3_2" | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE "_pg3_2" | ERROR 25P02 | ROLLBACK
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT
+    end: disconnection
+py8-nested-psycopg-C1: 6 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT "_pg3_2" | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE "_pg3_2" | ERROR 25P02
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT
+    end: disconnection
+py8-nested-psycopg-C2: 6 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT "_pg3_2" | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE "_pg3_2" | ERROR 25P02 | ROLLBACK
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT
+    end: disconnection
+py8-nested-psycopg-C3: 6 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | SAVEPOINT "_pg3_2" | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | RELEASE "_pg3_2" | ERROR 25P02 | ROLLBACK
+    tx 3: 
+    tx 4: BEGIN | SELECT pg_current_xact_id()::text AS v | SELECT pg_backend_pid() AS v | INSERT INTO "note" ("id","body") VALUES ($1,$2) | COMMIT
+    end: disconnection
+py8-after-asyncpg-develop: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 5
+    tx 1: BEGIN; | SAVEPOINT __asyncpg_savepoint_9__; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE SAVEPOINT __asyncpg_savepoint_9__; | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 6
+    tx 1: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT; | ERROR 23505
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: BEGIN; | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+py8-after-asyncpg-C1: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 5
+    tx 1: BEGIN; | SAVEPOINT __asyncpg_savepoint_9__; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE SAVEPOINT __asyncpg_savepoint_9__; | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 6
+    tx 1: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT; | ERROR 23505
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+py8-after-asyncpg-C2: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 5
+    tx 1: BEGIN; | SAVEPOINT __asyncpg_savepoint_9__; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE SAVEPOINT __asyncpg_savepoint_9__; | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 6
+    tx 1: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT; | ERROR 23505
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+py8-after-asyncpg-C3: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 5
+    tx 1: BEGIN; | SAVEPOINT __asyncpg_savepoint_9__; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE SAVEPOINT __asyncpg_savepoint_9__; | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 6
+    tx 1: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT; | ERROR 23505
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+py8-after-asyncpg-R: 3 runs; identical transcripts
+  session 1
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 2
+    tx 1: BEGIN; | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 3
+    tx 1: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT; | ERROR 23503
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 4
+    tx 1: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK;
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 5
+    tx 1: BEGIN; | SAVEPOINT __asyncpg_savepoint_9__; | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE SAVEPOINT __asyncpg_savepoint_9__; | COMMIT; | ERROR 23503
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    end: disconnection
+  session 6
+    tx 1: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 2: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 3: BEGIN; | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT; | ERROR 23505
+    tx 4: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 5: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 6: SELECT pg_advisory_unlock_all(); CLOSE ALL; UNLISTEN *; RESET ALL;
+    tx 7: BEGIN; | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+py8-after-psycopg-develop: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 5
+    tx 1: 
+    tx 2: BEGIN | SAVEPOINT "_pg3_2" | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE "_pg3_2" | COMMIT | ERROR 23503
+    end: disconnection
+  session 6
+    tx 1: 
+    tx 2: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT | ERROR 23505
+    tx 5: 
+    tx 6: BEGIN | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+  session 7
+    end: disconnection
+py8-after-psycopg-C1: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 5
+    tx 1: 
+    tx 2: BEGIN | SAVEPOINT "_pg3_2" | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE "_pg3_2" | COMMIT | ERROR 23503
+    end: disconnection
+  session 6
+    tx 1: 
+    tx 2: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT | ERROR 23505
+    tx 5: 
+    tx 6: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+  session 7
+    end: disconnection
+py8-after-psycopg-C2: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 5
+    tx 1: 
+    tx 2: BEGIN | SAVEPOINT "_pg3_2" | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE "_pg3_2" | COMMIT | ERROR 23503
+    end: disconnection
+  session 6
+    tx 1: 
+    tx 2: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT | ERROR 23505
+    tx 5: 
+    tx 6: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+  session 7
+    end: disconnection
+py8-after-psycopg-C3: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 5
+    tx 1: 
+    tx 2: BEGIN | SAVEPOINT "_pg3_2" | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE "_pg3_2" | COMMIT | ERROR 23503
+    end: disconnection
+  session 6
+    tx 1: 
+    tx 2: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT | ERROR 23505
+    tx 5: 
+    tx 6: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+  session 7
+    end: disconnection
+py8-after-psycopg-R: 3 runs; identical transcripts
+  session 1
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    end: disconnection
+  session 2
+    tx 1: 
+    tx 2: BEGIN | SELECT pg_current_xact_id()::text AS xid | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    end: disconnection
+  session 3
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | COMMIT | ERROR 23503
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "deferred_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 4
+    tx 1: 
+    tx 2: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "immediate_child" ("id","parent_id") VALUES ($1,$2) | ERROR 23503 | ROLLBACK
+    tx 5: 
+    tx 6: SELECT "id","parent_id" FROM "immediate_child" WHERE "id"=$1 LIMIT $2
+    end: disconnection
+  session 5
+    tx 1: 
+    tx 2: BEGIN | SAVEPOINT "_pg3_2" | INSERT INTO "deferred_child" ("id","parent_id") VALUES ($1,$2) | RELEASE "_pg3_2" | COMMIT | ERROR 23503
+    end: disconnection
+  session 6
+    tx 1: 
+    tx 2: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 3: 
+    tx 4: BEGIN | INSERT INTO "deferred_unique" ("id","code") VALUES ($1,$2) | COMMIT | ERROR 23505
+    tx 5: 
+    tx 6: SELECT "code","id" FROM "deferred_unique" WHERE "code"=$1 LIMIT $2
+    tx 7: 
+    tx 8: BEGIN | SELECT pg_backend_pid() AS v | FATAL 57P01
+    end: disconnection
+  session 7
+    end: disconnection

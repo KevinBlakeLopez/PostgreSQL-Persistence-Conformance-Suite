@@ -1,0 +1,245 @@
+2026-10-25 01:40:04.467 UTC [139] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39590
+2026-10-25 01:40:04.470 UTC [139] app=[unknown] vxid=46/1 xid=0 LOG:  connection authenticated: identity="postgres" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.470 UTC [139] app=[unknown] vxid=46/1 xid=0 LOG:  connection authorized: user=postgres database=chk3 application_name=chk3-witness-psycopg2-r2
+2026-10-25 01:40:04.471 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/2 xid=0 LOG:  statement: show server_version
+2026-10-25 01:40:04.483 UTC [140] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39594
+2026-10-25 01:40:04.486 UTC [140] app=[unknown] vxid=47/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.486 UTC [140] app=[unknown] vxid=47/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-default-r2
+2026-10-25 01:40:04.486 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.487 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.487 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.488 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.488 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.489 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.489 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.489 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.490 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.490 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.490 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.491 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.491 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.491 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: SET search_path = tenant_s, public
+2026-10-25 01:40:04.492 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.492 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_default_r2 (x int)
+2026-10-25 01:40:04.493 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/4 xid=882 LOG:  statement: COMMIT
+2026-10-25 01:40:04.493 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/5 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.493 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/5 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_default_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.494 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/5 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-default-r2')
+2026-10-25 01:40:04.494 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/3 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-default-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-default-r2'
+2026-10-25 01:40:04.495 UTC [140] app=chk3-psycopg2-default-r2 vxid=47/5 xid=883 LOG:  statement: COMMIT
+2026-10-25 01:40:04.495 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/4 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-default-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-default-r2'
+2026-10-25 01:40:04.495 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/5 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 140
+2026-10-25 01:40:04.496 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/6 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_default_r2' and relpersistence = 't'
+2026-10-25 01:40:04.497 UTC [140] app=chk3-psycopg2-default-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.013 user=app_login database=chk3 host=172.17.0.1 port=39594
+2026-10-25 01:40:04.498 UTC [141] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39598
+2026-10-25 01:40:04.500 UTC [141] app=[unknown] vxid=48/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.500 UTC [141] app=[unknown] vxid=48/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-documented-r2
+2026-10-25 01:40:04.501 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.501 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.502 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.502 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.503 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.503 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.503 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.504 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.504 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.504 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.505 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.505 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.505 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.506 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: SET search_path = tenant_s, public
+2026-10-25 01:40:04.506 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.506 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_documented_r2 (x int)
+2026-10-25 01:40:04.507 UTC [141] app=chk3-psycopg2-documented-r2 vxid=48/4 xid=885 LOG:  statement: COMMIT
+2026-10-25 01:40:04.508 UTC [141] app=chk3-psycopg2-documented-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.009 user=app_login database=chk3 host=172.17.0.1 port=39598
+2026-10-25 01:40:04.509 UTC [142] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39600
+2026-10-25 01:40:04.511 UTC [142] app=[unknown] vxid=49/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.511 UTC [142] app=[unknown] vxid=49/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-documented-r2
+2026-10-25 01:40:04.512 UTC [142] app=chk3-psycopg2-documented-r2 vxid=49/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.512 UTC [142] app=chk3-psycopg2-documented-r2 vxid=49/2 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_documented_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.513 UTC [142] app=chk3-psycopg2-documented-r2 vxid=49/2 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-documented-r2')
+2026-10-25 01:40:04.513 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/7 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-documented-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-documented-r2'
+2026-10-25 01:40:04.513 UTC [142] app=chk3-psycopg2-documented-r2 vxid=49/2 xid=887 LOG:  statement: COMMIT
+2026-10-25 01:40:04.514 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/8 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-documented-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-documented-r2'
+2026-10-25 01:40:04.514 UTC [142] app=chk3-psycopg2-documented-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.005 user=app_login database=chk3 host=172.17.0.1 port=39600
+2026-10-25 01:40:04.514 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/9 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 141
+2026-10-25 01:40:04.515 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/10 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_documented_r2' and relpersistence = 't'
+2026-10-25 01:40:04.516 UTC [143] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39614
+2026-10-25 01:40:04.519 UTC [143] app=[unknown] vxid=50/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.519 UTC [143] app=[unknown] vxid=50/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-corrected-r2
+2026-10-25 01:40:04.519 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.520 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.520 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.520 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.521 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.521 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.521 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.522 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.522 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.522 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.523 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.523 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.523 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.524 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: SET search_path = tenant_s, public
+2026-10-25 01:40:04.524 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.524 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_corrected_r2 (x int)
+2026-10-25 01:40:04.525 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/4 xid=888 LOG:  statement: COMMIT
+2026-10-25 01:40:04.525 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/5 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.526 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/6 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.526 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/6 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_corrected_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.526 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/6 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-corrected-r2')
+2026-10-25 01:40:04.527 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/11 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-r2'
+2026-10-25 01:40:04.527 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/6 xid=890 LOG:  statement: COMMIT
+2026-10-25 01:40:04.527 UTC [143] app=chk3-psycopg2-corrected-r2 vxid=50/7 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.528 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/12 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-r2'
+2026-10-25 01:40:04.528 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/13 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 143
+2026-10-25 01:40:04.528 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/14 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_corrected_r2' and relpersistence = 't'
+2026-10-25 01:40:04.529 UTC [143] app=chk3-psycopg2-corrected-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.012 user=app_login database=chk3 host=172.17.0.1 port=39614
+2026-10-25 01:40:04.530 UTC [144] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39620
+2026-10-25 01:40:04.532 UTC [144] app=[unknown] vxid=51/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.532 UTC [144] app=[unknown] vxid=51/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-corrected-autocommit-r2
+2026-10-25 01:40:04.533 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.533 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.534 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.534 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.534 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/4 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.535 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/5 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.535 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/6 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.535 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/7 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.536 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/8 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.536 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/9 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.536 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/10 xid=0 LOG:  statement: SET search_path = tenant_s, public
+2026-10-25 01:40:04.537 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/11 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.537 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/12 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_corrected_autocommit_r2 (x int)
+2026-10-25 01:40:04.537 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/13 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.538 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/14 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_corrected_autocommit_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.538 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/15 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-corrected-autocommit-r2')
+2026-10-25 01:40:04.539 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/15 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-autocommit-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-autocommit-r2'
+2026-10-25 01:40:04.539 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid=51/16 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.539 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/16 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-autocommit-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-autocommit-r2'
+2026-10-25 01:40:04.540 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/17 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 144
+2026-10-25 01:40:04.540 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/18 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_corrected_autocommit_r2' and relpersistence = 't'
+2026-10-25 01:40:04.540 UTC [144] app=chk3-psycopg2-corrected-autocommit-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.010 user=app_login database=chk3 host=172.17.0.1 port=39620
+2026-10-25 01:40:04.541 UTC [145] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39622
+2026-10-25 01:40:04.544 UTC [145] app=[unknown] vxid=52/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.544 UTC [145] app=[unknown] vxid=52/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-corrected-connect-search-path-r2
+2026-10-25 01:40:04.544 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/2 xid=0 LOG:  statement: SET SESSION search_path='tenant_s'
+2026-10-25 01:40:04.545 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/3 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.545 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/3 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.545 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.546 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.546 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.546 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.547 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.547 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.547 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/4 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.548 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.548 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.548 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.549 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.549 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.549 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_corrected_connect_search_path_r2 (x int)
+2026-10-25 01:40:04.550 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/5 xid=894 LOG:  statement: COMMIT
+2026-10-25 01:40:04.550 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/6 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.551 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/7 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.551 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/7 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_corrected_connect_search_path_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.551 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/7 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-corrected-connect-search-path-r2')
+2026-10-25 01:40:04.552 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/19 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-connect-search-path-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-connect-search-path-r2'
+2026-10-25 01:40:04.552 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/7 xid=896 LOG:  statement: COMMIT
+2026-10-25 01:40:04.552 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid=52/8 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.553 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/20 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-connect-search-path-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-connect-search-path-r2'
+2026-10-25 01:40:04.553 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/21 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 145
+2026-10-25 01:40:04.553 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/22 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_corrected_connect_search_path_r2' and relpersistence = 't'
+2026-10-25 01:40:04.554 UTC [145] app=chk3-psycopg2-corrected-connect-search-path-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.012 user=app_login database=chk3 host=172.17.0.1 port=39622
+2026-10-25 01:40:04.555 UTC [146] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39636
+2026-10-25 01:40:04.557 UTC [146] app=[unknown] vxid=53/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.557 UTC [146] app=[unknown] vxid=53/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-corrected-options-search-path-r2
+2026-10-25 01:40:04.558 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.558 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.559 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.559 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.559 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.560 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.560 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.560 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.560 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.561 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.561 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.561 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.562 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.562 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.562 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_corrected_options_search_path_r2 (x int)
+2026-10-25 01:40:04.563 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/4 xid=897 LOG:  statement: COMMIT
+2026-10-25 01:40:04.563 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/5 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.564 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/6 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.564 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/6 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_corrected_options_search_path_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.565 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/6 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-corrected-options-search-path-r2')
+2026-10-25 01:40:04.565 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/23 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-options-search-path-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-options-search-path-r2'
+2026-10-25 01:40:04.565 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/6 xid=899 LOG:  statement: COMMIT
+2026-10-25 01:40:04.565 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid=53/7 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.566 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/24 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-options-search-path-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-options-search-path-r2'
+2026-10-25 01:40:04.566 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/25 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 146
+2026-10-25 01:40:04.566 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/26 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_corrected_options_search_path_r2' and relpersistence = 't'
+2026-10-25 01:40:04.567 UTC [146] app=chk3-psycopg2-corrected-options-search-path-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.011 user=app_login database=chk3 host=172.17.0.1 port=39636
+2026-10-25 01:40:04.568 UTC [147] app=[unknown] vxid= xid=0 LOG:  connection received: host=172.17.0.1 port=39644
+2026-10-25 01:40:04.570 UTC [147] app=[unknown] vxid=54/1 xid=0 LOG:  connection authenticated: identity="app_login" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 01:40:04.570 UTC [147] app=[unknown] vxid=54/1 xid=0 LOG:  connection authorized: user=app_login database=chk3 application_name=chk3-psycopg2-corrected-repeatable-read-r2
+2026-10-25 01:40:04.571 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/2 xid=0 LOG:  statement: BEGIN
+2026-10-25 01:40:04.571 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/2 xid=0 LOG:  statement: SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+	
+2026-10-25 01:40:04.572 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/2 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.572 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: BEGIN ISOLATION LEVEL REPEATABLE READ
+2026-10-25 01:40:04.572 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: select pg_catalog.version()
+2026-10-25 01:40:04.573 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: select current_schema()
+2026-10-25 01:40:04.573 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: show transaction isolation level
+2026-10-25 01:40:04.573 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: show standard_conforming_strings
+2026-10-25 01:40:04.574 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/3 xid=0 LOG:  statement: ROLLBACK
+2026-10-25 01:40:04.574 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: BEGIN ISOLATION LEVEL REPEATABLE READ
+2026-10-25 01:40:04.574 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: select current_setting('search_path'), current_setting('transaction_isolation'), pg_backend_pid()
+2026-10-25 01:40:04.574 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: SET ROLE tenant_a
+2026-10-25 01:40:04.575 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: SET app.tenant_id = 'a'
+2026-10-25 01:40:04.575 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: SET search_path = tenant_s, public
+2026-10-25 01:40:04.575 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: SET statement_timeout = '54321'
+2026-10-25 01:40:04.576 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=0 LOG:  statement: CREATE TEMP TABLE t_psycopg2_corrected_repeatable_read_r2 (x int)
+2026-10-25 01:40:04.576 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/4 xid=900 LOG:  statement: COMMIT
+2026-10-25 01:40:04.576 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/5 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.577 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/6 xid=0 LOG:  statement: SET default_transaction_isolation TO DEFAULT
+2026-10-25 01:40:04.577 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/7 xid=0 LOG:  statement: BEGIN ISOLATION LEVEL REPEATABLE READ
+2026-10-25 01:40:04.577 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/7 xid=0 LOG:  statement: select current_user::text, session_user::text, coalesce(current_setting('app.tenant_id', true), '<unset>'), current_setting('search_path'), current_setting('statement_timeout'), to_regclass('pg_temp.t_psycopg2_corrected_repeatable_read_r2') is not null, current_setting('transaction_isolation'), (select count(*) from pg_prepared_statements), pg_backend_pid()
+2026-10-25 01:40:04.578 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/7 xid=0 LOG:  statement: insert into item (name) values ('psycopg2-corrected-repeatable-read-r2')
+2026-10-25 01:40:04.578 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/27 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-repeatable-read-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-repeatable-read-r2'
+2026-10-25 01:40:04.578 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/7 xid=902 LOG:  statement: COMMIT
+2026-10-25 01:40:04.579 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/8 xid=0 LOG:  statement: DISCARD ALL
+2026-10-25 01:40:04.579 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid=54/9 xid=0 LOG:  statement: SET default_transaction_isolation TO DEFAULT
+2026-10-25 01:40:04.579 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/28 xid=0 LOG:  statement: select 'public', inserted_by::text from public.item where name = 'psycopg2-corrected-repeatable-read-r2' union all select 'tenant_s', inserted_by::text from tenant_s.item where name = 'psycopg2-corrected-repeatable-read-r2'
+2026-10-25 01:40:04.580 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/29 xid=0 LOG:  statement: select count(*) from pg_stat_activity where pid = 147
+2026-10-25 01:40:04.580 UTC [139] app=chk3-witness-psycopg2-r2 vxid=46/30 xid=0 LOG:  statement: select count(*) from pg_class where relname = 't_psycopg2_corrected_repeatable_read_r2' and relpersistence = 't'
+2026-10-25 01:40:04.580 UTC [147] app=chk3-psycopg2-corrected-repeatable-read-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.012 user=app_login database=chk3 host=172.17.0.1 port=39644
+2026-10-25 01:40:04.581 UTC [139] app=chk3-witness-psycopg2-r2 vxid= xid=0 LOG:  disconnection: session time: 0:00:00.114 user=postgres database=chk3 host=172.17.0.1 port=39590

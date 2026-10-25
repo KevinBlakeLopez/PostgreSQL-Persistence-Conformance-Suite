@@ -1,0 +1,77 @@
+== 1. session state, then the recipe statements inside a transaction block that rolls back
+set role tenant_a;
+SET
+set app.tenant_id = 'a';
+SET
+set search_path = tenant_s, public;
+SET
+set statement_timeout = '54321';
+SET
+create temp table psql_tmp (x int);
+CREATE TABLE
+begin;
+BEGIN
+close all;
+CLOSE CURSOR ALL
+reset all;
+RESET
+discard temp;
+DISCARD TEMP
+rollback;
+ROLLBACK
+select current_user, current_setting('app.tenant_id', true) as tenant_id, current_setting('search_path') as search_path,
+       current_setting('statement_timeout') as statement_timeout, to_regclass('pg_temp.psql_tmp') is not null as temp_table;
+ current_user | tenant_id |   search_path    | statement_timeout | temp_table 
+--------------+-----------+------------------+-------------------+------------
+ tenant_a     | a         | tenant_s, public | 54321ms           | t
+(1 row)
+
+== 2. the same statements outside a transaction block
+close all;
+CLOSE CURSOR ALL
+reset all;
+RESET
+discard temp;
+DISCARD TEMP
+select current_user, current_setting('app.tenant_id', true) as tenant_id, current_setting('search_path') as search_path,
+       current_setting('statement_timeout') as statement_timeout, to_regclass('pg_temp.psql_tmp') is not null as temp_table;
+ current_user | tenant_id |   search_path   | statement_timeout | temp_table 
+--------------+-----------+-----------------+-------------------+------------
+ tenant_a     |           | "$user", public | 0                 | f
+(1 row)
+
+== 3. DISCARD ALL inside a transaction block
+begin;
+BEGIN
+discard all;
+ERROR:  DISCARD ALL cannot run inside a transaction block
+rollback;
+ROLLBACK
+== 4. DISCARD ALL outside a transaction block, with the role still set
+create temp table psql_tmp2 (x int);
+CREATE TABLE
+select current_user, session_user;
+ current_user | session_user 
+--------------+--------------
+ tenant_a     | app_login
+(1 row)
+
+discard all;
+DISCARD ALL
+select current_user, session_user, to_regclass('pg_temp.psql_tmp2') is not null as temp_table;
+ current_user | session_user | temp_table 
+--------------+--------------+------------
+ app_login    | app_login    | f
+(1 row)
+
+== 5. RESET ROLE outside a transaction block
+set role tenant_a;
+SET
+reset role;
+RESET
+select current_user, session_user;
+ current_user | session_user 
+--------------+--------------
+ app_login    | app_login
+(1 row)
+

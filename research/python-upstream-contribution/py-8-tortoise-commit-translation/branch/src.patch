@@ -1,0 +1,36 @@
+diff --git a/tortoise/backends/asyncpg/client.py b/tortoise/backends/asyncpg/client.py
+index 4101f71..2f34a59 100644
+--- a/tortoise/backends/asyncpg/client.py
++++ b/tortoise/backends/asyncpg/client.py
+@@ -199,7 +199,12 @@ class TransactionWrapper(AsyncpgDBClient, TransactionalDBClient):
+             raise TransactionManagementError("Transaction is in invalid state")
+         if self._finalized:
+             raise TransactionManagementError("Transaction already finalised")
+-        await self.transaction.commit()
++        try:
++            await self.transaction.commit()
++        except asyncpg.IntegrityConstraintViolationError as exc:
++            # Deferred constraints are checked at commit. Other errors are left as they are:
++            # a TransactionManagementError from a savepoint release would skip the outer rollback.
++            raise IntegrityError(exc) from exc
+         self._finalized = True
+ 
+     async def release_savepoint(self) -> None:
+diff --git a/tortoise/backends/psycopg/client.py b/tortoise/backends/psycopg/client.py
+index 6e3ea02..f77f9cf 100644
+--- a/tortoise/backends/psycopg/client.py
++++ b/tortoise/backends/psycopg/client.py
+@@ -260,7 +260,12 @@ class TransactionWrapper(PsycopgClient, base_client.TransactionalDBClient):
+         if self._finalized:
+             raise exceptions.TransactionManagementError("Transaction already finalised")
+ 
+-        await self._transaction.__aexit__(None, None, None)
++        try:
++            await self._transaction.__aexit__(None, None, None)
++        except psycopg.errors.IntegrityError as exc:
++            # Deferred constraints are checked at commit. Other errors are left as they are:
++            # a TransactionManagementError from a savepoint release would skip the outer rollback.
++            raise exceptions.IntegrityError(exc)
+         self._finalized = True
+ 
+     async def release_savepoint(self) -> None:

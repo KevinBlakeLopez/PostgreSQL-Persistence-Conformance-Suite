@@ -1,0 +1,98 @@
+diff --git a/CHANGELOG.rst b/CHANGELOG.rst
+index 5d57f30..8c2b9b6 100644
+--- a/CHANGELOG.rst
++++ b/CHANGELOG.rst
+@@ -31,6 +31,7 @@ Fixed
+ - ``auto_now`` / ``auto_now_add`` values are no longer shifted to ``TIMEZONE`` when ``use_tz=False``. (#2350)
+ - ``pydantic_model_creator`` no longer returns a cached class that ignores the ``model_config``, ``validators`` or ``module`` of the current call. (#2312)
+ - Preserve object and field iterators across validation and batching in ``bulk_update()``. (#2320)
++- On the asyncpg and psycopg backends, an integrity error raised by ``COMMIT``, such as a deferred foreign key violation, is now raised as ``IntegrityError`` instead of the driver's exception, so ``get_or_create()`` and ``update_or_create()`` handle it like an error from the ``INSERT``. (#XXXX)
+ 
+ 1.1.9
+ -----
+diff --git a/tests/test_transactions.py b/tests/test_transactions.py
+index 789f142..6f01da8 100644
+--- a/tests/test_transactions.py
++++ b/tests/test_transactions.py
+@@ -2,10 +2,10 @@ from unittest.mock import Mock
+ 
+ import pytest
+ 
+-from tests.testmodels import CharPkModel, Event, Team, Tournament
++from tests.testmodels import CharPkModel, Event, IntFields, Team, Tournament
+ from tortoise import connections
+ from tortoise.contrib.test import requireCapability
+-from tortoise.exceptions import OperationalError, TransactionManagementError
++from tortoise.exceptions import IntegrityError, OperationalError, TransactionManagementError
+ from tortoise.transactions import atomic, in_transaction
+ 
+ 
+@@ -425,3 +425,32 @@ async def test_commit_raising_exception(db_isolated):
+             tx_conn.commit = Mock(side_effect=ValueError("commit"))
+ 
+     assert connections.get("models") == conn
++
++
++async def _add_deferred_foreign_key():
++    """Make intfields.intnum reference intfields.id, checked only when the transaction commits."""
++    await connections.get("models").execute_script(
++        "ALTER TABLE intfields ADD CONSTRAINT intfields_intnum_fkey FOREIGN KEY (intnum)"
++        " REFERENCES intfields (id) DEFERRABLE INITIALLY DEFERRED"
++    )
++
++
++@requireCapability(dialect="postgres")
++@pytest.mark.asyncio
++async def test_commit_raising_integrity_error(db_isolated):
++    """Test that an integrity error raised by the commit is translated."""
++    await _add_deferred_foreign_key()
++    with pytest.raises(IntegrityError):
++        async with in_transaction():
++            await IntFields.create(intnum=999)
++
++    assert not await IntFields.filter(intnum=999).exists()
++
++
++@requireCapability(dialect="postgres")
++@pytest.mark.asyncio
++async def test_get_or_create_commit_raising_integrity_error(db_isolated):
++    """Test that get_or_create raises IntegrityError when the commit of its insert fails."""
++    await _add_deferred_foreign_key()
++    with pytest.raises(IntegrityError):
++        await IntFields.get_or_create(intnum=999)
+diff --git a/tortoise/backends/asyncpg/client.py b/tortoise/backends/asyncpg/client.py
+index 4101f71..2f34a59 100644
+--- a/tortoise/backends/asyncpg/client.py
++++ b/tortoise/backends/asyncpg/client.py
+@@ -199,7 +199,12 @@ class TransactionWrapper(AsyncpgDBClient, TransactionalDBClient):
+             raise TransactionManagementError("Transaction is in invalid state")
+         if self._finalized:
+             raise TransactionManagementError("Transaction already finalised")
+-        await self.transaction.commit()
++        try:
++            await self.transaction.commit()
++        except asyncpg.IntegrityConstraintViolationError as exc:
++            # Deferred constraints are checked at commit. Other errors are left as they are:
++            # a TransactionManagementError from a savepoint release would skip the outer rollback.
++            raise IntegrityError(exc) from exc
+         self._finalized = True
+ 
+     async def release_savepoint(self) -> None:
+diff --git a/tortoise/backends/psycopg/client.py b/tortoise/backends/psycopg/client.py
+index 6e3ea02..f77f9cf 100644
+--- a/tortoise/backends/psycopg/client.py
++++ b/tortoise/backends/psycopg/client.py
+@@ -260,7 +260,12 @@ class TransactionWrapper(PsycopgClient, base_client.TransactionalDBClient):
+         if self._finalized:
+             raise exceptions.TransactionManagementError("Transaction already finalised")
+ 
+-        await self._transaction.__aexit__(None, None, None)
++        try:
++            await self._transaction.__aexit__(None, None, None)
++        except psycopg.errors.IntegrityError as exc:
++            # Deferred constraints are checked at commit. Other errors are left as they are:
++            # a TransactionManagementError from a savepoint release would skip the outer rollback.
++            raise exceptions.IntegrityError(exc)
+         self._finalized = True
+ 
+     async def release_savepoint(self) -> None:

@@ -1,0 +1,66 @@
+default (backend 140):
+  vxid 47/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 47/3: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 47/4: BEGIN | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_default_r2 (x int) | COMMIT [xid 882]
+  vxid 47/5: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-default-r2') | COMMIT [xid 883]
+  disconnected (session time: 0:00:00.013)
+documented (backend 141):
+  vxid 48/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 48/3: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 48/4: BEGIN | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_documented_r2 (x int) | COMMIT [xid 885]
+  disconnected (session time: 0:00:00.009)
+documented (backend 142):
+  vxid 49/2: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-documented-r2') | COMMIT [xid 887]
+  disconnected (session time: 0:00:00.005)
+corrected (backend 143):
+  vxid 50/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 50/3: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 50/4: BEGIN | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_corrected_r2 (x int) | COMMIT [xid 888]
+  vxid 50/5: DISCARD ALL
+  vxid 50/6: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-corrected-r2') | COMMIT [xid 890]
+  vxid 50/7: DISCARD ALL
+  disconnected (session time: 0:00:00.012)
+corrected-autocommit (backend 144):
+  vxid 51/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 51/3: select pg_catalog.version()
+  vxid 51/4: select current_schema()
+  vxid 51/5: show transaction isolation level
+  vxid 51/6: show standard_conforming_strings
+  vxid 51/7: select current_setting('search_path'), current_setting('t...
+  vxid 51/8: SET ROLE tenant_a
+  vxid 51/9: SET app.tenant_id = 'a'
+  vxid 51/10: SET search_path = tenant_s, public
+  vxid 51/11: SET statement_timeout = '54321'
+  vxid 51/12: CREATE TEMP TABLE t_psycopg2_corrected_autocommit_r2 (x int)
+  vxid 51/13: DISCARD ALL
+  vxid 51/14: select current_user::text, session_user::text, coalesce(c...
+  vxid 51/15: insert into item (name) values ('psycopg2-corrected-autoc...
+  vxid 51/16: DISCARD ALL
+  disconnected (session time: 0:00:00.010)
+corrected-connect-search-path (backend 145):
+  vxid 52/2: SET SESSION search_path='tenant_s'
+  vxid 52/3: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 52/4: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 52/5: BEGIN | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_corrected_connect_search_pat... | COMMIT [xid 894]
+  vxid 52/6: DISCARD ALL
+  vxid 52/7: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-corrected-conne... | COMMIT [xid 896]
+  vxid 52/8: DISCARD ALL
+  disconnected (session time: 0:00:00.012)
+corrected-options-search-path (backend 146):
+  vxid 53/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 53/3: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 53/4: BEGIN | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_corrected_options_search_pat... | COMMIT [xid 897]
+  vxid 53/5: DISCARD ALL
+  vxid 53/6: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-corrected-optio... | COMMIT [xid 899]
+  vxid 53/7: DISCARD ALL
+  disconnected (session time: 0:00:00.011)
+corrected-repeatable-read (backend 147):
+  vxid 54/2: BEGIN | SELECT t.oid, typarray | ROLLBACK
+  vxid 54/3: BEGIN ISOLATION LEVEL REPEATABLE READ | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | ROLLBACK
+  vxid 54/4: BEGIN ISOLATION LEVEL REPEATABLE READ | select current_setting('search_path'), current_setting('t... | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg2_corrected_repeatable_read_r2... | COMMIT [xid 900]
+  vxid 54/5: DISCARD ALL
+  vxid 54/6: SET default_transaction_isolation TO DEFAULT
+  vxid 54/7: BEGIN ISOLATION LEVEL REPEATABLE READ | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ('psycopg2-corrected-repea... | COMMIT [xid 902]
+  vxid 54/8: DISCARD ALL
+  vxid 54/9: SET default_transaction_isolation TO DEFAULT
+  disconnected (session time: 0:00:00.012)

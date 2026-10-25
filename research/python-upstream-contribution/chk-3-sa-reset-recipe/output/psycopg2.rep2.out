@@ -1,0 +1,548 @@
+{
+ "program": "chk3_reset_recipe.py",
+ "driver": "psycopg2",
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.6",
+  "psycopg2": "2.9.13 (dt dec pq3 ext lo64)",
+  "libpq": 170011,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "results": [
+  {
+   "arm": "default",
+   "what": "control: the default reset (rollback), no reset listener",
+   "engine": {},
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "\"$user\", public",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "tenant_a",
+     "session_user": "app_login",
+     "app.tenant_id": "a",
+     "search_path": "tenant_s, public",
+     "statement_timeout": "54321ms",
+     "temp_table_visible": true,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "tenant_s.item by tenant_a"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 1
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "documented",
+   "what": "(a) and (b): the documented recipe, with its pool_reset_on_return=None",
+   "engine": {
+    "pool_reset_on_return": null
+   },
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "\"$user\", public",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": false,
+    "same_dbapi_connection": false,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "<unset>",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": true,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "invalidate (AttributeError)",
+    "checkin",
+    "connect",
+    "checkout",
+    "reset",
+    "invalidate (AttributeError)",
+    "checkin"
+   ],
+   "pool_log": [
+    {
+     "logger": "sqlalchemy.pool.impl.QueuePool",
+     "level": "ERROR",
+     "message": "Exception during reset or similar",
+     "exception": "AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'",
+     "traceback": [
+      "Traceback (most recent call last):",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py\", line 1020, in _finalize_fairy",
+      "    fairy._reset(",
+      "    ~~~~~~~~~~~~^",
+      "        pool,",
+      "        ^^^^^",
+      "    ...<2 lines>...",
+      "        asyncio_safe=can_manipulate_connection,",
+      "        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "    )",
+      "    ^",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py\", line 1466, in _reset",
+      "    pool.dispatch.reset(",
+      "    ~~~~~~~~~~~~~~~~~~~^",
+      "        self.dbapi_connection,",
+      "        ^^^^^^^^^^^^^^^^^^^^^^",
+      "    ...<5 lines>...",
+      "        ),",
+      "        ^^",
+      "    )",
+      "    ^",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/event/attr.py\", line 514, in __call__",
+      "    fn(*args, **kw)",
+      "    ~~^^^^^^^^^^^^^",
+      "  File \"<here>/chk3_reset_recipe.py\", line 44, in _reset_postgresql",
+      "    dbapi_connection.execute(\"CLOSE ALL\")",
+      "    ^^^^^^^^^^^^^^^^^^^^^^^^",
+      "AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'"
+     ]
+    },
+    {
+     "logger": "sqlalchemy.pool.impl.QueuePool",
+     "level": "ERROR",
+     "message": "Exception during reset or similar",
+     "exception": "AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'",
+     "traceback": [
+      "Traceback (most recent call last):",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py\", line 1020, in _finalize_fairy",
+      "    fairy._reset(",
+      "    ~~~~~~~~~~~~^",
+      "        pool,",
+      "        ^^^^^",
+      "    ...<2 lines>...",
+      "        asyncio_safe=can_manipulate_connection,",
+      "        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "    )",
+      "    ^",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py\", line 1466, in _reset",
+      "    pool.dispatch.reset(",
+      "    ~~~~~~~~~~~~~~~~~~~^",
+      "        self.dbapi_connection,",
+      "        ^^^^^^^^^^^^^^^^^^^^^^",
+      "    ...<5 lines>...",
+      "        ),",
+      "        ^^",
+      "    )",
+      "    ^",
+      "  File \"<venv>/lib/python3.13/site-packages/sqlalchemy/event/attr.py\", line 514, in __call__",
+      "    fn(*args, **kw)",
+      "    ~~^^^^^^^^^^^^^",
+      "  File \"<here>/chk3_reset_recipe.py\", line 44, in _reset_postgresql",
+      "    dbapi_connection.execute(\"CLOSE ALL\")",
+      "    ^^^^^^^^^^^^^^^^^^^^^^^^",
+      "AttributeError: 'psycopg2.extensions.connection' object has no attribute 'execute'"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "arm": "corrected",
+   "what": "(c): the corrected example",
+   "engine": {
+    "pool_reset_on_return": null
+   },
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "\"$user\", public",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-autocommit",
+   "what": "(d): the corrected example, isolation_level='AUTOCOMMIT'",
+   "engine": {
+    "pool_reset_on_return": null,
+    "isolation_level": "AUTOCOMMIT"
+   },
+   "unit1": {
+    "autocommit": true,
+    "search_path_at_start": "\"$user\", public",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": true,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": true
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": true,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": true
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": true,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": true
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-connect-search-path",
+   "what": "(e): the corrected example, with the documented connect-time SET SESSION search_path recipe",
+   "engine": {
+    "pool_reset_on_return": null
+   },
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "tenant_s",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-options-search-path",
+   "what": "(e): the corrected example, search_path from startup options",
+   "engine": {
+    "pool_reset_on_return": null,
+    "options": "-csearch_path=tenant_s"
+   },
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "tenant_s",
+    "transaction_isolation": "read committed"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "tenant_s",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "read committed",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "tenant_s.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  },
+  {
+   "arm": "corrected-repeatable-read",
+   "what": "added: the corrected example, isolation_level='REPEATABLE READ'",
+   "engine": {
+    "pool_reset_on_return": null,
+    "isolation_level": "REPEATABLE READ"
+   },
+   "unit1": {
+    "autocommit": false,
+    "search_path_at_start": "\"$user\", public",
+    "transaction_isolation": "repeatable read"
+   },
+   "unit2": {
+    "same_backend": true,
+    "same_dbapi_connection": true,
+    "autocommit": false,
+    "saw": {
+     "current_user": "app_login",
+     "session_user": "app_login",
+     "app.tenant_id": "",
+     "search_path": "\"$user\", public",
+     "statement_timeout": "0",
+     "temp_table_visible": false,
+     "transaction_isolation": "repeatable read",
+     "server_prepared_statements": 0
+    },
+    "row_visible_to_witness_before_unit_ended": false
+   },
+   "witness": {
+    "unit2_row": [
+     "public.item by app_login"
+    ],
+    "unit1_backend_exited_within_5s": false,
+    "unit1_temp_table_in_pg_class": 0
+   },
+   "reset_calls": [
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    },
+    {
+     "terminate_only": false,
+     "transaction_was_reset": false,
+     "status_before": "IDLE",
+     "autocommit_before": false,
+     "later_listeners_returned": true,
+     "status_after": "IDLE",
+     "autocommit_after": false
+    }
+   ],
+   "pool_events": [
+    "connect",
+    "checkout",
+    "reset",
+    "checkin",
+    "checkout",
+    "reset",
+    "checkin"
+   ],
+   "pool_log": [],
+   "warnings": []
+  }
+ ]
+}

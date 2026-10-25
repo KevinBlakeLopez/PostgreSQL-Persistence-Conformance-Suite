@@ -1,0 +1,20 @@
+diff --git a/dramatiq/middleware/retries.py b/dramatiq/middleware/retries.py
+index 2f4ccf7..d45217e 100644
+--- a/dramatiq/middleware/retries.py
++++ b/dramatiq/middleware/retries.py
+@@ -144,5 +144,14 @@ class Retries(Middleware):
+             max_backoff = min(max_backoff, DEFAULT_MAX_BACKOFF)
+             _, delay = compute_backoff(retries, factor=min_backoff, max_backoff=max_backoff)
+ 
++        try:
++            broker.enqueue(message, delay=delay)
++        except Exception:
++            # If the retry couldn't be enqueued, the worker would still ack
++            # the original and the message would be gone.  Fail it instead
++            # so that it gets dead-lettered.
++            self.logger.exception("Failed to enqueue a retry for message %r. Marking it as failed.", message.message_id)
++            message.fail()
++            return
++
+         self.logger.info("Retrying message %r in %d milliseconds.", message.message_id, delay)
+-        broker.enqueue(message, delay=delay)

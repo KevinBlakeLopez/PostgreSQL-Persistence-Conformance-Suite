@@ -1,0 +1,7 @@
+scenario: pruned
+A         current_user | search_path after the session changes                                 ssc_tenant_a | tenant_a, public
+A         Close()                                                                              returned
+observer  advisory lock 4712 holders right after Close()                                       1 backend(s) of the pool
+competitor pg_try_advisory_lock(4712) right after Close()                                       False
+observer  A's backend still exists 4 s later (idle lifetime 1 s, pruning every 1 s)            False
+competitor pg_try_advisory_lock(4712) 4 s after Close()                                         True

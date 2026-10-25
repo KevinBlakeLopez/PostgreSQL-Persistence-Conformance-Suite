@@ -1,0 +1,25 @@
+candidate C1; tortoise.backends.asyncpg.client.TransactionWrapper source 535a51ff19c99924
+outer block writes note 1; a nested block catches IntegrityError, then exits normally
+  the nested INSERT raised tortoise.exceptions.IntegrityError; the nested block catches it
+  raised tortoise.exceptions.TransactionManagementError: current transaction is aborted, commands ignored until end of transaction block
+  isinstance(exc, tortoise.exceptions.IntegrityError): False
+  __cause__: asyncpg.exceptions.InFailedSQLTransactionError
+  __context__: asyncpg.exceptions.InFailedSQLTransactionError
+  driver error code: 25P02
+  raised through:
+    tortoise/backends/base/client.py:406 __aexit__
+    tortoise/backends/asyncpg/client.py:206 release_savepoint
+    tortoise/backends/base_postgres/client.py:34 _translate_exceptions
+    tortoise/backends/asyncpg/client.py:97 _translate_exceptions
+  log records while the blocks exited: 1
+    ERROR asyncio: Resetting connection with an active transaction <asyncpg.connection.Connection object at 0x…>
+  outer transaction pg_xact_status(1100): aborted
+  rows in note with id=1: 0
+  backends of this pool still connected: 1
+follow-up: in_transaction() writes note 2, on the same pool of one connection
+  the follow-up block exited normally
+  same backend as the first transaction: True
+  follow-up pg_xact_status(1102): committed
+  rows in note with id=2: 1
+  log records during the follow-up: 0
+  log records while closing: 0

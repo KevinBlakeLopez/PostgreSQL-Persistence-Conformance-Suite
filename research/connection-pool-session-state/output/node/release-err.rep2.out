@@ -1,0 +1,10 @@
+scenario: release-err
+A         SET ROLE, SET search_path, BEGIN, insert (no COMMIT or ROLLBACK)                     done
+A         release(err)                                                                         returned
+B         same physical session as A                                                           false
+observer  B's backend at checkout, before B's first statement                                  idle
+B         current_user | search_path                                                           ssc_app | "$user", public
+B         insert (B expects autocommit)                                                        ok
+observer  where B's insert is visible                                                          public
+observer  A's insert                                                                           not visible
+observer  A's insert after pool.end() closed the connection                                    not visible

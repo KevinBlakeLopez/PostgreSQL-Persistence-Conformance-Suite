@@ -1,0 +1,33 @@
+== ssc-pp-sync-normal: 4 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] ROLLBACK
+  T3: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-pp-sync-rollback-fails: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | insert into item(label) values ('A-uncommitted') | FATAL 57P01
+ sequence 2 (seen on 4 backend(s)):
+  T1: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-pp-sync-reset-raises: 8 backend(s), 2 distinct sequence(s)
+ sequence 1 (seen on 4 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] ROLLBACK
+ sequence 2 (seen on 4 backend(s)):
+  T1: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-pp-async-cancel-in-query: 5 backend(s), 1 distinct sequence(s)
+ sequence 1 (seen on 5 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] select pg_sleep(5) | ERROR 57014 | [xid] ROLLBACK
+  T3: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+== ssc-pp-async-reset-cancelled: 6 backend(s), 3 distinct sequence(s)
+ sequence 1 (seen on 1 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | insert into item(label) values ('A-uncommitted') | [xid] COMMIT
+  T3: BEGIN | RESET ALL
+ sequence 2 (seen on 1 backend(s)):
+  T1: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT
+ sequence 3 (seen on 4 backend(s)):
+  T1: BEGIN | SET search_path TO tenant_a, public | COMMIT
+  T2: BEGIN | RESET ALL | COMMIT
+  T3: BEGIN | select current_setting('search_path') | insert into item(label) values ('B-unqualified') | [xid] COMMIT

@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "case": "smoke4-shared-term",
+    "argv": [
+      "--case",
+      "smoke4-shared-term",
+      "--python",
+      "<venvs>/venv-313/bin/python",
+      "--timeout",
+      "2",
+      "--shared",
+      "--reps",
+      "1"
+    ],
+    "started_utc": "2026-10-24T21-31-11Z",
+    "host": {
+      "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64"
+    },
+    "versions": {
+      "python": "3.13.11",
+      "implementation": "CPython",
+      "uvicorn": "0.54.0",
+      "starlette": "1.10.0",
+      "fastapi": "0.162.0",
+      "hypercorn": "0.18.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0"
+    },
+    "settings": {
+      "server": "uvicorn",
+      "app": "asgi",
+      "signal": "TERM",
+      "timeout": 2,
+      "work_delay": 60.0,
+      "release_delay": 0.5,
+      "hold_startup": false,
+      "shield": false,
+      "shared": true,
+      "stubborn": false,
+      "second_signal": null,
+      "hard_limit": 20.0,
+      "reps": 1
+    },
+    "summary": [
+      {
+        "rep": 1,
+        "returncode": -15,
+        "hung": false,
+        "leftover_processes": false,
+        "observation_complete": true,
+        "signal_to_exit_s": 2.258,
+        "second_signal_after_s": null,
+        "cleanup_started": true,
+        "cleanup_acknowledged_by_backend": false,
+        "cleanup_finished": false,
+        "lifespan_shutdown_sent": true,
+        "lifespan_shutdown_before_cleanup_finished": true,
+        "http_connection_end_minus_lifespan_shutdown_s": 0.006,
+        "client": {
+          "ended": "eof",
+          "ended_at": 2.2081,
+          "status_line": "HTTP/1.1 500 Internal Server Error",
+          "bytes": 212
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "rep": 1,
+      "command": [
+        "<venvs>/venv-313/bin/python",
+        "-m",
+        "uvicorn",
+        "asgi_app:app",
+        "--app-dir",
+        "<research>/reproductions",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "64493",
+        "--lifespan",
+        "on",
+        "--timeout-graceful-shutdown",
+        "2"
+      ],
+      "signal": "TERM",
+      "returncode": -15,
+      "hung": false,
+      "leftover_processes": false,
+      "observation_complete": true,
+      "startup_to_signal_s": 0.069,
+      "signal_to_exit_s": 2.258,
+      "second_signal_after_s": null,
+      "client": {
+        "ended": "eof",
+        "ended_at": 2.2081,
+        "status_line": "HTTP/1.1 500 Internal Server Error",
+        "bytes": 212
+      },
+      "http_connection_end_minus_lifespan_shutdown_s": 0.006,
+      "backend_events": [
+        [
+          -0.0023,
+          1,
+          "CALL startup lifespan"
+        ],
+        [
+          -0.002,
+          1,
+          "REPLY startup lifespan"
+        ],
+        [
+          -0.0001,
+          3,
+          "CALL work request"
+        ],
+        [
+          2.2017,
+          2,
+          "CALL release request"
+        ],
+        [
+          2.2021,
+          1,
+          "CALL shutdown lifespan"
+        ],
+        [
+          2.2023,
+          2,
+          "EOF"
+        ],
+        [
+          2.2024,
+          1,
+          "REPLY shutdown lifespan"
+        ],
+        [
+          2.2025,
+          2,
+          "REPLY-ABANDONED release request"
+        ],
+        [
+          2.208,
+          3,
+          "EOF"
+        ],
+        [
+          2.208,
+          3,
+          "REPLY-ABANDONED work request"
+        ],
+        [
+          2.2083,
+          1,
+          "EOF"
+        ]
+      ],
+      "cleanup_started": true,
+      "cleanup_acknowledged_by_backend": false,
+      "cleanup_finished": false,
+      "lifespan_shutdown_sent": true,
+      "lifespan_shutdown_before_cleanup_finished": true,
+      "witness": [
+        "1792877471.435693 23115 lifespan.startup.begin",
+        "1792877471.436565 23115 lifespan.startup.done",
+        "1792877471.438397 23115 request.begin",
+        "1792877473.639696 23115 request.cancelled",
+        "1792877473.639927 23115 request.cleanup.begin",
+        "1792877473.640211 23115 lifespan.shutdown.begin",
+        "1792877473.640454 23115 lifespan.pool.closed",
+        "1792877473.640807 23115 request.cleanup.interrupted ConnectionError",
+        "1792877473.646649 23115 lifespan.shutdown.done"
+      ]
+    }
+  ]
+}

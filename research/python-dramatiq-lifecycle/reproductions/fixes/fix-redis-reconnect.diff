@@ -1,0 +1,91 @@
+diff --git a/dramatiq/broker.py b/dramatiq/broker.py
+index dbb926b..5b4956e 100644
+--- a/dramatiq/broker.py
++++ b/dramatiq/broker.py
+@@ -333,6 +333,12 @@ class Consumer:
+     Consumers and their MessageProxies are *not* thread-safe.
+     """
+ 
++    #: Whether the broker puts this consumer's unacked messages back on
++    #: their queues when the connection is lost.  When it doesn't, the
++    #: messages a consumer thread holds in memory must not be dropped
++    #: after a connection error.
++    redelivers_unacked_on_disconnect = True
++
+     def __iter__(self) -> Self:  # pragma: no cover
+         """Returns this instance as a Message iterator."""
+         return self
+diff --git a/dramatiq/brokers/redis.py b/dramatiq/brokers/redis.py
+index c04ca08..c5453dd 100644
+--- a/dramatiq/brokers/redis.py
++++ b/dramatiq/brokers/redis.py
+@@ -288,6 +288,10 @@ class RedisBroker(Broker):
+ 
+ 
+ class _RedisConsumer(Consumer):
++    # Unacked messages stay in this worker's ack set until it acks or
++    # requeues them, or until its heartbeat expires.
++    redelivers_unacked_on_disconnect = False
++
+     def __init__(self, broker, queue_name, prefetch, timeout):
+         self.logger = get_logger(__name__, type(self))
+         self.broker = broker
+@@ -329,7 +333,10 @@ class _RedisConsumer(Consumer):
+             return
+ 
+         self.logger.debug("Re-enqueueing %r on queue %r.", message_ids, self.queue_name)
+-        self.broker.do_requeue(self.queue_name, *message_ids)
++        try:
++            self.broker.do_requeue(self.queue_name, *message_ids)
++        except (redis.ConnectionError, redis.TimeoutError) as e:
++            raise ConnectionClosed(e) from None
+ 
+     def __next__(self):
+         try:
+diff --git a/dramatiq/worker.py b/dramatiq/worker.py
+index 27355f2..81d5dfa 100644
+--- a/dramatiq/worker.py
++++ b/dramatiq/worker.py
+@@ -324,7 +324,8 @@ class ConsumerThread(Thread):
+ 
+             except BrokerConnectionError as e:
+                 self.logger.critical("Consumer encountered a connection error: %s", e)
+-                self.delay_queue = PriorityQueue()
++                if self.consumer is None or self.consumer.redelivers_unacked_on_disconnect:
++                    self.delay_queue = PriorityQueue()
+ 
+             except Exception:
+                 self.logger.critical("Consumer encountered an unexpected error.", exc_info=True)
+@@ -357,7 +358,14 @@ class ConsumerThread(Thread):
+             new_message = message.copy(queue_name=queue_name)
+             del new_message.options["eta"]
+ 
+-            self.broker.enqueue(new_message)
++            try:
++                self.broker.enqueue(new_message)
++            except Exception:
++                # Keep the delayed message so it isn't lost with this
++                # consumer; it is promoted again once the broker is back.
++                self.delay_queue.put(item)
++                self.delay_queue.task_done()
++                raise
+             self.post_process_message(message)
+             self.delay_queue.task_done()
+ 
+@@ -483,7 +491,15 @@ class ConsumerThread(Thread):
+         """Close this consumer thread and its underlying connection."""
+         try:
+             if self.consumer:
+-                self.requeue_messages(item.message for item in iter_queue(self.delay_queue))
++                items = list(iter_queue(self.delay_queue))
++                try:
++                    self.requeue_messages(item.message for item in items)
++                except BrokerConnectionError:
++                    # They couldn't be moved back, so keep holding them.
++                    for item in items:
++                        self.delay_queue.put(item)
++                        self.delay_queue.task_done()
++                    raise
+                 self.consumer.close()
+         except BrokerConnectionError:
+             pass
