@@ -58,6 +58,8 @@ The upstream states below were last checked 2026-10-14 to 2026-10-17, as shown p
 | T3 | typeorm/typeorm #12992 | Issue | `afterTransactionCommit` runs when `COMMIT` completes with command tag `ROLLBACK` | **Submitted** | Filed 2026-10-21. No pull request. Same-day search found no duplicate. npm `latest` was 1.1.2. Not #12976–#12979 | [typeorm.md](../research/production-reachability/upstream-drafts/typeorm.md) |
 | D1 | drizzle-team/drizzle-orm #6572 | Issue | `db.transaction()` resolves when PostgreSQL answers `COMMIT` with `ROLLBACK` | **Submitted** | Filed 2026-10-22. No pull request. Same-day search found no duplicate. npm `latest` was 0.45.4. `rc` was 1.0.0-rc.5 | [drizzle.md](../research/production-reachability/upstream-drafts/drizzle.md) |
 | PI1 | prisma/orm #20496 | Comment | The `ROLLBACK` command tag on `COMMIT` that #20496's caught-error report lacks, and where Prisma 7.10.1 leaves it unread | **Submitted** | Posted 2026-10-23 as a comment on #20496. No pull request. #20496 was still open, with no comment after 2023-08-07. Same-day search found no newer report. npm `latest` was 7.10.1. `prisma/prisma` redirects to `prisma/orm` | [prisma.md](../research/production-reachability/upstream-drafts/prisma.md) |
+| PY-1b | psycopg/psycopg #1453 | Comment | `with conn.transaction() as tx:` exits normally, and `tx.status` is `committed`, after PostgreSQL aborted the transaction | **Submitted** | Posted 2026-10-24 as a comment on #1453 (P1). No pull request. #1453 was still open with no comments. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [psycopg-1453-comment.md](../research/python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md) |
+| PY-2 | MagicStack/asyncpg #1400 | Issue | `Transaction.commit()` and `async with conn.transaction()` return normally when PostgreSQL answers `COMMIT` with `ROLLBACK` | **Submitted** | Filed 2026-10-24. No pull request. Same-day search found no duplicate. PyPI `latest` was 0.32.0. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [asyncpg-commit-rollback.md](../research/python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md) |
 
 ## 2. Order
 
@@ -67,9 +69,9 @@ This is the remaining work. L1 is submitted (#1202 and #1203). L2 is submitted (
 
 Do not resume a row from the historical priority table once its item is submitted.
 
-No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. None of the unfiled items is approved to file.
+No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
 
-Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, J1, T1, T2, T3, P1, D1, PI1, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
+Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
 
 ### Priority (set 2026-10-17)
 
@@ -250,6 +252,25 @@ These come from the production-reachability runs on 2026-10-19. The main run is 
 - **Making knex's `commit()` reject.** #3847 settled that contract.
 - **A Lucid fork.** Excluded by the persistence standard (PS-IM-1).
 
+### 3.9 Python: psycopg `transaction()` and asyncpg (PY-1b, PY-2)
+
+These come from [`python-upstream-contribution-roadmap.md`](../research/python-upstream-contribution-roadmap.md). Their status is kept in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md).
+
+**PY-1b. psycopg `transaction()`. Submitted 2026-10-24** as a comment on #1453 (P1): https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348 Posted as `KevinBlakeLopez`. The posted body matches the draft.
+
+- **What it reports.** `with conn.transaction() as tx:` exits normally, and `tx.status` is `committed`, after PostgreSQL aborted the transaction. It explains why a fix to `commit()` alone would not reach the block.
+- **The compatibility note.** `test_auto_transaction_fail` and `test_outer_transaction_error` expect normal returns. A fix that only corrects `status` conflicts with neither test.
+- **Before posting:** #1453 was still open, with no comment. `master` `99356800e` and the linked files were unchanged. PyPI `latest` was 3.3.6.
+
+**PY-2. asyncpg `Transaction.commit()`. Submitted 2026-10-24** as https://github.com/MagicStack/asyncpg/issues/1400 Posted as `KevinBlakeLopez`. The filed title and body match the draft.
+
+- **What it contains:**
+  - a standalone reproduction (CHK-2: three runs each on asyncio and on uvloop, independently re-run by an outside reviewer);
+  - the line where `Transaction.__commit` drops the command status;
+  - a question for the maintainers: raise, or stop recording the transaction as committed? `test_timeout_06` expects the current normal exit.
+- **Before filing:** a same-day duplicate search found nothing, and PyPI `latest` was 0.32.0.
+- **Downstream:** Tortoise and SQLAlchemy are named only as callers. Do not file them separately.
+
 ## 4. Waiting for replies
 
 **For L1, L2 and A1** ([decision brief](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/persistence-decision-brief.md)):
@@ -261,6 +282,8 @@ These come from the production-reachability runs on 2026-10-19. The main run is 
 **For the other upstreams** no general rule has been set. These items do not decide the persistence choice. They do bear on how much integration code a MikroORM or TypeORM path would need permanently. Record dates here, so replies can be judged.
 
 Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no follow-up date. Y1 was checked 2026-10-20: no reply after the 2026-10-18 comment.
+
+**PY-1b and PY-2** follow the Python roadmap's rule (§14 of [`python-upstream-contribution-roadmap.md`](../research/python-upstream-contribution-roadmap.md)). Send one polite follow-up around 2026-11-07 if there is no reply, and decide around 2026-11-21. Expect asyncpg to be slow: its maintainer described an overwhelmed inbox in asyncpg #1355.
 
 **J1 has a reply, and the use-case question is answered.** Dave Cramer, 2026-10-20, on https://github.com/pgjdbc/pgjdbc/issues/4494 said `commit()` should report the rollback and asked for the use case. The use case was posted 2026-10-21: https://github.com/pgjdbc/pgjdbc/issues/4494#issuecomment-6316574491 Wait for his next reply. No second pgjdbc issue.
 
@@ -296,6 +319,8 @@ Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no 
 | PI1 | 2026-10-23 | https://github.com/prisma/orm/issues/20496#issuecomment-6372520392 | — (§4 sets no date) | — | waiting |
 | L2 | 2026-10-21 | https://github.com/adonisjs/lucid/issues/1205 | decide around 2026-11-18 if no maintainer replies (§4). The 2026-11-04 silence ping is cancelled | `jals1212`, 2026-10-21, not a maintainer. `executionPromise` patch covers their case 2, not case 1 | reply received |
 | A1 | 2026-10-21 | https://github.com/orgs/adonisjs/discussions/5166 | 2026-11-04 (one follow-up); decide around 2026-11-18 (§4) | — | waiting |
+| PY-1b | 2026-10-24 | https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348 | 2026-11-07 (one follow-up); decide around 2026-11-21 (§4) | — | waiting |
+| PY-2 | 2026-10-24 | https://github.com/MagicStack/asyncpg/issues/1400 | 2026-11-07 (one follow-up); decide around 2026-11-21 (§4) | — | waiting |
 
 ## Change log
 
@@ -334,3 +359,8 @@ Knex (K1, K2, K3), MikroORM (M2, M3, M4), Kysely (Y1), and Prisma (PI1) have no 
 - **2026-10-23.** PI1 draft corrected against run `2026-10-21T14-10-47Z-148b69`. The reproduction snippet is labeled as not the executed code. The nested-savepoint paragraph is cut: the recorded nested case raised an application error, not the duplicate insert. The next-transaction claim is cut: the case runs no second transaction. The transaction manager is placed in `@prisma/client`. Not filed.
 - **2026-10-23.** PI1 retargeted from a new issue to a comment on prisma/orm #20496. A duplicate search that day found #20496, open since 2023-08-02 with the same loss on Prisma 5.1.0. The 2026-10-21 search had looked for the command tag, which #20496 never mentions. 7.10.1 is the latest stable release, and its tag commit is the `v7` head; neither reads `result.command`. Not posted.
 - **2026-10-23.** PI1 submitted as a comment on prisma/orm #20496: https://github.com/prisma/orm/issues/20496#issuecomment-6372520392 Posted as `KevinBlakeLopez`. #20496 was still open. `v7` was still at the 7.10.1 tag commit, and npm `latest` was 7.10.1. A same-day search found no newer report. No pull request. Status Submitted.
+- **2026-10-24.** PY-1b and PY-2 submitted, both as `KevinBlakeLopez`, after approval of the exact texts. No pull request. Status Submitted. One follow-up around 2026-11-07; decide around 2026-11-21.
+  - **PY-1b:** posted as a comment on psycopg #1453: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348
+  - **PY-2:** filed as https://github.com/MagicStack/asyncpg/issues/1400
+  - **Before posting:** #1453 was open, with no comment. Both default branches and the linked files were unchanged. PyPI `latest` was psycopg 3.3.6 and asyncpg 0.32.0. There was no new asyncpg duplicate.
+  - **After posting:** both posted texts match the drafts, compared through the API.
