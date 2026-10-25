@@ -1,0 +1,50 @@
+s-documented-autocommit (backend 88):
+  vxid 7/2: select pg_catalog.version()
+  vxid 7/3: select current_schema()
+  vxid 7/4: show transaction isolation level
+  vxid 7/5: show standard_conforming_strings
+  vxid 7/6: BEGIN | SELECT | DETAIL: Parameters: $1 = 'hstore' | COMMIT
+  vxid 7/7: select pg_backend_pid()
+  vxid 7/8: SET ROLE tenant_a
+  vxid 7/9: SET app.tenant_id = 'a'
+  vxid 7/10: SET search_path = tenant_s, public
+  vxid 7/11: SET statement_timeout = '54321'
+  vxid 7/12: CREATE TEMP TABLE t_psycopg_s_documented_autocommit_r1 (x...
+  vxid 7/13: CLOSE ALL
+  vxid 7/14: RESET ALL
+  vxid 7/15: DISCARD TEMP
+  vxid 7/16: select current_user::text, session_user::text, coalesce(c...
+  vxid 7/17: insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-documented-autocommit...
+  vxid 7/18: CLOSE ALL
+  vxid 7/19: RESET ALL
+  vxid 7/20: DISCARD TEMP
+  disconnected (session time: 0:00:00.017)
+s-corrected-default-reset (backend 89):
+  vxid 8/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | DETAIL: Parameters: $1 = 'hstore' | RELEASE "_pg3_1" | ROLLBACK
+  vxid 8/3: BEGIN | select pg_backend_pid() | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg_s_corrected_default_reset_r1 ... | COMMIT [xid 766]
+  vxid 8/4: DISCARD ALL
+  vxid 8/5: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-corrected-default-res... | COMMIT [xid 768]
+  vxid 8/6: DISCARD ALL
+  disconnected (session time: 0:00:00.014)
+s-default-open-transaction (backend 90):
+  vxid 9/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | DETAIL: Parameters: $1 = 'hstore' | RELEASE "_pg3_1" | ROLLBACK
+  vxid 9/3: BEGIN | select pg_backend_pid() | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg_s_default_open_transaction_r1... | COMMIT [xid 769]
+  vxid 9/4: BEGIN | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-default-open-transact... | ROLLBACK [xid 770]
+  vxid 9/5: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-default-open-transact... | COMMIT [xid 771]
+  disconnected (session time: 0:00:00.014)
+s-corrected-open-transaction (backend 91):
+  vxid 10/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | DETAIL: Parameters: $1 = 'hstore' | RELEASE "_pg3_1" | ROLLBACK
+  vxid 10/3: BEGIN | select pg_backend_pid() | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg_s_corrected_open_transaction_... | COMMIT [xid 773]
+  vxid 10/4: BEGIN | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-corrected-open-transa... | ROLLBACK [xid 774]
+  vxid 10/5: DISCARD ALL
+  vxid 10/6: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-corrected-open-transa... | COMMIT [xid 776]
+  vxid 10/7: DISCARD ALL
+  disconnected (session time: 0:00:00.014)
+s-corrected-open-transaction-default-reset (backend 92):
+  vxid 11/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | DETAIL: Parameters: $1 = 'hstore' | RELEASE "_pg3_1" | ROLLBACK
+  vxid 11/3: BEGIN | select pg_backend_pid() | SET ROLE tenant_a | SET app.tenant_id = 'a' | SET search_path = tenant_s, public | SET statement_timeout = '54321' | CREATE TEMP TABLE t_psycopg_s_corrected_open_transaction_... | COMMIT [xid 777]
+  vxid 11/4: BEGIN | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-corrected-open-transa... | ROLLBACK [xid 778]
+  vxid 11/5: DISCARD ALL
+  vxid 11/6: BEGIN | select current_user::text, session_user::text, coalesce(c... | insert into item (name) values ($1) | DETAIL: Parameters: $1 = 'psycopg-s-corrected-open-transa... | COMMIT [xid 780]
+  vxid 11/7: DISCARD ALL
+  disconnected (session time: 0:00:00.014)

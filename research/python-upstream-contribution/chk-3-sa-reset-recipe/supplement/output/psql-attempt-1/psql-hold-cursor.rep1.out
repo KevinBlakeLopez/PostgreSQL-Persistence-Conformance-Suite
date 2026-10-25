@@ -1,0 +1,60 @@
+unterminated quoted string
+== 1. a WITH HOLD cursor, then the
+begin;
+BEGIN
+declare keep_cursor cursor with hold for select 42;
+DECLARE CURSOR
+commit;
+COMMIT
+select name, is_holdable from pg_cursors;
+    name     | is_holdable 
+-------------+-------------
+ keep_cursor | t
+(1 row)
+
+begin;
+BEGIN
+close all;
+CLOSE CURSOR ALL
+reset all;
+RESET
+discard temp;
+DISCARD TEMP
+rollback;
+ROLLBACK
+select count(*) as hold_cursors_after_rolled_back_reset from pg_cursors;
+ hold_cursors_after_rolled_back_reset 
+--------------------------------------
+                                    0
+(1 row)
+
+== 2. control: a WITH HOLD cursor, then a block that rolls back with nothing in it
+begin;
+BEGIN
+declare keep_cursor_2 cursor with hold for select 42;
+DECLARE CURSOR
+commit;
+COMMIT
+begin;
+BEGIN
+rollback;
+ROLLBACK
+select count(*) as hold_cursors_after_empty_rollback from pg_cursors;
+ hold_cursors_after_empty_rollback 
+-----------------------------------
+                                 1
+(1 row)
+
+== 3. CLOSE ALL alone, in a block that rolls back
+begin;
+BEGIN
+close all;
+CLOSE CURSOR ALL
+rollback;
+ROLLBACK
+select count(*) as hold_cursors_after_rolled_back_close_all from pg_cursors;
+ hold_cursors_after_rolled_back_close_all 
+------------------------------------------
+                                        0
+(1 row)
+
