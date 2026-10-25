@@ -186,6 +186,7 @@ Each experiment preserves enough to reproduce and to re-score:
 - the agent configuration list above
 - transcripts or their durable equivalent, including tool calls that changed files
 - acceptance-test output
+- each stage's recorded Alembic revision and database snapshot
 - independent database observations for the transaction task
 - cost records
 - human-intervention records
