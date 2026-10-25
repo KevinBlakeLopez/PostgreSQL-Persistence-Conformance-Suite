@@ -1,0 +1,43 @@
+2026-10-25 15:34:49.012 UTC [274] app=[unknown] vxid= xid=0 sqlstate=00000 LOG:  connection received: host=172.17.0.1 port=48052
+2026-10-25 15:34:49.015 UTC [274] app=[unknown] vxid=49/5 xid=0 sqlstate=00000 LOG:  connection authenticated: identity="chk4_app" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 15:34:49.015 UTC [274] app=[unknown] vxid=49/5 xid=0 sqlstate=00000 LOG:  connection authorized: user=chk4_app database=chk4 application_name=chk4-observer
+2026-10-25 15:34:49.015 UTC [274] app=chk4-observer vxid=49/6 xid=0 sqlstate=00000 LOG:  statement: show cluster_name
+2026-10-25 15:34:49.038 UTC [275] app=[unknown] vxid= xid=0 sqlstate=00000 LOG:  connection received: host=172.17.0.1 port=48064
+2026-10-25 15:34:49.039 UTC [275] app=[unknown] vxid=48/10 xid=0 sqlstate=00000 LOG:  connection authenticated: identity="chk4_app" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 15:34:49.039 UTC [275] app=[unknown] vxid=48/10 xid=0 sqlstate=00000 LOG:  connection authorized: user=chk4_app database=chk4 application_name=chk4-subject
+2026-10-25 15:34:49.040 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 15:34:49.041 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: select pg_catalog.version()
+2026-10-25 15:34:49.042 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: select current_schema()
+2026-10-25 15:34:49.043 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: show transaction isolation level
+2026-10-25 15:34:49.043 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: show standard_conforming_strings
+2026-10-25 15:34:49.044 UTC [275] app=chk4-subject vxid=48/11 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-25 15:34:49.044 UTC [275] app=chk4-subject vxid=48/12 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 15:34:49.045 UTC [275] app=chk4-subject vxid=48/12 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into chk4_item(tag) values ($1)
+2026-10-25 15:34:49.045 UTC [275] app=chk4-subject vxid=48/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-cf320d75568d'
+2026-10-25 15:34:49.046 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: select pg_backend_pid(), pg_current_xact_id()::text
+2026-10-25 15:34:49.046 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: insert into chk4_child(parent_id, tag) values (-1, $1)
+2026-10-25 15:34:49.046 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-cf320d75568d'
+2026-10-25 15:34:49.047 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 15:34:49.047 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=23503 ERROR:  insert or update on table "chk4_child" violates foreign key constraint "chk4_child_parent_id_fkey"
+2026-10-25 15:34:49.047 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=23503 DETAIL:  Key (parent_id)=(-1) is not present in table "chk4_parent".
+2026-10-25 15:34:49.047 UTC [275] app=chk4-subject vxid=48/12 xid=887 sqlstate=23503 STATEMENT:  COMMIT;
+2026-10-25 15:34:49.048 UTC [274] app=chk4-observer vxid=49/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:49.048 UTC [274] app=chk4-observer vxid=49/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-cf320d75568d'
+2026-10-25 15:34:49.048 UTC [274] app=chk4-observer vxid=49/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:49.048 UTC [274] app=chk4-observer vxid=49/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '887'
+2026-10-25 15:34:49.049 UTC [275] app=chk4-subject vxid=48/13 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-25 15:34:49.049 UTC [275] app=chk4-subject vxid=48/13 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into chk4_item(tag) values ($1)
+2026-10-25 15:34:49.049 UTC [275] app=chk4-subject vxid=48/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u2-b90b7ff2962e'
+2026-10-25 15:34:49.049 UTC [275] app=chk4-subject vxid=48/13 xid=888 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: select pg_backend_pid(), pg_current_xact_id()::text
+2026-10-25 15:34:49.050 UTC [275] app=chk4-subject vxid=48/13 xid=888 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-25 15:34:49.050 UTC [274] app=chk4-observer vxid=49/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:49.050 UTC [274] app=chk4-observer vxid=49/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '888'
+2026-10-25 15:34:49.050 UTC [274] app=chk4-observer vxid=49/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:49.050 UTC [274] app=chk4-observer vxid=49/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u2-b90b7ff2962e'
+2026-10-25 15:34:49.051 UTC [275] app=chk4-subject vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.013 user=chk4_app database=chk4 host=172.17.0.1 port=48064
+2026-10-25 15:34:49.052 UTC [274] app=chk4-observer vxid=49/11 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:49.052 UTC [274] app=chk4-observer vxid=49/11 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '887'
+2026-10-25 15:34:49.053 UTC [274] app=chk4-observer vxid=49/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:49.053 UTC [274] app=chk4-observer vxid=49/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-cf320d75568d'
+2026-10-25 15:34:49.053 UTC [274] app=chk4-observer vxid=49/13 xid=0 sqlstate=00000 LOG:  statement: select pg_backend_pid()
+2026-10-25 15:34:49.062 UTC [274] app=chk4-observer vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.050 user=chk4_app database=chk4 host=172.17.0.1 port=48052

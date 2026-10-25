@@ -1,0 +1,42 @@
+2026-10-25 15:34:44.479 UTC [227] app=[unknown] vxid= xid=0 sqlstate=00000 LOG:  connection received: host=172.17.0.1 port=34888
+2026-10-25 15:34:44.482 UTC [227] app=[unknown] vxid=1/2 xid=0 sqlstate=00000 LOG:  connection authenticated: identity="chk4_app" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 15:34:44.482 UTC [227] app=[unknown] vxid=1/2 xid=0 sqlstate=00000 LOG:  connection authorized: user=chk4_app database=chk4 application_name=chk4-observer
+2026-10-25 15:34:44.483 UTC [227] app=chk4-observer vxid=1/3 xid=0 sqlstate=00000 LOG:  statement: show cluster_name
+2026-10-25 15:34:44.494 UTC [228] app=[unknown] vxid= xid=0 sqlstate=00000 LOG:  connection received: host=172.17.0.1 port=34896
+2026-10-25 15:34:44.496 UTC [228] app=[unknown] vxid=2/2 xid=0 sqlstate=00000 LOG:  connection authenticated: identity="chk4_app" method=scram-sha-256 (/var/lib/postgresql/18/docker/pg_hba.conf:128)
+2026-10-25 15:34:44.496 UTC [228] app=[unknown] vxid=2/2 xid=0 sqlstate=00000 LOG:  connection authorized: user=chk4_app database=chk4 application_name=chk4-subject
+2026-10-25 15:34:44.497 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 15:34:44.497 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-25 15:34:44.498 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-25 15:34:44.498 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-25 15:34:44.499 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-25 15:34:44.499 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-25 15:34:44.500 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-25 15:34:44.500 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-25 15:34:44.500 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-25 15:34:44.501 UTC [228] app=chk4-subject vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-25 15:34:44.501 UTC [228] app=chk4-subject vxid=2/4 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 15:34:44.501 UTC [228] app=chk4-subject vxid=2/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into chk4_item(tag) values ($1)
+2026-10-25 15:34:44.501 UTC [228] app=chk4-subject vxid=2/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-6fcc06a063f9'
+2026-10-25 15:34:44.502 UTC [228] app=chk4-subject vxid=2/4 xid=847 sqlstate=00000 LOG:  statement: select pg_backend_pid(), pg_current_xact_id()::text
+2026-10-25 15:34:44.502 UTC [228] app=chk4-subject vxid=2/4 xid=847 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 15:34:44.503 UTC [227] app=chk4-observer vxid=1/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:44.503 UTC [227] app=chk4-observer vxid=1/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-6fcc06a063f9'
+2026-10-25 15:34:44.503 UTC [227] app=chk4-observer vxid=1/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:44.503 UTC [227] app=chk4-observer vxid=1/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '847'
+2026-10-25 15:34:44.504 UTC [228] app=chk4-subject vxid=2/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-25 15:34:44.504 UTC [228] app=chk4-subject vxid=2/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into chk4_item(tag) values ($1)
+2026-10-25 15:34:44.504 UTC [228] app=chk4-subject vxid=2/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u2-149742388b38'
+2026-10-25 15:34:44.504 UTC [228] app=chk4-subject vxid=2/5 xid=848 sqlstate=00000 LOG:  statement: select pg_backend_pid(), pg_current_xact_id()::text
+2026-10-25 15:34:44.505 UTC [228] app=chk4-subject vxid=2/5 xid=848 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-25 15:34:44.505 UTC [227] app=chk4-observer vxid=1/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:44.505 UTC [227] app=chk4-observer vxid=1/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '848'
+2026-10-25 15:34:44.505 UTC [227] app=chk4-observer vxid=1/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:44.505 UTC [227] app=chk4-observer vxid=1/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u2-149742388b38'
+2026-10-25 15:34:44.506 UTC [228] app=chk4-subject vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.011 user=chk4_app database=chk4 host=172.17.0.1 port=34896
+2026-10-25 15:34:44.506 UTC [227] app=chk4-observer vxid=1/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::text::xid8)
+2026-10-25 15:34:44.506 UTC [227] app=chk4-observer vxid=1/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '847'
+2026-10-25 15:34:44.506 UTC [227] app=chk4-observer vxid=1/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select xmin::text from chk4_item where tag = $1
+2026-10-25 15:34:44.506 UTC [227] app=chk4-observer vxid=1/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'u1-6fcc06a063f9'
+2026-10-25 15:34:44.507 UTC [227] app=chk4-observer vxid=1/10 xid=0 sqlstate=00000 LOG:  statement: select pg_backend_pid()
+2026-10-25 15:34:44.507 UTC [227] app=chk4-observer vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.027 user=chk4_app database=chk4 host=172.17.0.1 port=34888

@@ -1,0 +1,64 @@
+{
+ "stack": "sync-psycopg",
+ "arm": "rejected",
+ "sqlalchemy": "2.1.5",
+ "driver": "psycopg 3.3.6",
+ "unit1": {
+  "app_saw": {
+   "class": "sqlalchemy.exc.IntegrityError",
+   "message": "(psycopg.errors.ForeignKeyViolation) insert or update on table \"chk4_child\" violates foreign key constraint \"chk4_child_parent_id_fkey\"",
+   "orig": "psycopg.errors.ForeignKeyViolation",
+   "connection_invalidated": false
+  },
+  "fate_at_report": "aborted",
+  "marker_visible_at_report": false,
+  "marker_xmin_is_unit1_xid": null
+ },
+ "unit2": {
+  "app_saw": "returned normally",
+  "fate": "committed",
+  "marker_visible": true,
+  "same_backend_as_unit1": true,
+  "joined_unit1_xid": false
+ },
+ "proxy": {
+  "used": false
+ },
+ "unit1_final": {
+  "fate": "aborted",
+  "marker_visible": false
+ },
+ "unit1_orm_events": [
+  "orm.after_rollback",
+  "orm.after_soft_rollback"
+ ],
+ "events": [
+  "--unit 1--",
+  "connect 1: direct",
+  "pool.first_connect",
+  "dialect.do_rollback",
+  "core.commit",
+  "dialect.do_commit",
+  "dialect.do_commit raised psycopg.errors.ForeignKeyViolation",
+  "orm.after_rollback",
+  "pool.reset",
+  "dialect.do_rollback",
+  "pool.checkin",
+  "orm.after_soft_rollback",
+  "--unit 1 ended--",
+  "--unit 2--",
+  "core.commit",
+  "dialect.do_commit",
+  "orm.after_commit",
+  "pool.reset",
+  "dialect.do_rollback",
+  "pool.checkin",
+  "--unit 2 ended--",
+  "pool.close",
+  "--disposed--"
+ ],
+ "logged": [],
+ "warnings": [],
+ "loop_errors": [],
+ "validity": "VALID"
+}

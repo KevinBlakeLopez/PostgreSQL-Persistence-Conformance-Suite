@@ -1,0 +1,66 @@
+{
+ "stack": "async-asyncpg",
+ "arm": "lost-reply",
+ "sqlalchemy": "2.1.6",
+ "driver": "asyncpg 0.32.0",
+ "unit1": {
+  "app_saw": {
+   "class": "sqlalchemy.exc.DBAPIError",
+   "message": "(sqlalchemy.dialects.postgresql.asyncpg.Error) connection was closed in the middle of operation",
+   "orig": "sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error",
+   "connection_invalidated": true
+  },
+  "fate_at_report": "committed",
+  "marker_visible_at_report": true,
+  "marker_xmin_is_unit1_xid": true
+ },
+ "unit2": {
+  "app_saw": "returned normally",
+  "fate": "committed",
+  "marker_visible": true,
+  "same_backend_as_unit1": false,
+  "joined_unit1_xid": false
+ },
+ "proxy": {
+  "used": true,
+  "dropped": 1
+ },
+ "unit1_final": {
+  "fate": "committed",
+  "marker_visible": true
+ },
+ "unit1_orm_events": [
+  "orm.after_rollback",
+  "orm.after_soft_rollback"
+ ],
+ "events": [
+  "--unit 1--",
+  "connect 1: through the proxy",
+  "pool.first_connect",
+  "dialect.do_rollback",
+  "core.commit",
+  "dialect.do_commit",
+  "dialect.do_commit raised sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error",
+  "pool.invalidate",
+  "pool.close",
+  "pool.checkin",
+  "orm.after_rollback",
+  "orm.after_soft_rollback",
+  "--unit 1 ended--",
+  "--unit 2--",
+  "connect 2: direct",
+  "core.commit",
+  "dialect.do_commit",
+  "orm.after_commit",
+  "pool.reset",
+  "dialect.do_rollback",
+  "pool.checkin",
+  "--unit 2 ended--",
+  "pool.close",
+  "--disposed--"
+ ],
+ "logged": [],
+ "warnings": [],
+ "loop_errors": [],
+ "validity": "VALID"
+}

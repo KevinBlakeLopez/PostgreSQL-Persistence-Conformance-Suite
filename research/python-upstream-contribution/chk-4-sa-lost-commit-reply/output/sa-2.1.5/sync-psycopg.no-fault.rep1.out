@@ -1,0 +1,56 @@
+{
+ "stack": "sync-psycopg",
+ "arm": "no-fault",
+ "sqlalchemy": "2.1.5",
+ "driver": "psycopg 3.3.6",
+ "unit1": {
+  "app_saw": "returned normally",
+  "fate_at_report": "committed",
+  "marker_visible_at_report": true,
+  "marker_xmin_is_unit1_xid": true
+ },
+ "unit2": {
+  "app_saw": "returned normally",
+  "fate": "committed",
+  "marker_visible": true,
+  "same_backend_as_unit1": true,
+  "joined_unit1_xid": false
+ },
+ "proxy": {
+  "used": false
+ },
+ "unit1_final": {
+  "fate": "committed",
+  "marker_visible": true
+ },
+ "unit1_orm_events": [
+  "orm.after_commit"
+ ],
+ "events": [
+  "--unit 1--",
+  "connect 1: direct",
+  "pool.first_connect",
+  "dialect.do_rollback",
+  "core.commit",
+  "dialect.do_commit",
+  "orm.after_commit",
+  "pool.reset",
+  "dialect.do_rollback",
+  "pool.checkin",
+  "--unit 1 ended--",
+  "--unit 2--",
+  "core.commit",
+  "dialect.do_commit",
+  "orm.after_commit",
+  "pool.reset",
+  "dialect.do_rollback",
+  "pool.checkin",
+  "--unit 2 ended--",
+  "pool.close",
+  "--disposed--"
+ ],
+ "logged": [],
+ "warnings": [],
+ "loop_errors": [],
+ "validity": "VALID"
+}
