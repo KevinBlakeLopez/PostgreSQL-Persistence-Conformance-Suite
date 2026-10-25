@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not posted.** Posting needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a regular comment on https://github.com/pgjdbc/pgjdbc/issues/3005 (open; "Connection.setSchema starts a new transaction when autoCommit=false"). In that thread a maintainer proposed on 2023-11-22 to "skip creating transactions for `setSchema` calls"; another called it a breaking change they were OK with. 42.7.14 and `master` at `874745258` (2026-10-08) still run both methods as ordinary statements.
 
+**Priority: secondary** (review of 2026-10-25). Post it only after the HikariCP issue is filed, and link that issue in the second paragraph.
+
 **Before posting, re-check:** #3005 is still open and has no newer comment covering `getSchema()`; `master` still implements `getSchema()` with `createStatement().executeQuery("select current_schema()")`.
 
 **Evidence:** [`../README.md`](../README.md) §8, and `output/hikari-minimal/pgjdbc-getschema.rep{1,2,3}.out` (byte-identical).
