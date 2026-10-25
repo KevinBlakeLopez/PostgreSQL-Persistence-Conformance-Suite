@@ -1,0 +1,26 @@
+--- a/ext/pdo_pgsql/pgsql_driver.c
++++ b/ext/pdo_pgsql/pgsql_driver.c
+@@ -608,8 +608,22 @@
+ 
+ static bool pgsql_handle_commit(pdo_dbh_t *dbh)
+ {
+-	bool ret = pdo_pgsql_transaction_cmd("COMMIT", dbh);
++	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data;
++	PGresult *res = PQexec(H->server, "COMMIT");
++	bool ret = true;
++
++	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
++		pdo_pgsql_error(dbh, PQresultStatus(res), pdo_pgsql_sqlstate(res));
++		ret = false;
++	} else if (strcmp(PQcmdStatus(res), "ROLLBACK") == 0) {
++		/* PostgreSQL ends an aborted transaction with ROLLBACK even when COMMIT
++		   is sent, and reports that only through the command tag. */
++		pdo_pgsql_error_msg(dbh, PGRES_FATAL_ERROR, "COMMIT was answered with ROLLBACK: the transaction was rolled back");
++		ret = false;
++	}
+ 
++	PQclear(res);
++
+ 	/* When deferred constraints are used the commit could
+ 	   fail, and a ROLLBACK implicitly ran. See bug #67462 */
+ 	if (ret) {
