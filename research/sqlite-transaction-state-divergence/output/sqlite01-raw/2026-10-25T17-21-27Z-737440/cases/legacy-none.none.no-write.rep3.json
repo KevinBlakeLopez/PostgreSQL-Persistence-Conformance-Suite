@@ -1,0 +1,388 @@
+{
+  "checkpoints": {
+    "after-complete": {
+      "in_transaction": false
+    },
+    "after-fault": {
+      "in_transaction": true,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            50
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    },
+    "after-next-unit": {
+      "in_transaction": false
+    },
+    "before-fault": {
+      "in_transaction": true,
+      "own_view": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observed": {
+    "complete": "ok",
+    "complete_sql_started": [
+      "COMMIT"
+    ],
+    "configuration": {
+      "autocommit": -1,
+      "in_transaction_at_connect": false,
+      "isolation_level": null,
+      "mode": "legacy-none"
+    },
+    "fault": "ok",
+    "fault_error_code": null,
+    "in_transaction": {
+      "after-complete": false,
+      "after-fault": true,
+      "after-next-unit": false,
+      "before-fault": true
+    },
+    "next_unit": {
+      "rollback": "ok",
+      "rollback_sql_started": [
+        "ROLLBACK"
+      ],
+      "write": "ok"
+    },
+    "persisted_after_complete": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ]
+      ]
+    },
+    "persisted_final": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ]
+      ]
+    },
+    "recovery": null,
+    "write_b": null,
+    "writer_view": {
+      "after-fault": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            50
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      },
+      "before-fault": {
+        "balances": [
+          [
+            1,
+            70
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          "A"
+        ]
+      }
+    }
+  },
+  "observers": {
+    "after-complete": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "after-fault": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-next-unit": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "final": {
+      "balances": [
+        [
+          1,
+          70
+        ],
+        [
+          2,
+          50
+        ]
+      ],
+      "ledger": [
+        [
+          "A"
+        ]
+      ],
+      "observer_in_transaction": false
+    }
+  },
+  "repetition": 3,
+  "steps": [
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "returned": -1,
+      "sql": "BEGIN",
+      "sql_started": [
+        "BEGIN"
+      ],
+      "status": "ok",
+      "step": "begin",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+        "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+      ],
+      "status": "ok",
+      "step": "write-a-debit",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'A')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'A')"
+      ],
+      "status": "ok",
+      "step": "write-a-ledger",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+      "sql_started": [
+        "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+        "UPDATE accounts SET balance = balance - 50 WHERE id = 2"
+      ],
+      "status": "ok",
+      "step": "fault",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "method": "Connection.commit()",
+      "returned": null,
+      "sql_started": [
+        "COMMIT"
+      ],
+      "status": "ok",
+      "step": "complete",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": false,
+      "returned": -1,
+      "sql": "BEGIN",
+      "sql_started": [
+        "BEGIN"
+      ],
+      "status": "ok",
+      "step": "next-begin",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": true,
+      "in_transaction_before": true,
+      "returned": 1,
+      "sql": "INSERT INTO ledger(token, step) VALUES (?, 'N')",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'N')"
+      ],
+      "status": "ok",
+      "step": "next-write",
+      "warnings": []
+    },
+    {
+      "in_transaction_after": false,
+      "in_transaction_before": true,
+      "method": "Connection.rollback()",
+      "returned": null,
+      "sql_started": [
+        "ROLLBACK"
+      ],
+      "status": "ok",
+      "step": "next-rollback",
+      "warnings": []
+    }
+  ],
+  "token": "df03097c06a343c8989f33409cded5c5",
+  "trace": [
+    "BEGIN",
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "UPDATE accounts SET balance = balance - 30 WHERE id = 1",
+    "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'A')",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = 'df03097c06a343c8989f33409cded5c5' ORDER BY id",
+    "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+    "UPDATE accounts SET balance = balance - 50 WHERE id = 2",
+    "SELECT id, balance FROM accounts ORDER BY id",
+    "SELECT step FROM ledger WHERE token = 'df03097c06a343c8989f33409cded5c5' ORDER BY id",
+    "COMMIT",
+    "BEGIN",
+    "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'N')",
+    "ROLLBACK"
+  ],
+  "trace_events": [
+    {
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 30 WHERE id = 1"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'A')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT step FROM ledger WHERE token = 'df03097c06a343c8989f33409cded5c5' ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 50 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance = balance - 50 WHERE id = 2"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT id, balance FROM accounts ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "SELECT step FROM ledger WHERE token = 'df03097c06a343c8989f33409cded5c5' ORDER BY id"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "COMMIT"
+    },
+    {
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('df03097c06a343c8989f33409cded5c5', 'N')"
+    },
+    {
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    }
+  ],
+  "variant": "legacy-none.none.no-write"
+}

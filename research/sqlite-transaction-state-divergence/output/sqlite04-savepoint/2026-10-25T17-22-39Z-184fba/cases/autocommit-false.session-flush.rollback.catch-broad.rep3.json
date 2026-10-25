@@ -1,0 +1,444 @@
+{
+  "checkpoints": {
+    "after-nested": {
+      "dirty": 0,
+      "handled": {
+        "chain": [
+          "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_1",
+          "OperationalError: no such savepoint: sa_savepoint_1",
+          "IntegrityError: (sqlite3.IntegrityError) negative balance",
+          "IntegrityError: negative balance"
+        ],
+        "driver": {
+          "message": "no such savepoint: sa_savepoint_1",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "(sqlite3.OperationalError) no such savepoint: sa_savepoint_1",
+        "type": "sqlalchemy.exc.OperationalError"
+      },
+      "identity_map_size": 1,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_in_nested_transaction": false,
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": false
+      }
+    },
+    "inside-nested": {
+      "dirty": 0,
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    }
+  },
+  "events": [
+    "pool.connect dbapi=0",
+    "pool.checkout dbapi=0",
+    "core.begin",
+    "core.commit",
+    "pool.reset dbapi=0 transaction_was_reset=False",
+    "pool.invalidate dbapi=0",
+    "pool.checkin dbapi=None",
+    "pool.connect dbapi=1",
+    "pool.checkout dbapi=1",
+    "core.begin",
+    "core.rollback",
+    "pool.reset dbapi=1 transaction_was_reset=False",
+    "pool.checkin dbapi=1"
+  ],
+  "observed": {
+    "after_nested": {
+      "dirty": 0,
+      "identity_map_size": 1,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_in_nested_transaction": false,
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": false
+      }
+    },
+    "b_visible_to_observer_before_completion": false,
+    "configuration": {
+      "catch": "broad",
+      "config": "autocommit-false",
+      "dbapi_at_connect": [
+        {
+          "autocommit": false,
+          "in_transaction_at_connect": true,
+          "isolation_level": ""
+        },
+        {
+          "autocommit": false,
+          "in_transaction_at_connect": true,
+          "isolation_level": ""
+        }
+      ],
+      "layer": "session",
+      "path": "flush"
+    },
+    "handled_by_outer": {
+      "chain": [
+        "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_1",
+        "OperationalError: no such savepoint: sa_savepoint_1",
+        "IntegrityError: (sqlite3.IntegrityError) negative balance",
+        "IntegrityError: negative balance"
+      ],
+      "type": "sqlalchemy.exc.OperationalError"
+    },
+    "inside_nested": {
+      "dirty": 0,
+      "identity_map_size": 0,
+      "new": 0,
+      "private_session_tx_state": "SessionTransactionState.ACTIVE",
+      "sa_session_in_transaction": true,
+      "sa_session_is_active": true,
+      "sa_tx_is_active": true,
+      "sqlite_in_transaction": {
+        "dbapi0": true
+      }
+    },
+    "later_unit_N1": {
+      "dbapi_serials": [
+        1
+      ],
+      "ledger_after": [
+        [
+          "B"
+        ]
+      ],
+      "outcome": "rolled back by AppError",
+      "sql_started": [
+        "INSERT INTO ledger(token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'N1')",
+        "ROLLBACK",
+        "BEGIN",
+        "ROLLBACK",
+        "BEGIN"
+      ]
+    },
+    "nested_sql_started": [
+      "SAVEPOINT sa_savepoint_1",
+      "INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'I')",
+      "SELECT accounts.id, accounts.balance \nFROM accounts \nWHERE accounts.id = 2",
+      "UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+      "UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+      "UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+      "ROLLBACK TO SAVEPOINT sa_savepoint_1"
+    ],
+    "persisted_final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "B"
+        ]
+      ]
+    },
+    "pool_at_end": {
+      "checked_out_after_gc": 0,
+      "checked_out_before_gc": 0,
+      "pool_events_during_gc": []
+    },
+    "pool_log": [
+      {
+        "exception": "cannot rollback - no transaction is active",
+        "level": "ERROR",
+        "message": "Exception during reset or similar"
+      }
+    ],
+    "sink": [
+      [
+        "unit-1:after_rollback",
+        ""
+      ],
+      [
+        "unit-1:after_soft_rollback",
+        ""
+      ]
+    ],
+    "unit_1": {
+      "chain": [
+        "OperationalError: (sqlite3.OperationalError) cannot commit - no transaction is active",
+        "OperationalError: cannot commit - no transaction is active"
+      ],
+      "completion_sql_started": [
+        "INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'B')",
+        "COMMIT",
+        "ROLLBACK"
+      ],
+      "outcome": {
+        "message": "cannot commit - no transaction is active",
+        "sqlite_errorname": "SQLITE_ERROR",
+        "status": "error",
+        "type": "sqlalchemy.exc.OperationalError"
+      },
+      "persisted": {
+        "balances": [
+          [
+            1,
+            100
+          ],
+          [
+            2,
+            100
+          ]
+        ],
+        "ledger": [
+          [
+            "B"
+          ]
+        ]
+      },
+      "warnings": []
+    }
+  },
+  "observers": {
+    "after-N1": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "after-nested": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [],
+      "observer_in_transaction": false
+    },
+    "after-unit-1": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    },
+    "final": {
+      "balances": [
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          100
+        ]
+      ],
+      "ledger": [
+        [
+          "B"
+        ]
+      ],
+      "observer_in_transaction": false
+    }
+  },
+  "pool_log_all": [
+    {
+      "exception": {
+        "chain": [
+          "OperationalError: cannot rollback - no transaction is active",
+          "OperationalError: (sqlite3.OperationalError) cannot commit - no transaction is active",
+          "OperationalError: cannot commit - no transaction is active"
+        ],
+        "driver": {
+          "message": "cannot rollback - no transaction is active",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "cannot rollback - no transaction is active",
+        "type": "sqlite3.OperationalError"
+      },
+      "level": "ERROR",
+      "logger": "sqlalchemy.pool.impl.QueuePool.29165d7df0d84dbd9b36c1c2b77f6e94",
+      "message": "Exception during reset or similar"
+    }
+  ],
+  "repetition": 3,
+  "token": "29165d7df0d84dbd9b36c1c2b77f6e94",
+  "trace": [
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'A')",
+    "dbapi0: SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'I')",
+    "dbapi0: SELECT accounts.id, accounts.balance \nFROM accounts \nWHERE accounts.id = 2",
+    "dbapi0: UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+    "dbapi0: UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+    "dbapi0: UPDATE accounts SET balance=-400 WHERE accounts.id = 2",
+    "dbapi0: ROLLBACK TO SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'B')",
+    "dbapi0: COMMIT",
+    "dbapi0: ROLLBACK",
+    "dbapi1: INSERT INTO ledger(token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'N1')",
+    "dbapi1: ROLLBACK",
+    "dbapi1: BEGIN",
+    "dbapi1: ROLLBACK",
+    "dbapi1: BEGIN",
+    "dbapi1: ROLLBACK"
+  ],
+  "trace_events": [
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'A')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "SAVEPOINT sa_savepoint_1"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'I')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "SELECT accounts.id, accounts.balance \nFROM accounts \nWHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=-400 WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=-400 WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": true,
+      "sql": "UPDATE accounts SET balance=-400 WHERE accounts.id = 2"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "ROLLBACK TO SAVEPOINT sa_savepoint_1"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "INSERT INTO ledger (token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'B')"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "COMMIT"
+    },
+    {
+      "dbapi": 0,
+      "in_transaction_before": false,
+      "sql": "ROLLBACK"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": true,
+      "sql": "INSERT INTO ledger(token, step) VALUES ('29165d7df0d84dbd9b36c1c2b77f6e94', 'N1')"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": false,
+      "sql": "BEGIN"
+    },
+    {
+      "dbapi": 1,
+      "in_transaction_before": true,
+      "sql": "ROLLBACK"
+    }
+  ],
+  "unit_1_record": {
+    "error": {
+      "chain": [
+        "OperationalError: (sqlite3.OperationalError) cannot commit - no transaction is active",
+        "OperationalError: cannot commit - no transaction is active"
+      ],
+      "driver": {
+        "message": "cannot commit - no transaction is active",
+        "primary_code": 1,
+        "sqlite_errorcode": 1,
+        "sqlite_errorname": "SQLITE_ERROR",
+        "type": "sqlite3.OperationalError"
+      },
+      "message": "(sqlite3.OperationalError) cannot commit - no transaction is active",
+      "type": "sqlalchemy.exc.OperationalError"
+    },
+    "status": "error",
+    "step": "unit-1",
+    "traceback_tail": [
+      "  File \"$STUDY/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py\", line 1170, in _commit_impl\n    self.engine.dialect.do_commit(self.connection)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^",
+      "  File \"$STUDY/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py\", line 954, in do_commit\n    dbapi_connection.commit()\n    ~~~~~~~~~~~~~~~~~~~~~~~^^",
+      "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) cannot commit - no transaction is active\n(Background on this error at: https://sqlalche.me/e/21/e3q8)"
+    ],
+    "warnings": []
+  },
+  "variant": "autocommit-false.session-flush.rollback.catch-broad"
+}

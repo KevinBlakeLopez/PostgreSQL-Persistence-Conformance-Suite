@@ -1,0 +1,150 @@
+{
+  "events": [
+    "pool.connect dbapi=0",
+    "pool.checkout dbapi=0",
+    "core.begin",
+    "core.rollback",
+    "pool.reset dbapi=0 transaction_was_reset=False",
+    "pool.invalidate dbapi=0",
+    "pool.checkin dbapi=None"
+  ],
+  "observed": {
+    "application_claims_committed": [],
+    "application_skipped": [],
+    "claim_matches_database": true,
+    "configuration": {
+      "config": "autocommit-false",
+      "dbapi_at_connect": [
+        {
+          "autocommit": false,
+          "in_transaction_at_connect": true,
+          "isolation_level": ""
+        }
+      ],
+      "max_page_count": 18,
+      "pattern": "docs-add-integrityerror",
+      "trigger": "full"
+    },
+    "import_error_chain": [
+      "OperationalError: (sqlite3.OperationalError) cannot rollback - no transaction is active",
+      "OperationalError: cannot rollback - no transaction is active",
+      "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_5",
+      "OperationalError: no such savepoint: sa_savepoint_5",
+      "OperationalError: (sqlite3.OperationalError) database or disk is full",
+      "OperationalError: database or disk is full"
+    ],
+    "import_outcome": {
+      "message": "cannot rollback - no transaction is active",
+      "sqlite_errorname": "SQLITE_ERROR",
+      "status": "error",
+      "type": "sqlalchemy.exc.OperationalError"
+    },
+    "per_record": [
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 1,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 2,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 3,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      },
+      {
+        "handled": null,
+        "sa_in_transaction_after": true,
+        "seq": 4,
+        "sqlite_in_transaction_after": {
+          "dbapi0": true
+        }
+      }
+    ],
+    "persisted_seqs": [],
+    "pool_at_end": {
+      "checked_out_after_gc": 0,
+      "checked_out_before_gc": 0,
+      "pool_events_during_gc": []
+    },
+    "sink": [
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ],
+      [
+        "after_commit",
+        ""
+      ]
+    ],
+    "warnings": []
+  },
+  "pool_log_all": [
+    {
+      "exception": {
+        "chain": [
+          "OperationalError: cannot rollback - no transaction is active",
+          "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_5",
+          "OperationalError: no such savepoint: sa_savepoint_5",
+          "OperationalError: (sqlite3.OperationalError) database or disk is full",
+          "OperationalError: database or disk is full"
+        ],
+        "driver": {
+          "message": "cannot rollback - no transaction is active",
+          "primary_code": 1,
+          "sqlite_errorcode": 1,
+          "sqlite_errorname": "SQLITE_ERROR",
+          "type": "sqlite3.OperationalError"
+        },
+        "message": "cannot rollback - no transaction is active",
+        "type": "sqlite3.OperationalError"
+      },
+      "level": "ERROR",
+      "logger": "sqlalchemy.pool.impl.QueuePool.a57aff396f334eedbf270e1b88d9a6aa",
+      "message": "Exception during reset or similar"
+    }
+  ],
+  "repetition": 3,
+  "token": "a57aff396f334eedbf270e1b88d9a6aa",
+  "trace": [
+    "dbapi0: PRAGMA max_page_count = 18",
+    "dbapi0: SAVEPOINT sa_savepoint_1",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('a57aff396f334eedbf270e1b88d9a6aa', 1, x'0101010101010101010101010101010101010101010101010101010101010",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_1",
+    "dbapi0: SAVEPOINT sa_savepoint_2",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('a57aff396f334eedbf270e1b88d9a6aa', 2, x'0202020202020202020202020202020202020202020202020202020202020",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_2",
+    "dbapi0: SAVEPOINT sa_savepoint_3",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('a57aff396f334eedbf270e1b88d9a6aa', 3, x'0303030303030303030303030303030303030303030303030303030303030",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_3",
+    "dbapi0: SAVEPOINT sa_savepoint_4",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('a57aff396f334eedbf270e1b88d9a6aa', 4, x'0404040404040404040404040404040404040404040404040404040404040",
+    "dbapi0: RELEASE SAVEPOINT sa_savepoint_4",
+    "dbapi0: SAVEPOINT sa_savepoint_5",
+    "dbapi0: INSERT INTO records (token, seq, payload) VALUES ('a57aff396f334eedbf270e1b88d9a6aa', 5, x'0505050505050505050505050505050505050505050505050505050505050",
+    "dbapi0: ROLLBACK TO SAVEPOINT sa_savepoint_5",
+    "dbapi0: ROLLBACK",
+    "dbapi0: ROLLBACK"
+  ],
+  "variant": "autocommit-false.docs-add-integrityerror.full"
+}

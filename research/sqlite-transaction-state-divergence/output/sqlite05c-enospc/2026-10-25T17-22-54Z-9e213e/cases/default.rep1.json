@@ -1,0 +1,149 @@
+{
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "--name",
+    "ppcs-sqlite-sd-enospc-29b01eaa38ec",
+    "--tmpfs",
+    "/data:rw,size=16m",
+    "-e",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "-v",
+    "$STUDY/repro:/repro:ro",
+    "-v",
+    "$STUDY/.wheels-linux:/wheels:ro",
+    "python:3.13-slim@sha256:d98cc29d3266e535dd9da1099688d9cb3ca4753813571e071763d17725460962",
+    "sh",
+    "-c",
+    "pip install -q --no-index --no-deps /wheels/sqlalchemy-2.1.6-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl /wheels/typing_extensions-4.16.0-py3-none-any.whl >/dev/null 2>&1; python -I /repro/sqlite05c_enospc_container.py default 29b01eaa38ec4045948613dc44f15c16"
+  ],
+  "document": {
+    "free_at_end": 65536,
+    "payload_bytes": 204800,
+    "python": "3.13.17",
+    "records": 30,
+    "result": {
+      "application_claims_committed": [],
+      "claim_matches_database": false,
+      "commit_error": {
+        "chain": [
+          "OperationalError: (sqlite3.OperationalError) database or disk is full",
+          "OperationalError: database or disk is full"
+        ],
+        "sqlite_errorcode": 13,
+        "sqlite_errorname": "SQLITE_FULL"
+      },
+      "committed_seqs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "skipped": [
+        {
+          "error": {
+            "chain": [
+              "OperationalError: (sqlite3.OperationalError) database or disk is full",
+              "OperationalError: database or disk is full"
+            ],
+            "sqlite_errorcode": 13,
+            "sqlite_errorname": "SQLITE_FULL"
+          },
+          "seq": 16
+        },
+        {
+          "error": {
+            "chain": [
+              "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_25",
+              "OperationalError: no such savepoint: sa_savepoint_25",
+              "OperationalError: (sqlite3.OperationalError) database or disk is full",
+              "OperationalError: database or disk is full"
+            ],
+            "sqlite_errorcode": 1,
+            "sqlite_errorname": "SQLITE_ERROR"
+          },
+          "seq": 25
+        },
+        {
+          "error": {
+            "chain": [
+              "OperationalError: (sqlite3.OperationalError) database or disk is full",
+              "OperationalError: database or disk is full"
+            ],
+            "sqlite_errorcode": 13,
+            "sqlite_errorname": "SQLITE_FULL"
+          },
+          "seq": 26
+        }
+      ],
+      "sqlalchemy": "2.1.6"
+    },
+    "setup": {
+      "db_bytes": 8192,
+      "free_after_filler": 3145728,
+      "free_before_filler": 16769024
+    },
+    "sqlite": "3.46.1",
+    "target_free_bytes": 3145728,
+    "variant": "default"
+  },
+  "observed": {
+    "application_claims_committed": [],
+    "claim_matches_database": false,
+    "commit_error": [
+      "OperationalError: (sqlite3.OperationalError) database or disk is full",
+      "OperationalError: database or disk is full"
+    ],
+    "committed_seqs": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "container": {
+      "free_after_filler_mib": 3.0,
+      "python": "3.13.17",
+      "returncode": 0,
+      "sqlalchemy": "2.1.6",
+      "sqlite": "3.46.1"
+    },
+    "skipped_errors": [
+      "OperationalError: (sqlite3.OperationalError) database or disk is full",
+      "OperationalError: (sqlite3.OperationalError) no such savepoint: sa_savepoint_25"
+    ],
+    "skipped_seqs": [
+      16,
+      25,
+      26
+    ]
+  },
+  "repetition": 1,
+  "stderr_tail": [],
+  "token": "29b01eaa38ec4045948613dc44f15c16",
+  "variant": "default"
+}
