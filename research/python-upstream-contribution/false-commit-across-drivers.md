@@ -21,7 +21,7 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | psycopg2 | SQLAlchemy Core | `Connection.commit()`, `engine.begin()` | returned normally | CHK-9 |
 | psycopg2 | SQLAlchemy ORM | `Session.commit()`, `sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-9 |
 | asyncpg | direct | `async with conn.transaction()`, `Transaction.commit()` | returned normally | PY-2: [CHK-2](chk-2-asyncpg/README.md), on asyncio and uvloop; CHK-10 `ap-raw-*` |
-| asyncpg | direct, after a caught client-side timeout | `async with conn.transaction()`, `Transaction.commit()` | returned normally; a raw `COMMIT` returned `ROLLBACK` | [CHK-11](chk-11-asyncpg-client-timeout/README.md): `fetch(timeout=)`, `command_timeout` and `asyncio.wait_for()`, on asyncio and uvloop |
+| asyncpg | direct, after a caught client-side timeout | `async with conn.transaction()`, `Transaction.commit()` | returned normally; a raw `COMMIT` returned `ROLLBACK` | [CHK-11](chk-11-asyncpg-client-timeout/README.md): `fetch(timeout=)`, `command_timeout` and `asyncio.wait_for()`, on asyncio and uvloop; [CHK-15](chk-15-asyncpg-timeout-order/README.md): `asyncio.timeout()`, and a server timeout that fires after the client's |
 | asyncpg | SQLAlchemy asyncio Core | `AsyncConnection.commit()`, `engine.begin()` | returned normally | [CHK-10](chk-10-sa-asyncpg-false-commit/README.md) |
 | asyncpg | SQLAlchemy asyncio ORM | `AsyncSession.commit()`, `async_sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-10 |
 | asyncpg | Tortoise ORM | its transaction | PPCS FAIL, driver trace `COMMIT; -> ROLLBACK` | run [`c45624`](../../reports/examples/2026-10-19T12-45-38Z-c45624) |
@@ -33,6 +33,8 @@ CHK-9 and CHK-10 used the latest releases on 2026-10-26 (SQLAlchemy 2.1.6, psyco
 - **SQLAlchemy's ORM flush path.** When the failing statement is a flush, `Session.commit()` raises `PendingRollbackError` and SQLAlchemy sends `ROLLBACK` (CHK-9 and CHK-10, on psycopg2 and asyncpg).
 - **Django's ORM inside `atomic()`.** PY-10, closed as not a defect. Django sends `ROLLBACK` itself and skips `on_commit`. The view still returns normally, though, and the write is gone (CHK-12).
 - **Django's `atomic()` nested inside `ATOMIC_REQUESTS`, after a raw-SQL error.** Django's `RELEASE SAVEPOINT` fails with `25P02`, and the request returns 500 (CHK-12).
+- **asyncpg, when a server timeout fires before the client's.** A `lock_timeout` or `statement_timeout` raises `LockNotAvailableError` or `QueryCanceledError`. Code that catches only `TimeoutError` lets it through, and the block rolls back (CHK-15).
+- **asyncpg, when a timed-out statement had already finished.** At the deadline, the caught `TimeoutError` can follow a statement that completed before the cancel arrived. The server ignores the cancel, and the commit is real (CHK-15).
 
 ## Not run
 

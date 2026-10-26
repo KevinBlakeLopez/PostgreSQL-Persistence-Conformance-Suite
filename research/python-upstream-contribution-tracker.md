@@ -122,6 +122,10 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
     - What asyncpg reported: the block exits normally, `tr.commit()` returns `None`, and a raw `execute('COMMIT')` returns `'ROLLBACK'`.
     - What the server did: it cancelled the statement and aborted the transaction.
     - Before this, the timeout path rested on P6's server-side `statement_timeout` and on asyncpg's own `test_timeout_06` (source reading).
+  - **CHK-15 (2026-10-26 UTC): which timeout fires first, and the race at the deadline.** asyncpg 0.32.0 on asyncio and uvloop, run under the working name CHK-13: [`python-upstream-contribution/chk-15-asyncpg-timeout-order/`](python-upstream-contribution/chk-15-asyncpg-timeout-order/README.md). It is a mechanism check; its trigger is not a recommended design.
+    - A server `lock_timeout` or `statement_timeout` that fires before the client's deadline raises `LockNotAvailableError` or `QueryCanceledError`. Neither is a `TimeoutError`, so the block rolls back.
+    - When the client fires first, the caught `TimeoutError` gives the false commit. That holds with a longer server timeout too, and with `asyncio.timeout()`, 6 of 6 per arm.
+    - In 488 trials around a 0.2 s deadline, the same caught `TimeoutError` was followed by a real commit when the statement had finished before the cancel arrived (95), and by the false commit otherwise (196).
   - `research/python-production-failure-gap-analysis/output/p1.out` (arms A–D);
   - `output/p6.jsonl` and `output/p6.server-log-endings.txt`;
   - `reports/examples/2026-10-19T12-45-38Z-c45624` (Tortoise TX-01A; trace `COMMIT; -> ROLLBACK`);
@@ -149,7 +153,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   The `57014`/`40P01`/`40001` line was dropped.
 - **Prerequisites:** done on 2026-10-24: CHK-2, the duplicate search, and the template. Repeat the draft's pre-file checks on the day of filing. A new asyncpg release means re-running the program first.
 - **Status:** SUBMITTED
-- **Next concrete step:** wait for a reply. If #1400 is still silent around 2026-11-07, send one polite follow-up: [`python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md`](python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md). It was drafted 2026-10-26 with CHK-11's timeout result, and awaits approval of its exact text. Decide around 2026-11-21 (roadmap §14). Expect a slow reply (see "Receptiveness").
+- **Next concrete step:** wait for a reply. If #1400 is still silent around 2026-11-07, decide between a plain nudge with no new content and nothing at all. The timeout follow-up draft ([`python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md`](python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md)) was retired on 2026-10-26: its trigger, a timeout caught inside an all-or-nothing transaction, is not reasonable application code. Decide around 2026-11-21 (roadmap §14). Expect a slow reply (see "Receptiveness").
 
 ### PY-3: Tortoise `Model.save()` after a rolled-back transaction
 
@@ -377,6 +381,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-12 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). Django 6.1.2 on psycopg 3.3.6, 3 of 3. After a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone, Django sends `COMMIT`, `commit()` returns, `on_commit` runs, and the view returns 200, though the server had aborted. ORM errors roll back, and `atomic()` nested inside `ATOMIC_REQUESTS` fails loudly: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/README.md) |
 | CHK-13 | PY-7 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). A real `SQLITE_BUSY` at `COMMIT`, with a reader in another process in rollback-journal mode, reaches P5a's path with no injection. The default and `autocommit=False` configurations, Core and Session closes without `rollback()`: the next checkout commits the failed unit's row, and the idle connection blocks all reads and writes until then. 3 of 3 on SQLAlchemy 2.1.6 and 2.0.55: [`python-upstream-contribution/chk-13-sa-sqlite-busy-commit/`](python-upstream-contribution/chk-13-sa-sqlite-busy-commit/README.md) |
 | CHK-14 | PY-4, PY-24 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). sqlalchemy-file 0.7.0 through CHK-4's lost-reply proxy. With `with session.begin()` or commit-then-`rollback()`, PostgreSQL commits the row and the library deletes its file (`after_soft_rollback`), 3 of 3. The README form orphans files on a rejected `COMMIT`. starlette-admin's call sequence escapes the deletion, because `after_commit` fires at the savepoint `RELEASE`: [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md) |
+| CHK-15 | PY-2 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC), under the working name CHK-13. asyncpg 0.32.0, asyncio and uvloop; a mechanism check, not a recommended design. A server timeout that fires before the client's deadline raises, and the block rolls back. A client deadline that fires first gives the false commit, also with `asyncio.timeout()` and longer server timeouts, 6 of 6 per arm. At the deadline, the same caught `TimeoutError` was followed by a real commit (95 of 488 trials) or the false commit (196): [`python-upstream-contribution/chk-15-asyncpg-timeout-order/`](python-upstream-contribution/chk-15-asyncpg-timeout-order/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -695,3 +700,12 @@ The rest of this section is the plan as it stood before the commits.
   - **New: PY-24,** sqlalchemy-file's own gaps. It is unranked.
   - **PY-21:** the real-world search found disk-full errors in SQLAlchemy-on-SQLite projects: Home Assistant #117263 and #112816, optuna #5011, google/fuzzbench #2070. It found no report of PY-21's own mechanism.
   - **Priorities** are unchanged, pending the maintainer's ranking. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26, about 13:48 UTC.** Pushed to `main` at the maintainer's request, as a fast-forward from `1f30616`: CHK-11 (`70be22f`, `f57e9f5`, `75d68dd`) and CHK-12 (`3545572`, `28c0566`). Nothing posted or filed.
+- **2026-10-26, about 14:15 UTC.** At the maintainer's request:
+  - **CHK-15 (new): which timeout fires first, and the race at the deadline.** Evidence: [`python-upstream-contribution/chk-15-asyncpg-timeout-order/`](python-upstream-contribution/chk-15-asyncpg-timeout-order/README.md) (commit `ecc0a8d`).
+    - It ran under the working name CHK-13, which the SQLite record above took first.
+    - On asyncpg 0.32.0, a server timeout that fires first raises, and the block rolls back. A client deadline that fires first gives the false commit, also with `asyncio.timeout()`.
+    - Its README says the trigger is not a recommended design.
+  - **PY-2: the timeout follow-up draft is retired** (commit `50b824f`). Its trigger is not reasonable application code. Around 2026-11-07, the choice is between a plain nudge and nothing.
+  - **The false-commit summary** cites CHK-15.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
