@@ -72,6 +72,10 @@ Do not commit, push, rebase, reset, or discard changes unless explicitly instruc
 
 Before editing shared files or starting a substantial workstream, inspect repository status and `docs/research-status.md`. On 2026-10-21 the production-reachability study and the Hibernate adapter were uncommitted. Both are on `main` at `36dd52f`. Treat unexpected diffs as someone else's work until the status document or the task says otherwise.
 
+### 15. Search before building an example
+
+Before building an example application or a demonstration for a finding, search for real code that already has the shape. Record what you find, including nothing, in the finding's production-relevance section, following [`docs/production-relevance.md`](docs/production-relevance.md). A finding with no section and no search record has not been searched. Keep production relevance apart from severity (rule 8).
+
 ## PPCS evidence conventions
 
 Follow `docs/methodology.md` and `CONTRIBUTING.md`.

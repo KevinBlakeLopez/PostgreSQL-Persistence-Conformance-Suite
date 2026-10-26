@@ -1,6 +1,6 @@
 # PPCS master research plan
 
-Inspected 2026-10-21. Updated 2026-10-23 for the next-milestone sentence and the list of unfiled drafts. The mission is unchanged. This is the mission and the boundary for the PostgreSQL Persistence Conformance Suite (PPCS) and for the separate longitudinal persistence ownership benchmark.
+Inspected 2026-10-21. Updated 2026-10-23 for the next-milestone sentence and the list of unfiled drafts, and 2026-10-26 for the link to the production-relevance standard. The mission is unchanged. This is the mission and the boundary for the PostgreSQL Persistence Conformance Suite (PPCS) and for the separate longitudinal persistence ownership benchmark.
 
 Read this plan before starting work. Current facts, including what is recorded and what is only drafted, are in [`research-status.md`](research-status.md). Order of work is in [`research-roadmap.md`](research-roadmap.md). Agent rules are in [`../AGENTS.md`](../AGENTS.md).
 
@@ -60,7 +60,7 @@ A single pass/fail score is not a result. These are independent:
 4. **Connection and pool safety.** Whether a later transaction on that pool can commit its own work, and whether it reused the same backend.
 5. **Application misuse.** A caller that ignores evidence the driver already exposed. The node-postgres mode that treats a resolved `COMMIT` as success while `Result.command` is `ROLLBACK` is this category in the production-reachability study.
 6. **Framework contract violations.** A supported API whose documented meaning disagrees with the database outcome. The contract text is part of the evidence. Maintainers judge whether the disagreement is a defect.
-7. **Production reachability.** Whether the scenario uses an ordinary API and a real PostgreSQL error, or a client-side injection or simulation. Category C and D faults show a recovery path. They do not show how often that path occurs.
+7. **Production reachability.** Whether the scenario uses an ordinary API and a real PostgreSQL error, or a client-side injection or simulation. Category C and D faults show a recovery path. They do not show how often that path occurs. How a finding records production relevance, including real-world evidence, is in [`production-relevance.md`](production-relevance.md).
 
 Safe connection reuse does not prove that an earlier transaction committed. A reported commit does not prove that PostgreSQL committed. A harness classification does not replace the contract assessment when the case says so. For family `PR-01`, a harness PASS means the independent evidence is complete and marker visibility agrees with `pg_xact_status()`. The classifier states that this PASS does not judge the commit report. The contract verdicts are in the production-reachability report.
 
