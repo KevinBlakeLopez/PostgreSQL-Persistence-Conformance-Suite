@@ -1,0 +1,225 @@
+{
+ "rep": "3",
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.6",
+  "psycopg2": "2.9.13",
+  "psycopg2_libpq": 170011,
+  "psycopg": "3.3.6",
+  "psycopg_impl": "binary",
+  "psycopg_libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "arms": [
+  {
+   "arm": "p2-raw-commit",
+   "application_name": "fc-p2-raw-commit-r3",
+   "row_x": 100,
+   "xid": "788",
+   "failing_statement": "caught UniqueViolation",
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "driver_status_after_commit": "IDLE",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-raw-with",
+   "application_name": "fc-p2-raw-with-r3",
+   "row_x": 200,
+   "xid": "789",
+   "failing_statement": "caught UniqueViolation",
+   "driver_status_before_commit": "INERROR",
+   "api": "block exited normally",
+   "driver_status_after_commit": "IDLE",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-raw-sql-commit",
+   "application_name": "fc-p2-raw-sql-commit-r3",
+   "row_x": 300,
+   "xid": "790",
+   "failing_statement": "caught UniqueViolation",
+   "driver_status_before_commit": "INERROR",
+   "commit_command_status": "ROLLBACK",
+   "api": "returned normally",
+   "driver_status_after_commit": "IDLE",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-core-connect-commit",
+   "application_name": "fc-p2-core-connect-commit-r3",
+   "row_x": 400,
+   "xid": "791",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "sa_in_transaction_before_commit": true,
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-core-engine-begin",
+   "application_name": "fc-p2-core-engine-begin-r3",
+   "row_x": 500,
+   "xid": "792",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "api": "block exited normally",
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-orm-execute-commit",
+   "application_name": "fc-p2-orm-execute-commit-r3",
+   "row_x": 600,
+   "xid": "793",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-orm-sessionmaker-begin",
+   "application_name": "fc-p2-orm-sessionmaker-begin-r3",
+   "row_x": 700,
+   "xid": "794",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "api": "block exited normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-orm-flush-control",
+   "application_name": "fc-p2-orm-flush-control-r3",
+   "row_x": 800,
+   "xid": "795",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "not read (the Session requires a rollback)",
+   "api": "raised sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint \"fc_item_pkey\"",
+   "events": [
+    "ConnectionEvents.rollback",
+    "SessionEvents.after_rollback",
+    "SessionEvents.after_soft_rollback"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p2-core-no-error-control",
+   "application_name": "fc-p2-core-no-error-control-r3",
+   "row_x": 900,
+   "xid": "796",
+   "sa_in_transaction_before_commit": true,
+   "driver_status_before_commit": "INTRANS",
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": true,
+    "xact_status": "committed"
+   }
+  },
+  {
+   "arm": "p3-raw-commit",
+   "application_name": "fc-p3-raw-commit-r3",
+   "row_x": 1000,
+   "xid": "797",
+   "failing_statement": "caught UniqueViolation",
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "driver_status_after_commit": "IDLE",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p3-raw-sql-commit",
+   "application_name": "fc-p3-raw-sql-commit-r3",
+   "row_x": 1100,
+   "xid": "798",
+   "failing_statement": "caught UniqueViolation",
+   "driver_status_before_commit": "INERROR",
+   "commit_command_status": "ROLLBACK",
+   "api": "returned normally",
+   "driver_status_after_commit": "IDLE",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p3-core-connect-commit",
+   "application_name": "fc-p3-core-connect-commit-r3",
+   "row_x": 1200,
+   "xid": "799",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "sa_in_transaction_before_commit": true,
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "p3-orm-execute-commit",
+   "application_name": "fc-p3-orm-execute-commit-r3",
+   "row_x": 1300,
+   "xid": "800",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  }
+ ]
+}
