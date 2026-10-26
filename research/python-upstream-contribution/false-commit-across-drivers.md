@@ -16,7 +16,7 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | psycopg 3 | SQLAlchemy ORM | `Session.commit()`, after an error from `session.execute()` | returned normally; `after_commit` ran | CHK-9 `p3-orm-execute-commit` |
 | psycopg 3 | SQLAlchemy asyncio, Core and ORM | `AsyncConnection.commit()`, `AsyncSession.commit()` | returned normally; `after_commit` ran | CHK-10 `pa-core-connect-commit`, `pa-orm-execute-commit` |
 | psycopg 3 | Django | a manual `commit()` | returned normally | run [`508b7a`](../production-reachability/runs/2026-10-19T20-58-26Z-508b7a) |
-| psycopg 3 | Django, a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone | the end of `atomic()` | returned normally; `on_commit` ran; the view returned 200 | [CHK-12](chk-12-django-raw-sql-false-commit/README.md) |
+| psycopg 3 | Django, a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone | the end of `atomic()` | returned normally; `on_commit` ran; the view returned 200 | [CHK-12](chk-12-django-raw-sql-false-commit/README.md); [its re-run](chk-12-django-raw-sql-false-commit/once-only-rerun/README.md) with a once-only bonus |
 | psycopg2 | direct | `conn.commit()`, `with conn:` | returned normally | [CHK-9](chk-9-psycopg2-false-commit/README.md) |
 | psycopg2 | SQLAlchemy Core | `Connection.commit()`, `engine.begin()` | returned normally | CHK-9 |
 | psycopg2 | SQLAlchemy ORM | `Session.commit()`, `sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-9 |
