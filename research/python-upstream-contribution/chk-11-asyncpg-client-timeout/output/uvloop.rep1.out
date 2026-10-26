@@ -1,0 +1,40 @@
+python 3.13.11, asyncpg 0.32.0, event loop uvloop.Loop (uvloop 0.23.0), Darwin arm64
+server_version 18.6 (Debian 18.6-1.pgdg13+2)
+managed: async with con.transaction(), fetch(timeout=0.2) caught inside the block
+  caught TimeoutError, before the sleep ended: True
+  the block exited normally
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(788) aborted, marker visible False, session idle, last statement 'COMMIT;'
+explicit: tr.start(), fetch(timeout=0.2) caught, tr.commit()
+  caught TimeoutError, before the sleep ended: True
+  commit() returned None
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(789) aborted, marker visible False, session idle, last statement 'COMMIT;'
+raw: execute('BEGIN'), fetch(timeout=0.2) caught, execute('COMMIT')
+  caught TimeoutError, before the sleep ended: True
+  execute('COMMIT') returned 'ROLLBACK'
+  PostgreSQL: pg_xact_status(790) aborted, marker visible False, session idle, last statement 'COMMIT'
+command_timeout: connect(command_timeout=0.2), async with con.transaction(), fetch() caught inside
+  caught TimeoutError, before the sleep ended: True
+  the block exited normally
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(791) aborted, marker visible False, session idle, last statement 'COMMIT;'
+wait_for: async with con.transaction(), asyncio.wait_for(fetch(), 0.2) caught inside
+  caught TimeoutError, before the sleep ended: True
+  the block exited normally
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(792) aborted, marker visible False, session idle, last statement 'COMMIT;'
+control_savepoint: async with con.transaction(), fetch(timeout=0.2) caught around a nested con.transaction() (savepoint)
+  caught TimeoutError outside the savepoint block
+  the block exited normally
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(793) committed, marker visible True, session idle, last statement 'COMMIT;'
+control_fast: async with con.transaction(), fetch(timeout=5) of select pg_sleep(0.01): no timeout fires
+  no error
+  the block exited normally
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already committed
+  PostgreSQL: pg_xact_status(794) committed, marker visible True, session idle, last statement 'COMMIT;'
+control_uncaught: async with con.transaction(), fetch(timeout=0.2) not caught
+  the block raised TimeoutError: 
+  rollback() afterwards raised InterfaceError: cannot rollback; the transaction is already rolled back
+  PostgreSQL: pg_xact_status(795) aborted, marker visible False, session idle, last statement 'ROLLBACK;'

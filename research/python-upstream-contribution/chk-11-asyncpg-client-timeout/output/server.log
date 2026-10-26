@@ -1,0 +1,775 @@
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "en_US.utf8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+
+waiting for server to start....2026-10-26 04:07:22.242 UTC [53] app= vxid= xid=0 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-26 04:07:22.243 UTC [53] app= vxid= xid=0 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-26 04:07:22.244 UTC [59] app= vxid= xid=0 LOG:  database system was shut down at 2026-10-26 04:07:22 UTC
+2026-10-26 04:07:22.246 UTC [53] app= vxid= xid=0 LOG:  database system is ready to accept connections
+ done
+server started
+2026-10-26 04:07:22.355 UTC [65] app=psql vxid=0/2 xid=0 LOG:  statement: SELECT 1 FROM pg_database WHERE datname = 'postgres' ;
+
+/usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+
+waiting for server to shut down...2026-10-26 04:07:22.356 UTC [53] app= vxid= xid=0 LOG:  received fast shutdown request
+.2026-10-26 04:07:22.356 UTC [53] app= vxid= xid=0 LOG:  aborting any active transactions
+2026-10-26 04:07:22.357 UTC [53] app= vxid= xid=0 LOG:  background worker "logical replication launcher" (PID 62) exited with exit code 1
+2026-10-26 04:07:22.357 UTC [57] app= vxid= xid=0 LOG:  shutting down
+2026-10-26 04:07:22.357 UTC [57] app= vxid= xid=0 LOG:  checkpoint starting: shutdown immediate
+2026-10-26 04:07:22.357 UTC [57] app= vxid= xid=0 LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1761920, redo lsn=0/1761920
+2026-10-26 04:07:22.360 UTC [53] app= vxid= xid=0 LOG:  database system is shut down
+ done
+server stopped
+
+PostgreSQL init process complete; ready for start up.
+
+2026-10-26 04:07:22.473 UTC [1] app= vxid= xid=0 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-26 04:07:22.473 UTC [1] app= vxid= xid=0 LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-26 04:07:22.473 UTC [1] app= vxid= xid=0 LOG:  listening on IPv6 address "::", port 5432
+2026-10-26 04:07:22.474 UTC [1] app= vxid= xid=0 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-26 04:07:22.475 UTC [73] app= vxid= xid=0 LOG:  database system was shut down at 2026-10-26 04:07:22 UTC
+2026-10-26 04:07:22.476 UTC [1] app= vxid= xid=0 LOG:  database system is ready to accept connections
+2026-10-26 04:07:22.594 UTC [77] app=[unknown] vxid=0/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show cluster_name
+2026-10-26 04:07:22.655 UTC [84] app=psql vxid=1/2 xid=0 LOG:  statement: select name || ' = ' || setting from pg_settings
+	  where name in ('server_version', 'synchronous_commit', 'default_transaction_isolation', 'statement_timeout',
+	                 'idle_in_transaction_session_timeout', 'log_statement', 'log_line_prefix', 'max_connections')
+	  order by name
+2026-10-26 04:07:22.715 UTC [85] app=repro-admin vxid=2/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:22.715 UTC [85] app=repro-admin vxid=2/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:22.716 UTC [85] app=repro-admin vxid=2/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:22.748 UTC [86] app=repro-setup vxid=3/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:22.758 UTC [88] app=repro-managed vxid=5/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:22.759 UTC [88] app=repro-managed vxid=5/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:22.759 UTC [88] app=repro-managed vxid=5/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:22.760 UTC [88] app=repro-managed vxid=5/2 xid=755 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:22.761 UTC [88] app=repro-managed vxid=5/2 xid=755 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:22.963 UTC [88] app=repro-managed vxid=5/2 xid=755 ERROR:  canceling statement due to user request
+2026-10-26 04:07:22.963 UTC [88] app=repro-managed vxid=5/2 xid=755 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:22.965 UTC [88] app=repro-managed vxid=5/0 xid=755 LOG:  statement: COMMIT;
+2026-10-26 04:07:22.966 UTC [87] app=repro-witness vxid=4/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:22.966 UTC [87] app=repro-witness vxid=4/2 xid=0 DETAIL:  Parameters: $1 = '755'
+2026-10-26 04:07:22.967 UTC [87] app=repro-witness vxid=4/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:22.967 UTC [87] app=repro-witness vxid=4/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:22.968 UTC [87] app=repro-witness vxid=4/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:22.968 UTC [87] app=repro-witness vxid=4/4 xid=0 DETAIL:  Parameters: $1 = '88'
+2026-10-26 04:07:22.973 UTC [90] app=repro-explicit vxid=6/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:22.974 UTC [90] app=repro-explicit vxid=6/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:22.974 UTC [90] app=repro-explicit vxid=6/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:22.974 UTC [90] app=repro-explicit vxid=6/2 xid=756 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:22.975 UTC [90] app=repro-explicit vxid=6/2 xid=756 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:23.180 UTC [90] app=repro-explicit vxid=6/2 xid=756 ERROR:  canceling statement due to user request
+2026-10-26 04:07:23.180 UTC [90] app=repro-explicit vxid=6/2 xid=756 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:23.182 UTC [90] app=repro-explicit vxid=6/0 xid=756 LOG:  statement: COMMIT;
+2026-10-26 04:07:23.182 UTC [87] app=repro-witness vxid=4/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:23.182 UTC [87] app=repro-witness vxid=4/5 xid=0 DETAIL:  Parameters: $1 = '756'
+2026-10-26 04:07:23.183 UTC [87] app=repro-witness vxid=4/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:23.183 UTC [87] app=repro-witness vxid=4/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:23.184 UTC [87] app=repro-witness vxid=4/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:23.184 UTC [87] app=repro-witness vxid=4/7 xid=0 DETAIL:  Parameters: $1 = '90'
+2026-10-26 04:07:23.191 UTC [92] app=repro-raw vxid=7/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:23.192 UTC [92] app=repro-raw vxid=7/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:23.192 UTC [92] app=repro-raw vxid=7/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:23.193 UTC [92] app=repro-raw vxid=7/2 xid=757 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:23.194 UTC [92] app=repro-raw vxid=7/2 xid=757 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:23.399 UTC [92] app=repro-raw vxid=7/2 xid=757 ERROR:  canceling statement due to user request
+2026-10-26 04:07:23.399 UTC [92] app=repro-raw vxid=7/2 xid=757 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:23.400 UTC [92] app=repro-raw vxid=7/0 xid=757 LOG:  statement: COMMIT
+2026-10-26 04:07:23.401 UTC [87] app=repro-witness vxid=4/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:23.401 UTC [87] app=repro-witness vxid=4/8 xid=0 DETAIL:  Parameters: $1 = '757'
+2026-10-26 04:07:23.401 UTC [87] app=repro-witness vxid=4/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:23.401 UTC [87] app=repro-witness vxid=4/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:23.402 UTC [87] app=repro-witness vxid=4/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:23.402 UTC [87] app=repro-witness vxid=4/10 xid=0 DETAIL:  Parameters: $1 = '92'
+2026-10-26 04:07:23.409 UTC [94] app=repro-command_timeout vxid=8/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:23.411 UTC [94] app=repro-command_timeout vxid=8/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:23.411 UTC [94] app=repro-command_timeout vxid=8/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:23.412 UTC [94] app=repro-command_timeout vxid=8/2 xid=758 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:23.413 UTC [94] app=repro-command_timeout vxid=8/2 xid=758 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:23.616 UTC [94] app=repro-command_timeout vxid=8/2 xid=758 ERROR:  canceling statement due to user request
+2026-10-26 04:07:23.616 UTC [94] app=repro-command_timeout vxid=8/2 xid=758 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:23.617 UTC [94] app=repro-command_timeout vxid=8/0 xid=758 LOG:  statement: COMMIT;
+2026-10-26 04:07:23.618 UTC [87] app=repro-witness vxid=4/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:23.618 UTC [87] app=repro-witness vxid=4/11 xid=0 DETAIL:  Parameters: $1 = '758'
+2026-10-26 04:07:23.618 UTC [87] app=repro-witness vxid=4/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:23.618 UTC [87] app=repro-witness vxid=4/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:23.619 UTC [87] app=repro-witness vxid=4/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:23.619 UTC [87] app=repro-witness vxid=4/13 xid=0 DETAIL:  Parameters: $1 = '94'
+2026-10-26 04:07:23.625 UTC [96] app=repro-wait_for vxid=9/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:23.626 UTC [96] app=repro-wait_for vxid=9/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:23.626 UTC [96] app=repro-wait_for vxid=9/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:23.627 UTC [96] app=repro-wait_for vxid=9/2 xid=759 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:23.628 UTC [96] app=repro-wait_for vxid=9/2 xid=759 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:23.833 UTC [96] app=repro-wait_for vxid=9/2 xid=759 ERROR:  canceling statement due to user request
+2026-10-26 04:07:23.833 UTC [96] app=repro-wait_for vxid=9/2 xid=759 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:23.835 UTC [96] app=repro-wait_for vxid=9/0 xid=759 LOG:  statement: COMMIT;
+2026-10-26 04:07:23.836 UTC [87] app=repro-witness vxid=4/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:23.836 UTC [87] app=repro-witness vxid=4/14 xid=0 DETAIL:  Parameters: $1 = '759'
+2026-10-26 04:07:23.837 UTC [87] app=repro-witness vxid=4/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:23.837 UTC [87] app=repro-witness vxid=4/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:23.837 UTC [87] app=repro-witness vxid=4/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:23.837 UTC [87] app=repro-witness vxid=4/16 xid=0 DETAIL:  Parameters: $1 = '96'
+2026-10-26 04:07:23.847 UTC [98] app=repro-control_savepoint vxid=10/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:23.848 UTC [98] app=repro-control_savepoint vxid=10/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:23.848 UTC [98] app=repro-control_savepoint vxid=10/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:23.850 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:23.850 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:23.851 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:24.055 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 ERROR:  canceling statement due to user request
+2026-10-26 04:07:24.055 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:24.057 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:24.057 UTC [98] app=repro-control_savepoint vxid=10/2 xid=760 LOG:  statement: COMMIT;
+2026-10-26 04:07:24.058 UTC [87] app=repro-witness vxid=4/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:24.058 UTC [87] app=repro-witness vxid=4/17 xid=0 DETAIL:  Parameters: $1 = '760'
+2026-10-26 04:07:24.059 UTC [87] app=repro-witness vxid=4/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:24.059 UTC [87] app=repro-witness vxid=4/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:24.060 UTC [87] app=repro-witness vxid=4/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:24.060 UTC [87] app=repro-witness vxid=4/19 xid=0 DETAIL:  Parameters: $1 = '98'
+2026-10-26 04:07:24.068 UTC [100] app=repro-control_fast vxid=11/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:24.069 UTC [100] app=repro-control_fast vxid=11/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:24.069 UTC [100] app=repro-control_fast vxid=11/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:24.070 UTC [100] app=repro-control_fast vxid=11/2 xid=761 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:24.073 UTC [100] app=repro-control_fast vxid=11/2 xid=761 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:24.084 UTC [100] app=repro-control_fast vxid=11/2 xid=761 LOG:  statement: COMMIT;
+2026-10-26 04:07:24.084 UTC [87] app=repro-witness vxid=4/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:24.084 UTC [87] app=repro-witness vxid=4/20 xid=0 DETAIL:  Parameters: $1 = '761'
+2026-10-26 04:07:24.085 UTC [87] app=repro-witness vxid=4/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:24.085 UTC [87] app=repro-witness vxid=4/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:24.085 UTC [87] app=repro-witness vxid=4/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:24.085 UTC [87] app=repro-witness vxid=4/22 xid=0 DETAIL:  Parameters: $1 = '100'
+2026-10-26 04:07:24.093 UTC [101] app=repro-control_uncaught vxid=12/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:24.094 UTC [101] app=repro-control_uncaught vxid=12/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:24.094 UTC [101] app=repro-control_uncaught vxid=12/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:24.095 UTC [101] app=repro-control_uncaught vxid=12/2 xid=762 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:24.096 UTC [101] app=repro-control_uncaught vxid=12/2 xid=762 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:24.299 UTC [101] app=repro-control_uncaught vxid=12/2 xid=762 ERROR:  canceling statement due to user request
+2026-10-26 04:07:24.299 UTC [101] app=repro-control_uncaught vxid=12/2 xid=762 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:24.301 UTC [101] app=repro-control_uncaught vxid=12/0 xid=762 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:24.302 UTC [87] app=repro-witness vxid=4/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:24.302 UTC [87] app=repro-witness vxid=4/23 xid=0 DETAIL:  Parameters: $1 = '762'
+2026-10-26 04:07:24.302 UTC [87] app=repro-witness vxid=4/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:24.302 UTC [87] app=repro-witness vxid=4/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:24.303 UTC [87] app=repro-witness vxid=4/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:24.303 UTC [87] app=repro-witness vxid=4/25 xid=0 DETAIL:  Parameters: $1 = '101'
+2026-10-26 04:07:24.306 UTC [85] app=repro-admin vxid=2/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:24.307 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:24.308 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=5, longest=0.001 s, average=0.000 s; distance=4375 kB, estimate=4375 kB; lsn=0/1BA78F8, redo lsn=0/1BA78A0
+2026-10-26 04:07:24.384 UTC [103] app=repro-admin vxid=13/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:24.384 UTC [103] app=repro-admin vxid=13/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:24.384 UTC [103] app=repro-admin vxid=13/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:24.405 UTC [104] app=repro-setup vxid=14/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:24.413 UTC [106] app=repro-managed vxid=16/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:24.414 UTC [106] app=repro-managed vxid=16/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:24.414 UTC [106] app=repro-managed vxid=16/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:24.415 UTC [106] app=repro-managed vxid=16/2 xid=766 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:24.415 UTC [106] app=repro-managed vxid=16/2 xid=766 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:24.618 UTC [106] app=repro-managed vxid=16/2 xid=766 ERROR:  canceling statement due to user request
+2026-10-26 04:07:24.618 UTC [106] app=repro-managed vxid=16/2 xid=766 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:24.619 UTC [106] app=repro-managed vxid=16/0 xid=766 LOG:  statement: COMMIT;
+2026-10-26 04:07:24.620 UTC [105] app=repro-witness vxid=15/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:24.620 UTC [105] app=repro-witness vxid=15/2 xid=0 DETAIL:  Parameters: $1 = '766'
+2026-10-26 04:07:24.622 UTC [105] app=repro-witness vxid=15/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:24.622 UTC [105] app=repro-witness vxid=15/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:24.623 UTC [105] app=repro-witness vxid=15/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:24.623 UTC [105] app=repro-witness vxid=15/4 xid=0 DETAIL:  Parameters: $1 = '106'
+2026-10-26 04:07:24.629 UTC [108] app=repro-explicit vxid=17/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:24.630 UTC [108] app=repro-explicit vxid=17/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:24.630 UTC [108] app=repro-explicit vxid=17/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:24.631 UTC [108] app=repro-explicit vxid=17/2 xid=767 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:24.631 UTC [108] app=repro-explicit vxid=17/2 xid=767 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:24.834 UTC [108] app=repro-explicit vxid=17/2 xid=767 ERROR:  canceling statement due to user request
+2026-10-26 04:07:24.834 UTC [108] app=repro-explicit vxid=17/2 xid=767 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:24.836 UTC [108] app=repro-explicit vxid=17/0 xid=767 LOG:  statement: COMMIT;
+2026-10-26 04:07:24.837 UTC [105] app=repro-witness vxid=15/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:24.837 UTC [105] app=repro-witness vxid=15/5 xid=0 DETAIL:  Parameters: $1 = '767'
+2026-10-26 04:07:24.837 UTC [105] app=repro-witness vxid=15/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:24.837 UTC [105] app=repro-witness vxid=15/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:24.838 UTC [105] app=repro-witness vxid=15/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:24.838 UTC [105] app=repro-witness vxid=15/7 xid=0 DETAIL:  Parameters: $1 = '108'
+2026-10-26 04:07:24.844 UTC [110] app=repro-raw vxid=18/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:24.846 UTC [110] app=repro-raw vxid=18/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:24.846 UTC [110] app=repro-raw vxid=18/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:24.847 UTC [110] app=repro-raw vxid=18/2 xid=768 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:24.848 UTC [110] app=repro-raw vxid=18/2 xid=768 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:25.050 UTC [110] app=repro-raw vxid=18/2 xid=768 ERROR:  canceling statement due to user request
+2026-10-26 04:07:25.050 UTC [110] app=repro-raw vxid=18/2 xid=768 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:25.052 UTC [110] app=repro-raw vxid=18/0 xid=768 LOG:  statement: COMMIT
+2026-10-26 04:07:25.052 UTC [105] app=repro-witness vxid=15/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.052 UTC [105] app=repro-witness vxid=15/8 xid=0 DETAIL:  Parameters: $1 = '768'
+2026-10-26 04:07:25.053 UTC [105] app=repro-witness vxid=15/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.053 UTC [105] app=repro-witness vxid=15/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:25.053 UTC [105] app=repro-witness vxid=15/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.053 UTC [105] app=repro-witness vxid=15/10 xid=0 DETAIL:  Parameters: $1 = '110'
+2026-10-26 04:07:25.060 UTC [112] app=repro-command_timeout vxid=19/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:25.061 UTC [112] app=repro-command_timeout vxid=19/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:25.061 UTC [112] app=repro-command_timeout vxid=19/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:25.062 UTC [112] app=repro-command_timeout vxid=19/2 xid=769 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:25.063 UTC [112] app=repro-command_timeout vxid=19/2 xid=769 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:25.266 UTC [112] app=repro-command_timeout vxid=19/2 xid=769 ERROR:  canceling statement due to user request
+2026-10-26 04:07:25.266 UTC [112] app=repro-command_timeout vxid=19/2 xid=769 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:25.268 UTC [112] app=repro-command_timeout vxid=19/0 xid=769 LOG:  statement: COMMIT;
+2026-10-26 04:07:25.269 UTC [105] app=repro-witness vxid=15/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.269 UTC [105] app=repro-witness vxid=15/11 xid=0 DETAIL:  Parameters: $1 = '769'
+2026-10-26 04:07:25.269 UTC [105] app=repro-witness vxid=15/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.269 UTC [105] app=repro-witness vxid=15/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:25.270 UTC [105] app=repro-witness vxid=15/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.270 UTC [105] app=repro-witness vxid=15/13 xid=0 DETAIL:  Parameters: $1 = '112'
+2026-10-26 04:07:25.277 UTC [114] app=repro-wait_for vxid=20/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:25.278 UTC [114] app=repro-wait_for vxid=20/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:25.278 UTC [114] app=repro-wait_for vxid=20/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:25.279 UTC [114] app=repro-wait_for vxid=20/2 xid=770 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:25.280 UTC [114] app=repro-wait_for vxid=20/2 xid=770 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:25.485 UTC [114] app=repro-wait_for vxid=20/2 xid=770 ERROR:  canceling statement due to user request
+2026-10-26 04:07:25.485 UTC [114] app=repro-wait_for vxid=20/2 xid=770 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:25.488 UTC [114] app=repro-wait_for vxid=20/0 xid=770 LOG:  statement: COMMIT;
+2026-10-26 04:07:25.488 UTC [105] app=repro-witness vxid=15/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.488 UTC [105] app=repro-witness vxid=15/14 xid=0 DETAIL:  Parameters: $1 = '770'
+2026-10-26 04:07:25.490 UTC [105] app=repro-witness vxid=15/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.490 UTC [105] app=repro-witness vxid=15/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:25.491 UTC [105] app=repro-witness vxid=15/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.491 UTC [105] app=repro-witness vxid=15/16 xid=0 DETAIL:  Parameters: $1 = '114'
+2026-10-26 04:07:25.501 UTC [116] app=repro-control_savepoint vxid=21/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:25.502 UTC [116] app=repro-control_savepoint vxid=21/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:25.502 UTC [116] app=repro-control_savepoint vxid=21/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:25.504 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:25.504 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:25.506 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:25.710 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 ERROR:  canceling statement due to user request
+2026-10-26 04:07:25.710 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:25.713 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:25.713 UTC [116] app=repro-control_savepoint vxid=21/2 xid=771 LOG:  statement: COMMIT;
+2026-10-26 04:07:25.714 UTC [105] app=repro-witness vxid=15/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.714 UTC [105] app=repro-witness vxid=15/17 xid=0 DETAIL:  Parameters: $1 = '771'
+2026-10-26 04:07:25.715 UTC [105] app=repro-witness vxid=15/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.715 UTC [105] app=repro-witness vxid=15/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:25.716 UTC [105] app=repro-witness vxid=15/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.716 UTC [105] app=repro-witness vxid=15/19 xid=0 DETAIL:  Parameters: $1 = '116'
+2026-10-26 04:07:25.726 UTC [118] app=repro-control_fast vxid=22/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:25.727 UTC [118] app=repro-control_fast vxid=22/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:25.727 UTC [118] app=repro-control_fast vxid=22/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:25.729 UTC [118] app=repro-control_fast vxid=22/2 xid=772 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:25.730 UTC [118] app=repro-control_fast vxid=22/2 xid=772 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:25.741 UTC [118] app=repro-control_fast vxid=22/2 xid=772 LOG:  statement: COMMIT;
+2026-10-26 04:07:25.741 UTC [105] app=repro-witness vxid=15/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.741 UTC [105] app=repro-witness vxid=15/20 xid=0 DETAIL:  Parameters: $1 = '772'
+2026-10-26 04:07:25.742 UTC [105] app=repro-witness vxid=15/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.742 UTC [105] app=repro-witness vxid=15/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:25.743 UTC [105] app=repro-witness vxid=15/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.743 UTC [105] app=repro-witness vxid=15/22 xid=0 DETAIL:  Parameters: $1 = '118'
+2026-10-26 04:07:25.750 UTC [119] app=repro-control_uncaught vxid=23/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:25.752 UTC [119] app=repro-control_uncaught vxid=23/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:25.752 UTC [119] app=repro-control_uncaught vxid=23/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:25.753 UTC [119] app=repro-control_uncaught vxid=23/2 xid=773 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:25.754 UTC [119] app=repro-control_uncaught vxid=23/2 xid=773 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:25.958 UTC [119] app=repro-control_uncaught vxid=23/2 xid=773 ERROR:  canceling statement due to user request
+2026-10-26 04:07:25.958 UTC [119] app=repro-control_uncaught vxid=23/2 xid=773 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:25.962 UTC [119] app=repro-control_uncaught vxid=23/0 xid=773 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:25.964 UTC [105] app=repro-witness vxid=15/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:25.964 UTC [105] app=repro-witness vxid=15/23 xid=0 DETAIL:  Parameters: $1 = '773'
+2026-10-26 04:07:25.964 UTC [105] app=repro-witness vxid=15/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:25.964 UTC [105] app=repro-witness vxid=15/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:25.965 UTC [105] app=repro-witness vxid=15/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:25.965 UTC [105] app=repro-witness vxid=15/25 xid=0 DETAIL:  Parameters: $1 = '119'
+2026-10-26 04:07:25.971 UTC [103] app=repro-admin vxid=13/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:25.972 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:25.978 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.006 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4376 kB, estimate=4376 kB; lsn=0/1FEDA68, redo lsn=0/1FEDA10
+2026-10-26 04:07:26.056 UTC [121] app=repro-admin vxid=24/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:26.057 UTC [121] app=repro-admin vxid=24/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:26.057 UTC [121] app=repro-admin vxid=24/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:26.081 UTC [122] app=repro-setup vxid=25/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:26.089 UTC [124] app=repro-managed vxid=27/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:26.089 UTC [124] app=repro-managed vxid=27/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:26.089 UTC [124] app=repro-managed vxid=27/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:26.090 UTC [124] app=repro-managed vxid=27/2 xid=777 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:26.091 UTC [124] app=repro-managed vxid=27/2 xid=777 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:26.295 UTC [124] app=repro-managed vxid=27/2 xid=777 ERROR:  canceling statement due to user request
+2026-10-26 04:07:26.295 UTC [124] app=repro-managed vxid=27/2 xid=777 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:26.297 UTC [124] app=repro-managed vxid=27/0 xid=777 LOG:  statement: COMMIT;
+2026-10-26 04:07:26.299 UTC [123] app=repro-witness vxid=26/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:26.299 UTC [123] app=repro-witness vxid=26/2 xid=0 DETAIL:  Parameters: $1 = '777'
+2026-10-26 04:07:26.301 UTC [123] app=repro-witness vxid=26/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:26.301 UTC [123] app=repro-witness vxid=26/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:26.303 UTC [123] app=repro-witness vxid=26/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:26.303 UTC [123] app=repro-witness vxid=26/4 xid=0 DETAIL:  Parameters: $1 = '124'
+2026-10-26 04:07:26.312 UTC [126] app=repro-explicit vxid=28/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:26.313 UTC [126] app=repro-explicit vxid=28/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:26.313 UTC [126] app=repro-explicit vxid=28/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:26.314 UTC [126] app=repro-explicit vxid=28/2 xid=778 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:26.315 UTC [126] app=repro-explicit vxid=28/2 xid=778 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:26.520 UTC [126] app=repro-explicit vxid=28/2 xid=778 ERROR:  canceling statement due to user request
+2026-10-26 04:07:26.520 UTC [126] app=repro-explicit vxid=28/2 xid=778 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:26.523 UTC [126] app=repro-explicit vxid=28/0 xid=778 LOG:  statement: COMMIT;
+2026-10-26 04:07:26.523 UTC [123] app=repro-witness vxid=26/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:26.523 UTC [123] app=repro-witness vxid=26/5 xid=0 DETAIL:  Parameters: $1 = '778'
+2026-10-26 04:07:26.524 UTC [123] app=repro-witness vxid=26/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:26.524 UTC [123] app=repro-witness vxid=26/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:26.525 UTC [123] app=repro-witness vxid=26/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:26.525 UTC [123] app=repro-witness vxid=26/7 xid=0 DETAIL:  Parameters: $1 = '126'
+2026-10-26 04:07:26.534 UTC [128] app=repro-raw vxid=29/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:26.536 UTC [128] app=repro-raw vxid=29/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:26.536 UTC [128] app=repro-raw vxid=29/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:26.537 UTC [128] app=repro-raw vxid=29/2 xid=779 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:26.538 UTC [128] app=repro-raw vxid=29/2 xid=779 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:26.743 UTC [128] app=repro-raw vxid=29/2 xid=779 ERROR:  canceling statement due to user request
+2026-10-26 04:07:26.743 UTC [128] app=repro-raw vxid=29/2 xid=779 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:26.745 UTC [128] app=repro-raw vxid=29/0 xid=779 LOG:  statement: COMMIT
+2026-10-26 04:07:26.749 UTC [123] app=repro-witness vxid=26/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:26.749 UTC [123] app=repro-witness vxid=26/8 xid=0 DETAIL:  Parameters: $1 = '779'
+2026-10-26 04:07:26.750 UTC [123] app=repro-witness vxid=26/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:26.750 UTC [123] app=repro-witness vxid=26/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:26.751 UTC [123] app=repro-witness vxid=26/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:26.751 UTC [123] app=repro-witness vxid=26/10 xid=0 DETAIL:  Parameters: $1 = '128'
+2026-10-26 04:07:26.761 UTC [130] app=repro-command_timeout vxid=30/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:26.762 UTC [130] app=repro-command_timeout vxid=30/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:26.762 UTC [130] app=repro-command_timeout vxid=30/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:26.763 UTC [130] app=repro-command_timeout vxid=30/2 xid=780 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:26.765 UTC [130] app=repro-command_timeout vxid=30/2 xid=780 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:26.968 UTC [130] app=repro-command_timeout vxid=30/2 xid=780 ERROR:  canceling statement due to user request
+2026-10-26 04:07:26.968 UTC [130] app=repro-command_timeout vxid=30/2 xid=780 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:26.971 UTC [130] app=repro-command_timeout vxid=30/0 xid=780 LOG:  statement: COMMIT;
+2026-10-26 04:07:26.971 UTC [123] app=repro-witness vxid=26/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:26.971 UTC [123] app=repro-witness vxid=26/11 xid=0 DETAIL:  Parameters: $1 = '780'
+2026-10-26 04:07:26.973 UTC [123] app=repro-witness vxid=26/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:26.973 UTC [123] app=repro-witness vxid=26/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:26.974 UTC [123] app=repro-witness vxid=26/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:26.974 UTC [123] app=repro-witness vxid=26/13 xid=0 DETAIL:  Parameters: $1 = '130'
+2026-10-26 04:07:26.983 UTC [132] app=repro-wait_for vxid=31/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:26.985 UTC [132] app=repro-wait_for vxid=31/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:26.985 UTC [132] app=repro-wait_for vxid=31/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:26.986 UTC [132] app=repro-wait_for vxid=31/2 xid=781 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:26.987 UTC [132] app=repro-wait_for vxid=31/2 xid=781 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:27.190 UTC [132] app=repro-wait_for vxid=31/2 xid=781 ERROR:  canceling statement due to user request
+2026-10-26 04:07:27.190 UTC [132] app=repro-wait_for vxid=31/2 xid=781 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:27.191 UTC [132] app=repro-wait_for vxid=31/0 xid=781 LOG:  statement: COMMIT;
+2026-10-26 04:07:27.192 UTC [123] app=repro-witness vxid=26/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:27.192 UTC [123] app=repro-witness vxid=26/14 xid=0 DETAIL:  Parameters: $1 = '781'
+2026-10-26 04:07:27.192 UTC [123] app=repro-witness vxid=26/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:27.192 UTC [123] app=repro-witness vxid=26/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:27.193 UTC [123] app=repro-witness vxid=26/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:27.193 UTC [123] app=repro-witness vxid=26/16 xid=0 DETAIL:  Parameters: $1 = '132'
+2026-10-26 04:07:27.199 UTC [134] app=repro-control_savepoint vxid=32/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:27.200 UTC [134] app=repro-control_savepoint vxid=32/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:27.200 UTC [134] app=repro-control_savepoint vxid=32/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:27.201 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:27.201 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:27.202 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:27.407 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 ERROR:  canceling statement due to user request
+2026-10-26 04:07:27.407 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:27.410 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:27.410 UTC [134] app=repro-control_savepoint vxid=32/2 xid=782 LOG:  statement: COMMIT;
+2026-10-26 04:07:27.411 UTC [123] app=repro-witness vxid=26/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:27.411 UTC [123] app=repro-witness vxid=26/17 xid=0 DETAIL:  Parameters: $1 = '782'
+2026-10-26 04:07:27.412 UTC [123] app=repro-witness vxid=26/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:27.412 UTC [123] app=repro-witness vxid=26/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:27.413 UTC [123] app=repro-witness vxid=26/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:27.413 UTC [123] app=repro-witness vxid=26/19 xid=0 DETAIL:  Parameters: $1 = '134'
+2026-10-26 04:07:27.422 UTC [136] app=repro-control_fast vxid=33/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:27.424 UTC [136] app=repro-control_fast vxid=33/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:27.424 UTC [136] app=repro-control_fast vxid=33/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:27.425 UTC [136] app=repro-control_fast vxid=33/2 xid=783 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:27.426 UTC [136] app=repro-control_fast vxid=33/2 xid=783 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:27.437 UTC [136] app=repro-control_fast vxid=33/2 xid=783 LOG:  statement: COMMIT;
+2026-10-26 04:07:27.438 UTC [123] app=repro-witness vxid=26/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:27.438 UTC [123] app=repro-witness vxid=26/20 xid=0 DETAIL:  Parameters: $1 = '783'
+2026-10-26 04:07:27.438 UTC [123] app=repro-witness vxid=26/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:27.438 UTC [123] app=repro-witness vxid=26/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:27.439 UTC [123] app=repro-witness vxid=26/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:27.439 UTC [123] app=repro-witness vxid=26/22 xid=0 DETAIL:  Parameters: $1 = '136'
+2026-10-26 04:07:27.446 UTC [137] app=repro-control_uncaught vxid=34/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:27.447 UTC [137] app=repro-control_uncaught vxid=34/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:27.447 UTC [137] app=repro-control_uncaught vxid=34/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:27.448 UTC [137] app=repro-control_uncaught vxid=34/2 xid=784 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:27.449 UTC [137] app=repro-control_uncaught vxid=34/2 xid=784 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:27.653 UTC [137] app=repro-control_uncaught vxid=34/2 xid=784 ERROR:  canceling statement due to user request
+2026-10-26 04:07:27.653 UTC [137] app=repro-control_uncaught vxid=34/2 xid=784 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:27.655 UTC [137] app=repro-control_uncaught vxid=34/0 xid=784 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:27.655 UTC [123] app=repro-witness vxid=26/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:27.655 UTC [123] app=repro-witness vxid=26/23 xid=0 DETAIL:  Parameters: $1 = '784'
+2026-10-26 04:07:27.656 UTC [123] app=repro-witness vxid=26/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:27.656 UTC [123] app=repro-witness vxid=26/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:27.656 UTC [123] app=repro-witness vxid=26/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:27.656 UTC [123] app=repro-witness vxid=26/25 xid=0 DETAIL:  Parameters: $1 = '137'
+2026-10-26 04:07:27.661 UTC [121] app=repro-admin vxid=24/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:27.661 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:27.662 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4376 kB, estimate=4376 kB; lsn=0/2433CB8, redo lsn=0/2433C60
+2026-10-26 04:07:28.185 UTC [139] app=repro-admin vxid=35/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:28.185 UTC [139] app=repro-admin vxid=35/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:28.186 UTC [139] app=repro-admin vxid=35/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:28.210 UTC [140] app=repro-setup vxid=36/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:28.218 UTC [142] app=repro-managed vxid=38/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:28.219 UTC [142] app=repro-managed vxid=38/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:28.219 UTC [142] app=repro-managed vxid=38/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:28.220 UTC [142] app=repro-managed vxid=38/2 xid=788 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:28.221 UTC [142] app=repro-managed vxid=38/2 xid=788 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:28.426 UTC [142] app=repro-managed vxid=38/2 xid=788 ERROR:  canceling statement due to user request
+2026-10-26 04:07:28.426 UTC [142] app=repro-managed vxid=38/2 xid=788 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:28.429 UTC [142] app=repro-managed vxid=38/0 xid=788 LOG:  statement: COMMIT;
+2026-10-26 04:07:28.432 UTC [141] app=repro-witness vxid=37/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:28.432 UTC [141] app=repro-witness vxid=37/2 xid=0 DETAIL:  Parameters: $1 = '788'
+2026-10-26 04:07:28.434 UTC [141] app=repro-witness vxid=37/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:28.434 UTC [141] app=repro-witness vxid=37/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:28.436 UTC [141] app=repro-witness vxid=37/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:28.436 UTC [141] app=repro-witness vxid=37/4 xid=0 DETAIL:  Parameters: $1 = '142'
+2026-10-26 04:07:28.445 UTC [144] app=repro-explicit vxid=39/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:28.447 UTC [144] app=repro-explicit vxid=39/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:28.447 UTC [144] app=repro-explicit vxid=39/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:28.448 UTC [144] app=repro-explicit vxid=39/2 xid=789 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:28.449 UTC [144] app=repro-explicit vxid=39/2 xid=789 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:28.651 UTC [144] app=repro-explicit vxid=39/2 xid=789 ERROR:  canceling statement due to user request
+2026-10-26 04:07:28.651 UTC [144] app=repro-explicit vxid=39/2 xid=789 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:28.652 UTC [144] app=repro-explicit vxid=39/0 xid=789 LOG:  statement: COMMIT;
+2026-10-26 04:07:28.653 UTC [141] app=repro-witness vxid=37/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:28.653 UTC [141] app=repro-witness vxid=37/5 xid=0 DETAIL:  Parameters: $1 = '789'
+2026-10-26 04:07:28.654 UTC [141] app=repro-witness vxid=37/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:28.654 UTC [141] app=repro-witness vxid=37/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:28.654 UTC [141] app=repro-witness vxid=37/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:28.654 UTC [141] app=repro-witness vxid=37/7 xid=0 DETAIL:  Parameters: $1 = '144'
+2026-10-26 04:07:28.660 UTC [146] app=repro-raw vxid=40/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:28.661 UTC [146] app=repro-raw vxid=40/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:28.661 UTC [146] app=repro-raw vxid=40/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:28.662 UTC [146] app=repro-raw vxid=40/2 xid=790 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:28.663 UTC [146] app=repro-raw vxid=40/2 xid=790 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:28.868 UTC [146] app=repro-raw vxid=40/2 xid=790 ERROR:  canceling statement due to user request
+2026-10-26 04:07:28.868 UTC [146] app=repro-raw vxid=40/2 xid=790 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:28.870 UTC [146] app=repro-raw vxid=40/0 xid=790 LOG:  statement: COMMIT
+2026-10-26 04:07:28.870 UTC [141] app=repro-witness vxid=37/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:28.870 UTC [141] app=repro-witness vxid=37/8 xid=0 DETAIL:  Parameters: $1 = '790'
+2026-10-26 04:07:28.871 UTC [141] app=repro-witness vxid=37/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:28.871 UTC [141] app=repro-witness vxid=37/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:28.872 UTC [141] app=repro-witness vxid=37/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:28.872 UTC [141] app=repro-witness vxid=37/10 xid=0 DETAIL:  Parameters: $1 = '146'
+2026-10-26 04:07:28.880 UTC [148] app=repro-command_timeout vxid=41/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:28.881 UTC [148] app=repro-command_timeout vxid=41/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:28.881 UTC [148] app=repro-command_timeout vxid=41/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:28.882 UTC [148] app=repro-command_timeout vxid=41/2 xid=791 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:28.883 UTC [148] app=repro-command_timeout vxid=41/2 xid=791 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:29.088 UTC [148] app=repro-command_timeout vxid=41/2 xid=791 ERROR:  canceling statement due to user request
+2026-10-26 04:07:29.088 UTC [148] app=repro-command_timeout vxid=41/2 xid=791 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:29.091 UTC [148] app=repro-command_timeout vxid=41/0 xid=791 LOG:  statement: COMMIT;
+2026-10-26 04:07:29.092 UTC [141] app=repro-witness vxid=37/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:29.092 UTC [141] app=repro-witness vxid=37/11 xid=0 DETAIL:  Parameters: $1 = '791'
+2026-10-26 04:07:29.093 UTC [141] app=repro-witness vxid=37/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:29.093 UTC [141] app=repro-witness vxid=37/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:29.094 UTC [141] app=repro-witness vxid=37/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:29.094 UTC [141] app=repro-witness vxid=37/13 xid=0 DETAIL:  Parameters: $1 = '148'
+2026-10-26 04:07:29.103 UTC [150] app=repro-wait_for vxid=42/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:29.105 UTC [150] app=repro-wait_for vxid=42/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:29.105 UTC [150] app=repro-wait_for vxid=42/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:29.107 UTC [150] app=repro-wait_for vxid=42/2 xid=792 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:29.108 UTC [150] app=repro-wait_for vxid=42/2 xid=792 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:29.311 UTC [150] app=repro-wait_for vxid=42/2 xid=792 ERROR:  canceling statement due to user request
+2026-10-26 04:07:29.311 UTC [150] app=repro-wait_for vxid=42/2 xid=792 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:29.312 UTC [150] app=repro-wait_for vxid=42/0 xid=792 LOG:  statement: COMMIT;
+2026-10-26 04:07:29.313 UTC [141] app=repro-witness vxid=37/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:29.313 UTC [141] app=repro-witness vxid=37/14 xid=0 DETAIL:  Parameters: $1 = '792'
+2026-10-26 04:07:29.314 UTC [141] app=repro-witness vxid=37/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:29.314 UTC [141] app=repro-witness vxid=37/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:29.314 UTC [141] app=repro-witness vxid=37/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:29.314 UTC [141] app=repro-witness vxid=37/16 xid=0 DETAIL:  Parameters: $1 = '150'
+2026-10-26 04:07:29.322 UTC [152] app=repro-control_savepoint vxid=43/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:29.323 UTC [152] app=repro-control_savepoint vxid=43/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:29.323 UTC [152] app=repro-control_savepoint vxid=43/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:29.324 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:29.324 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:29.325 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:29.528 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 ERROR:  canceling statement due to user request
+2026-10-26 04:07:29.528 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:29.530 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:29.531 UTC [152] app=repro-control_savepoint vxid=43/2 xid=793 LOG:  statement: COMMIT;
+2026-10-26 04:07:29.531 UTC [141] app=repro-witness vxid=37/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:29.531 UTC [141] app=repro-witness vxid=37/17 xid=0 DETAIL:  Parameters: $1 = '793'
+2026-10-26 04:07:29.532 UTC [141] app=repro-witness vxid=37/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:29.532 UTC [141] app=repro-witness vxid=37/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:29.533 UTC [141] app=repro-witness vxid=37/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:29.533 UTC [141] app=repro-witness vxid=37/19 xid=0 DETAIL:  Parameters: $1 = '152'
+2026-10-26 04:07:29.539 UTC [154] app=repro-control_fast vxid=44/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:29.540 UTC [154] app=repro-control_fast vxid=44/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:29.540 UTC [154] app=repro-control_fast vxid=44/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:29.541 UTC [154] app=repro-control_fast vxid=44/2 xid=794 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:29.542 UTC [154] app=repro-control_fast vxid=44/2 xid=794 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:29.553 UTC [154] app=repro-control_fast vxid=44/2 xid=794 LOG:  statement: COMMIT;
+2026-10-26 04:07:29.553 UTC [141] app=repro-witness vxid=37/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:29.553 UTC [141] app=repro-witness vxid=37/20 xid=0 DETAIL:  Parameters: $1 = '794'
+2026-10-26 04:07:29.554 UTC [141] app=repro-witness vxid=37/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:29.554 UTC [141] app=repro-witness vxid=37/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:29.554 UTC [141] app=repro-witness vxid=37/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:29.554 UTC [141] app=repro-witness vxid=37/22 xid=0 DETAIL:  Parameters: $1 = '154'
+2026-10-26 04:07:29.560 UTC [155] app=repro-control_uncaught vxid=45/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:29.561 UTC [155] app=repro-control_uncaught vxid=45/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:29.561 UTC [155] app=repro-control_uncaught vxid=45/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:29.562 UTC [155] app=repro-control_uncaught vxid=45/2 xid=795 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:29.563 UTC [155] app=repro-control_uncaught vxid=45/2 xid=795 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:29.764 UTC [155] app=repro-control_uncaught vxid=45/2 xid=795 ERROR:  canceling statement due to user request
+2026-10-26 04:07:29.764 UTC [155] app=repro-control_uncaught vxid=45/2 xid=795 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:29.765 UTC [155] app=repro-control_uncaught vxid=45/0 xid=795 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:29.766 UTC [141] app=repro-witness vxid=37/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:29.766 UTC [141] app=repro-witness vxid=37/23 xid=0 DETAIL:  Parameters: $1 = '795'
+2026-10-26 04:07:29.766 UTC [141] app=repro-witness vxid=37/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:29.766 UTC [141] app=repro-witness vxid=37/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:29.767 UTC [141] app=repro-witness vxid=37/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:29.767 UTC [141] app=repro-witness vxid=37/25 xid=0 DETAIL:  Parameters: $1 = '155'
+2026-10-26 04:07:29.769 UTC [139] app=repro-admin vxid=35/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:29.770 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:29.770 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4376 kB, estimate=4376 kB; lsn=0/2879FE0, redo lsn=0/2879F88
+2026-10-26 04:07:29.846 UTC [157] app=repro-admin vxid=46/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:29.846 UTC [157] app=repro-admin vxid=46/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:29.847 UTC [157] app=repro-admin vxid=46/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:29.865 UTC [158] app=repro-setup vxid=47/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:29.874 UTC [160] app=repro-managed vxid=49/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:29.875 UTC [160] app=repro-managed vxid=49/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:29.875 UTC [160] app=repro-managed vxid=49/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:29.875 UTC [160] app=repro-managed vxid=49/2 xid=799 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:29.876 UTC [160] app=repro-managed vxid=49/2 xid=799 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:30.080 UTC [160] app=repro-managed vxid=49/2 xid=799 ERROR:  canceling statement due to user request
+2026-10-26 04:07:30.080 UTC [160] app=repro-managed vxid=49/2 xid=799 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:30.082 UTC [160] app=repro-managed vxid=49/0 xid=799 LOG:  statement: COMMIT;
+2026-10-26 04:07:30.084 UTC [159] app=repro-witness vxid=48/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:30.084 UTC [159] app=repro-witness vxid=48/2 xid=0 DETAIL:  Parameters: $1 = '799'
+2026-10-26 04:07:30.086 UTC [159] app=repro-witness vxid=48/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:30.086 UTC [159] app=repro-witness vxid=48/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:30.088 UTC [159] app=repro-witness vxid=48/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:30.088 UTC [159] app=repro-witness vxid=48/4 xid=0 DETAIL:  Parameters: $1 = '160'
+2026-10-26 04:07:30.097 UTC [162] app=repro-explicit vxid=50/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:30.098 UTC [162] app=repro-explicit vxid=50/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:30.098 UTC [162] app=repro-explicit vxid=50/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:30.099 UTC [162] app=repro-explicit vxid=50/2 xid=800 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:30.100 UTC [162] app=repro-explicit vxid=50/2 xid=800 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:30.302 UTC [162] app=repro-explicit vxid=50/2 xid=800 ERROR:  canceling statement due to user request
+2026-10-26 04:07:30.302 UTC [162] app=repro-explicit vxid=50/2 xid=800 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:30.304 UTC [162] app=repro-explicit vxid=50/0 xid=800 LOG:  statement: COMMIT;
+2026-10-26 04:07:30.305 UTC [159] app=repro-witness vxid=48/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:30.305 UTC [159] app=repro-witness vxid=48/5 xid=0 DETAIL:  Parameters: $1 = '800'
+2026-10-26 04:07:30.306 UTC [159] app=repro-witness vxid=48/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:30.306 UTC [159] app=repro-witness vxid=48/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:30.306 UTC [159] app=repro-witness vxid=48/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:30.306 UTC [159] app=repro-witness vxid=48/7 xid=0 DETAIL:  Parameters: $1 = '162'
+2026-10-26 04:07:30.316 UTC [164] app=repro-raw vxid=51/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:30.317 UTC [164] app=repro-raw vxid=51/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:30.317 UTC [164] app=repro-raw vxid=51/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:30.318 UTC [164] app=repro-raw vxid=51/2 xid=801 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:30.319 UTC [164] app=repro-raw vxid=51/2 xid=801 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:30.523 UTC [164] app=repro-raw vxid=51/2 xid=801 ERROR:  canceling statement due to user request
+2026-10-26 04:07:30.523 UTC [164] app=repro-raw vxid=51/2 xid=801 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:30.526 UTC [164] app=repro-raw vxid=51/0 xid=801 LOG:  statement: COMMIT
+2026-10-26 04:07:30.526 UTC [159] app=repro-witness vxid=48/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:30.526 UTC [159] app=repro-witness vxid=48/8 xid=0 DETAIL:  Parameters: $1 = '801'
+2026-10-26 04:07:30.527 UTC [159] app=repro-witness vxid=48/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:30.527 UTC [159] app=repro-witness vxid=48/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:30.527 UTC [159] app=repro-witness vxid=48/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:30.527 UTC [159] app=repro-witness vxid=48/10 xid=0 DETAIL:  Parameters: $1 = '164'
+2026-10-26 04:07:30.537 UTC [166] app=repro-command_timeout vxid=52/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:30.539 UTC [166] app=repro-command_timeout vxid=52/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:30.539 UTC [166] app=repro-command_timeout vxid=52/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:30.540 UTC [166] app=repro-command_timeout vxid=52/2 xid=802 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:30.542 UTC [166] app=repro-command_timeout vxid=52/2 xid=802 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:30.745 UTC [166] app=repro-command_timeout vxid=52/2 xid=802 ERROR:  canceling statement due to user request
+2026-10-26 04:07:30.745 UTC [166] app=repro-command_timeout vxid=52/2 xid=802 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:30.747 UTC [166] app=repro-command_timeout vxid=52/0 xid=802 LOG:  statement: COMMIT;
+2026-10-26 04:07:30.748 UTC [159] app=repro-witness vxid=48/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:30.748 UTC [159] app=repro-witness vxid=48/11 xid=0 DETAIL:  Parameters: $1 = '802'
+2026-10-26 04:07:30.748 UTC [159] app=repro-witness vxid=48/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:30.748 UTC [159] app=repro-witness vxid=48/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:30.749 UTC [159] app=repro-witness vxid=48/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:30.749 UTC [159] app=repro-witness vxid=48/13 xid=0 DETAIL:  Parameters: $1 = '166'
+2026-10-26 04:07:30.757 UTC [168] app=repro-wait_for vxid=53/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:30.759 UTC [168] app=repro-wait_for vxid=53/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:30.759 UTC [168] app=repro-wait_for vxid=53/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:30.760 UTC [168] app=repro-wait_for vxid=53/2 xid=803 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:30.761 UTC [168] app=repro-wait_for vxid=53/2 xid=803 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:30.966 UTC [168] app=repro-wait_for vxid=53/2 xid=803 ERROR:  canceling statement due to user request
+2026-10-26 04:07:30.966 UTC [168] app=repro-wait_for vxid=53/2 xid=803 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:30.968 UTC [168] app=repro-wait_for vxid=53/0 xid=803 LOG:  statement: COMMIT;
+2026-10-26 04:07:30.969 UTC [159] app=repro-witness vxid=48/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:30.969 UTC [159] app=repro-witness vxid=48/14 xid=0 DETAIL:  Parameters: $1 = '803'
+2026-10-26 04:07:30.970 UTC [159] app=repro-witness vxid=48/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:30.970 UTC [159] app=repro-witness vxid=48/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:30.970 UTC [159] app=repro-witness vxid=48/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:30.970 UTC [159] app=repro-witness vxid=48/16 xid=0 DETAIL:  Parameters: $1 = '168'
+2026-10-26 04:07:30.981 UTC [170] app=repro-control_savepoint vxid=54/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:30.983 UTC [170] app=repro-control_savepoint vxid=54/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:30.983 UTC [170] app=repro-control_savepoint vxid=54/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:30.984 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:30.985 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:30.986 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:31.188 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 ERROR:  canceling statement due to user request
+2026-10-26 04:07:31.188 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:31.193 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:31.194 UTC [170] app=repro-control_savepoint vxid=54/2 xid=804 LOG:  statement: COMMIT;
+2026-10-26 04:07:31.194 UTC [159] app=repro-witness vxid=48/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:31.194 UTC [159] app=repro-witness vxid=48/17 xid=0 DETAIL:  Parameters: $1 = '804'
+2026-10-26 04:07:31.195 UTC [159] app=repro-witness vxid=48/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:31.195 UTC [159] app=repro-witness vxid=48/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:31.196 UTC [159] app=repro-witness vxid=48/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:31.196 UTC [159] app=repro-witness vxid=48/19 xid=0 DETAIL:  Parameters: $1 = '170'
+2026-10-26 04:07:31.204 UTC [172] app=repro-control_fast vxid=55/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:31.205 UTC [172] app=repro-control_fast vxid=55/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:31.205 UTC [172] app=repro-control_fast vxid=55/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:31.206 UTC [172] app=repro-control_fast vxid=55/2 xid=805 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:31.207 UTC [172] app=repro-control_fast vxid=55/2 xid=805 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:31.217 UTC [172] app=repro-control_fast vxid=55/2 xid=805 LOG:  statement: COMMIT;
+2026-10-26 04:07:31.218 UTC [159] app=repro-witness vxid=48/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:31.218 UTC [159] app=repro-witness vxid=48/20 xid=0 DETAIL:  Parameters: $1 = '805'
+2026-10-26 04:07:31.218 UTC [159] app=repro-witness vxid=48/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:31.218 UTC [159] app=repro-witness vxid=48/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:31.219 UTC [159] app=repro-witness vxid=48/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:31.219 UTC [159] app=repro-witness vxid=48/22 xid=0 DETAIL:  Parameters: $1 = '172'
+2026-10-26 04:07:31.224 UTC [173] app=repro-control_uncaught vxid=56/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:31.225 UTC [173] app=repro-control_uncaught vxid=56/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:31.225 UTC [173] app=repro-control_uncaught vxid=56/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:31.226 UTC [173] app=repro-control_uncaught vxid=56/2 xid=806 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:31.227 UTC [173] app=repro-control_uncaught vxid=56/2 xid=806 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:31.432 UTC [173] app=repro-control_uncaught vxid=56/2 xid=806 ERROR:  canceling statement due to user request
+2026-10-26 04:07:31.432 UTC [173] app=repro-control_uncaught vxid=56/2 xid=806 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:31.434 UTC [173] app=repro-control_uncaught vxid=56/0 xid=806 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:31.434 UTC [159] app=repro-witness vxid=48/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:31.434 UTC [159] app=repro-witness vxid=48/23 xid=0 DETAIL:  Parameters: $1 = '806'
+2026-10-26 04:07:31.436 UTC [159] app=repro-witness vxid=48/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:31.436 UTC [159] app=repro-witness vxid=48/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:31.437 UTC [159] app=repro-witness vxid=48/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:31.437 UTC [159] app=repro-witness vxid=48/25 xid=0 DETAIL:  Parameters: $1 = '173'
+2026-10-26 04:07:31.442 UTC [157] app=repro-admin vxid=46/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:31.443 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:31.444 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4377 kB, estimate=4377 kB; lsn=0/2CC03F0, redo lsn=0/2CC0398
+2026-10-26 04:07:31.536 UTC [175] app=repro-admin vxid=57/2 xid=0 LOG:  execute __asyncpg_stmt_1__: show server_version
+2026-10-26 04:07:31.536 UTC [175] app=repro-admin vxid=57/3 xid=0 LOG:  statement: drop database if exists asyncpg_client_timeout with (force)
+2026-10-26 04:07:31.536 UTC [175] app=repro-admin vxid=57/4 xid=0 LOG:  statement: create database asyncpg_client_timeout
+2026-10-26 04:07:31.558 UTC [176] app=repro-setup vxid=58/2 xid=0 LOG:  statement: create table item (id serial primary key, name text not null)
+2026-10-26 04:07:31.566 UTC [178] app=repro-managed vxid=60/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:31.567 UTC [178] app=repro-managed vxid=60/2 xid=0 LOG:  execute __asyncpg_stmt_2__: insert into item (name) values ($1)
+2026-10-26 04:07:31.567 UTC [178] app=repro-managed vxid=60/2 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:31.568 UTC [178] app=repro-managed vxid=60/2 xid=810 LOG:  execute __asyncpg_stmt_3__: select pg_current_xact_id()::text
+2026-10-26 04:07:31.568 UTC [178] app=repro-managed vxid=60/2 xid=810 LOG:  execute __asyncpg_stmt_4__: select pg_sleep(10)
+2026-10-26 04:07:31.773 UTC [178] app=repro-managed vxid=60/2 xid=810 ERROR:  canceling statement due to user request
+2026-10-26 04:07:31.773 UTC [178] app=repro-managed vxid=60/2 xid=810 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:31.775 UTC [178] app=repro-managed vxid=60/0 xid=810 LOG:  statement: COMMIT;
+2026-10-26 04:07:31.776 UTC [177] app=repro-witness vxid=59/2 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:31.776 UTC [177] app=repro-witness vxid=59/2 xid=0 DETAIL:  Parameters: $1 = '810'
+2026-10-26 04:07:31.778 UTC [177] app=repro-witness vxid=59/3 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:31.778 UTC [177] app=repro-witness vxid=59/3 xid=0 DETAIL:  Parameters: $1 = 'managed'
+2026-10-26 04:07:31.780 UTC [177] app=repro-witness vxid=59/4 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:31.780 UTC [177] app=repro-witness vxid=59/4 xid=0 DETAIL:  Parameters: $1 = '178'
+2026-10-26 04:07:31.788 UTC [180] app=repro-explicit vxid=61/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:31.790 UTC [180] app=repro-explicit vxid=61/2 xid=0 LOG:  execute __asyncpg_stmt_8__: insert into item (name) values ($1)
+2026-10-26 04:07:31.790 UTC [180] app=repro-explicit vxid=61/2 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:31.791 UTC [180] app=repro-explicit vxid=61/2 xid=811 LOG:  execute __asyncpg_stmt_9__: select pg_current_xact_id()::text
+2026-10-26 04:07:31.792 UTC [180] app=repro-explicit vxid=61/2 xid=811 LOG:  execute __asyncpg_stmt_a__: select pg_sleep(10)
+2026-10-26 04:07:31.994 UTC [180] app=repro-explicit vxid=61/2 xid=811 ERROR:  canceling statement due to user request
+2026-10-26 04:07:31.994 UTC [180] app=repro-explicit vxid=61/2 xid=811 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:31.996 UTC [180] app=repro-explicit vxid=61/0 xid=811 LOG:  statement: COMMIT;
+2026-10-26 04:07:31.997 UTC [177] app=repro-witness vxid=59/5 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:31.997 UTC [177] app=repro-witness vxid=59/5 xid=0 DETAIL:  Parameters: $1 = '811'
+2026-10-26 04:07:31.997 UTC [177] app=repro-witness vxid=59/6 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:31.997 UTC [177] app=repro-witness vxid=59/6 xid=0 DETAIL:  Parameters: $1 = 'explicit'
+2026-10-26 04:07:31.998 UTC [177] app=repro-witness vxid=59/7 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:31.998 UTC [177] app=repro-witness vxid=59/7 xid=0 DETAIL:  Parameters: $1 = '180'
+2026-10-26 04:07:32.006 UTC [182] app=repro-raw vxid=62/2 xid=0 LOG:  statement: BEGIN
+2026-10-26 04:07:32.007 UTC [182] app=repro-raw vxid=62/2 xid=0 LOG:  execute __asyncpg_stmt_b__: insert into item (name) values ($1)
+2026-10-26 04:07:32.007 UTC [182] app=repro-raw vxid=62/2 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:32.008 UTC [182] app=repro-raw vxid=62/2 xid=812 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.009 UTC [182] app=repro-raw vxid=62/2 xid=812 LOG:  execute __asyncpg_stmt_d__: select pg_sleep(10)
+2026-10-26 04:07:32.212 UTC [182] app=repro-raw vxid=62/2 xid=812 ERROR:  canceling statement due to user request
+2026-10-26 04:07:32.212 UTC [182] app=repro-raw vxid=62/2 xid=812 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:32.214 UTC [182] app=repro-raw vxid=62/0 xid=812 LOG:  statement: COMMIT
+2026-10-26 04:07:32.215 UTC [177] app=repro-witness vxid=59/8 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:32.215 UTC [177] app=repro-witness vxid=59/8 xid=0 DETAIL:  Parameters: $1 = '812'
+2026-10-26 04:07:32.216 UTC [177] app=repro-witness vxid=59/9 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:32.216 UTC [177] app=repro-witness vxid=59/9 xid=0 DETAIL:  Parameters: $1 = 'raw'
+2026-10-26 04:07:32.216 UTC [177] app=repro-witness vxid=59/10 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:32.216 UTC [177] app=repro-witness vxid=59/10 xid=0 DETAIL:  Parameters: $1 = '182'
+2026-10-26 04:07:32.224 UTC [184] app=repro-command_timeout vxid=63/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:32.226 UTC [184] app=repro-command_timeout vxid=63/2 xid=0 LOG:  execute __asyncpg_stmt_e__: insert into item (name) values ($1)
+2026-10-26 04:07:32.226 UTC [184] app=repro-command_timeout vxid=63/2 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:32.227 UTC [184] app=repro-command_timeout vxid=63/2 xid=813 LOG:  execute __asyncpg_stmt_f__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.228 UTC [184] app=repro-command_timeout vxid=63/2 xid=813 LOG:  execute __asyncpg_stmt_10__: select pg_sleep(10)
+2026-10-26 04:07:32.433 UTC [184] app=repro-command_timeout vxid=63/2 xid=813 ERROR:  canceling statement due to user request
+2026-10-26 04:07:32.433 UTC [184] app=repro-command_timeout vxid=63/2 xid=813 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:32.435 UTC [184] app=repro-command_timeout vxid=63/0 xid=813 LOG:  statement: COMMIT;
+2026-10-26 04:07:32.436 UTC [177] app=repro-witness vxid=59/11 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:32.436 UTC [177] app=repro-witness vxid=59/11 xid=0 DETAIL:  Parameters: $1 = '813'
+2026-10-26 04:07:32.437 UTC [177] app=repro-witness vxid=59/12 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:32.437 UTC [177] app=repro-witness vxid=59/12 xid=0 DETAIL:  Parameters: $1 = 'command_timeout'
+2026-10-26 04:07:32.437 UTC [177] app=repro-witness vxid=59/13 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:32.437 UTC [177] app=repro-witness vxid=59/13 xid=0 DETAIL:  Parameters: $1 = '184'
+2026-10-26 04:07:32.446 UTC [186] app=repro-wait_for vxid=64/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:32.447 UTC [186] app=repro-wait_for vxid=64/2 xid=0 LOG:  execute __asyncpg_stmt_11__: insert into item (name) values ($1)
+2026-10-26 04:07:32.447 UTC [186] app=repro-wait_for vxid=64/2 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:32.448 UTC [186] app=repro-wait_for vxid=64/2 xid=814 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.450 UTC [186] app=repro-wait_for vxid=64/2 xid=814 LOG:  execute __asyncpg_stmt_13__: select pg_sleep(10)
+2026-10-26 04:07:32.655 UTC [186] app=repro-wait_for vxid=64/2 xid=814 ERROR:  canceling statement due to user request
+2026-10-26 04:07:32.655 UTC [186] app=repro-wait_for vxid=64/2 xid=814 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:32.657 UTC [186] app=repro-wait_for vxid=64/0 xid=814 LOG:  statement: COMMIT;
+2026-10-26 04:07:32.658 UTC [177] app=repro-witness vxid=59/14 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:32.658 UTC [177] app=repro-witness vxid=59/14 xid=0 DETAIL:  Parameters: $1 = '814'
+2026-10-26 04:07:32.659 UTC [177] app=repro-witness vxid=59/15 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:32.659 UTC [177] app=repro-witness vxid=59/15 xid=0 DETAIL:  Parameters: $1 = 'wait_for'
+2026-10-26 04:07:32.659 UTC [177] app=repro-witness vxid=59/16 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:32.659 UTC [177] app=repro-witness vxid=59/16 xid=0 DETAIL:  Parameters: $1 = '186'
+2026-10-26 04:07:32.670 UTC [188] app=repro-control_savepoint vxid=65/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:32.672 UTC [188] app=repro-control_savepoint vxid=65/2 xid=0 LOG:  execute __asyncpg_stmt_14__: insert into item (name) values ($1)
+2026-10-26 04:07:32.672 UTC [188] app=repro-control_savepoint vxid=65/2 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:32.673 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 LOG:  execute __asyncpg_stmt_15__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.674 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 LOG:  statement: SAVEPOINT __asyncpg_savepoint_16__;
+2026-10-26 04:07:32.675 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 LOG:  execute __asyncpg_stmt_17__: select pg_sleep(10)
+2026-10-26 04:07:32.878 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 ERROR:  canceling statement due to user request
+2026-10-26 04:07:32.878 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:32.881 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 LOG:  statement: ROLLBACK TO __asyncpg_savepoint_16__;
+2026-10-26 04:07:32.881 UTC [188] app=repro-control_savepoint vxid=65/2 xid=815 LOG:  statement: COMMIT;
+2026-10-26 04:07:32.882 UTC [177] app=repro-witness vxid=59/17 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:32.882 UTC [177] app=repro-witness vxid=59/17 xid=0 DETAIL:  Parameters: $1 = '815'
+2026-10-26 04:07:32.882 UTC [177] app=repro-witness vxid=59/18 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:32.882 UTC [177] app=repro-witness vxid=59/18 xid=0 DETAIL:  Parameters: $1 = 'control_savepoint'
+2026-10-26 04:07:32.883 UTC [177] app=repro-witness vxid=59/19 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:32.883 UTC [177] app=repro-witness vxid=59/19 xid=0 DETAIL:  Parameters: $1 = '188'
+2026-10-26 04:07:32.892 UTC [190] app=repro-control_fast vxid=66/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:32.894 UTC [190] app=repro-control_fast vxid=66/2 xid=0 LOG:  execute __asyncpg_stmt_18__: insert into item (name) values ($1)
+2026-10-26 04:07:32.894 UTC [190] app=repro-control_fast vxid=66/2 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:32.895 UTC [190] app=repro-control_fast vxid=66/2 xid=816 LOG:  execute __asyncpg_stmt_19__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.896 UTC [190] app=repro-control_fast vxid=66/2 xid=816 LOG:  execute __asyncpg_stmt_1a__: select pg_sleep(0.01)
+2026-10-26 04:07:32.909 UTC [190] app=repro-control_fast vxid=66/2 xid=816 LOG:  statement: COMMIT;
+2026-10-26 04:07:32.909 UTC [177] app=repro-witness vxid=59/20 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:32.909 UTC [177] app=repro-witness vxid=59/20 xid=0 DETAIL:  Parameters: $1 = '816'
+2026-10-26 04:07:32.910 UTC [177] app=repro-witness vxid=59/21 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:32.910 UTC [177] app=repro-witness vxid=59/21 xid=0 DETAIL:  Parameters: $1 = 'control_fast'
+2026-10-26 04:07:32.910 UTC [177] app=repro-witness vxid=59/22 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:32.910 UTC [177] app=repro-witness vxid=59/22 xid=0 DETAIL:  Parameters: $1 = '190'
+2026-10-26 04:07:32.916 UTC [191] app=repro-control_uncaught vxid=67/2 xid=0 LOG:  statement: BEGIN;
+2026-10-26 04:07:32.917 UTC [191] app=repro-control_uncaught vxid=67/2 xid=0 LOG:  execute __asyncpg_stmt_1b__: insert into item (name) values ($1)
+2026-10-26 04:07:32.917 UTC [191] app=repro-control_uncaught vxid=67/2 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:32.918 UTC [191] app=repro-control_uncaught vxid=67/2 xid=817 LOG:  execute __asyncpg_stmt_1c__: select pg_current_xact_id()::text
+2026-10-26 04:07:32.919 UTC [191] app=repro-control_uncaught vxid=67/2 xid=817 LOG:  execute __asyncpg_stmt_1d__: select pg_sleep(10)
+2026-10-26 04:07:33.124 UTC [191] app=repro-control_uncaught vxid=67/2 xid=817 ERROR:  canceling statement due to user request
+2026-10-26 04:07:33.124 UTC [191] app=repro-control_uncaught vxid=67/2 xid=817 STATEMENT:  select pg_sleep(10)
+2026-10-26 04:07:33.126 UTC [191] app=repro-control_uncaught vxid=67/0 xid=817 LOG:  statement: ROLLBACK;
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/23 xid=0 LOG:  execute __asyncpg_stmt_5__: select pg_xact_status($1::text::xid8)
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/23 xid=0 DETAIL:  Parameters: $1 = '817'
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/24 xid=0 LOG:  execute __asyncpg_stmt_6__: select count(*) from item where name = $1
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/24 xid=0 DETAIL:  Parameters: $1 = 'control_uncaught'
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/25 xid=0 LOG:  execute __asyncpg_stmt_7__: select state, query from pg_stat_activity where pid = $1
+2026-10-26 04:07:33.127 UTC [177] app=repro-witness vxid=59/25 xid=0 DETAIL:  Parameters: $1 = '191'
+2026-10-26 04:07:33.132 UTC [175] app=repro-admin vxid=57/5 xid=0 LOG:  statement: drop database asyncpg_client_timeout with (force)
+2026-10-26 04:07:33.132 UTC [71] app= vxid= xid=0 LOG:  checkpoint starting: immediate force wait
+2026-10-26 04:07:33.133 UTC [71] app= vxid= xid=0 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4377 kB, estimate=4377 kB; lsn=0/31068E0, redo lsn=0/3106888
+2026-10-26 04:07:33.208 UTC [199] app=psql vxid=68/2 xid=0 LOG:  statement: select x::text as xid, pg_xact_status(x::text::xid8) as status from unnest(array[755,756,757,758,759,760,761,762,766,767,768,769,770,771,772,773,777,778,779,780,781,782,783,784,788,789,790,791,792,793,794,795,799,800,801,802,803,804,805,806,810,811,812,813,814,815,816,817]::bigint[]) as x order by x
