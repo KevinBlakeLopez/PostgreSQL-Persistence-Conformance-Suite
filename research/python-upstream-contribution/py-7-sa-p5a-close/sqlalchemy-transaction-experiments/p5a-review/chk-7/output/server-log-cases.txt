@@ -1,0 +1,37 @@
+run 1: witness backend 114
+  subject backend 115:
+    vxid 6/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | RELEASE "_pg3_1" | ROLLBACK
+    vxid 6/3: BEGIN | insert ('doomed') | insert ('next') [xid 766] | COMMIT [xid 766]
+    vxid 6/4: BEGIN | insert ('doomed') | insert ('next') [xid 768] | COMMIT [xid 768]
+    disconnected at 2026-10-25 01:21:16.306
+  subject backend 116:
+    vxid 7/2: BEGIN | insert ('doomed')
+    disconnected at 2026-10-25 01:21:16.312
+  subject backend 117:
+    vxid 8/2: BEGIN | insert ('next') | COMMIT [xid 771]
+    disconnected at 2026-10-25 01:21:16.319
+run 2: witness backend 118
+  subject backend 119:
+    vxid 10/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | RELEASE "_pg3_1" | ROLLBACK
+    vxid 10/3: BEGIN | insert ('doomed') | insert ('next') [xid 773] | COMMIT [xid 773]
+    vxid 10/4: BEGIN | insert ('doomed') | insert ('next') [xid 775] | COMMIT [xid 775]
+    disconnected at 2026-10-25 01:21:16.514
+  subject backend 120:
+    vxid 11/2: BEGIN | insert ('doomed')
+    disconnected at 2026-10-25 01:21:16.520
+  subject backend 121:
+    vxid 12/2: BEGIN | insert ('next') | COMMIT [xid 778]
+    disconnected at 2026-10-25 01:21:16.527
+run 3: witness backend 122
+  subject backend 123:
+    vxid 14/2: BEGIN | select pg_catalog.version() | select current_schema() | show transaction isolation level | show standard_conforming_strings | SAVEPOINT "_pg3_1" | SELECT | RELEASE "_pg3_1" | ROLLBACK
+    vxid 14/3: BEGIN | insert ('doomed') | insert ('next') [xid 780] | COMMIT [xid 780]
+    vxid 14/4: BEGIN | insert ('doomed') | insert ('next') [xid 782] | COMMIT [xid 782]
+    disconnected at 2026-10-25 01:21:16.716
+  subject backend 124:
+    vxid 15/2: BEGIN | insert ('doomed')
+    disconnected at 2026-10-25 01:21:16.721
+  subject backend 125:
+    vxid 16/2: BEGIN | insert ('next') | COMMIT [xid 785]
+    disconnected at 2026-10-25 01:21:16.728
+xids on subject COMMIT lines: 766 768 771 773 775 778 780 782 785

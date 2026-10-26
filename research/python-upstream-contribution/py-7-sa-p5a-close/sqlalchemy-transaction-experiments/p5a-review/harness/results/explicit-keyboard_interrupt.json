@@ -1,0 +1,295 @@
+{
+ "case": "explicit-keyboard_interrupt",
+ "api": "explicit",
+ "failure": "keyboard_interrupt",
+ "engine_kw": {},
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.5",
+  "sqlalchemy_file": "<venv>/lib/python3.13/site-packages/sqlalchemy/__init__.py",
+  "psycopg": "3.3.6",
+  "psycopg_impl": "binary",
+  "libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "first": {
+  "pid": 3211,
+  "xid": "1088",
+  "activity_before_commit": {
+   "state": "idle in transaction",
+   "backend_xid": "1088",
+   "xact_start": "2026-10-18T13:45:22.108251+00:00",
+   "query": "select pg_current_xact_id_if_assigned()::text"
+  },
+  "commit": {
+   "type": "builtins.KeyboardInterrupt",
+   "msg": ""
+  },
+  "commit_seconds": 0.0,
+  "events_during_commit": [
+   {
+    "t": 0.059,
+    "kind": "sa.ConnectionEvents.commit"
+   },
+   {
+    "t": 0.059,
+    "kind": "inject.commit_raises_before_send",
+    "exc": "builtins.KeyboardInterrupt"
+   },
+   {
+    "t": 0.059,
+    "kind": "sa.PoolEvents.invalidate",
+    "pid": 3211,
+    "exc": "KeyboardInterrupt()"
+   },
+   {
+    "t": 0.059,
+    "kind": "sa.PoolEvents.checkin",
+    "pid": null,
+    "psycopg": null
+   }
+  ],
+  "after_commit": {
+   "in_transaction": false,
+   "marker_present": true,
+   "marker_active": false,
+   "connection_invalidated": true,
+   "psycopg": "UNKNOWN",
+   "activity": null
+  },
+  "close": "returned",
+  "after_close": {
+   "psycopg": "UNKNOWN",
+   "activity": null,
+   "pool_checkedout": 0
+  },
+  "events_during_close": []
+ },
+ "visible_after_first_unit": [],
+ "activity_first_pid_after_first_unit": null,
+ "second_checkout": {
+  "same_dbapi_object": false,
+  "pid": 3212,
+  "same_pid": false,
+  "in_transaction": false,
+  "psycopg": "IDLE",
+  "activity": {
+   "state": "idle",
+   "backend_xid": null,
+   "xact_start": null,
+   "query": ""
+  },
+  "xid_seen_before_insert": null,
+  "same_xid_as_first": false,
+  "next_commit": "returned",
+  "visible_after_next": [
+   "next"
+  ],
+  "close2": "returned",
+  "events": [
+   {
+    "t": 0.072,
+    "kind": "sa.PoolEvents.checkout",
+    "pid": 3212,
+    "psycopg": "IDLE"
+   },
+   {
+    "t": 0.074,
+    "kind": "psycopg.send",
+    "pid": 3212,
+    "cmd": "BEGIN",
+    "status_before": "IDLE"
+   },
+   {
+    "t": 0.077,
+    "kind": "sa.ConnectionEvents.commit"
+   },
+   {
+    "t": 0.077,
+    "kind": "dbapi.commit.call",
+    "pid": 3212,
+    "status_before": "INTRANS",
+    "caller": "commit>_do_commit>_connection_commit_impl>_commit_impl>do_commit"
+   },
+   {
+    "t": 0.077,
+    "kind": "psycopg.send",
+    "pid": 3212,
+    "cmd": "COMMIT",
+    "status_before": "INTRANS"
+   },
+   {
+    "t": 0.078,
+    "kind": "dbapi.commit.returned",
+    "status_after": "IDLE"
+   },
+   {
+    "t": 0.079,
+    "kind": "sa.PoolEvents.reset",
+    "pid": 3212,
+    "transaction_was_reset": false,
+    "terminate_only": false,
+    "psycopg": "IDLE"
+   },
+   {
+    "t": 0.079,
+    "kind": "dbapi.rollback.call",
+    "pid": 3212,
+    "status_before": "IDLE",
+    "caller": "close>close>_checkin>_finalize_fairy>_reset>do_rollback"
+   },
+   {
+    "t": 0.079,
+    "kind": "dbapi.rollback.returned",
+    "status_after": "IDLE"
+   },
+   {
+    "t": 0.079,
+    "kind": "sa.PoolEvents.checkin",
+    "pid": 3212,
+    "psycopg": "IDLE"
+   }
+  ]
+ },
+ "visible_final": [
+  "next"
+ ],
+ "timeline": [
+  {
+   "t": 0.044,
+   "kind": "psycopg.send",
+   "pid": 3211,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.048,
+   "kind": "psycopg.send",
+   "pid": 3211,
+   "cmd": "SAVEPOINT \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.05,
+   "kind": "psycopg.send",
+   "pid": 3211,
+   "cmd": "RELEASE \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.052,
+   "kind": "dbapi.rollback.call",
+   "pid": 3211,
+   "status_before": "INTRANS",
+   "caller": "__init__>__connect>_exec_w_sync_on_first_run>__call__>go>first_connect>do_rollback"
+  },
+  {
+   "t": 0.052,
+   "kind": "psycopg.send",
+   "pid": 3211,
+   "cmd": "ROLLBACK",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.053,
+   "kind": "dbapi.rollback.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.053,
+   "kind": "sa.PoolEvents.checkout",
+   "pid": 3211,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.053,
+   "kind": "psycopg.send",
+   "pid": 3211,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.059,
+   "kind": "sa.ConnectionEvents.commit"
+  },
+  {
+   "t": 0.059,
+   "kind": "inject.commit_raises_before_send",
+   "exc": "builtins.KeyboardInterrupt"
+  },
+  {
+   "t": 0.059,
+   "kind": "sa.PoolEvents.invalidate",
+   "pid": 3211,
+   "exc": "KeyboardInterrupt()"
+  },
+  {
+   "t": 0.059,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": null,
+   "psycopg": null
+  },
+  {
+   "t": 0.072,
+   "kind": "sa.PoolEvents.checkout",
+   "pid": 3212,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.074,
+   "kind": "psycopg.send",
+   "pid": 3212,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.077,
+   "kind": "sa.ConnectionEvents.commit"
+  },
+  {
+   "t": 0.077,
+   "kind": "dbapi.commit.call",
+   "pid": 3212,
+   "status_before": "INTRANS",
+   "caller": "commit>_do_commit>_connection_commit_impl>_commit_impl>do_commit"
+  },
+  {
+   "t": 0.077,
+   "kind": "psycopg.send",
+   "pid": 3212,
+   "cmd": "COMMIT",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.078,
+   "kind": "dbapi.commit.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.079,
+   "kind": "sa.PoolEvents.reset",
+   "pid": 3212,
+   "transaction_was_reset": false,
+   "terminate_only": false,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.079,
+   "kind": "dbapi.rollback.call",
+   "pid": 3212,
+   "status_before": "IDLE",
+   "caller": "close>close>_checkin>_finalize_fairy>_reset>do_rollback"
+  },
+  {
+   "t": 0.079,
+   "kind": "dbapi.rollback.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.079,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": 3212,
+   "psycopg": "IDLE"
+  }
+ ]
+}

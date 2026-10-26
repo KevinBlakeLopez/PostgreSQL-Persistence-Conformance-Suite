@@ -1,0 +1,250 @@
+
+## explicit-none
+  commit -> returned  [0.001s]
+  after commit: marker=False/None conn.invalidated=False psycopg=IDLE server=idle
+  close/exit events: reset(was_reset=False,pg=IDLE) rollback()[IDLE<-_reset]
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: ['doomed']
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-runtime
+  commit -> RuntimeError  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1063 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-runtime-preping
+  commit -> RuntimeError  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=None in_tx=None psycopg=None server=None xid_seen=None same_xid=None next_commit=None
+  visible after next: None | final: []
+
+## explicit-psycopg_operational
+  commit -> sa.OperationalError(orig=pg.OperationalError,None) inv=False  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1073 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-psycopg_programming
+  commit -> sa.ProgrammingError(orig=pg.ProgrammingError,None) inv=False  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1078 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-psycopg_disconnect_message
+  commit -> sa.OperationalError(orig=pg.OperationalError,None) inv=False  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1083 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-keyboard_interrupt
+  commit -> KeyboardInterrupt  [0.0s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-cancelled_error
+  commit -> asyncio.exceptions.CancelledError  [0.0s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-builtin_timeout_error
+  commit -> TimeoutError  [0.0s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-listener
+  commit -> RuntimeError  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1100 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-psycopg_txn_block
+  commit -> sa.ProgrammingError(orig=pg.ProgrammingError,None) inv=False  [0.002s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1105 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## explicit-deferred_unique
+  commit -> sa.IntegrityError(orig=pg.UniqueViolation,23505) inv=False  [0.001s]
+  after commit: marker=True/False conn.invalidated=False psycopg=IDLE server=idle
+  close/exit events: reset(was_reset=True,pg=IDLE)
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: ['dup']
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['dup', 'next'] | final: ['dup', 'next']
+
+## explicit-serialization
+  commit -> sa.OperationalError(orig=pg.SerializationFailure,40001) inv=False  [0.001s]
+  after commit: marker=True/False conn.invalidated=False psycopg=IDLE server=idle
+  close/exit events: reset(was_reset=True,pg=IDLE)
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: ['other']
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next', 'other'] | final: ['next', 'other']
+
+## explicit-terminate_idle
+  commit -> sa.OperationalError(orig=pg.AdminShutdown,57P01) inv=True  [0.001s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-cancel_during_commit
+  commit -> sa.OperationalError(orig=pg.QueryCanceled,57014) inv=False  [0.006s]
+  after commit: marker=True/False conn.invalidated=False psycopg=IDLE server=idle
+  close/exit events: reset(was_reset=True,pg=IDLE)
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-terminate_during_commit
+  commit -> sa.OperationalError(orig=pg.AdminShutdown,57P01) inv=True  [0.007s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-client_exception_during_commit
+  commit -> __main__.RequestTimeout  [1.108s]
+  after commit: marker=True/False conn.invalidated=False psycopg=ACTIVE server=active
+  close/exit events: reset(was_reset=True,pg=ACTIVE)
+  after close: psycopg=ACTIVE server=active checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=ACTIVE server=active xid_seen=None same_xid=None next_commit=sa.OperationalError(orig=pg.OperationalError,None) inv=False
+  visible after next: [] | final: []
+
+## explicit-keyboard_interrupt_during_commit
+  commit -> KeyboardInterrupt  [1.117s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## explicit-client_closed
+  commit -> sa.OperationalError(orig=pg.OperationalError,None) inv=True  [0.0s]
+  after commit: marker=True/False conn.invalidated=True psycopg=UNKNOWN server=None
+  close/exit events: -
+  after close: psycopg=UNKNOWN server=None checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=False in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## connect_ctx-runtime
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1159 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## engine_begin-runtime
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=False,pg=INTRANS) rollback()[INTRANS<-_reset] send:ROLLBACK
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## rollback_close-runtime
+  commit -> RuntimeError  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  rollback() -> returned; during: -; after: psycopg=INTRANS server=idle in transaction
+  close/exit events: reset(was_reset=False,pg=INTRANS) rollback()[INTRANS<-_reset] send:ROLLBACK
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## rollback_reuse-runtime
+  commit -> RuntimeError  [0.0s]
+  after commit: marker=True/False conn.invalidated=False psycopg=INTRANS server=idle in transaction
+  rollback() -> returned; during: -; after: psycopg=INTRANS server=idle in transaction
+  reuse same Connection: xid_before_insert=1176 (first xid=1176) commit -> returned visible=['doomed', 'same-connection']
+  close/exit events: reset(was_reset=False,pg=IDLE) rollback()[IDLE<-_reset]
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: ['doomed', 'same-connection']
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['doomed', 'next', 'same-connection'] | final: ['doomed', 'next', 'same-connection']
+
+## orm_commit-runtime
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1182 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## orm_begin-runtime
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=False,pg=INTRANS) rollback()[INTRANS<-_reset] send:ROLLBACK
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## orm_rollback_close-runtime
+  commit -> RuntimeError  [s]
+  after commit: marker=None/None conn.invalidated=None psycopg=INTRANS server=idle in transaction
+  rollback() -> returned; during: -; after: psycopg=IDLE server=idle
+  close/exit events: reset(was_reset=False,pg=INTRANS) rollback()[INTRANS<-_reset] send:ROLLBACK
+  after close: psycopg=IDLE server=idle checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=IDLE server=idle xid_seen=None same_xid=False next_commit=returned
+  visible after next: ['next'] | final: ['next']
+
+## connect_ctx-listener
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1199 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']
+
+## orm_commit-listener
+  commit -> RuntimeError  [s]
+  close/exit events: reset(was_reset=True,pg=INTRANS)
+  after close: psycopg=INTRANS server=idle in transaction checkedout=0
+  visible after first unit: []
+  2nd checkout: same_pid=True in_tx=False psycopg=INTRANS server=idle in transaction xid_seen=1204 same_xid=True next_commit=returned
+  visible after next: ['doomed', 'next'] | final: ['doomed', 'next']

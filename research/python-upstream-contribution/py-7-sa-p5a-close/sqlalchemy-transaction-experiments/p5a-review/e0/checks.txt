@@ -1,0 +1,50 @@
+Outputs of the provenance checks, 2026-10-18, copied from the run.
+
+== extract_and_compare.py
+AST(draft with port 55454) == AST(check/p5a_close.py): True
+--- textual diff draft(55454) vs check/p5a_close.py ---
+--- draft_script_55454.py
++++ check/p5a_close.py
+@@ -0,0 +1 @@
++# URL points at the disposable server. The script body is the issue draft.
+@@ -40,2 +41 @@
+-# 1. commit() raises before send.
+-# close() returns the connection to the default pool.
++# 1. commit() raises before send. close() returns the connection to the default pool.
+@@ -76,2 +76 @@
+-# 2. Control.
+-# rollback() is armed to raise, including during close().
++# 2. Control. rollback() is armed to raise, including during close().
+@@ -106,2 +105 @@
+-# 3. Control.
+-# A failed rollback that does reach pool reset.
++# 3. Control. A failed rollback that does reach pool reset.
+
+== draft_script_55454.py in a fresh process (fresh PyPI venv)
+exit=0
+diff -u draft_observed.txt run.stdout: no differences
+run.stderr: 42 lines, two "Exception during reset or similar" tracebacks
+
+== check_record_hashes.py (investigator's venv, <investigator-venv>)
+sqlalchemy files matching RECORD: 270 | mismatched: [] | missing: []
+
+== compare_wheel_to_tag.sh
+identical: engine/base.py
+identical: engine/default.py
+identical: engine/util.py
+identical: pool/base.py
+identical: pool/impl.py
+identical: dialects/postgresql/psycopg.py
+identical: dialects/postgresql/_psycopg_common.py
+identical: util/langhelpers.py
+identical: orm/session.py
+identical: util/concurrency.py
+
+== interpreters and packages
+venv    (review, main): Python 3.13.11, SQLAlchemy 2.1.5, psycopg 3.3.6 (binary, libpq 180006), psycopg2 2.9.13, greenlet 3.5.6
+venv13  (p2_close.py):  Python 3.9.9,   SQLAlchemy 1.3.24, psycopg2 2.9.12
+venv140 (p2_close.py):  Python 3.9.9,   SQLAlchemy 1.4.0,  psycopg2 2.9.12, greenlet 3.2.5
+venv14  (p2_close.py):  Python 3.13.11, SQLAlchemy 1.4.54, psycopg2 2.9.13
+venv20  (p2_close.py):  Python 3.13.11, SQLAlchemy 2.0.55, psycopg2 2.9.13, psycopg 3.3.6
+investigator's venv (<investigator-venv>): SQLAlchemy 2.1.5, psycopg 3.3.6, psycopg-binary 3.3.6
+server: PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64, container sa-tx-probe, 127.0.0.1:55454, database scratch, log_statement=all

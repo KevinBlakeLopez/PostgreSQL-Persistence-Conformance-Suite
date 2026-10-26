@@ -1,0 +1,191 @@
+Exception during reset or similar
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1953, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 1192, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.OperationalError: sending query failed: another command is already in progress
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<scratch>/p5a-review/harness/followups.py", line 115, in alarm_outcome
+    print("next statement:", c.execute(text("select 1")).scalar())
+                             ~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1458, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 533, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1678, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<9 lines>...
+        param_dict=param_dict,
+    )
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1832, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1972, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2342, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1953, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 1192, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+sqlalchemy.exc.OperationalError: (psycopg.OperationalError) sending query failed: another command is already in progress
+[SQL: select 1]
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1153, in _rollback_impl
+    self.engine.dialect.do_rollback(self.connection)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+psycopg.OperationalError: sending query failed: another command is already in progress
+another command is already in progress
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1273, in close
+    self._transaction.close()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2576, in close
+    self._do_close()
+    ~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2714, in _do_close
+    self._close_impl()
+    ~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2700, in _close_impl
+    self._connection_rollback_impl()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2692, in _connection_rollback_impl
+    self.connection._rollback_impl()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1155, in _rollback_impl
+    self._handle_dbapi_exception(e, None, None, None, None)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2342, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1153, in _rollback_impl
+    self.engine.dialect.do_rollback(self.connection)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+sqlalchemy.exc.OperationalError: (psycopg.OperationalError) sending query failed: another command is already in progress
+another command is already in progress
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1020, in _finalize_fairy
+    fairy._reset(
+    ~~~~~~~~~~~~^
+        pool,
+        ^^^^^
+    ...<2 lines>...
+        asyncio_safe=can_manipulate_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1485, in _reset
+    pool._dialect.do_rollback(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+psycopg.OperationalError: sending query failed: another command is already in progress
+another command is already in progress
+another command is already in progress

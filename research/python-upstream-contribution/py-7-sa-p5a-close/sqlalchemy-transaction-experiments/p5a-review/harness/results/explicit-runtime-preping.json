@@ -1,0 +1,190 @@
+{
+ "case": "explicit-runtime-preping",
+ "api": "explicit",
+ "failure": "runtime",
+ "engine_kw": {
+  "pool_pre_ping": true
+ },
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.5",
+  "sqlalchemy_file": "<venv>/lib/python3.13/site-packages/sqlalchemy/__init__.py",
+  "psycopg": "3.3.6",
+  "psycopg_impl": "binary",
+  "libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "first": {
+  "pid": 3203,
+  "xid": "1068",
+  "activity_before_commit": {
+   "state": "idle in transaction",
+   "backend_xid": "1068",
+   "xact_start": "2026-10-18T13:45:18.779534+00:00",
+   "query": "select pg_current_xact_id_if_assigned()::text"
+  },
+  "commit": {
+   "type": "builtins.RuntimeError",
+   "msg": "COMMIT was not sent"
+  },
+  "commit_seconds": 0.0,
+  "events_during_commit": [
+   {
+    "t": 0.047,
+    "kind": "sa.ConnectionEvents.commit"
+   },
+   {
+    "t": 0.047,
+    "kind": "inject.commit_raises_before_send",
+    "exc": "builtins.RuntimeError"
+   }
+  ],
+  "after_commit": {
+   "in_transaction": false,
+   "marker_present": true,
+   "marker_active": false,
+   "connection_invalidated": false,
+   "psycopg": "INTRANS",
+   "activity": {
+    "state": "idle in transaction",
+    "backend_xid": "1068",
+    "xact_start": "2026-10-18T13:45:18.779534+00:00",
+    "query": "select pg_current_xact_id_if_assigned()::text"
+   }
+  },
+  "close": "returned",
+  "after_close": {
+   "psycopg": "INTRANS",
+   "activity": {
+    "state": "idle in transaction",
+    "backend_xid": "1068",
+    "xact_start": "2026-10-18T13:45:18.779534+00:00",
+    "query": "select pg_current_xact_id_if_assigned()::text"
+   },
+   "pool_checkedout": 0
+  },
+  "events_during_close": [
+   {
+    "t": 0.049,
+    "kind": "sa.PoolEvents.reset",
+    "pid": 3203,
+    "transaction_was_reset": true,
+    "terminate_only": false,
+    "psycopg": "INTRANS"
+   },
+   {
+    "t": 0.049,
+    "kind": "sa.PoolEvents.checkin",
+    "pid": 3203,
+    "psycopg": "INTRANS"
+   }
+  ]
+ },
+ "visible_after_first_unit": [],
+ "activity_first_pid_after_first_unit": {
+  "state": "idle in transaction",
+  "backend_xid": "1068",
+  "xact_start": "2026-10-18T13:45:18.779534+00:00",
+  "query": "select pg_current_xact_id_if_assigned()::text"
+ },
+ "second_checkout": {
+  "checkout": {
+   "type": "sqlalchemy.exc.ProgrammingError",
+   "msg": "(psycopg.ProgrammingError) can't change 'autocommit' now: connection in transaction status INTRANS",
+   "orig": "psycopg.ProgrammingError",
+   "sqlstate": null,
+   "connection_invalidated": false
+  }
+ },
+ "visible_final": [],
+ "timeline": [
+  {
+   "t": 0.032,
+   "kind": "psycopg.send",
+   "pid": 3203,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.035,
+   "kind": "psycopg.send",
+   "pid": 3203,
+   "cmd": "SAVEPOINT \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.038,
+   "kind": "psycopg.send",
+   "pid": 3203,
+   "cmd": "RELEASE \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.039,
+   "kind": "dbapi.rollback.call",
+   "pid": 3203,
+   "status_before": "INTRANS",
+   "caller": "__init__>__connect>_exec_w_sync_on_first_run>__call__>go>first_connect>do_rollback"
+  },
+  {
+   "t": 0.039,
+   "kind": "psycopg.send",
+   "pid": 3203,
+   "cmd": "ROLLBACK",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.04,
+   "kind": "dbapi.rollback.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.04,
+   "kind": "sa.PoolEvents.checkout",
+   "pid": 3203,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.04,
+   "kind": "psycopg.send",
+   "pid": 3203,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.047,
+   "kind": "sa.ConnectionEvents.commit"
+  },
+  {
+   "t": 0.047,
+   "kind": "inject.commit_raises_before_send",
+   "exc": "builtins.RuntimeError"
+  },
+  {
+   "t": 0.049,
+   "kind": "sa.PoolEvents.reset",
+   "pid": 3203,
+   "transaction_was_reset": true,
+   "terminate_only": false,
+   "psycopg": "INTRANS"
+  },
+  {
+   "t": 0.049,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": 3203,
+   "psycopg": "INTRANS"
+  },
+  {
+   "t": 0.053,
+   "kind": "sa.PoolEvents.invalidate",
+   "pid": 3203,
+   "exc": "ProgrammingError(\"can't change 'autocommit' now: connection in transaction status INTRANS\")"
+  },
+  {
+   "t": 0.053,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": null,
+   "psycopg": null
+  }
+ ]
+}

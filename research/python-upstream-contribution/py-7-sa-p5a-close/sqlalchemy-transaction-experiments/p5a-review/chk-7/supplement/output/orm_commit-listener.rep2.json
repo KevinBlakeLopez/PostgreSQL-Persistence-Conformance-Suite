@@ -1,0 +1,276 @@
+{
+ "case": "orm_commit-listener",
+ "api": "orm_commit",
+ "failure": "listener",
+ "engine_kw": {},
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.6",
+  "sqlalchemy_file": "<venv>/lib/python3.13/site-packages/sqlalchemy/__init__.py",
+  "psycopg": "3.3.6",
+  "psycopg_impl": "binary",
+  "libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "first": {
+  "pid": 124,
+  "xid": "810",
+  "activity_before_commit": {
+   "state": "idle in transaction",
+   "backend_xid": "810",
+   "xact_start": "2026-10-25T22:46:49.684635+00:00",
+   "query": "select pg_current_xact_id_if_assigned()::text"
+  },
+  "commit": {
+   "type": "builtins.RuntimeError",
+   "msg": "commit listener failed"
+  },
+  "events_during_commit_and_exit": [
+   {
+    "t": 0.031,
+    "kind": "inject.commit_listener_raises"
+   },
+   {
+    "t": 0.031,
+    "kind": "sa.PoolEvents.reset",
+    "pid": 124,
+    "transaction_was_reset": true,
+    "terminate_only": false,
+    "psycopg": "INTRANS"
+   },
+   {
+    "t": 0.031,
+    "kind": "sa.PoolEvents.checkin",
+    "pid": 124,
+    "psycopg": "INTRANS"
+   }
+  ],
+  "after_with_exit": {
+   "psycopg": "INTRANS",
+   "activity": {
+    "state": "idle in transaction",
+    "backend_xid": "810",
+    "xact_start": "2026-10-25T22:46:49.684635+00:00",
+    "query": "select pg_current_xact_id_if_assigned()::text"
+   },
+   "pool_checkedout": 0
+  }
+ },
+ "visible_after_first_unit": [],
+ "activity_first_pid_after_first_unit": {
+  "state": "idle in transaction",
+  "backend_xid": "810",
+  "xact_start": "2026-10-25T22:46:49.684635+00:00",
+  "query": "select pg_current_xact_id_if_assigned()::text"
+ },
+ "second_checkout": {
+  "same_dbapi_object": true,
+  "pid": 124,
+  "same_pid": true,
+  "in_transaction": false,
+  "psycopg": "INTRANS",
+  "activity": {
+   "state": "idle in transaction",
+   "backend_xid": "810",
+   "xact_start": "2026-10-25T22:46:49.684635+00:00",
+   "query": "select pg_current_xact_id_if_assigned()::text"
+  },
+  "xid_seen_before_insert": "810",
+  "same_xid_as_first": true,
+  "next_commit": "returned",
+  "visible_after_next": [
+   "doomed",
+   "next"
+  ],
+  "close2": "returned",
+  "events": [
+   {
+    "t": 0.033,
+    "kind": "sa.PoolEvents.checkout",
+    "pid": 124,
+    "psycopg": "INTRANS"
+   },
+   {
+    "t": 0.034,
+    "kind": "sa.ConnectionEvents.commit"
+   },
+   {
+    "t": 0.034,
+    "kind": "dbapi.commit.call",
+    "pid": 124,
+    "status_before": "INTRANS",
+    "caller": "commit>_do_commit>_connection_commit_impl>_commit_impl>do_commit"
+   },
+   {
+    "t": 0.034,
+    "kind": "psycopg.send",
+    "pid": 124,
+    "cmd": "COMMIT",
+    "status_before": "INTRANS"
+   },
+   {
+    "t": 0.034,
+    "kind": "dbapi.commit.returned",
+    "status_after": "IDLE"
+   },
+   {
+    "t": 0.035,
+    "kind": "sa.PoolEvents.reset",
+    "pid": 124,
+    "transaction_was_reset": false,
+    "terminate_only": false,
+    "psycopg": "IDLE"
+   },
+   {
+    "t": 0.035,
+    "kind": "dbapi.rollback.call",
+    "pid": 124,
+    "status_before": "IDLE",
+    "caller": "close>close>_checkin>_finalize_fairy>_reset>do_rollback"
+   },
+   {
+    "t": 0.035,
+    "kind": "dbapi.rollback.returned",
+    "status_after": "IDLE"
+   },
+   {
+    "t": 0.035,
+    "kind": "sa.PoolEvents.checkin",
+    "pid": 124,
+    "psycopg": "IDLE"
+   }
+  ]
+ },
+ "visible_final": [
+  "doomed",
+  "next"
+ ],
+ "timeline": [
+  {
+   "t": 0.024,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.026,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "SAVEPOINT \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.027,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "RELEASE \"_pg3_1\"",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.028,
+   "kind": "dbapi.rollback.call",
+   "pid": 124,
+   "status_before": "INTRANS",
+   "caller": "__init__>__connect>_exec_w_sync_on_first_run>__call__>go>first_connect>do_rollback"
+  },
+  {
+   "t": 0.028,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "ROLLBACK",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.029,
+   "kind": "dbapi.rollback.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.029,
+   "kind": "sa.PoolEvents.checkout",
+   "pid": 124,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.029,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "BEGIN",
+   "status_before": "IDLE"
+  },
+  {
+   "t": 0.031,
+   "kind": "inject.commit_listener_raises"
+  },
+  {
+   "t": 0.031,
+   "kind": "sa.PoolEvents.reset",
+   "pid": 124,
+   "transaction_was_reset": true,
+   "terminate_only": false,
+   "psycopg": "INTRANS"
+  },
+  {
+   "t": 0.031,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": 124,
+   "psycopg": "INTRANS"
+  },
+  {
+   "t": 0.033,
+   "kind": "sa.PoolEvents.checkout",
+   "pid": 124,
+   "psycopg": "INTRANS"
+  },
+  {
+   "t": 0.034,
+   "kind": "sa.ConnectionEvents.commit"
+  },
+  {
+   "t": 0.034,
+   "kind": "dbapi.commit.call",
+   "pid": 124,
+   "status_before": "INTRANS",
+   "caller": "commit>_do_commit>_connection_commit_impl>_commit_impl>do_commit"
+  },
+  {
+   "t": 0.034,
+   "kind": "psycopg.send",
+   "pid": 124,
+   "cmd": "COMMIT",
+   "status_before": "INTRANS"
+  },
+  {
+   "t": 0.034,
+   "kind": "dbapi.commit.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.035,
+   "kind": "sa.PoolEvents.reset",
+   "pid": 124,
+   "transaction_was_reset": false,
+   "terminate_only": false,
+   "psycopg": "IDLE"
+  },
+  {
+   "t": 0.035,
+   "kind": "dbapi.rollback.call",
+   "pid": 124,
+   "status_before": "IDLE",
+   "caller": "close>close>_checkin>_finalize_fairy>_reset>do_rollback"
+  },
+  {
+   "t": 0.035,
+   "kind": "dbapi.rollback.returned",
+   "status_after": "IDLE"
+  },
+  {
+   "t": 0.035,
+   "kind": "sa.PoolEvents.checkin",
+   "pid": 124,
+   "psycopg": "IDLE"
+  }
+ ]
+}

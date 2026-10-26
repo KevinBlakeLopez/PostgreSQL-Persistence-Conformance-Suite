@@ -1,0 +1,132 @@
+Exception during reset or similar
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1153, in _rollback_impl
+    self.engine.dialect.do_rollback(self.connection)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 104, in wrapper
+    result = orig(self, *a, **k)
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 89, in _probe_exec
+    result = yield from _orig_exec(self, command, result_format)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+psycopg.OperationalError: sending query failed: another command is already in progress
+another command is already in progress
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1273, in close
+    self._transaction.close()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2576, in close
+    self._do_close()
+    ~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2714, in _do_close
+    self._close_impl()
+    ~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2700, in _close_impl
+    self._connection_rollback_impl()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2692, in _connection_rollback_impl
+    self.connection._rollback_impl()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1155, in _rollback_impl
+    self._handle_dbapi_exception(e, None, None, None, None)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2342, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1153, in _rollback_impl
+    self.engine.dialect.do_rollback(self.connection)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 104, in wrapper
+    result = orig(self, *a, **k)
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 89, in _probe_exec
+    result = yield from _orig_exec(self, command, result_format)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+sqlalchemy.exc.OperationalError: (psycopg.OperationalError) sending query failed: another command is already in progress
+another command is already in progress
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1020, in _finalize_fairy
+    fairy._reset(
+    ~~~~~~~~~~~~^
+        pool,
+        ^^^^^
+    ...<2 lines>...
+        asyncio_safe=can_manipulate_connection,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/pool/base.py", line 1485, in _reset
+    pool._dialect.do_rollback(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "<venv>/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 951, in do_rollback
+    dbapi_connection.rollback()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 104, in wrapper
+    result = orig(self, *a, **k)
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 314, in rollback
+    self.wait(self._rollback_gen())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/connection.py", line 495, in wait
+    return waiting.wait(
+           ~~~~~~~~~~~~^
+        gen, self.pgconn.socket, interval=interval, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "psycopg_binary/_psycopg/waiting.pyx", line 227, in psycopg_binary._psycopg.wait_c
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 617, in _rollback_gen
+    yield from self._exec_command(b"ROLLBACK")
+  File "<scratch>/p5a-review/harness/p5a_review.py", line 89, in _probe_exec
+    result = yield from _orig_exec(self, command, result_format)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<venv>/lib/python3.13/site-packages/psycopg/_connection_base.py", line 474, in _exec_command
+    self.pgconn.send_query(command)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "psycopg_binary/pq/pgconn.pyx", line 310, in psycopg_binary.pq.PGconn.send_query
+psycopg.OperationalError: sending query failed: another command is already in progress
+another command is already in progress
+another command is already in progress
