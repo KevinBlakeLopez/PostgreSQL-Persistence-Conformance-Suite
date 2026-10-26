@@ -1,0 +1,56 @@
+{
+ "environment": {
+  "python": "3.13.11",
+  "sqlite": "3.54.1",
+  "sqlalchemy": "2.0.55",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "reps": 3,
+  "case_set": "rollback"
+ },
+ "summary": [
+  {
+   "config": "default",
+   "flow": "core+rollback",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "default",
+   "flow": "session+rollback",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "autocommit-false",
+   "flow": "core+rollback",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "autocommit-false",
+   "flow": "session+rollback",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  }
+ ]
+}

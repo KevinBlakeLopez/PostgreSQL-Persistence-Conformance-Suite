@@ -1,0 +1,147 @@
+{
+ "environment": {
+  "python": "3.13.11",
+  "sqlite": "3.54.1",
+  "sqlalchemy": "2.0.55",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "reps": 3,
+  "case_set": "main"
+ },
+ "summary": [
+  {
+   "config": "default",
+   "flow": "core",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "P5a: commit() raised, and the next checkout committed the doomed row",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "default",
+   "flow": "session",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "P5a: commit() raised, and the next checkout committed the doomed row",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "default",
+   "flow": "engine.begin",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "begin-recipe",
+   "flow": "core",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "begin-recipe",
+   "flow": "session",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "begin-recipe",
+   "flow": "engine.begin",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "autocommit-false",
+   "flow": "core",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "P5a: commit() raised, and the next checkout committed the doomed row",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "autocommit-false",
+   "flow": "session",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "P5a: commit() raised, and the next checkout committed the doomed row",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "autocommit-false",
+   "flow": "engine.begin",
+   "reader": true,
+   "wal": false,
+   "timeout": 0.2,
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() raised; the doomed row did not commit",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "default",
+   "flow": "core",
+   "reader": true,
+   "wal": false,
+   "timeout": null,
+   "note": "sqlite3's default 5 s busy timeout",
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "P5a: commit() raised, and the next checkout committed the doomed row",
+   "commit": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked"
+  },
+  {
+   "config": "default",
+   "flow": "core",
+   "reader": false,
+   "wal": false,
+   "timeout": 0.2,
+   "note": "control: no reader",
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() resolved",
+   "commit": "resolved"
+  },
+  {
+   "config": "default",
+   "flow": "core",
+   "reader": true,
+   "wal": true,
+   "timeout": 0.2,
+   "note": "control: WAL",
+   "reps": 3,
+   "reps_agree": true,
+   "verdict": "commit() resolved",
+   "commit": "resolved"
+  }
+ ]
+}
