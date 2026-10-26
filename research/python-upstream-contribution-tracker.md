@@ -68,6 +68,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - `reports/examples/2026-10-19T12-35-51Z-64c5c5`;
   - `research/production-reachability/runs/2026-10-19T18-15-49Z-b2c174` and `…20-58-26Z-508b7a`;
   - A2 P6.
+  - **CHK-9 (2026-10-26 UTC): psycopg2 does the same.** On psycopg2 2.9.13, `commit()` and `with conn:` return normally after `COMMIT` is answered `ROLLBACK`, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md).
 - **Upstream:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21. Open, no comments, no labels. Re-checked 2026-10-24 at about 16:20 UTC: also no timeline events and no reactions.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
   - psycopg's docs tell callers to roll back after an error.
@@ -340,6 +341,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-6 | PY-6 | Optional | NOT_STARTED |
 | CHK-7 | PY-7 | Required | DONE 2026-10-25 (UTC). Reproduced on SQLAlchemy 2.1.6, 3 of 3, with output byte-identical to the recorded run: `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (commit `3c9758b`) |
 | CHK-8 | PY-20 | Required before an issue | NOT_STARTED. A duplicate search of its own, and the `SQLITE_BUSY` trigger (a reader holding the file during COMMIT), which SQLite documents and which has not been run |
+| CHK-9 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). psycopg2 2.9.13 has the same false commit, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3; the psycopg 3 positive controls reproduce: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -625,3 +627,6 @@ The rest of this section is the plan as it stood before the commits.
   - **PY-7: published the P5a evidence** in [`python-upstream-contribution/py-7-sa-p5a-close/`](python-upstream-contribution/py-7-sa-p5a-close/README.md) (commit `c79ff1a`), normalized from `python-orm-transactions` at `90cfaf3`. Local paths are replaced by placeholders, and `SOURCE-HASHES.txt` gives each file's source and published SHA-256. The SQLAlchemy issue draft is not included.
   - **PY-7: recorded the CHK-7 supplement** (`70676d9` in that repository): both triggers that replace no DBAPI method reproduce on 2.1.6.
   - Status unchanged. Nothing posted or filed.
+- **2026-10-26, about 03:35 UTC.** At the maintainer's request:
+  - **CHK-9 (new): psycopg2 has the PY-1 false commit.** psycopg2 2.9.13, directly (`commit()`, `with conn:`) and through SQLAlchemy 2.1.6 Core (`commit()`, `engine.begin()`) and ORM (`session.commit()`, `sessionmaker.begin()`, both running `after_commit`), 3 of 3; a failed ORM flush raised `PendingRollbackError`. Evidence: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) (commit `9166ea1`). The roadmap's §9 judgment that psycopg2 behaves the same is now observed; the roadmap was not edited.
+  - Nothing posted or filed.
