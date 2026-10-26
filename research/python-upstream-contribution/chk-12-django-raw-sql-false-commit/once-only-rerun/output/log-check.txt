@@ -1,0 +1,53 @@
+run       arm                pid  xid  sent (transaction control)                                     errors       end vxid script   psql     log      marker
+off.rep1  atomic.orm.ok       87  755  BEGIN | COMMIT                                                 -                 4/3 committed committed committed True
+off.rep1  atomic.orm.dup      91  758  BEGIN | ROLLBACK                                               23505             8/0 aborted  aborted  aborted  False
+off.rep1  atomic.sql.ok       94  759  BEGIN | COMMIT                                                 -                11/3 committed committed committed True
+off.rep1  atomic.sql.dup      98  762  BEGIN | COMMIT                                                 23505            15/0 aborted  aborted  aborted  False
+off.rep2  atomic.orm.ok      104  766  BEGIN | COMMIT                                                 -                21/3 committed committed committed True
+off.rep2  atomic.orm.dup     108  769  BEGIN | ROLLBACK                                               23505            25/0 aborted  aborted  aborted  False
+off.rep2  atomic.sql.ok      111  770  BEGIN | COMMIT                                                 -                28/3 committed committed committed True
+off.rep2  atomic.sql.dup     115  773  BEGIN | COMMIT                                                 23505            32/0 aborted  aborted  aborted  False
+off.rep3  atomic.orm.ok      121  777  BEGIN | COMMIT                                                 -                38/3 committed committed committed True
+off.rep3  atomic.orm.dup     125  780  BEGIN | ROLLBACK                                               23505            42/0 aborted  aborted  aborted  False
+off.rep3  atomic.sql.ok      128  781  BEGIN | COMMIT                                                 -                45/3 committed committed committed True
+off.rep3  atomic.sql.dup     132  784  BEGIN | COMMIT                                                 23505            49/0 aborted  aborted  aborted  False
+on.rep1   nested.orm.ok      138  788  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                55/3 committed committed committed True
+on.rep1   nested.orm.dup     142  792  BEGIN | SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT 23505            59/3 committed committed committed False
+on.rep1   nested.sql.ok      145  794  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                62/3 committed committed committed True
+on.rep1   nested.sql.dup     149  798  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK 23505 25P02      66/3 aborted  aborted  aborted  False
+on.rep1   request.orm.ok     152  800  BEGIN | COMMIT                                                 -                69/3 committed committed committed True
+on.rep1   request.orm.dup    156  803  BEGIN | ROLLBACK                                               23505            73/0 aborted  aborted  aborted  False
+on.rep1   request.sql.ok     159  804  BEGIN | COMMIT                                                 -                76/3 committed committed committed True
+on.rep1   request.sql.dup    163  807  BEGIN | COMMIT                                                 23505            80/0 aborted  aborted  aborted  False
+on.rep2   nested.orm.ok      169  811  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                86/3 committed committed committed True
+on.rep2   nested.orm.dup     173  815  BEGIN | SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT 23505            90/3 committed committed committed False
+on.rep2   nested.sql.ok      176  817  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                93/3 committed committed committed True
+on.rep2   nested.sql.dup     180  821  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK 23505 25P02      97/3 aborted  aborted  aborted  False
+on.rep2   request.orm.ok     183  823  BEGIN | COMMIT                                                 -                 0/5 committed committed committed True
+on.rep2   request.orm.dup    187  826  BEGIN | ROLLBACK                                               23505             4/0 aborted  aborted  aborted  False
+on.rep2   request.sql.ok     190  827  BEGIN | COMMIT                                                 -                 7/6 committed committed committed True
+on.rep2   request.sql.dup    194  830  BEGIN | COMMIT                                                 23505            11/0 aborted  aborted  aborted  False
+on.rep3   nested.orm.ok      200  834  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                17/5 committed committed committed True
+on.rep3   nested.orm.dup     204  838  BEGIN | SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT 23505            21/6 committed committed committed False
+on.rep3   nested.sql.ok      207  840  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | COMMIT           -                24/6 committed committed committed True
+on.rep3   nested.sql.dup     211  844  BEGIN | SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK TO SAVEPOINT sp | RELEASE SAVEPOINT sp | ROLLBACK 23505 25P02      28/6 aborted  aborted  aborted  False
+on.rep3   request.orm.ok     214  846  BEGIN | COMMIT                                                 -                31/6 committed committed committed True
+on.rep3   request.orm.dup    218  849  BEGIN | ROLLBACK                                               23505            35/0 aborted  aborted  aborted  False
+on.rep3   request.sql.ok     221  850  BEGIN | COMMIT                                                 -                38/6 committed committed committed True
+on.rep3   request.sql.dup    225  853  BEGIN | COMMIT                                                 23505            42/0 aborted  aborted  aborted  False
+
+36 sessions, 36 printed transaction IDs, 36 psql fates; all sources agree
+
+hypothesis (HTTP, on_commit ran, fate, marker visible, errors, final statement), per arm:
+  atomic.orm.ok     expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  atomic.orm.dup    expected (200, False, 'aborted', False, '23505', 'ROLLBACK'); 3 agreeing runs; held
+  atomic.sql.ok     expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  atomic.sql.dup    expected (200, True, 'aborted', False, '23505', 'COMMIT'); 3 agreeing runs; held
+  nested.orm.ok     expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  nested.orm.dup    expected (200, False, 'committed', False, '23505', 'COMMIT'); 3 agreeing runs; held
+  nested.sql.ok     expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  nested.sql.dup    expected (500, False, 'aborted', False, '23505 25P02', 'ROLLBACK'); 3 agreeing runs; held
+  request.orm.ok    expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  request.orm.dup   expected (200, False, 'aborted', False, '23505', 'ROLLBACK'); 3 agreeing runs; held
+  request.sql.ok    expected (200, True, 'committed', True, '-', 'COMMIT'); 3 agreeing runs; held
+  request.sql.dup   expected (200, True, 'aborted', False, '23505', 'COMMIT'); 3 agreeing runs; held

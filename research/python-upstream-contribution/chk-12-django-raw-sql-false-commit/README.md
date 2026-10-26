@@ -20,6 +20,8 @@ Django's documentation leaves this case open: "If you catch exceptions raised by
 - **`atomic()` in the view under `ATOMIC_REQUESTS`.** There, `atomic()` is a savepoint. Django's `RELEASE SAVEPOINT` gets `25P02`, and the request returns 500.
 - **The ORM helper.** In all three setups, Django sends `ROLLBACK` by itself and does not run `on_commit`. The view still returns 200, and the order is gone.
 
+**Scope: the trigger is not a recommended design.** This check triggers the error with a best-effort analytics write inside the order's transaction. Optional work does not belong in an all-or-nothing transaction. [`once-only-rerun/`](once-only-rerun/README.md) repeats every arm with a write that does belong there: a once-only first-order bonus as the order's last step, with the duplicate treated as "already awarded". The results are the same, with `23505` in place of `22001`. That folder has its own `SHA256SUMS`.
+
 **Why the helpers differ** (from reading Django 6.1.2's source):
 - `Model.save_base()` (`django/db/models/base.py:987`) runs the write inside `transaction.mark_for_rollback_on_error()` (`django/db/transaction.py:112`).
 - That context manager sets `connection.needs_rollback` when the write raises inside an atomic block.

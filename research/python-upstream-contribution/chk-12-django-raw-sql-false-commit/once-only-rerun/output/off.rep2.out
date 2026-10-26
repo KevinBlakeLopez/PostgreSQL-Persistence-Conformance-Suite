@@ -1,0 +1,23 @@
+mode off: Django 6.1.2, psycopg 3.3.6, psycopg 3 backend True, ATOMIC_REQUESTS False
+
+atomic.orm.ok: ATOMIC_REQUESTS off, atomic() in the view; ORM bonus; first order
+  Django: HTTP 200 {"order_id": 1}
+  on_commit callback ran: True
+  witness: pg_xact_status(766) committed, marker visible True
+
+atomic.orm.dup: ATOMIC_REQUESTS off, atomic() in the view; ORM bonus; repeat customer
+  log INFO: customer 101 already had the first-order bonus
+  Django: HTTP 200 {"order_id": 3}
+  on_commit callback ran: False
+  witness: pg_xact_status(769) aborted, marker visible False
+
+atomic.sql.ok: ATOMIC_REQUESTS off, atomic() in the view; raw-SQL bonus; first order
+  Django: HTTP 200 {"order_id": 4}
+  on_commit callback ran: True
+  witness: pg_xact_status(770) committed, marker visible True
+
+atomic.sql.dup: ATOMIC_REQUESTS off, atomic() in the view; raw-SQL bonus; repeat customer
+  log INFO: customer 103 already had the first-order bonus
+  Django: HTTP 200 {"order_id": 6}
+  on_commit callback ran: True
+  witness: pg_xact_status(773) aborted, marker visible False
