@@ -56,6 +56,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-21 | SQLAlchemy | When SQLite ends the transaction by itself (a full disk, `ON CONFLICT ROLLBACK`, `RAISE(ROLLBACK)`), SQLAlchemy keeps its transaction active and reports the commit. With the ORM guide's SAVEPOINT loop and the SQLite dialect's `BEGIN` recipe, every record before the failure is lost while `session.commit()` returns | CONFIRMED on 2.1.6 and 2.0.55; on 2.1.6 also with a real disk full | — | READY_FOR_HUMAN_REVIEW | The author writes a discussion from the study's [`sqlalchemy-facts.md`](sqlite-transaction-state-divergence/upstream/sqlalchemy-facts.md), item SA-1 |
 | PY-22 | SQLAlchemy | `Session.close()` keeps the pooled connection checked out when the rollback inside it raises an error that is not a disconnect, as on SQLite with `autocommit=False`. #13657 fixed the same in Core's `Connection.close()` only | CONFIRMED on 2.1.6 and 2.0.55 | — | READY_FOR_HUMAN_REVIEW | The author writes it from `sqlalchemy-facts.md`, item SA-2 |
 | PY-23 | CPython `sqlite3` | With `autocommit=False`, after SQLite ends a transaction by itself, `commit()` and `rollback()` raise instead of doing nothing, no transaction is opened again, and later writes commit by themselves | CONFIRMED on 3.13.11, 3.13.17 and 3.14.2 | — | AWAITING_APPROVAL | Approval of the exact text of [the draft](sqlite-transaction-state-divergence/upstream/cpython-sqlite3-autocommit-false-draft.md), stored with its study |
+| PY-24 | sqlalchemy-file | After a `COMMIT` that raised, also when PostgreSQL committed (a lost reply), its `after_soft_rollback` listener deletes the files uploaded in the unit of work, so a committed row references a deleted file. Also: a failed `commit()` without `rollback()` never cleans up, and `after_commit` at a savepoint `RELEASE` clears its tracking, so a later rejection orphans the file | CONFIRMED on 0.7.0 with SQLAlchemy 2.1.6 (CHK-14) | — | READY_FOR_HUMAN_REVIEW | A duplicate search in jowilf/sqlalchemy-file, then a draft issue for approval |
 
 ## Scheduled items
 
@@ -283,6 +284,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Precedent: #13381, fixed.
 - **Confidence:** CONFIRMED for a `commit()` that fails before sending, on a healthy connection. The demonstrated triggers that replace no DBAPI method are a raising commit listener, and mixing psycopg's and SQLAlchemy's transaction APIs. Reachability through ordinary driver or OS failures, and production frequency, are not established.
   - On SQLite there is a trigger that replaces no DBAPI method: SQLite ending the transaction itself, under `sqlite3`'s `autocommit=False` (see the SQLite consequence above). It was run with `RAISE(ROLLBACK)`. A real disk full ends the transaction the same way (that study's SQLITE-05c), but this path was not run end to end with one.
+- **Production trigger (CHK-13, 2026-10-26).** No injection is needed on SQLite. In the default rollback-journal mode, a reader in another process makes `COMMIT` fail with `database is locked`, and SQLite keeps the transaction open.
+  - **Configurations:** the default pysqlite configuration and `autocommit=False`.
+  - **The path:** `with engine.connect()` / `conn.commit()` and `with Session(engine)` / `session.commit()` that close without `rollback()` reach P5a's path. Then:
+    - no rollback;
+    - the pooled connection keeps the lock, so independent reads and writes fail;
+    - the next checkout commits the failed unit's row.
+  - **Repetitions:** 3 of 3 on 2.1.6 and 2.0.55, with byte-identical case records.
+  - **Not affected:** `engine.begin()`, an explicit `rollback()` before close, and WAL.
+  - **The documented `BEGIN` recipe:** the next unit fails with `cannot start a transaction within a transaction` instead.
+  - **Evidence:** [`python-upstream-contribution/chk-13-sa-sqlite-busy-commit/`](python-upstream-contribution/chk-13-sa-sqlite-busy-commit/README.md), with `FACTS.md` for the author.
+  - **The PostgreSQL side** is still injection-only.
 - **Priority:** 7. It is ready, and can move earlier if the author prefers. Leave time after PY-5.
 - **Proposed action:** a Usage Questions discussion, written by the author in their own words. The venue was decided on 2026-10-18.
 - **Prerequisites:** CHK-7 and a fresh duplicate search, both done 2026-10-25 (UTC). Re-checked 2026-10-25, 22:56–23:02 UTC: no duplicate, and `main` still `10f4d1e2d` ([`python-upstream-contribution/py-7-posting-day-checks/`](python-upstream-contribution/py-7-posting-day-checks/README.md)).
@@ -303,6 +315,15 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
     - `Session` on psycopg, and `AsyncSession` on asyncpg and on psycopg, 3 of 3 per cell, with the server's statement log and `psql`;
     - [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) there is the package for the author;
   - Src: `orm/session.py:1377-1380` and `engine/base.py:2697-2742`. These are 2.1.5's lines; CHK-4's `FACTS.md` gives 2.1.6's. This code path is shared with PY-7.
+- **Consequence in a library (CHK-14, 2026-10-26).** sqlalchemy-file 0.7.0 deletes a unit of work's uploads in a `Session` `after_soft_rollback` listener. It has about 90k downloads a month and is integrated by starlette-admin.
+  - **The runs:** through CHK-4's lost-reply proxy, `with session.begin()` and commit-then-`rollback()` both led to deletion. PostgreSQL committed the row, and sqlalchemy-file deleted its file (`delete_files`, `ctx=after_soft_rollback`), 3 of 3.
+  - **README form:** sqlalchemy-file's README form (commit, no rollback) fires no rollback event.
+  - **starlette-admin's call sequence:** it escapes, because `after_commit` fires at the savepoint `RELEASE`.
+  - **Evidence:** [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md). The library's own gaps are PY-24.
+- **Real-world signal (2026-10-26).**
+  - **Outbox-style listeners** discard queued side effects on `after_soft_rollback` (source read): vulnerability-lookup's pub/sub stream and rhesis's embedding jobs.
+  - **About 414 Python files** register `after_soft_rollback`, excluding SQLAlchemy's own source. This is a rough code-search count.
+  - **The trigger:** #12728 (2025) is a cancellation landing on in-flight commits, where "some(?) commits in progress are not cancelled".
 - **Upstream:** none found. Precedent: #12728. Not re-checked for CHK-4.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
 - **Priority:** 8.
@@ -332,6 +353,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-21 | `sqlite-transaction-state-divergence/` findings F1 and F2; runs `sqlite-transaction-state-divergence/output/sqlite05c-enospc/2026-10-25T17-22-54Z-9e213e/`, `…/sqlite05b-batch/2026-10-25T17-22-43Z-4b67f2/`, `…/minimal-matrix/2026-10-25T18-21-01Z-556213/` | None found on 2026-10-25 (that study's `upstream/duplicate-search.md`). Related: #2696 (2013, MySQL lost its savepoints), #5968 (2021, `ON CONFLICT IGNORE`) | A Usage Questions discussion, written by the author in their own words | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-1, after its "Before posting" checks |
 | PY-22 | `sqlite-transaction-state-divergence/` finding F3; `…/output/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-escape`); `…/repro/minimal/sa_session_close_leak.py` | None found. #13657 (discussion #13656) fixed the same symptom in Core's `Connection.close()`, commit `d29277af` | A report written by the author in their own words; #13657 began as a discussion | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-2 |
 | PY-23 | `sqlite-transaction-state-divergence/` finding F4; `…/output/sqlite01-raw/2026-10-25T17-21-27Z-737440/` (`pep249.rollback.*`); `…/repro/minimal/sqlite3_autocommit_false.py` | None found. Related: gh-112441 (2023, not planned; there the user's own SQL ended the transaction) | A CPython issue | Approval of the exact text | AWAITING_APPROVAL | Approve or edit `upstream/cpython-sqlite3-autocommit-false-draft.md`, then run its "Before filing" checks |
+| PY-24 | [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md) | Not searched yet | An issue in jowilf/sqlalchemy-file: it treats `after_soft_rollback` as "nothing committed"; a failed `commit()` without `rollback()` leaves uploads; a savepoint `RELEASE` fires `after_commit` and clears its tracking. Not prescribed: a fix. Check its contribution rules first | A duplicate search | READY_FOR_HUMAN_REVIEW | Search the repository, then draft the issue for approval |
 
 All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's and those of PY-21 to PY-23. Theirs are under `research/sqlite-transaction-state-divergence/`, written `…/` after the first path in a row.
 
@@ -353,6 +375,8 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-10 | PY-2, PY-9 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the false commit in Core and ORM, 3 of 3; raw asyncpg and the psycopg 3 asyncio controls reproduce: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md) |
 | CHK-11 | PY-2 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). A caught client-side timeout (`fetch(timeout=)`, `command_timeout`, `asyncio.wait_for()`) gives asyncpg 0.32.0's false commit, 6 of 6 per arm on asyncio and uvloop. The savepoint, no-timeout and uncaught controls behave as expected: [`python-upstream-contribution/chk-11-asyncpg-client-timeout/`](python-upstream-contribution/chk-11-asyncpg-client-timeout/README.md) |
 | CHK-12 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). Django 6.1.2 on psycopg 3.3.6, 3 of 3. After a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone, Django sends `COMMIT`, `commit()` returns, `on_commit` runs, and the view returns 200, though the server had aborted. ORM errors roll back, and `atomic()` nested inside `ATOMIC_REQUESTS` fails loudly: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/README.md) |
+| CHK-13 | PY-7 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). A real `SQLITE_BUSY` at `COMMIT`, with a reader in another process in rollback-journal mode, reaches P5a's path with no injection. The default and `autocommit=False` configurations, Core and Session closes without `rollback()`: the next checkout commits the failed unit's row, and the idle connection blocks all reads and writes until then. 3 of 3 on SQLAlchemy 2.1.6 and 2.0.55: [`python-upstream-contribution/chk-13-sa-sqlite-busy-commit/`](python-upstream-contribution/chk-13-sa-sqlite-busy-commit/README.md) |
+| CHK-14 | PY-4, PY-24 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). sqlalchemy-file 0.7.0 through CHK-4's lost-reply proxy. With `with session.begin()` or commit-then-`rollback()`, PostgreSQL commits the row and the library deletes its file (`after_soft_rollback`), 3 of 3. The README form orphans files on a rejected `COMMIT`. starlette-admin's call sequence escapes the deletion, because `after_commit` fires at the savepoint `RELEASE`: [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -664,3 +688,10 @@ The rest of this section is the plan as it stood before the commits.
   - **PY-10:** its row now notes CHK-12. It stays CLOSED_NO_ACTION, because Django documents a caught raw-SQL error inside `atomic()` as unspecified.
   - **The false-commit summary** gained a Django row.
   - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26.**
+  - **New: CHK-13 (PY-7) and CHK-14 (PY-4, PY-24),** run under the working names CHK-9 and CHK-10 before those IDs were taken.
+  - **PY-7** has a production trigger on SQLite (`SQLITE_BUSY` at `COMMIT`). The PostgreSQL side is unchanged.
+  - **PY-4** has a library consequence confirmed at runtime (sqlalchemy-file deletes the file of a committed row), plus real-world signal notes.
+  - **New: PY-24,** sqlalchemy-file's own gaps. It is unranked.
+  - **PY-21:** the real-world search found disk-full errors in SQLAlchemy-on-SQLite projects: Home Assistant #117263 and #112816, optuna #5011, google/fuzzbench #2070. It found no report of PY-21's own mechanism.
+  - **Priorities** are unchanged, pending the maintainer's ranking. Nothing posted or filed. The roadmap was not edited.
