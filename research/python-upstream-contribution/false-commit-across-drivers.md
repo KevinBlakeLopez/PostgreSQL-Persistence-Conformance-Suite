@@ -17,6 +17,7 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | psycopg 3 | SQLAlchemy asyncio, Core and ORM | `AsyncConnection.commit()`, `AsyncSession.commit()` | returned normally; `after_commit` ran | CHK-10 `pa-core-connect-commit`, `pa-orm-execute-commit` |
 | psycopg 3 | Django | a manual `commit()` | returned normally | run [`508b7a`](../production-reachability/runs/2026-10-19T20-58-26Z-508b7a) |
 | psycopg 3 | Django, a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone | the end of `atomic()` | returned normally; `on_commit` ran; the view returned 200 | [CHK-12](chk-12-django-raw-sql-false-commit/README.md); [its re-run](chk-12-django-raw-sql-false-commit/once-only-rerun/README.md) with a once-only bonus |
+| psycopg 3 | Procrastinate 3.10.0, after an ignored `AlreadyEnqueued`: its Django integration, and its external-connection API | the end of `atomic()`; `conn.commit()` | returned normally; `on_commit` ran (Django) | [CHK-16](chk-16-procrastinate-queueing-lock/README.md) |
 | psycopg2 | direct | `conn.commit()`, `with conn:` | returned normally | [CHK-9](chk-9-psycopg2-false-commit/README.md) |
 | psycopg2 | SQLAlchemy Core | `Connection.commit()`, `engine.begin()` | returned normally | CHK-9 |
 | psycopg2 | SQLAlchemy ORM | `Session.commit()`, `sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-9 |
@@ -50,4 +51,5 @@ CHK-9 and CHK-10 used the latest releases on 2026-10-26 (SQLAlchemy 2.1.6, psyco
 - **asyncpg:** [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), filed 2026-10-24. No reply as of 2026-10-26.
 - **psycopg2:** not filed. A follow-up for #1453 that reports it is drafted in [`upstream-drafts/psycopg-1453-followup-psycopg2.md`](upstream-drafts/psycopg-1453-followup-psycopg2.md), not posted.
 - **SQLAlchemy:** PY-9, `after_commit` on an aborted transaction, stays deferred: it goes away if the drivers raise (roadmap §3.2 B).
+- **Procrastinate:** PY-25, an issue draft asking to add the savepoint caveat to its queueing-lock and Django pages; not posted.
 - **Django:** no report. Django documents a caught raw-SQL error inside `atomic()` as unspecified (PY-10, CHK-12).
