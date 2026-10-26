@@ -260,6 +260,8 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **CHK-7,** `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (Ext; commit `3c9758b`), whose `FACTS.md` is the package for the author.
     - On 2.1.6 with psycopg 3.3.6, the unchanged script's stdout was byte-identical to the recorded output, 3 of 3.
     - The server log and `psql` show the next checkout's `COMMIT` committing the transaction whose `commit()` raised.
+    - **Supplement (2026-10-25 UTC):** the two triggers that replace no DBAPI method, a raising `commit` listener through three API paths and SQLAlchemy's `commit()` inside psycopg's `transaction()` block, reproduce on 2.1.6, 3 of 3 each (`chk-7/supplement/`, commit `70676d9` in that repository).
+  - **Published copy (2026-10-26 UTC):** [`python-upstream-contribution/py-7-sa-p5a-close/`](python-upstream-contribution/py-7-sa-p5a-close/README.md), normalized from that repository's commit `90cfaf3`: the review, the scripts and outputs, the harness, and CHK-7 with its supplement. The issue draft is not included.
 - **SQLite consequence (2026-10-25).** [`sqlite-transaction-state-divergence/`](sqlite-transaction-state-divergence/findings.md), finding F6; SQLAlchemy 2.1.6, SQLite 3.54.1, Python 3.13.11.
   - With `connect_args={"autocommit": False}`, after SQLite ends the transaction itself (`RAISE(ROLLBACK)` in these runs), `commit()` raises `cannot commit - no transaction is active`. The pool's reset then reports `transaction_was_reset=True` and does not run, 3 of 3. This is P5a's path.
   - The consequence differs from PostgreSQL's. SQLite has already rolled back, so the next checkout gets the same connection with no transaction open: its write committed although its `commit()` raised, and the following unit's write committed although its `rollback()` raised. A pool reset that failed then invalidated the connection.
@@ -619,3 +621,7 @@ The rest of this section is the plan as it stood before the commits.
   - PY-23's draft is stored with its study, in `sqlite-transaction-state-divergence/upstream/`, not in `python-upstream-contribution/upstream-drafts/`.
   - Committed on branch `research/sqlite-state-divergence`. Not pushed. Nothing posted or filed.
 - **2026-10-25, about 22:20 UTC.** Pushed to `main` at the maintainer's request, as a fast-forward from `68fa4e0`: the SQLite study (`4d54f1b`, `2c48f68`, `b8d8e48`, `8e82653`), the PY-7 note (`378bdd5`), PY-21 to PY-23 (`8de2fbb`), and this entry in the commit after it. Nothing posted or filed.
+- **2026-10-26, about 02:50 UTC.** At the maintainer's request:
+  - **PY-7: published the P5a evidence** in [`python-upstream-contribution/py-7-sa-p5a-close/`](python-upstream-contribution/py-7-sa-p5a-close/README.md) (commit `c79ff1a`), normalized from `python-orm-transactions` at `90cfaf3`. Local paths are replaced by placeholders, and `SOURCE-HASHES.txt` gives each file's source and published SHA-256. The SQLAlchemy issue draft is not included.
+  - **PY-7: recorded the CHK-7 supplement** (`70676d9` in that repository): both triggers that replace no DBAPI method reproduce on 2.1.6.
+  - Status unchanged. Nothing posted or filed.
