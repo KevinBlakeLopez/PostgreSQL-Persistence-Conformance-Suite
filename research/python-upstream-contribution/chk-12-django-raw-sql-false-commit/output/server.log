@@ -1,0 +1,558 @@
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "en_US.utf8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+
+waiting for server to start....2026-10-26 13:14:26.087 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-26 13:14:26.089 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-26 13:14:26.091 UTC [59] app= vxid= xid=0 sqlstate=00000 LOG:  database system was shut down at 2026-10-26 13:14:26 UTC
+2026-10-26 13:14:26.092 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  database system is ready to accept connections
+ done
+server started
+2026-10-26 13:14:26.201 UTC [65] app=psql vxid=0/2 xid=0 sqlstate=00000 LOG:  statement: SELECT 1 FROM pg_database WHERE datname = 'postgres' ;
+
+/usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+
+waiting for server to shut down....2026-10-26 13:14:26.203 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  received fast shutdown request
+2026-10-26 13:14:26.203 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  aborting any active transactions
+2026-10-26 13:14:26.203 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  background worker "logical replication launcher" (PID 62) exited with exit code 1
+2026-10-26 13:14:26.204 UTC [57] app= vxid= xid=0 sqlstate=00000 LOG:  shutting down
+2026-10-26 13:14:26.204 UTC [57] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: shutdown immediate
+2026-10-26 13:14:26.204 UTC [57] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1761920, redo lsn=0/1761920
+2026-10-26 13:14:26.206 UTC [53] app= vxid= xid=0 sqlstate=00000 LOG:  database system is shut down
+ done
+server stopped
+
+PostgreSQL init process complete; ready for start up.
+
+2026-10-26 13:14:26.326 UTC [1] app= vxid= xid=0 sqlstate=00000 LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-26 13:14:26.328 UTC [1] app= vxid= xid=0 sqlstate=00000 LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-26 13:14:26.328 UTC [1] app= vxid= xid=0 sqlstate=00000 LOG:  listening on IPv6 address "::", port 5432
+2026-10-26 13:14:26.330 UTC [1] app= vxid= xid=0 sqlstate=00000 LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-26 13:14:26.333 UTC [73] app= vxid= xid=0 sqlstate=00000 LOG:  database system was shut down at 2026-10-26 13:14:26 UTC
+2026-10-26 13:14:26.335 UTC [1] app= vxid= xid=0 sqlstate=00000 LOG:  database system is ready to accept connections
+2026-10-26 13:14:27.864 UTC [77] app=[unknown] vxid=0/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:27.865 UTC [77] app=[unknown] vxid=0/2 xid=0 sqlstate=00000 LOG:  statement: show cluster_name
+2026-10-26 13:14:27.865 UTC [77] app=[unknown] vxid=0/2 xid=0 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:27.931 UTC [84] app=psql vxid=1/2 xid=0 sqlstate=00000 LOG:  statement: select name || ' = ' || setting from pg_settings
+	  where name in ('server_version', 'synchronous_commit', 'default_transaction_isolation', 'statement_timeout',
+	                 'idle_in_transaction_session_timeout', 'log_statement', 'log_line_prefix', 'max_connections')
+	  order by name
+2026-10-26 13:14:28.063 UTC [85] app=chk12-setup vxid=2/2 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:28.063 UTC [85] app=chk12-setup vxid=2/3 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:28.223 UTC [86] app=chk12-setup vxid=3/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.223 UTC [86] app=chk12-setup vxid=3/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.224 UTC [86] app=chk12-setup vxid=3/3 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:28.225 UTC [86] app=chk12-setup vxid=3/3 xid=754 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:28.226 UTC [86] app=chk12-setup vxid=3/3 xid=754 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.231 UTC [87] app=chk12-atomic.orm.ok vxid=4/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.232 UTC [87] app=chk12-atomic.orm.ok vxid=4/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.232 UTC [87] app=chk12-atomic.orm.ok vxid=4/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.ok-a0edfd06402b') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.233 UTC [87] app=chk12-atomic.orm.ok vxid=4/3 xid=755 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.233 UTC [87] app=chk12-atomic.orm.ok vxid=4/3 xid=755 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.234 UTC [87] app=chk12-atomic.orm.ok vxid=4/3 xid=755 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.239 UTC [88] app=chk12-witness vxid=5/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.239 UTC [88] app=chk12-witness vxid=5/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '755'
+2026-10-26 13:14:28.244 UTC [89] app=chk12-witness vxid=6/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.244 UTC [89] app=chk12-witness vxid=6/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.ok-a0edfd06402b'
+2026-10-26 13:14:28.248 UTC [90] app=chk12-atomic.orm.long vxid=7/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.249 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.249 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.long-c20392d7922f') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.250 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=756 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.250 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=756 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.251 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=756 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.251 UTC [90] app=chk12-atomic.orm.long vxid=7/3 xid=756 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.251 UTC [90] app=chk12-atomic.orm.long vxid=7/0 xid=756 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:28.256 UTC [91] app=chk12-witness vxid=8/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.256 UTC [91] app=chk12-witness vxid=8/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '756'
+2026-10-26 13:14:28.261 UTC [92] app=chk12-witness vxid=9/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.261 UTC [92] app=chk12-witness vxid=9/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.long-c20392d7922f'
+2026-10-26 13:14:28.266 UTC [93] app=chk12-atomic.sql.ok vxid=10/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.266 UTC [93] app=chk12-atomic.sql.ok vxid=10/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.267 UTC [93] app=chk12-atomic.sql.ok vxid=10/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.ok-d78a2d6bd7dd') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.267 UTC [93] app=chk12-atomic.sql.ok vxid=10/3 xid=757 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.268 UTC [93] app=chk12-atomic.sql.ok vxid=10/3 xid=757 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:28.268 UTC [93] app=chk12-atomic.sql.ok vxid=10/3 xid=757 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.273 UTC [94] app=chk12-witness vxid=11/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.273 UTC [94] app=chk12-witness vxid=11/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '757'
+2026-10-26 13:14:28.278 UTC [95] app=chk12-witness vxid=12/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.278 UTC [95] app=chk12-witness vxid=12/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.ok-d78a2d6bd7dd'
+2026-10-26 13:14:28.282 UTC [96] app=chk12-atomic.sql.long vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.283 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.283 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.long-109c160e7b57') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.284 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=758 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.284 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=758 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.284 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=758 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.284 UTC [96] app=chk12-atomic.sql.long vxid=13/3 xid=758 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.285 UTC [96] app=chk12-atomic.sql.long vxid=13/0 xid=758 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.289 UTC [97] app=chk12-witness vxid=14/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.289 UTC [97] app=chk12-witness vxid=14/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '758'
+2026-10-26 13:14:28.294 UTC [98] app=chk12-witness vxid=15/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.294 UTC [98] app=chk12-witness vxid=15/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.long-109c160e7b57'
+2026-10-26 13:14:28.298 UTC [99] app=chk12-setup vxid=16/2 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:28.299 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:28.299 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=5, longest=0.001 s, average=0.000 s; distance=4388 kB, estimate=4388 kB; lsn=0/1BAAA20, redo lsn=0/1BAA9C8
+2026-10-26 13:14:28.433 UTC [100] app=chk12-setup vxid=17/2 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:28.434 UTC [100] app=chk12-setup vxid=17/3 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:28.526 UTC [101] app=chk12-setup vxid=18/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.527 UTC [101] app=chk12-setup vxid=18/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.527 UTC [101] app=chk12-setup vxid=18/3 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:28.528 UTC [101] app=chk12-setup vxid=18/3 xid=761 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:28.531 UTC [101] app=chk12-setup vxid=18/3 xid=761 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.541 UTC [102] app=chk12-atomic.orm.ok vxid=19/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.542 UTC [102] app=chk12-atomic.orm.ok vxid=19/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.543 UTC [102] app=chk12-atomic.orm.ok vxid=19/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.ok-c17a65e16052') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.546 UTC [102] app=chk12-atomic.orm.ok vxid=19/3 xid=762 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.548 UTC [102] app=chk12-atomic.orm.ok vxid=19/3 xid=762 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.550 UTC [102] app=chk12-atomic.orm.ok vxid=19/3 xid=762 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.561 UTC [103] app=chk12-witness vxid=20/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.561 UTC [103] app=chk12-witness vxid=20/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '762'
+2026-10-26 13:14:28.570 UTC [104] app=chk12-witness vxid=21/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.570 UTC [104] app=chk12-witness vxid=21/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.ok-c17a65e16052'
+2026-10-26 13:14:28.579 UTC [105] app=chk12-atomic.orm.long vxid=22/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.581 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.582 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.long-e282dbd66d33') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.583 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=763 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.583 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=763 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.584 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=763 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.584 UTC [105] app=chk12-atomic.orm.long vxid=22/3 xid=763 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.584 UTC [105] app=chk12-atomic.orm.long vxid=22/0 xid=763 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:28.592 UTC [106] app=chk12-witness vxid=23/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.592 UTC [106] app=chk12-witness vxid=23/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '763'
+2026-10-26 13:14:28.597 UTC [107] app=chk12-witness vxid=24/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.597 UTC [107] app=chk12-witness vxid=24/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.long-e282dbd66d33'
+2026-10-26 13:14:28.601 UTC [108] app=chk12-atomic.sql.ok vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.602 UTC [108] app=chk12-atomic.sql.ok vxid=25/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.602 UTC [108] app=chk12-atomic.sql.ok vxid=25/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.ok-4aeeb4f49e49') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.603 UTC [108] app=chk12-atomic.sql.ok vxid=25/3 xid=764 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.603 UTC [108] app=chk12-atomic.sql.ok vxid=25/3 xid=764 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:28.604 UTC [108] app=chk12-atomic.sql.ok vxid=25/3 xid=764 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.608 UTC [109] app=chk12-witness vxid=26/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.608 UTC [109] app=chk12-witness vxid=26/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '764'
+2026-10-26 13:14:28.613 UTC [110] app=chk12-witness vxid=27/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.613 UTC [110] app=chk12-witness vxid=27/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.ok-4aeeb4f49e49'
+2026-10-26 13:14:28.617 UTC [111] app=chk12-atomic.sql.long vxid=28/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.618 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.618 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.long-8bf13b906b62') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.619 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=765 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.619 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=765 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.619 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=765 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.619 UTC [111] app=chk12-atomic.sql.long vxid=28/3 xid=765 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.620 UTC [111] app=chk12-atomic.sql.long vxid=28/0 xid=765 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.624 UTC [112] app=chk12-witness vxid=29/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.624 UTC [112] app=chk12-witness vxid=29/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '765'
+2026-10-26 13:14:28.629 UTC [113] app=chk12-witness vxid=30/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.629 UTC [113] app=chk12-witness vxid=30/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.long-8bf13b906b62'
+2026-10-26 13:14:28.634 UTC [114] app=chk12-setup vxid=31/2 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:28.635 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:28.644 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.009 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4388 kB, estimate=4388 kB; lsn=0/1FF3C98, redo lsn=0/1FF3C40
+2026-10-26 13:14:28.790 UTC [115] app=chk12-setup vxid=32/2 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:28.790 UTC [115] app=chk12-setup vxid=32/3 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:28.891 UTC [116] app=chk12-setup vxid=33/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.892 UTC [116] app=chk12-setup vxid=33/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.892 UTC [116] app=chk12-setup vxid=33/3 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:28.894 UTC [116] app=chk12-setup vxid=33/3 xid=768 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:28.895 UTC [116] app=chk12-setup vxid=33/3 xid=768 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.901 UTC [117] app=chk12-atomic.orm.ok vxid=34/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.902 UTC [117] app=chk12-atomic.orm.ok vxid=34/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.903 UTC [117] app=chk12-atomic.orm.ok vxid=34/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.ok-4f97a1235ed2') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.903 UTC [117] app=chk12-atomic.orm.ok vxid=34/3 xid=769 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.904 UTC [117] app=chk12-atomic.orm.ok vxid=34/3 xid=769 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.905 UTC [117] app=chk12-atomic.orm.ok vxid=34/3 xid=769 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.910 UTC [118] app=chk12-witness vxid=35/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.910 UTC [118] app=chk12-witness vxid=35/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '769'
+2026-10-26 13:14:28.916 UTC [119] app=chk12-witness vxid=36/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.916 UTC [119] app=chk12-witness vxid=36/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.ok-4f97a1235ed2'
+2026-10-26 13:14:28.921 UTC [120] app=chk12-atomic.orm.long vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.921 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.922 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.orm.long-50268ac0e4e4') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.922 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=770 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.923 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=770 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.923 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=770 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.923 UTC [120] app=chk12-atomic.orm.long vxid=37/3 xid=770 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:28.924 UTC [120] app=chk12-atomic.orm.long vxid=37/0 xid=770 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:28.928 UTC [121] app=chk12-witness vxid=38/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.928 UTC [121] app=chk12-witness vxid=38/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '770'
+2026-10-26 13:14:28.934 UTC [122] app=chk12-witness vxid=39/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.934 UTC [122] app=chk12-witness vxid=39/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.orm.long-50268ac0e4e4'
+2026-10-26 13:14:28.940 UTC [123] app=chk12-atomic.sql.ok vxid=40/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.940 UTC [123] app=chk12-atomic.sql.ok vxid=40/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.941 UTC [123] app=chk12-atomic.sql.ok vxid=40/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.ok-fbd9c09484e8') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.941 UTC [123] app=chk12-atomic.sql.ok vxid=40/3 xid=771 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.942 UTC [123] app=chk12-atomic.sql.ok vxid=40/3 xid=771 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:28.942 UTC [123] app=chk12-atomic.sql.ok vxid=40/3 xid=771 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.948 UTC [124] app=chk12-witness vxid=41/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.948 UTC [124] app=chk12-witness vxid=41/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '771'
+2026-10-26 13:14:28.953 UTC [125] app=chk12-witness vxid=42/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.953 UTC [125] app=chk12-witness vxid=42/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.ok-fbd9c09484e8'
+2026-10-26 13:14:28.962 UTC [126] app=chk12-atomic.sql.long vxid=43/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:28.963 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:28.964 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('atomic.sql.long-11f205b42ba0') RETURNING "shop_order"."id"
+2026-10-26 13:14:28.964 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=772 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:28.965 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=772 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.965 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=772 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:28.965 UTC [126] app=chk12-atomic.sql.long vxid=43/3 xid=772 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:28.965 UTC [126] app=chk12-atomic.sql.long vxid=43/0 xid=772 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:28.970 UTC [127] app=chk12-witness vxid=44/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:28.970 UTC [127] app=chk12-witness vxid=44/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '772'
+2026-10-26 13:14:28.976 UTC [128] app=chk12-witness vxid=45/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:28.976 UTC [128] app=chk12-witness vxid=45/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'atomic.sql.long-11f205b42ba0'
+2026-10-26 13:14:28.981 UTC [129] app=chk12-setup vxid=46/2 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:28.981 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:28.982 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4388 kB, estimate=4388 kB; lsn=0/243D000, redo lsn=0/243CFA8
+2026-10-26 13:14:29.127 UTC [130] app=chk12-setup vxid=47/2 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:29.128 UTC [130] app=chk12-setup vxid=47/3 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:29.212 UTC [131] app=chk12-setup vxid=48/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.212 UTC [131] app=chk12-setup vxid=48/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.213 UTC [131] app=chk12-setup vxid=48/3 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:29.214 UTC [131] app=chk12-setup vxid=48/3 xid=775 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:29.215 UTC [131] app=chk12-setup vxid=48/3 xid=775 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.219 UTC [132] app=chk12-nested.orm.ok vxid=49/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.220 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.220 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.221 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.ok-5d5f0d6d95d8') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.221 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=776 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.222 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=776 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.223 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=776 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.223 UTC [132] app=chk12-nested.orm.ok vxid=49/3 xid=776 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.228 UTC [133] app=chk12-witness vxid=50/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.228 UTC [133] app=chk12-witness vxid=50/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '776'
+2026-10-26 13:14:29.233 UTC [134] app=chk12-witness vxid=51/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.233 UTC [134] app=chk12-witness vxid=51/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.ok-5d5f0d6d95d8'
+2026-10-26 13:14:29.237 UTC [135] app=chk12-nested.orm.long vxid=52/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.238 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.238 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.238 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.long-280143680f3e') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.239 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.239 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.240 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.240 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.240 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.240 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.241 UTC [135] app=chk12-nested.orm.long vxid=52/3 xid=778 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.245 UTC [136] app=chk12-witness vxid=53/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.245 UTC [136] app=chk12-witness vxid=53/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '778'
+2026-10-26 13:14:29.250 UTC [137] app=chk12-witness vxid=54/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.250 UTC [137] app=chk12-witness vxid=54/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.long-280143680f3e'
+2026-10-26 13:14:29.255 UTC [138] app=chk12-nested.sql.ok vxid=55/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.255 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.255 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.256 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.ok-83d4a55511f1') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.256 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=780 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.257 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=780 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:29.257 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=780 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.258 UTC [138] app=chk12-nested.sql.ok vxid=55/3 xid=780 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.262 UTC [139] app=chk12-witness vxid=56/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.262 UTC [139] app=chk12-witness vxid=56/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '780'
+2026-10-26 13:14:29.267 UTC [140] app=chk12-witness vxid=57/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.267 UTC [140] app=chk12-witness vxid=57/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.ok-83d4a55511f1'
+2026-10-26 13:14:29.272 UTC [141] app=chk12-nested.sql.long vxid=58/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.272 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.273 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.273 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.long-453fb5fe21c7') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.274 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.274 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:29.274 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.274 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:29.275 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.275 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-26 13:14:29.275 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.275 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.275 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.276 UTC [141] app=chk12-nested.sql.long vxid=58/3 xid=782 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:29.283 UTC [142] app=chk12-witness vxid=59/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.283 UTC [142] app=chk12-witness vxid=59/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '782'
+2026-10-26 13:14:29.288 UTC [143] app=chk12-witness vxid=60/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.288 UTC [143] app=chk12-witness vxid=60/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.long-453fb5fe21c7'
+2026-10-26 13:14:29.292 UTC [144] app=chk12-request.orm.ok vxid=61/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.293 UTC [144] app=chk12-request.orm.ok vxid=61/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.293 UTC [144] app=chk12-request.orm.ok vxid=61/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.ok-fcddcd58a7d3') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.294 UTC [144] app=chk12-request.orm.ok vxid=61/3 xid=784 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.294 UTC [144] app=chk12-request.orm.ok vxid=61/3 xid=784 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 5}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.295 UTC [144] app=chk12-request.orm.ok vxid=61/3 xid=784 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.299 UTC [145] app=chk12-witness vxid=62/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.299 UTC [145] app=chk12-witness vxid=62/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '784'
+2026-10-26 13:14:29.304 UTC [146] app=chk12-witness vxid=63/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.304 UTC [146] app=chk12-witness vxid=63/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.ok-fcddcd58a7d3'
+2026-10-26 13:14:29.309 UTC [147] app=chk12-request.orm.long vxid=64/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.310 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.310 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.long-37cf988fc89b') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.310 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=785 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.311 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=785 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.311 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=785 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.311 UTC [147] app=chk12-request.orm.long vxid=64/3 xid=785 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.311 UTC [147] app=chk12-request.orm.long vxid=64/0 xid=785 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:29.316 UTC [148] app=chk12-witness vxid=65/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.316 UTC [148] app=chk12-witness vxid=65/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '785'
+2026-10-26 13:14:29.320 UTC [149] app=chk12-witness vxid=66/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.320 UTC [149] app=chk12-witness vxid=66/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.long-37cf988fc89b'
+2026-10-26 13:14:29.325 UTC [150] app=chk12-request.sql.ok vxid=67/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.326 UTC [150] app=chk12-request.sql.ok vxid=67/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.326 UTC [150] app=chk12-request.sql.ok vxid=67/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.ok-1f1aa62d6d7e') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.327 UTC [150] app=chk12-request.sql.ok vxid=67/3 xid=786 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.327 UTC [150] app=chk12-request.sql.ok vxid=67/3 xid=786 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 7}'::jsonb)
+2026-10-26 13:14:29.328 UTC [150] app=chk12-request.sql.ok vxid=67/3 xid=786 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.332 UTC [151] app=chk12-witness vxid=68/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.332 UTC [151] app=chk12-witness vxid=68/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '786'
+2026-10-26 13:14:29.337 UTC [152] app=chk12-witness vxid=69/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.337 UTC [152] app=chk12-witness vxid=69/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.ok-1f1aa62d6d7e'
+2026-10-26 13:14:29.341 UTC [153] app=chk12-request.sql.long vxid=70/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.342 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.342 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.long-42304fa4ac06') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.343 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=787 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.343 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=787 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:29.343 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=787 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.343 UTC [153] app=chk12-request.sql.long vxid=70/3 xid=787 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:29.343 UTC [153] app=chk12-request.sql.long vxid=70/0 xid=787 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.348 UTC [154] app=chk12-witness vxid=71/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.348 UTC [154] app=chk12-witness vxid=71/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '787'
+2026-10-26 13:14:29.353 UTC [155] app=chk12-witness vxid=72/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.353 UTC [155] app=chk12-witness vxid=72/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.long-42304fa4ac06'
+2026-10-26 13:14:29.357 UTC [156] app=chk12-setup vxid=73/2 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:29.357 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:29.357 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4390 kB, estimate=4390 kB; lsn=0/2886908, redo lsn=0/28868B0
+2026-10-26 13:14:29.486 UTC [157] app=chk12-setup vxid=74/2 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:29.486 UTC [157] app=chk12-setup vxid=74/3 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:29.569 UTC [158] app=chk12-setup vxid=75/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.569 UTC [158] app=chk12-setup vxid=75/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.570 UTC [158] app=chk12-setup vxid=75/3 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:29.571 UTC [158] app=chk12-setup vxid=75/3 xid=790 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:29.572 UTC [158] app=chk12-setup vxid=75/3 xid=790 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.577 UTC [159] app=chk12-nested.orm.ok vxid=76/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.577 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.578 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.578 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.ok-7b06db8d737f') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.579 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=791 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.579 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=791 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.580 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=791 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.580 UTC [159] app=chk12-nested.orm.ok vxid=76/3 xid=791 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.585 UTC [160] app=chk12-witness vxid=77/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.585 UTC [160] app=chk12-witness vxid=77/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '791'
+2026-10-26 13:14:29.589 UTC [161] app=chk12-witness vxid=78/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.589 UTC [161] app=chk12-witness vxid=78/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.ok-7b06db8d737f'
+2026-10-26 13:14:29.594 UTC [162] app=chk12-nested.orm.long vxid=79/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.595 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.595 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.595 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.long-08f2bf946bb1') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.596 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.596 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.596 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.596 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.597 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.598 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.598 UTC [162] app=chk12-nested.orm.long vxid=79/3 xid=793 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.603 UTC [163] app=chk12-witness vxid=80/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.603 UTC [163] app=chk12-witness vxid=80/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '793'
+2026-10-26 13:14:29.608 UTC [164] app=chk12-witness vxid=81/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.608 UTC [164] app=chk12-witness vxid=81/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.long-08f2bf946bb1'
+2026-10-26 13:14:29.614 UTC [165] app=chk12-nested.sql.ok vxid=82/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.615 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.615 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.615 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.ok-9f9cb1b8225c') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.616 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=795 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.616 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=795 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:29.617 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=795 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.617 UTC [165] app=chk12-nested.sql.ok vxid=82/3 xid=795 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.621 UTC [166] app=chk12-witness vxid=83/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.621 UTC [166] app=chk12-witness vxid=83/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '795'
+2026-10-26 13:14:29.626 UTC [167] app=chk12-witness vxid=84/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.626 UTC [167] app=chk12-witness vxid=84/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.ok-9f9cb1b8225c'
+2026-10-26 13:14:29.631 UTC [168] app=chk12-nested.sql.long vxid=85/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.631 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.632 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.632 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.long-1c988f88af6b') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-26 13:14:29.633 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.634 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.634 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:29.634 UTC [168] app=chk12-nested.sql.long vxid=85/3 xid=797 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:29.640 UTC [169] app=chk12-witness vxid=86/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.640 UTC [169] app=chk12-witness vxid=86/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '797'
+2026-10-26 13:14:29.645 UTC [170] app=chk12-witness vxid=87/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.645 UTC [170] app=chk12-witness vxid=87/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.long-1c988f88af6b'
+2026-10-26 13:14:29.651 UTC [171] app=chk12-request.orm.ok vxid=88/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.652 UTC [171] app=chk12-request.orm.ok vxid=88/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.652 UTC [171] app=chk12-request.orm.ok vxid=88/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.ok-d08119c5dfeb') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.653 UTC [171] app=chk12-request.orm.ok vxid=88/3 xid=799 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.653 UTC [171] app=chk12-request.orm.ok vxid=88/3 xid=799 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 5}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.653 UTC [171] app=chk12-request.orm.ok vxid=88/3 xid=799 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.659 UTC [172] app=chk12-witness vxid=89/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.659 UTC [172] app=chk12-witness vxid=89/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '799'
+2026-10-26 13:14:29.663 UTC [173] app=chk12-witness vxid=90/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.663 UTC [173] app=chk12-witness vxid=90/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.ok-d08119c5dfeb'
+2026-10-26 13:14:29.668 UTC [174] app=chk12-request.orm.long vxid=91/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.669 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.669 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.long-92fbb7294c8a') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.670 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=800 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.670 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=800 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.670 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=800 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.670 UTC [174] app=chk12-request.orm.long vxid=91/3 xid=800 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.670 UTC [174] app=chk12-request.orm.long vxid=91/0 xid=800 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:29.675 UTC [175] app=chk12-witness vxid=92/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.675 UTC [175] app=chk12-witness vxid=92/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800'
+2026-10-26 13:14:29.680 UTC [176] app=chk12-witness vxid=93/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.680 UTC [176] app=chk12-witness vxid=93/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.long-92fbb7294c8a'
+2026-10-26 13:14:29.685 UTC [177] app=chk12-request.sql.ok vxid=94/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.686 UTC [177] app=chk12-request.sql.ok vxid=94/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.686 UTC [177] app=chk12-request.sql.ok vxid=94/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.ok-9de5bb3f7a35') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.687 UTC [177] app=chk12-request.sql.ok vxid=94/3 xid=801 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.687 UTC [177] app=chk12-request.sql.ok vxid=94/3 xid=801 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 7}'::jsonb)
+2026-10-26 13:14:29.688 UTC [177] app=chk12-request.sql.ok vxid=94/3 xid=801 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.693 UTC [178] app=chk12-witness vxid=95/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.693 UTC [178] app=chk12-witness vxid=95/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '801'
+2026-10-26 13:14:29.699 UTC [179] app=chk12-witness vxid=96/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.699 UTC [179] app=chk12-witness vxid=96/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.ok-9de5bb3f7a35'
+2026-10-26 13:14:29.704 UTC [180] app=chk12-request.sql.long vxid=97/2 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.705 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.705 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.long-04f2b7da7015') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.706 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=802 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.706 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=802 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:29.707 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=802 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.707 UTC [180] app=chk12-request.sql.long vxid=97/3 xid=802 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:29.707 UTC [180] app=chk12-request.sql.long vxid=97/0 xid=802 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.712 UTC [181] app=chk12-witness vxid=98/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.712 UTC [181] app=chk12-witness vxid=98/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '802'
+2026-10-26 13:14:29.717 UTC [182] app=chk12-witness vxid=99/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.717 UTC [182] app=chk12-witness vxid=99/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.long-04f2b7da7015'
+2026-10-26 13:14:29.722 UTC [183] app=chk12-setup vxid=0/4 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:29.722 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:29.722 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4390 kB, estimate=4390 kB; lsn=0/2CD02D8, redo lsn=0/2CD0280
+2026-10-26 13:14:29.854 UTC [184] app=chk12-setup vxid=1/4 xid=0 sqlstate=00000 LOG:  statement: drop database if exists django_raw_sql with (force)
+2026-10-26 13:14:29.855 UTC [184] app=chk12-setup vxid=1/5 xid=0 sqlstate=00000 LOG:  statement: create database django_raw_sql
+2026-10-26 13:14:29.942 UTC [185] app=chk12-setup vxid=2/5 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.942 UTC [185] app=chk12-setup vxid=2/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.943 UTC [185] app=chk12-setup vxid=2/6 xid=0 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_order" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "marker" varchar(80) NOT NULL)
+2026-10-26 13:14:29.944 UTC [185] app=chk12-setup vxid=2/6 xid=805 sqlstate=00000 LOG:  statement: CREATE TABLE "shop_event" ("id" integer NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, "name" varchar(32) NOT NULL, "props" jsonb NOT NULL)
+2026-10-26 13:14:29.945 UTC [185] app=chk12-setup vxid=2/6 xid=805 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.950 UTC [186] app=chk12-nested.orm.ok vxid=3/5 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.951 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.951 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.952 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.ok-269bc47e7881') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.953 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=806 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.954 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=806 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 1}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.954 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=806 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x1"
+2026-10-26 13:14:29.955 UTC [186] app=chk12-nested.orm.ok vxid=3/6 xid=806 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.960 UTC [187] app=chk12-witness vxid=4/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.960 UTC [187] app=chk12-witness vxid=4/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '806'
+2026-10-26 13:14:29.965 UTC [188] app=chk12-witness vxid=5/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.965 UTC [188] app=chk12-witness vxid=5/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.ok-269bc47e7881'
+2026-10-26 13:14:29.969 UTC [189] app=chk12-nested.orm.long vxid=6/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.970 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.970 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.971 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.orm.long-4825975f4a40') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.971 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.972 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.972 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:29.972 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 2}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:29.973 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.973 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x2"
+2026-10-26 13:14:29.974 UTC [189] app=chk12-nested.orm.long vxid=6/5 xid=808 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.978 UTC [190] app=chk12-witness vxid=7/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.978 UTC [190] app=chk12-witness vxid=7/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '808'
+2026-10-26 13:14:29.983 UTC [191] app=chk12-witness vxid=8/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:29.983 UTC [191] app=chk12-witness vxid=8/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.orm.long-4825975f4a40'
+2026-10-26 13:14:29.988 UTC [192] app=chk12-nested.sql.ok vxid=9/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:29.989 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:29.989 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.989 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.ok-3473b2016376') RETURNING "shop_order"."id"
+2026-10-26 13:14:29.990 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=810 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:29.991 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=810 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 3}'::jsonb)
+2026-10-26 13:14:29.991 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=810 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x3"
+2026-10-26 13:14:29.991 UTC [192] app=chk12-nested.sql.ok vxid=9/5 xid=810 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:29.996 UTC [193] app=chk12-witness vxid=10/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:29.996 UTC [193] app=chk12-witness vxid=10/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '810'
+2026-10-26 13:14:30.001 UTC [194] app=chk12-witness vxid=11/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.001 UTC [194] app=chk12-witness vxid=11/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.ok-3473b2016376'
+2026-10-26 13:14:30.006 UTC [195] app=chk12-nested.sql.long vxid=12/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:30.007 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:30.007 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:30.007 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('nested.sql.long-41fd6371bd61') RETURNING "shop_order"."id"
+2026-10-26 13:14:30.008 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:30.008 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 4}'::jsonb)
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=25P02 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=25P02 STATEMENT:  RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:30.009 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: ROLLBACK TO SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:30.010 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: RELEASE SAVEPOINT "s8397070720_x4"
+2026-10-26 13:14:30.010 UTC [195] app=chk12-nested.sql.long vxid=12/5 xid=812 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:30.016 UTC [196] app=chk12-witness vxid=13/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:30.016 UTC [196] app=chk12-witness vxid=13/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '812'
+2026-10-26 13:14:30.021 UTC [197] app=chk12-witness vxid=14/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.021 UTC [197] app=chk12-witness vxid=14/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'nested.sql.long-41fd6371bd61'
+2026-10-26 13:14:30.026 UTC [198] app=chk12-request.orm.ok vxid=15/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:30.027 UTC [198] app=chk12-request.orm.ok vxid=15/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:30.028 UTC [198] app=chk12-request.orm.ok vxid=15/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.ok-40a486b67818') RETURNING "shop_order"."id"
+2026-10-26 13:14:30.028 UTC [198] app=chk12-request.orm.ok vxid=15/5 xid=814 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:30.029 UTC [198] app=chk12-request.orm.ok vxid=15/5 xid=814 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.web', '{"order_id": 5}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:30.029 UTC [198] app=chk12-request.orm.ok vxid=15/5 xid=814 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:30.034 UTC [199] app=chk12-witness vxid=16/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:30.034 UTC [199] app=chk12-witness vxid=16/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '814'
+2026-10-26 13:14:30.039 UTC [200] app=chk12-witness vxid=17/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.039 UTC [200] app=chk12-witness vxid=17/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.ok-40a486b67818'
+2026-10-26 13:14:30.044 UTC [201] app=chk12-request.orm.long vxid=18/5 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:30.045 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:30.045 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.orm.long-3ae9da7496f4') RETURNING "shop_order"."id"
+2026-10-26 13:14:30.046 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=815 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:30.046 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=815 sqlstate=00000 LOG:  statement: INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:30.046 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=815 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:30.046 UTC [201] app=chk12-request.orm.long vxid=18/6 xid=815 sqlstate=22001 STATEMENT:  INSERT INTO "shop_event" ("name", "props") VALUES ('order_placed.partner_marketplace_eu', '{"order_id": 6}'::jsonb) RETURNING "shop_event"."id"
+2026-10-26 13:14:30.047 UTC [201] app=chk12-request.orm.long vxid=18/0 xid=815 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 13:14:30.052 UTC [202] app=chk12-witness vxid=19/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:30.052 UTC [202] app=chk12-witness vxid=19/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '815'
+2026-10-26 13:14:30.057 UTC [203] app=chk12-witness vxid=20/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.057 UTC [203] app=chk12-witness vxid=20/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.orm.long-3ae9da7496f4'
+2026-10-26 13:14:30.061 UTC [204] app=chk12-request.sql.ok vxid=21/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:30.062 UTC [204] app=chk12-request.sql.ok vxid=21/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:30.062 UTC [204] app=chk12-request.sql.ok vxid=21/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.ok-ede61b536c3f') RETURNING "shop_order"."id"
+2026-10-26 13:14:30.063 UTC [204] app=chk12-request.sql.ok vxid=21/5 xid=816 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:30.063 UTC [204] app=chk12-request.sql.ok vxid=21/5 xid=816 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.web', '{"order_id": 7}'::jsonb)
+2026-10-26 13:14:30.064 UTC [204] app=chk12-request.sql.ok vxid=21/5 xid=816 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:30.068 UTC [205] app=chk12-witness vxid=22/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:30.068 UTC [205] app=chk12-witness vxid=22/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '816'
+2026-10-26 13:14:30.073 UTC [206] app=chk12-witness vxid=23/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.073 UTC [206] app=chk12-witness vxid=23/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.ok-ede61b536c3f'
+2026-10-26 13:14:30.078 UTC [207] app=chk12-request.sql.long vxid=24/4 xid=0 sqlstate=00000 LOG:  statement: SELECT set_config('TimeZone', 'UTC', false)
+2026-10-26 13:14:30.079 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 13:14:30.079 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=0 sqlstate=00000 LOG:  statement: INSERT INTO "shop_order" ("marker") VALUES ('request.sql.long-3960cac1f64b') RETURNING "shop_order"."id"
+2026-10-26 13:14:30.080 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=817 sqlstate=00000 LOG:  statement: select pg_current_xact_id()::text
+2026-10-26 13:14:30.080 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=817 sqlstate=00000 LOG:  statement: insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:30.080 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=817 sqlstate=22001 ERROR:  value too long for type character varying(32)
+2026-10-26 13:14:30.080 UTC [207] app=chk12-request.sql.long vxid=24/5 xid=817 sqlstate=22001 STATEMENT:  insert into shop_event (name, props) values ('order_placed.partner_marketplace_eu', '{"order_id": 8}'::jsonb)
+2026-10-26 13:14:30.081 UTC [207] app=chk12-request.sql.long vxid=24/0 xid=817 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 13:14:30.085 UTC [208] app=chk12-witness vxid=25/5 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)::text
+2026-10-26 13:14:30.085 UTC [208] app=chk12-witness vxid=25/5 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '817'
+2026-10-26 13:14:30.090 UTC [209] app=chk12-witness vxid=26/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select count(*) from shop_order where marker = $1
+2026-10-26 13:14:30.090 UTC [209] app=chk12-witness vxid=26/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'request.sql.long-3960cac1f64b'
+2026-10-26 13:14:30.095 UTC [210] app=chk12-setup vxid=27/4 xid=0 sqlstate=00000 LOG:  statement: drop database django_raw_sql with (force)
+2026-10-26 13:14:30.095 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint starting: immediate force wait
+2026-10-26 13:14:30.095 UTC [71] app= vxid= xid=0 sqlstate=00000 LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 2 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.001 s, sync=0.001 s, total=0.001 s; sync files=4, longest=0.001 s, average=0.000 s; distance=4390 kB, estimate=4390 kB; lsn=0/3119D80, redo lsn=0/3119D28
+2026-10-26 13:14:30.184 UTC [217] app=psql vxid=28/5 xid=0 sqlstate=00000 LOG:  statement: select x::text as xid, pg_xact_status(x::text::xid8) as status from unnest(array[755,756,757,758,762,763,764,765,769,770,771,772,776,778,780,782,784,785,786,787,791,793,795,797,799,800,801,802,806,808,810,812,814,815,816,817]::bigint[]) as x order by x

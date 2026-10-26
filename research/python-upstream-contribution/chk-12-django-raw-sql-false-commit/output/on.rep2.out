@@ -1,0 +1,45 @@
+mode on: Django 6.1.2, psycopg 3.3.6, psycopg 3 backend True, ATOMIC_REQUESTS True
+
+nested.orm.ok: ATOMIC_REQUESTS on, atomic() in the view (a savepoint); ORM helper; event name fits
+  Django: HTTP 200 {"order_id": 1}
+  on_commit callback ran: True
+  witness: pg_xact_status(791) committed, marker visible True
+
+nested.orm.long: ATOMIC_REQUESTS on, atomic() in the view (a savepoint); ORM helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 200 {"order_id": 2}
+  on_commit callback ran: False
+  witness: pg_xact_status(793) committed, marker visible False
+
+nested.sql.ok: ATOMIC_REQUESTS on, atomic() in the view (a savepoint); raw-SQL helper; event name fits
+  Django: HTTP 200 {"order_id": 3}
+  on_commit callback ran: True
+  witness: pg_xact_status(795) committed, marker visible True
+
+nested.sql.long: ATOMIC_REQUESTS on, atomic() in the view (a savepoint); raw-SQL helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 500 InternalError: current transaction is aborted, commands ignored until end of transaction block
+  on_commit callback ran: False
+  witness: pg_xact_status(797) aborted, marker visible False
+
+request.orm.ok: ATOMIC_REQUESTS on, no atomic() in the view; ORM helper; event name fits
+  Django: HTTP 200 {"order_id": 5}
+  on_commit callback ran: True
+  witness: pg_xact_status(799) committed, marker visible True
+
+request.orm.long: ATOMIC_REQUESTS on, no atomic() in the view; ORM helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 200 {"order_id": 6}
+  on_commit callback ran: False
+  witness: pg_xact_status(800) aborted, marker visible False
+
+request.sql.ok: ATOMIC_REQUESTS on, no atomic() in the view; raw-SQL helper; event name fits
+  Django: HTTP 200 {"order_id": 7}
+  on_commit callback ran: True
+  witness: pg_xact_status(801) committed, marker visible True
+
+request.sql.long: ATOMIC_REQUESTS on, no atomic() in the view; raw-SQL helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 200 {"order_id": 8}
+  on_commit callback ran: True
+  witness: pg_xact_status(802) aborted, marker visible False

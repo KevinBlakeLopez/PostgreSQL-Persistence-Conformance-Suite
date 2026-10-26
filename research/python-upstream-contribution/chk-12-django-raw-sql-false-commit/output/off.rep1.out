@@ -1,0 +1,23 @@
+mode off: Django 6.1.2, psycopg 3.3.6, psycopg 3 backend True, ATOMIC_REQUESTS False
+
+atomic.orm.ok: ATOMIC_REQUESTS off, atomic() in the view; ORM helper; event name fits
+  Django: HTTP 200 {"order_id": 1}
+  on_commit callback ran: True
+  witness: pg_xact_status(755) committed, marker visible True
+
+atomic.orm.long: ATOMIC_REQUESTS off, atomic() in the view; ORM helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 200 {"order_id": 2}
+  on_commit callback ran: False
+  witness: pg_xact_status(756) aborted, marker visible False
+
+atomic.sql.ok: ATOMIC_REQUESTS off, atomic() in the view; raw-SQL helper; event name fits
+  Django: HTTP 200 {"order_id": 3}
+  on_commit callback ran: True
+  witness: pg_xact_status(757) committed, marker visible True
+
+atomic.sql.long: ATOMIC_REQUESTS off, atomic() in the view; raw-SQL helper; event name too long
+  log WARNING: could not record event order_placed.partner_marketplace_eu: value too long for type character varying(32)
+  Django: HTTP 200 {"order_id": 4}
+  on_commit callback ran: True
+  witness: pg_xact_status(758) aborted, marker visible False
