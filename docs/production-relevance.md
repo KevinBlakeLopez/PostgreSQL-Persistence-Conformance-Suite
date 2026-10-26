@@ -30,7 +30,7 @@ Record these fields in this order. Write "not assessed" for a field you have not
 5. **Likelihood (judgment).** Low, moderate or high, from two questions: how common is the code shape on that stack, and how often does the trigger fire once the code exists? Label it a judgment, and date it.
 6. **Not established.** What the evidence does not show, such as frequency, a report on this driver, or a run of the application itself.
 
-PY-2 in the [Python tracker](../research/python-upstream-contribution-tracker.md) is an example.
+In a tracker, a trigger's four parts can share one line, and the evidence can be a link to where it is recorded rather than a copy. PY-2 in the [Python tracker](../research/python-upstream-contribution-tracker.md) is an example.
 
 ## Kinds of real-world evidence
 
@@ -64,4 +64,4 @@ This section does not rate severity or the contract.
 
 ## Coverage on 2026-10-26
 
-The Python real-world evidence page covers PY-1 to PY-9, PY-15 and PY-20 to PY-24, searched on 2026-10-26. The tracker's scheduled items carry the section; for the others, the page is the record. No other finding has been searched.
+The Python real-world evidence page covers PY-1 to PY-9, PY-15 and PY-20 to PY-24, searched on 2026-10-26, and CHK-16's README covers PY-25. The tracker rates every Python item: the scheduled ones in their own sections, the others in its "Production relevance (2026-10-26)" section. No other finding has been searched.
