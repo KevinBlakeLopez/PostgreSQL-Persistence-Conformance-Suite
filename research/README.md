@@ -14,6 +14,7 @@ Investigations here sit outside the PPCS harness (`AGENTS.md` rule 11). None of 
 | [`python-ecosystem-contribution-audit/`](python-ecosystem-contribution-audit/), with [`python-ecosystem-contribution-audit.md`](python-ecosystem-contribution-audit.md) | What PPCS already establishes about Django, SQLAlchemy, psycopg, asyncpg and Tortoise ORM, and what remains to contribute upstream | [`python-upstream-contribution-tracker.md`](python-upstream-contribution-tracker.md) |
 | [`python-production-failure-gap-analysis/`](python-production-failure-gap-analysis/), with [`python-production-failure-gap-analysis.md`](python-production-failure-gap-analysis.md) | Python production persistence failures PPCS does not yet cover, and the probes behind the ranking | Same tracker |
 | [`python-upstream-contribution/`](python-upstream-contribution/), with the [roadmap](python-upstream-contribution-roadmap.md) and [tracker](python-upstream-contribution-tracker.md) | Checks and drafts for individual Python upstream items | The tracker |
+| [`filed-items-production-relevance/`](filed-items-production-relevance/README.md) | How much does each non-Python finding already filed upstream matter in production? Real-world searches and a tier for each, 2026-10-26 | [`docs/upstream-submissions.md`](../docs/upstream-submissions.md) |
 
 ## Other databases
 

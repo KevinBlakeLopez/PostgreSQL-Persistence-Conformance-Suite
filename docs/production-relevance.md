@@ -64,4 +64,4 @@ This section does not rate severity or the contract.
 
 ## Coverage on 2026-10-26
 
-The Python real-world evidence page covers PY-1 to PY-9, PY-15 and PY-20 to PY-24, searched on 2026-10-26, and CHK-16's README covers PY-25. The tracker rates every Python item: the scheduled ones in their own sections, the others in its "Production relevance (2026-10-26)" section. No other finding has been searched.
+The Python real-world evidence page covers PY-1 to PY-9, PY-15 and PY-20 to PY-24, searched on 2026-10-26, and CHK-16's README covers PY-25. The tracker rates every Python item: the scheduled ones in their own sections, the others in its "Production relevance (2026-10-26)" section. Every non-Python finding filed upstream (21 of them) is searched and rated in [`research/filed-items-production-relevance/`](../research/filed-items-production-relevance/README.md). No other finding has been searched: the unfiled drafts and the studies' other findings have no section yet.

@@ -6,7 +6,8 @@ This document lists every issue, pull request, comment and discussion we plan to
 
 This copy is in the PostgreSQL Persistence Conformance Suite. The same tracker is on `docs/lucid-isolation-level-fix` in [nest-adonis-spike](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/upstream-submissions.md). Drafts from 2026-10-20 are in this repository under `research/production-reachability/upstream-drafts/`. Older draft files linked below are in that other repository.
 
-- **M2, K3, K2, K1, L3, L1, and L5 were submitted on 2026-10-17.** Y1, M4, and M3 were submitted on 2026-10-18. T1 was submitted on 2026-10-17 as #12976, #12977, and #12979. T2 was submitted on 2026-10-18 as #12978. J1 was submitted on 2026-10-19 as pgjdbc #4494. L2 was submitted on 2026-10-21 as lucid #1205. A1 was submitted on 2026-10-21 as adonisjs discussion #5166. K2-PR was submitted on 2026-10-18 as knex PR #6548.
+- **M2, K3, K2, K1, L3, L1, and L5 were submitted on 2026-10-17.** Y1, M4, and M3 were submitted on 2026-10-18. T1 was submitted on 2026-10-17 as #12976, #12977, and #12979. T2 was submitted on 2026-10-17 as #12978. J1 was submitted on 2026-10-19 as pgjdbc #4494. L2 was submitted on 2026-10-21 as lucid #1205. A1 was submitted on 2026-10-21 as adonisjs discussion #5166. K2-PR was submitted on 2026-10-18 as knex PR #6548. CI1 and CI2 were submitted on 2026-10-22 as CodeIgniter4 #10648 with PR #10650, and #10649 with PR #10651.
+- **Production relevance.** Every submitted non-Python item is rated in [`research/filed-items-production-relevance/`](../research/filed-items-production-relevance/README.md) (2026-10-26); the Python items are rated in the [Python tracker](../research/python-upstream-contribution-tracker.md).
 - **The current execution queue is in §2.** The priority table there is the decision from earlier the same day, kept for history. K2, L3, and L1 in that table are already submitted.
 - **Every row is outward-facing.** Each needs explicit approval of its exact content and destination before it is posted.
 - **The drafts stay the source of truth for content.** This tracker records status, order and dependencies, and links to each draft.
@@ -63,6 +64,8 @@ The upstream states below were last checked 2026-10-14 to 2026-10-17, as shown p
 | PY-1b | psycopg/psycopg #1453 | Comment | `with conn.transaction() as tx:` exits normally, and `tx.status` is `committed`, after PostgreSQL aborted the transaction | **Submitted** | Posted 2026-10-24 as a comment on #1453 (P1). No pull request. #1453 was still open with no comments. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [psycopg-1453-comment.md](../research/python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md) |
 | PY-2 | MagicStack/asyncpg #1400 | Issue | `Transaction.commit()` and `async with conn.transaction()` return normally when PostgreSQL answers `COMMIT` with `ROLLBACK` | **Submitted** | Filed 2026-10-24. No pull request. Same-day search found no duplicate. PyPI `latest` was 0.32.0. One follow-up around 2026-11-07; decide around 2026-11-21 (§4) | [asyncpg-commit-rollback.md](../research/python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md) |
 | PY-3 | tortoise/tortoise-orm #2383 | Issue | `Model.save()` returns normally and writes nothing after the instance's INSERT was rolled back | **Submitted** | Filed 2026-10-25. No pull request; one is offered if the maintainers pick a direction. Same-day search found no duplicate. PyPI `latest` was 1.1.9. One follow-up around 2026-11-08; decide around 2026-11-22 (§4) | [tortoise-save-after-rollback.md](../research/python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md) |
+| CI1 | codeigniter4/CodeIgniter4 #10648, PR #10650 | Issue + PR (`develop`) | `reconnect()` replaces a dead MySQLi socket but keeps `transDepth` and `transStatus`, so `transComplete()` returns true for the lost transaction | **Submitted** | Monitor. Checked 2026-10-25: no human comment; a maintainer-requested Copilot review was answered 2026-10-23; #10650 conflicts with `develop`, and resolving that is a push that needs approval. §4 sets no follow-up date (§3.10) | —; evidence in [`php/README.md`](../investigations/mysql-innodb-baseline/php/README.md#connection-loss), Connection loss |
+| CI2 | codeigniter4/CodeIgniter4 #10649, PR #10651 | Issue + PR (`develop`) | After MySQL errno 1213, `transDepth` stays set: the next write autocommits, and `transCommit()` returns true while the victim row is gone | **Submitted** | Same as CI1: no human comment, Copilot review answered 2026-10-23, #10651 conflicts with `develop`. §4 sets no follow-up date (§3.10) | —; evidence in [`php/README.md`](../investigations/mysql-innodb-baseline/php/README.md#deadlock-and-lock-wait), Deadlock and lock wait |
 
 ## 2. Order
 
@@ -72,9 +75,9 @@ This is the remaining work. L1 is submitted (#1202 and #1203). L2 is submitted (
 
 Do not resume a row from the historical priority table once its item is submitted.
 
-No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. PY-3 was filed 2026-10-25 as tortoise/tortoise-orm #2383. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
+No item is queued. D1 was filed 2026-10-22 as #6572. P1 was filed 2026-10-21 as #1453. T3 was filed 2026-10-21 as #12992. Y2 was filed 2026-10-21 as #2157. S1 stays unfiled until pgjdbc #4494 decides how `commit()` reports the rollback. PI1 was posted 2026-10-23 as a comment on prisma/orm #20496. PY-1b was posted 2026-10-24 as a comment on psycopg #1453, and PY-2 was filed the same day as asyncpg #1400. PY-3 was filed 2026-10-25 as tortoise/tortoise-orm #2383. CI1 and CI2 were filed 2026-10-22 as CodeIgniter4 #10648 with PR #10650, and #10649 with PR #10651; this tracker recorded them on 2026-10-25. The remaining Python items are sequenced in [`python-upstream-contribution-tracker.md`](../research/python-upstream-contribution-tracker.md). None of the unfiled items is approved to file.
 
-Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, Y3, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, PY-3, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
+Not in this queue: M2, M3, M4, K3, K2, K1, L3, L1, L2, L5, Y1, Y2, Y3, J1, T1, T2, T3, P1, D1, PI1, PY-1b, PY-2, PY-3, CI1, CI2, and A1 are submitted (§5). M1 is withdrawn. L4, L6, L7 and L8 wait on replies to L1, L2 and A1. SQLite controls stay useful and must not delay anything. The Knex draft written 2026-10-20 restates K1 (#6547) and must not be filed again.
 
 ### Priority (set 2026-10-17)
 
@@ -242,7 +245,7 @@ From [`typeorm-objection-sequelize-assessment.md`](https://github.com/KevinBlake
 
 | Finding | Experiments | Status |
 | --- | --- | --- |
-| A failed top-level `ROLLBACK` returns the connection to the pool inside its transaction; the next unit of work commits the doomed write | TR1d, TR1d3, TR3a | **Submitted 2026-10-18** as https://github.com/typeorm/typeorm/issues/12978 The TypeORM counterpart of knex K2. `bunnysayzz` replied the same day and pointed at fix PR #12980 |
+| A failed top-level `ROLLBACK` returns the connection to the pool inside its transaction; the next unit of work commits the doomed write | TR1d, TR1d3, TR3a | **Submitted 2026-10-17** as https://github.com/typeorm/typeorm/issues/12978 The TypeORM counterpart of knex K2. `bunnysayzz` replied the same day and pointed at fix PR #12980 |
 | A rollback error vanishes in `catch (rollbackError) {}`; the documented manual pattern loses the original error | TR1d, TR1d3, TR4a | Not drafted |
 | `COMMIT` answered with `ROLLBACK` is reported as success, and `afterTransactionCommit` runs | TT1a, TT1b, TH1c, TH1f, TH1g | **Submitted 2026-10-21** as https://github.com/typeorm/typeorm/issues/12992 The PR-01 hook counts and the driver-trace tag are the first repetition. All three repetitions resolved with the row absent. Not covered by #12976–#12979 |
 | `@VersionColumn` writes a stale version back, losing the update silently | TC1a | Not drafted |
@@ -296,6 +299,40 @@ These come from [`python-upstream-contribution-roadmap.md`](../research/python-u
 - **Before filing:** no issue or PR created or updated after 01:30 UTC; `develop` still `ad0d6ce2b`; PyPI `latest` 1.1.9; #2293 open; #1212 without comments.
 - **Not this issue:** PY-8 (COMMIT-time exception translation) is separate and not filed.
 
+### 3.10 CodeIgniter 4 (CI1, CI2)
+
+These come from the MySQL companion in [`investigations/mysql-innodb-baseline/php/`](../investigations/mysql-innodb-baseline/php/README.md): CodeIgniter 4.7.5, MySQLi, MySQL 8.4.11, three repetitions per scenario. Both were filed on 2026-10-22, and this tracker recorded them on 2026-10-25. The filed issue and PR bodies are the record of their content. Both PRs come from the fork `KevinBlakeLopez/CodeIgniter4` and target `develop`.
+
+**CI1. `reconnect()` transaction state. Submitted 2026-10-22** as https://github.com/codeigniter4/CodeIgniter4/issues/10648 and https://github.com/codeigniter4/CodeIgniter4/pull/10650 Posted as `KevinBlakeLopez`.
+
+- **What the issue reports:**
+  - After an idle `wait_timeout`, `ping()` is false and `reconnect()` opens a new socket.
+  - `transDepth` stays 1, and `transStatus()` stays true. `ping()` goes through `simpleQuery()`, which does not call `handleTransStatus()`.
+  - `transComplete()` then returns true, while the row inserted before the timeout is gone.
+  - By source reading, the same `reconnect()` body is on `develop` at `df8b96bee` and on `4.8` at `e710fc3d9`.
+- **The PR.** Branch `fix/10648-reconnect-clears-transaction`, head `1a7668c7d`, two commits. When the socket is replaced during a transaction, `reconnect()` clears the depth and marks the transaction failed. The PR body reports a new live test that failed on `df8b96bee` and passes with the change, on MySQL 8.0.45 and PHP 8.5.12. That run is not recorded in this repository.
+- **Evidence here:** the `reconnect()` scenario under Connection loss in [`php/README.md`](../investigations/mysql-innodb-baseline/php/README.md#connection-loss), and `evidence/php-connection.json` (CodeIgniter 4.7.5, finished `2026-10-21T19:27:50.163Z`).
+- **Checked 2026-10-25.** Both are open, with no human comment.
+  - `paulbalandan`, a member of the codeigniter4 organization, requested a Copilot review on 2026-10-23. It raised two points: OCI8's commit mode, and a reset that was skipped when `initialize()` throws. Both were fixed in `1a7668c7d` and answered the same day.
+  - GitHub reports #10650 as conflicting with `develop` (`mergeable_state` `dirty`). Resolving that is a push to the fork, which needs approval.
+
+**CI2. MySQL errno 1213. Submitted 2026-10-22** as https://github.com/codeigniter4/CodeIgniter4/issues/10649 and https://github.com/codeigniter4/CodeIgniter4/pull/10651 Posted as `KevinBlakeLopez`.
+
+- **What the issue reports:**
+  - InnoDB has already rolled back the deadlock victim, but `transDepth` stays 1.
+  - The next insert on that connection autocommits.
+  - `transComplete()` returns false and does not undo that insert.
+  - `transCommit()` returns true while the victim row is gone.
+- **Neighbors the issue says do not cover it:** #10162 and #10197 (merged to `4.8`, not `develop`), #9888, #6909, #8767, and #10234 / #10236. It asks that errno 1205 not be folded in.
+- **The PR.** Branch `fix/10649-innodb-deadlock-1213`, head `8089966b7`, three commits. After 1213, the next statement starts a new server transaction. `transCommit()` returns false without calling `mysqli::commit()`. The PR body reports new live tests that failed on `df8b96bee` and pass with the change, on MySQL 8.0.45 and PHP 8.5.12. That run is not recorded in this repository.
+- **Evidence here:** Deadlock and lock wait in [`php/README.md`](../investigations/mysql-innodb-baseline/php/README.md#deadlock-and-lock-wait), and `evidence/php-concurrency.json` (CodeIgniter 4.7.5, finished `2026-10-21T17:44:17.623Z`).
+- **Checked 2026-10-25.** Both are open, with no human comment.
+  - `paulbalandan` requested a Copilot review on 2026-10-23. It raised three points, and all were answered the same day.
+  - Two were fixed in `8089966b7`: the restart flag was cleared before `BEGIN` succeeded, and the test cleanup.
+  - The third, prepared statements, was left out on purpose. The PR's guide and changelog now say prepared queries are not covered, and that a separate PR can handle them.
+  - #10651 also conflicts with `develop` (`dirty`).
+- **Not filed:** with `innodb_rollback_on_timeout` ON, errno 1205 reaches the same autocommit in the recorded run (Deadlock and lock wait). The issue keeps 1205 out on purpose.
+
 ## 4. Waiting for replies
 
 **For L1, L2 and A1** ([decision brief](https://github.com/KevinBlakeLopez/nest-adonis-spike/blob/docs/lucid-isolation-level-fix/docs/persistence-decision-brief.md)):
@@ -306,7 +343,7 @@ These come from [`python-upstream-contribution-roadmap.md`](../research/python-u
 
 **For the other upstreams** no general rule has been set. These items do not decide the persistence choice. They do bear on how much integration code a MikroORM or TypeORM path would need permanently. Record dates here, so replies can be judged.
 
-Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2, Y3), and Prisma (PI1) have no follow-up date. M2 and M3 are closed.
+Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2, Y3), Prisma (PI1), and CodeIgniter 4 (CI1, CI2) have no follow-up date. M2 and M3 are closed.
 
 **Recheck 2026-10-25.** Every Submitted row was rechecked on GitHub. Changes since the last per-item checks: M2 closed (#8462 merged 2026-10-22); maintainer fix PRs for Y2 (Kysely #2161) and J1 (pgjdbc #4499, #4496); outside-contributor PRs for K1 (#6549), T1 (#12983, #12997), T3 (#12993) and D1 (#6574), none with maintainer activity; a bot triage note on PI1; K2-PR still waits for CI approval. No new human reply on L1, L3, L5, A1, K1, K2, K3, M4, Y1, P1, PY-1b, PY-2 or PY-3. Y1 still has no reply after the 2026-10-18 comment.
 
@@ -341,10 +378,12 @@ Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2, Y3), and Prisma (PI1) h
 | M3 | 2026-10-18 | https://github.com/mikro-orm/mikro-orm/issues/8476 | — | Closed 2026-10-22 as completed via #8499. Retested on 7.2.6-dev.19 | closed |
 | J1 | 2026-10-19 | https://github.com/pgjdbc/pgjdbc/issues/4494 | — | Dave Cramer, 2026-10-20: `commit()` should report it; he asked for the use case. Use case answered 2026-10-21: https://github.com/pgjdbc/pgjdbc/issues/4494#issuecomment-6316574491 `vlsi` opened PRs #4499 and #4496 on 2026-10-22 | maintainer PRs open |
 | T1 | 2026-10-17 | https://github.com/typeorm/typeorm/issues/12976 https://github.com/typeorm/typeorm/issues/12977 and https://github.com/typeorm/typeorm/pull/12979 | — | #12979 has an automated Qodo review only. Outside PRs #12983 and #12997 | waiting |
-| T2 | 2026-10-18 | https://github.com/typeorm/typeorm/issues/12978 | — | `bunnysayzz`, 2026-10-18, pointed at PR #12980 | reply received |
+| T2 | 2026-10-17 | https://github.com/typeorm/typeorm/issues/12978 | — | `bunnysayzz`, 2026-10-18, pointed at PR #12980 | reply received |
 | T3 | 2026-10-21 | https://github.com/typeorm/typeorm/issues/12992 | — (§4 sets no date) | No comment. Outside PR #12993 | waiting |
 | P1 | 2026-10-21 | https://github.com/psycopg/psycopg/issues/1453 | — (§4 sets no date) | — | waiting |
 | D1 | 2026-10-22 | https://github.com/drizzle-team/drizzle-orm/issues/6572 | — (§4 sets no date) | No comment. Outside PR #6574 | waiting |
+| CI1 | 2026-10-22 | https://github.com/codeigniter4/CodeIgniter4/issues/10648 and https://github.com/codeigniter4/CodeIgniter4/pull/10650 | — (§4 sets no date) | No human comment as of 2026-10-25. Copilot review requested by `paulbalandan` 2026-10-23, answered the same day. #10650 conflicts with `develop` | waiting |
+| CI2 | 2026-10-22 | https://github.com/codeigniter4/CodeIgniter4/issues/10649 and https://github.com/codeigniter4/CodeIgniter4/pull/10651 | — (§4 sets no date) | No human comment as of 2026-10-25. Copilot review requested by `paulbalandan` 2026-10-23, answered the same day. #10651 conflicts with `develop` | waiting |
 | PI1 | 2026-10-23 | https://github.com/prisma/orm/issues/20496#issuecomment-6372520392 | — (§4 sets no date) | Automated `prisma-asks[bot]` triage note only | waiting |
 | L2 | 2026-10-21 | https://github.com/adonisjs/lucid/issues/1205 | decide around 2026-11-18 if no maintainer replies (§4). The 2026-11-04 silence ping is cancelled | `jals1212`, 2026-10-21, not a maintainer. `executionPromise` patch covers their case 2, not case 1 | reply received |
 | A1 | 2026-10-21 | https://github.com/orgs/adonisjs/discussions/5166 | 2026-11-04 (one follow-up); decide around 2026-11-18 (§4) | — | waiting |
@@ -398,4 +437,5 @@ Knex (K1, K2, K2-PR, K3), MikroORM (M4), Kysely (Y1, Y2, Y3), and Prisma (PI1) h
   - **Before filing:** no tortoise-orm issue or PR had been created or updated after 01:30 UTC. `develop` was still `ad0d6ce2b`, so the linked lines held. PyPI `latest` was 1.1.9. #2293 was open; #1212 had no comments.
   - **After filing:** the posted title and body match the draft, compared through the API.
 - **2026-10-25.** Rechecked every Submitted and Closed row on GitHub. M2 closed: #8462 merged 2026-10-22 at `d3d3b5da`, without the suggested subscriber test, and not re-validated. Recorded the maintainer fix PRs for Y2 (Kysely #2161) and J1 (pgjdbc #4499 and #4496), the outside-contributor PRs for K1, T1, T3 and D1, and the bot triage note on PI1. Added K2-PR (knex PR #6548, submitted 2026-10-18), which was missing; its CI waits for maintainer approval. Nothing posted.
+- **2026-10-25.** Added CI1 and CI2, which were missing: CodeIgniter4 #10648 with PR #10650, and #10649 with PR #10651, all submitted 2026-10-22 (§3.10). Checked on GitHub the same day. There are no human comments. Copilot reviews requested by `paulbalandan` were answered on 2026-10-23. Both PRs conflict with `develop`. Nothing posted.
 - **2026-10-25.** Y3 submitted on Kysely PR #2161: https://github.com/kysely-org/kysely/pull/2161#issuecomment-6403967170 It validates the maintainer's fix for Y2 against 0.29.7. Before posting, the head was still `ef60ffe`, with no human comments or reviews. The posted body matches the draft, compared through the API. Evidence: `research/production-reachability/kysely-pr-2161-validation/`. Status Submitted.

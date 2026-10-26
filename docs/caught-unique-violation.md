@@ -39,6 +39,14 @@ These did not treat that completion as a commit:
 | MikroORM | https://github.com/mikro-orm/mikro-orm/issues/8476 Closed 2026-10-22 as completed via https://github.com/mikro-orm/mikro-orm/pull/8499 |
 | Lucid | https://github.com/adonisjs/lucid/issues/1205 |
 | PostgreSQL JDBC | https://github.com/pgjdbc/pgjdbc/issues/4494 |
+| Kysely | https://github.com/kysely-org/kysely/issues/2157 The maintainer's fix PR https://github.com/kysely-org/kysely/pull/2161 is open |
+| TypeORM | https://github.com/typeorm/typeorm/issues/12992 |
+| Drizzle | https://github.com/drizzle-team/drizzle-orm/issues/6572 |
+| Prisma | A comment on the existing report https://github.com/prisma/orm/issues/20496#issuecomment-6372520392 |
+| psycopg | https://github.com/psycopg/psycopg/issues/1453 |
+| asyncpg | https://github.com/MagicStack/asyncpg/issues/1400 |
+
+Updated 2026-10-26 from [`upstream-submissions.md`](upstream-submissions.md) and the Python tracker. How much each matters in production is rated in [`research/filed-items-production-relevance/`](../research/filed-items-production-relevance/README.md), and for psycopg and asyncpg in the [Python tracker](../research/python-upstream-contribution-tracker.md).
 
 Filing status for every item, including drafts that have not been posted, is [`upstream-submissions.md`](upstream-submissions.md). The Knex draft in `research/production-reachability/upstream-drafts/knex.md` restates #6547 and is not a second report.
 

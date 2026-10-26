@@ -90,23 +90,30 @@ No issues were filed.
 - pgx treats command tag `ROLLBACK` as a failed commit. node-postgres, psycopg, and pgjdbc leave that tag for the caller, or do not surface it. Lucid, MikroORM, TypeORM, Knex, Kysely, SQLAlchemy Core, and Spring then treat a resolved commit as success.
 - Spring's `afterCommit` ran for a transaction `pg_xact_status()` reported aborted. That is the hook an application would use to send mail or enqueue work.
 
-### Filing status, recorded 2026-10-21
+### Filing status, recorded 2026-10-23
 
-The sentence "No issues were filed" is the state of this investigation when the run report was written. It is not the current filing status. Current status is [`docs/upstream-submissions.md`](../../docs/upstream-submissions.md). The drafts in [`upstream-drafts/`](upstream-drafts/README.md) have not themselves been posted.
+The sentence "No issues were filed" is the state of this investigation when the run report was written. It is not the current filing status. Current status is [`docs/upstream-submissions.md`](../../docs/upstream-submissions.md). This note did not re-query GitHub. The links are the tracker's record.
 
-Overlapping findings were filed from other writeups. Do not file a second copy:
+Overlapping findings were filed from other writeups, or from the drafts in [`upstream-drafts/`](upstream-drafts/README.md). Do not file a second copy:
 
-- Knex `transaction()` resolving on this `COMMIT` is [knex#6547](https://github.com/knex/knex/issues/6547) (K1, submitted 2026-10-17). [`upstream-drafts/knex.md`](upstream-drafts/knex.md) restates it.
+- Knex `transaction()` resolving on this `COMMIT` is [knex#6547](https://github.com/knex/knex/issues/6547) (K1, submitted 2026-10-17). [`upstream-drafts/knex.md`](upstream-drafts/knex.md) restates it and must not be filed.
 - MikroORM `em.transactional()` resolving on this `COMMIT` is [mikro-orm#8476](https://github.com/mikro-orm/mikro-orm/issues/8476) (M3, submitted 2026-10-18). Closed 2026-10-22 as completed via [#8499](https://github.com/mikro-orm/mikro-orm/pull/8499). The 7.2.6-dev.19 follow-up rejects both calls. npm `latest` was still 7.2.5.
 - Lucid reporting success, and running `after('commit')`, is [lucid#1205](https://github.com/adonisjs/lucid/issues/1205) (L2, submitted 2026-10-21).
 - Whether pgjdbc `Connection.commit()` should report the rollback tag is [pgjdbc#4494](https://github.com/pgjdbc/pgjdbc/issues/4494) (J1, submitted 2026-10-19). The use case was answered on 2026-10-21. No second pgjdbc issue.
+- Kysely `isCommitted` is [kysely#2157](https://github.com/kysely-org/kysely/issues/2157) (Y2, filed 2026-10-21).
+- psycopg `Connection.commit()` is [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) (P1, filed 2026-10-21).
+- TypeORM `afterTransactionCommit` is [typeorm#12992](https://github.com/typeorm/typeorm/issues/12992) (T3, filed 2026-10-21).
+- Drizzle `db.transaction()` is [drizzle-orm#6572](https://github.com/drizzle-team/drizzle-orm/issues/6572) (D1, filed 2026-10-22).
+- Prisma `$transaction()` was posted as a [comment on prisma/orm#20496](https://github.com/prisma/orm/issues/20496#issuecomment-6372520392) (PI1, 2026-10-23), an existing report of the same case, not as a new issue.
 
-Still drafts, not submissions: Kysely `isCommitted` (Y2), Spring `afterCommit` (S1), psycopg `Connection.commit()` (P1), and TypeORM `afterTransactionCommit` (T3). Filing any of them needs explicit approval. This documentation pass did not re-query GitHub; the links above are the tracker's record.
+Still a draft, not a submission: Spring `afterCommit` (S1). Filing it needs explicit approval of the exact text. S1 waits on pgjdbc #4494.
 
 ## Next step
 
 Score this pattern in the longitudinal persistence ownership benchmark: catch a real database error inside a supported transaction API, finish that API normally, and compare the return value and commit hooks with an independent read of what was committed. Keep connection reuse as a separate score. The reuse observed here was safe, so a benchmark that only checks the next request would miss the false commit.
 
-Do not add adapters before that scoring exists. Drizzle, Prisma, and Hibernate were out of scope. Another SQLSTATE would repeat this mechanism unless a framework branches on it, and the branch this run found is Spring's checked-exception rule.
+Do not add adapters to this catalog before that scoring exists. Drizzle, Prisma, and Hibernate were out of scope for these rows. Another SQLSTATE would repeat this mechanism unless a framework branches on it, and the branch this run found is Spring's checked-exception rule.
+
+Recorded 2026-10-23. Later PPCS adapters, including Drizzle, Prisma, and Hibernate, are in the root README. They are not rows in this catalog. This catalog was not rerun.
 
 Sequencing, and the rule that the benchmark is a separate program, are in [`docs/research-master-plan.md`](../../docs/research-master-plan.md) and [`docs/research-roadmap.md`](../../docs/research-roadmap.md). Writing those plans does not authorize new adapters or a new run of this catalog.
