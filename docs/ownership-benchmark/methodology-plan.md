@@ -10,13 +10,13 @@ The pilot is the first execution, and only after this plan is accepted. The full
 
 ## Identical requirements
 
-Each architecture in a cohort receives the same functional requirements for each stage. The requirements are the application-evolution spec plus the acceptance tests. Wording may name a capability ("persist an evidence revision atomically"). It does not name an architecture's API ("use `session.flush`" or "hand-write this `INSERT`"). The spec also fixes the tables and columns the acceptance tests read. That is a data contract shared by every architecture, not an architecture's API.
+Each architecture in a cohort receives the same functional requirements for each stage. The requirements are the stage documents, one per stage, plus the acceptance tests. Wording may name a capability ("persist an evidence revision atomically"). It does not name an architecture's API ("use `session.flush`" or "hand-write this `INSERT`"). The spec also fixes the tables and columns the acceptance tests read. That is a data contract shared by every architecture, not an architecture's API.
 
 If a requirement can only be met through an escape hatch, the escape hatch is a measurement. The requirement is not rewritten to avoid it, and it is not rewritten to force it.
 
 ## Independent acceptance tests
 
-Acceptance tests are specified and stored apart from agent-generated implementations. Agents may read the tests. Agents may not modify them, skip them, or replace them with tests they wrote. A trajectory that changes the authoritative suite is invalid.
+Acceptance tests are specified and stored apart from agent-generated implementations. Agents may read and run the tests of the current and earlier stages. Agents may not modify them, skip them, or replace them with tests they wrote. A trajectory that changes the authoritative suite is invalid.
 
 Tests include functional checks, database invariant checks, concurrency checks where the stage requires them, migration checks, and the PPCS-derived transaction task. The tests observe the database from a connection the application does not own. Of the application's data, they read only the tables and columns the application-evolution spec fixes. From V4 on, a wire-protocol proxy between the application and PostgreSQL also records the rows each query returns, so a test can see another organization's rows cross the persistence boundary even when the response is correct. In V5 the same proxy counts the statements each report call sends. In an organization-wide read, another organization's rows crossing the boundary is a failure. In a call that names a record by identifier, it is recorded as a field per call, because fetching the named record and checking its organization in code is a legitimate way to refuse it. PPCS's cleartext proxy, `harness/lib/pg-wire-proxy.mjs`, is the starting point. The proxy has its own control: a deliberately unscoped implementation must be caught.
 
@@ -45,7 +45,7 @@ Changing any of these starts a different experiment. Runs that differ in model o
 
 A run that stops on a cap is recorded as a capped run. When the agent does not expose temperature or seed, the record says so, the same way missing API cost is recorded as missing.
 
-The default context is the stage requirement, the authoritative tests, and ordinary documentation for the assigned library. The master plan's ranking and the PPCS contract verdicts are outside that set. Putting either in context starts a different experiment. In such an experiment the hypothesis table is labeled as an unvalidated hypothesis. Agents are not told which architecture is expected to win.
+The default context for a stage is that stage's document and every earlier stage's, the acceptance tests for those stages, and ordinary documentation for the assigned library. The agent may read and run those tests. It never sees a later stage's document or tests. Nothing else from the research repository is in reach: not the research rationale in the application-evolution spec, this plan, the research questions, the master plan, or PPCS results, and no link to any of them. Each stage starts a fresh agent session on the repository as the previous stage left it, including its git history, and without earlier transcripts. The run record lists every supplied file with its hash. Putting the master plan's ranking or the PPCS contract verdicts in context starts a different experiment. In such an experiment the hypothesis table is labeled as an unvalidated hypothesis. Agents are not told which architecture is expected to win.
 
 The prompt text and the numeric caps are part of pilot approval, not of the design freeze.
 

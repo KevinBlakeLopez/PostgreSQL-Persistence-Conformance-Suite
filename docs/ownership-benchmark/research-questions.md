@@ -151,6 +151,7 @@ Later on 2026-10-23 the maintainer decided:
 On 2026-10-25, after the freeze review, the maintainer decided:
 
 - Checks carry across stages in two ways. Migration checks (S1–S7 and V2-1) replay each stage's migration. When a stage is complete, the harness records the Alembic head as that stage's revision and saves a snapshot of a database built through that stage's service. Each migration check upgrades the previous stage's snapshot to its stage's revision, and every one runs again in every later stage, on the current scripts and library versions. Behavior checks run again in every later stage against the current service. Where a later stage moves a value a check reads, the check says what it reads from then on; V1-2 is the only such check.
+- An agent sees only the current stage and earlier ones: those stages' documents, one per stage, their acceptance tests, which it may read and run, and its library's documentation. It never sees a later stage's document or tests, or anything from the research repository. Each stage starts a fresh agent session on the repository as the previous stage left it, with its git history and without earlier transcripts. The run record lists every supplied file with its hash. The stage documents become the only source of the requirements, and the application-evolution spec keeps the research rationale.
 
 V1–V7 are necessary as a set of stages, and they were not replaced or extended to cover the review's gaps. Since the review, the requirements, the acceptance tests, and the transaction task have been written: see the decisions above and [`test-contract.md`](test-contract.md). Whether the design can now be frozen is the maintainer's decision, after a review of that text. A freeze review on 2026-10-25 found that it cannot be frozen yet. Its wording fixes have been made, and its open items are below.
 
@@ -158,7 +159,7 @@ V1–V7 are necessary as a set of stages, and they were not replaced or extended
 
 The freeze review left nine items, decided one at a time in this order. All but the last block a freeze.
 
-1. **What agents see.** Which documents and stages each agent is given, kept apart from the research rationale, including whether a V1 agent sees V2–V7.
+1. **Stage documents.** Write the agent-facing document for each stage, as decided above. Until they exist, the exposure decision cannot be applied.
 2. **Probe validity.** How a run shows that a transaction probe reached the intended unique violation, so that a faulty probe is recorded as inconclusive rather than as library behavior.
 3. **V5's counting unit.** Whether V5 counts SQL statements or protocol messages, and how batching, cursors, and transaction control count.
 4. **V6's replacement order.** Which reviewers count for a replaced revision when an assignment and a revision are created at the same time or concurrently.
