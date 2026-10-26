@@ -1,0 +1,26 @@
+  log WARNING: App is instantiated in the main Python module (procrastinate_queueing_lock.py). See https://procrastinate.readthedocs.io/en/stable/discussions.html#top-level-app
+procrastinate 3.10.0, Django 6.1.2, psycopg 3.3.6
+
+django.first
+  code: returned order 1; on_commit ran True
+  witness: pg_xact_status(911) committed, order visible True, queued jobs for the customer 1
+
+django.repeat
+  code: returned order 3; on_commit ran True
+  witness: pg_xact_status(913) aborted, order visible False, queued jobs for the customer 1
+
+django.repeat_savepoint
+  code: returned order 5; on_commit ran True
+  witness: pg_xact_status(915) committed, order visible True, queued jobs for the customer 1
+
+psycopg.first
+  code: returned order 6; on_commit ran -
+  witness: pg_xact_status(917) committed, order visible True, queued jobs for the customer 1
+
+psycopg.repeat
+  code: returned order 8; on_commit ran -
+  witness: pg_xact_status(919) aborted, order visible False, queued jobs for the customer 1
+
+psycopg.repeat_savepoint
+  code: returned order 10; on_commit ran -
+  witness: pg_xact_status(921) committed, order visible True, queued jobs for the customer 1
