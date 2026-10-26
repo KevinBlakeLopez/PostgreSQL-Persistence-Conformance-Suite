@@ -78,6 +78,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
   - psycopg's docs tell callers to roll back after an error.
   - `tests/test_connection_async.py:401` asserts that `commit()` returns.
+- **Real-world signal (2026-10-26):** a project's batch writer on SQLAlchemy and psycopg2 drops a batch after one row's error and reports it saved (news-scraping#36), and Airflow's scheduler has the catch-and-continue pattern (airflow#59120). No production report on psycopg 3 itself. Other drivers treat the mechanism as a bug (pgjdbc#4499, pgx's `ErrTxCommitRollback`, rust-postgres#1342): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** severity rank 1. The action now is PY-1b.
 - **Proposed action:** none beyond PY-1b. No new issue, and no reports to SQLAlchemy or Django.
 - **Prerequisites:** —
@@ -139,6 +140,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - In #1355 (2026-09-21) he wrote that asyncpg "did not receive enough love in 2026", citing an "overwhelmed inbox".
   - Expect a slow reply. A tested PR may move faster (roadmap §9).
 - **Confidence:** CONFIRMED.
+- **Real-world signal (2026-10-26):** production: a batch writer on SQLAlchemy's asyncio engine and asyncpg loses whole batches after one caught deadlock, while its counters report the writes (bainluck#8935, #8129). A project's asyncpg extractor reports success after its `COMMIT` became a `ROLLBACK` (ldvelh#24): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 2.
 - **Proposed action:** a new issue in the shape of #1453, with a conditional PR offer (roadmap §10.2).
 - **Draft:** [`python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md`](python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md). Filed 2026-10-24 as [MagicStack/asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400); the filed title and body match the draft. It was revised before filing, after an outside review. It contains:
@@ -176,6 +178,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - #1212 bears on option (b): `force_update` sees 0 rows on MySQL for a row that exists.
   - Also related, and not duplicates: #242 (2019), where a collaborator suggested that `save()` raise or warn when no rows were affected; and open PR #2293, whose per-savepoint `on_commit()` frames are the kind of bookkeeping option (a) needs.
 - **Confidence:** CONFIRMED. Observed: the outcome, the statement sent, its 0 matched rows, and the count `save()` receives. Src: that nothing resets the flag on rollback.
+- **Real-world signal (2026-10-26):** none matching; tortoise-orm#1094 reports the same symptom from a different cause: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 3.
 - **Proposed action:** a new issue that asks for the fix direction, with a conditional PR offer (roadmap §7 and §10.3). The directions are (a), resetting `_saved_in_db` on rollback per transaction and savepoint level, and (b), handling zero-row updates. The issue also asks whether saving an instance again after a rollback is meant to be supported.
 - **Draft:** [`python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md`](python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md). It uses Tortoise's bug-report template and has about 58 visible lines. The program, its output and a server-log excerpt are in `<details>`, all byte-identical to the CHK-5 files. It passed the content guard. It covers:
@@ -217,6 +220,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - In discussion #12486 (2025-03), a maintainer pointed a user whose `SET ROLE` and `search_path` carried over to this recipe.
   - Discussion #6905 (2022-08) is a precedent: a hook's `DISCARD TEMPORARY` did not persist until the hook committed.
 - **Confidence:** CONFIRMED on psycopg 3 and psycopg2. H-d held.
+- **Real-world signal (2026-10-26):** csfrace-scrape adopts the recipe on psycopg 3 with a `READ_COMMITTED` engine, CHK-3's no-reset configuration; discussion #12486 is cited above: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 4.
 - **Proposed action:** a corrected example: roll back, then `DISCARD ALL` in autocommit, restoring autocommit afterwards, with notes on scope (roadmap §7). The author writes the discussion or docs PR.
 - **Prerequisites:** CHK-3, done 2026-10-25 (UTC). The author writes every word of the prose.
@@ -233,6 +237,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Src: `asyncpg/connection.py:1567-1594` and `1763-1790`; `asyncpg/pool.py:1320-1340`.
 - **Upstream:** none for the role (2026-10-24). Temp tables are #1293, and PR #1392 (open, unreviewed) uses a capability-gated reset statement. #270 rejects `DISCARD ALL`.
 - **Confidence:** CONFIRMED.
+- **Real-world signal (2026-10-26):** Percolate's changelog records a pooled connection left in the previous caller's role (`core/CHANGELOG.md`, lines 536–538): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 5.
 - **Proposed action:** an issue proposing `RESET ROLE` behind a capability, or a corrected docstring. Include the compatibility note on `init`-time roles (roadmap §10.5).
 - **Prerequisites:** run the script to be posted three times, on a non-superuser login. CHK-6 is optional.
@@ -261,6 +266,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - `ruff`, `mypy`, `bandit`, the build and `twine check` pass.
 - **Upstream:** no duplicate found (34 queries, 2026-10-25). Open PR #2293 adds a line inside every `commit()`.
 - **Confidence:** CONFIRMED.
+- **Real-world signal (2026-10-26):** none found: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 6. It is independent of PY-3.
 - **Proposed action:** one PR, as on the branch. Its description asks whether leaving `commit()` untranslated was deliberate, and states the compatibility change. MySQL and ODBC are neither changed nor run.
 - **Status:** READY_FOR_HUMAN_REVIEW
@@ -289,6 +295,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Precedent: #13381, fixed.
 - **Confidence:** CONFIRMED for a `commit()` that fails before sending, on a healthy connection. The demonstrated triggers that replace no DBAPI method are a raising commit listener, and mixing psycopg's and SQLAlchemy's transaction APIs. Reachability through ordinary driver or OS failures, and production frequency, are not established.
   - On SQLite there is a trigger that replaces no DBAPI method: SQLite ending the transaction itself, under `sqlite3`'s `autocommit=False` (see the SQLite consequence above). It was run with `RAISE(ROLLBACK)`. A real disk full ends the transaction the same way (that study's SQLITE-05c), but this path was not run end to end with one.
+- **Real-world signal (2026-10-26):** on SQLite, lumenpearson/lessons#378 reports a `COMMIT` refused with "database is locked" whose write the next session commits, even after the caller's rollback; it matches CHK-13. Nothing for PostgreSQL's triggers: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Production trigger (CHK-13, 2026-10-26).** No injection is needed on SQLite. In the default rollback-journal mode, a reader in another process makes `COMMIT` fail with `database is locked`, and SQLite keeps the transaction open.
   - **Configurations:** the default pysqlite configuration and `autocommit=False`.
   - **The path:** `with engine.connect()` / `conn.commit()` and `with Session(engine)` / `session.commit()` that close without `rollback()` reach P5a's path. Then:
@@ -331,6 +338,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **The trigger:** #12728 (2025) is a cancellation landing on in-flight commits, where "some(?) commits in progress are not cancelled".
 - **Upstream:** none found. Precedent: #12728. Not re-checked for CHK-4.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
+- **Real-world signal (2026-10-26):** applications delete uploaded files on `after_rollback` (nyayagraph, ticketsystem), and so does sqlalchemy-file (PY-24); DuckLake reports the same consequence after a lost `COMMIT` reply (ducklake#1802). No Python report of the event on a committed transaction: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
 - **Priority:** 8.
 - **Proposed action:** a documentation clarification; a change to event delivery is optional (roadmap §7). The author writes a discussion.
 - **Prerequisites:**
@@ -358,7 +366,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-21 | `sqlite-transaction-state-divergence/` findings F1 and F2; runs `sqlite-transaction-state-divergence/output/sqlite05c-enospc/2026-10-25T17-22-54Z-9e213e/`, `…/sqlite05b-batch/2026-10-25T17-22-43Z-4b67f2/`, `…/minimal-matrix/2026-10-25T18-21-01Z-556213/` | None found on 2026-10-25 (that study's `upstream/duplicate-search.md`). Related: #2696 (2013, MySQL lost its savepoints), #5968 (2021, `ON CONFLICT IGNORE`) | A Usage Questions discussion, written by the author in their own words | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-1, after its "Before posting" checks |
 | PY-22 | `sqlite-transaction-state-divergence/` finding F3; `…/output/sqlite03-session/2026-10-25T17-21-29Z-85d1f6/` (`autocommit-false.execute.rollback.commit-escape`); `…/repro/minimal/sa_session_close_leak.py` | None found. #13657 (discussion #13656) fixed the same symptom in Core's `Connection.close()`, commit `d29277af` | A report written by the author in their own words; #13657 began as a discussion | — | READY_FOR_HUMAN_REVIEW | The author writes it from `upstream/sqlalchemy-facts.md`, item SA-2 |
 | PY-23 | `sqlite-transaction-state-divergence/` finding F4; `…/output/sqlite01-raw/2026-10-25T17-21-27Z-737440/` (`pep249.rollback.*`); `…/repro/minimal/sqlite3_autocommit_false.py` | None found. Related: gh-112441 (2023, not planned; there the user's own SQL ended the transaction) | A CPython issue | Approval of the exact text | AWAITING_APPROVAL | Approve or edit `upstream/cpython-sqlite3-autocommit-false-draft.md`, then run its "Before filing" checks |
-| PY-24 | [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md) | Not searched yet | An issue in jowilf/sqlalchemy-file: it treats `after_soft_rollback` as "nothing committed"; a failed `commit()` without `rollback()` leaves uploads; a savepoint `RELEASE` fires `after_commit` and clears its tracking. Not prescribed: a fix. Check its contribution rules first | A duplicate search | READY_FOR_HUMAN_REVIEW | Search the repository, then draft the issue for approval |
+| PY-24 | [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md) | None found on 2026-10-26: no title among its 157 issues and pull requests reports it ([`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md)) | An issue in jowilf/sqlalchemy-file: it treats `after_soft_rollback` as "nothing committed"; a failed `commit()` without `rollback()` leaves uploads; a savepoint `RELEASE` fires `after_commit` and clears its tracking. Not prescribed: a fix. Check its contribution rules first | A duplicate search | READY_FOR_HUMAN_REVIEW | Search the repository, then draft the issue for approval |
 
 All `output/` paths are under `research/python-production-failure-gap-analysis/`, except PY-20's and those of PY-21 to PY-23. Theirs are under `research/sqlite-transaction-state-divergence/`, written `…/` after the first path in a row.
 
@@ -715,4 +723,8 @@ The rest of this section is the plan as it stood before the commits.
     - The trigger is a once-only first-order bonus as the order's last step, with the duplicate (`23505`) treated as "already awarded". It replaces CHK-12's best-effort analytics write, which does not belong in the transaction.
     - The results are the same, 3 of 3, and all 36 transactions agree.
     - CHK-12's README gains a scope note. Its original evidence is unchanged.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26, about 14:21 UTC.** At the maintainer's request:
+  - **Real-world evidence** for the Python items, from read-only GitHub searches: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md) (commit `d631390`). Strongest: production loss on SQLAlchemy's asyncio engine with asyncpg (PY-2); an audit on SQLAlchemy with psycopg2 (PY-1); a SQLite P5a incident (PY-7); a role carried over, in a project's changelog (PY-6); file-deleting rollback hooks (PY-4). Nothing found for PY-8, PY-15 or PY-20 to PY-23.
+  - Each scheduled item gains a "Real-world signal" bullet; PY-24's upstream check is recorded.
   - No status changed. Nothing posted or filed. The roadmap was not edited.
