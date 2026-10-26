@@ -41,7 +41,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
-| PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — | DEFERRED | Revisit after PY-1 and PY-2 |
+| PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-9 and CHK-10 observed it on 2.1.6 with psycopg2, psycopg 3 and asyncpg | — | DEFERRED | Revisit after PY-1 and PY-2 |
 | PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
 | PY-11 | psycopg_pool, SQLAlchemy pools, Django | Session state carries over by default | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
 | PY-12 | Several | `57014`, `40P01`, `40001` on the caught-then-commit path | CONFIRMED; no new defect | — | CLOSED_NO_ACTION | Not cited in either draft. Kept out of PY-1b by the maintainer's decision; dropped from PY-2 after the outside review |
@@ -105,7 +105,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Left out of the draft:** PY-12's SQLSTATEs. Their evidence goes through SQLAlchemy Core, that is `Connection.commit()`, not `transaction()`. The maintainer decided on 2026-10-24 to keep them out.
 - **Prerequisites:** #1453 and `master` were re-checked on 2026-10-24. CHK-1 was not run; it is optional. Repeat the draft's pre-post checks on the day of posting.
 - **Status:** SUBMITTED
-- **Next concrete step:** wait for a reply. If #1453 is still silent around 2026-11-07, send one polite follow-up. Decide around 2026-11-21 (roadmap §14).
+- **Next concrete step:** wait for a reply. If #1453 is still silent around 2026-11-07, send one polite follow-up: [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md), drafted 2026-10-26 with CHK-9's psycopg2 result and awaiting approval of its exact text. Decide around 2026-11-21 (roadmap §14).
 
 ### PY-2: asyncpg `Transaction.commit()` and `async with conn.transaction()`
 
@@ -113,6 +113,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Finding:** both return normally, with internal state `committed`, after PostgreSQL answers `COMMIT` with `ROLLBACK`. Raw `execute('COMMIT')` returns `'ROLLBACK'`. Tortoise and SQLAlchemy's asyncpg dialect inherit this.
 - **Evidence:**
   - **CHK-2,** [`python-upstream-contribution/chk-2-asyncpg/`](python-upstream-contribution/chk-2-asyncpg/README.md). This is the standalone program to post, run three times on asyncio and three on uvloop; all six agreed. `psql` and the server's statement log agree for all 24 transactions. After `commit()` has returned, asyncpg's own `rollback()` raises "the transaction is already committed", a public-API signal;
+  - **CHK-10 (2026-10-26 UTC): through SQLAlchemy.** SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the same success: `AsyncConnection.commit()`, `engine.begin()`, `AsyncSession.commit()` and `async_sessionmaker.begin()` (with `after_commit`), 3 of 3: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md). The roadmap's source-reading claim (§3.2 B) is now observed.
   - `research/python-production-failure-gap-analysis/output/p1.out` (arms A–D);
   - `output/p6.jsonl` and `output/p6.server-log-endings.txt`;
   - `reports/examples/2026-10-19T12-45-38Z-c45624` (Tortoise TX-01A; trace `COMMIT; -> ROLLBACK`);
@@ -277,7 +278,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - On SQLite there is a trigger that replaces no DBAPI method: SQLite ending the transaction itself, under `sqlite3`'s `autocommit=False` (see the SQLite consequence above). It was run with `RAISE(ROLLBACK)`. A real disk full ends the transaction the same way (that study's SQLITE-05c), but this path was not run end to end with one.
 - **Priority:** 7. It is ready, and can move earlier if the author prefers. Leave time after PY-5.
 - **Proposed action:** a Usage Questions discussion, written by the author in their own words. The venue was decided on 2026-10-18.
-- **Prerequisites:** CHK-7 and a fresh duplicate search, both done 2026-10-25 (UTC).
+- **Prerequisites:** CHK-7 and a fresh duplicate search, both done 2026-10-25 (UTC). Re-checked 2026-10-25, 22:56–23:02 UTC: no duplicate, and `main` still `10f4d1e2d` ([`python-upstream-contribution/py-7-posting-day-checks/`](python-upstream-contribution/py-7-posting-day-checks/README.md)).
 - **Status:** READY_FOR_HUMAN_REVIEW
 - **Next concrete step:** the author writes and posts, in their own words, in Usage Questions. The draft's script and Observed block are still valid on 2.1.6. Its line numbers are 2.1.5's; CHK-7's `FACTS.md` maps them to 2.1.6.
 
@@ -342,6 +343,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-7 | PY-7 | Required | DONE 2026-10-25 (UTC). Reproduced on SQLAlchemy 2.1.6, 3 of 3, with output byte-identical to the recorded run: `../python-orm-transactions/docs/sqlalchemy-transaction-experiments/p5a-review/chk-7/` (commit `3c9758b`) |
 | CHK-8 | PY-20 | Required before an issue | NOT_STARTED. A duplicate search of its own, and the `SQLITE_BUSY` trigger (a reader holding the file during COMMIT), which SQLite documents and which has not been run |
 | CHK-9 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). psycopg2 2.9.13 has the same false commit, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3; the psycopg 3 positive controls reproduce: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) |
+| CHK-10 | PY-2, PY-9 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the false commit in Core and ORM, 3 of 3; raw asyncpg and the psycopg 3 asyncio controls reproduce: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -630,3 +632,10 @@ The rest of this section is the plan as it stood before the commits.
 - **2026-10-26, about 03:35 UTC.** At the maintainer's request:
   - **CHK-9 (new): psycopg2 has the PY-1 false commit.** psycopg2 2.9.13, directly (`commit()`, `with conn:`) and through SQLAlchemy 2.1.6 Core (`commit()`, `engine.begin()`) and ORM (`session.commit()`, `sessionmaker.begin()`, both running `after_commit`), 3 of 3; a failed ORM flush raised `PendingRollbackError`. Evidence: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) (commit `9166ea1`). The roadmap's §9 judgment that psycopg2 behaves the same is now observed; the roadmap was not edited.
   - Nothing posted or filed.
+- **2026-10-26, about 04:06 UTC.** At the maintainer's request:
+  - **CHK-10 (new): SQLAlchemy's asyncio engine passes asyncpg's false commit through.** On SQLAlchemy 2.1.6 with asyncpg 0.32.0, `AsyncConnection.commit()`, `engine.begin()`, `AsyncSession.commit()` and `async_sessionmaker.begin()` (with `after_commit`) return normally after `COMMIT` is answered `ROLLBACK`, 3 of 3; a failed ORM flush raised `PendingRollbackError`. Evidence: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md) (commit `664464b`).
+  - **PY-7: posting-day checks** of 2026-10-25, 22:56–23:02 UTC, in [`python-upstream-contribution/py-7-posting-day-checks/`](python-upstream-contribution/py-7-posting-day-checks/README.md) (commit `bf0bf37`): no duplicate; nothing posted.
+  - **New summary:** [`python-upstream-contribution/false-commit-across-drivers.md`](python-upstream-contribution/false-commit-across-drivers.md) (commit `ae1c695`), the false commit by driver and access path, linked to each piece of evidence.
+  - **PY-1b: follow-up drafted** in [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md) (commit `3ebe530`), reporting CHK-9's psycopg2 result. Planned as the one follow-up if #1453 is still silent in week 3; not posted.
+  - **PY-9:** CHK-9 and CHK-10 observed `after_commit` on aborted transactions with psycopg2, psycopg 3 and asyncpg on 2.1.6. Still DEFERRED.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
