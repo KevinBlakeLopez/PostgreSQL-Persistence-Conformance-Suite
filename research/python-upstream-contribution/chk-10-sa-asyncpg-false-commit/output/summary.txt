@@ -1,0 +1,106 @@
+versions: python 3.13.11; sqlalchemy 2.1.6; asyncpg 0.32.0; psycopg 3.3.6; psycopg_impl binary; psycopg_libpq 180006; server 18.6 (Debian 18.6-1.pgdg13+2)
+
+## ap-raw-transaction-block: 3 runs, identical
+  failing_statement: caught UniqueViolationError
+  driver_status_before_commit: is_in_transaction=True
+  api: block exited normally
+  driver_status_after_commit: is_in_transaction=False
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-raw-start-commit: 3 runs, identical
+  failing_statement: caught UniqueViolationError
+  driver_status_before_commit: is_in_transaction=True
+  api: returned normally
+  driver_status_after_commit: is_in_transaction=False
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-raw-sql-commit: 3 runs, identical
+  failing_statement: caught UniqueViolationError
+  driver_status_before_commit: is_in_transaction=True
+  api: returned normally
+  commit_command_status: ROLLBACK
+  driver_status_after_commit: is_in_transaction=False
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-core-connect-commit: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolationError)
+  driver_status_before_commit: is_in_transaction=True
+  sa_in_transaction_before_commit: True
+  api: returned normally
+  sa_in_transaction_after_commit: False
+  events: ConnectionEvents.commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-core-engine-begin: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolationError)
+  driver_status_before_commit: is_in_transaction=True
+  api: block exited normally
+  events: ConnectionEvents.commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-orm-execute-commit: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolationError)
+  driver_status_before_commit: is_in_transaction=True
+  api: returned normally
+  events: ConnectionEvents.commit, SessionEvents.after_commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-orm-sessionmaker-begin: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolationError)
+  driver_status_before_commit: is_in_transaction=True
+  api: block exited normally
+  events: ConnectionEvents.commit, SessionEvents.after_commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## ap-orm-flush-control: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolationError)
+  driver_status_before_commit: not read (the Session requires a rollback)
+  api: raised sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlalchemy.dialects.postgresql.asyncpg.UniqueViolationError) duplicate key value violates unique constraint "fc_item_pkey"
+  events: ConnectionEvents.rollback, SessionEvents.after_rollback, SessionEvents.after_soft_rollback
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | ROLLBACK
+
+## ap-core-no-error-control: 3 runs, identical
+  driver_status_before_commit: is_in_transaction=True
+  sa_in_transaction_before_commit: True
+  api: returned normally
+  sa_in_transaction_after_commit: False
+  events: ConnectionEvents.commit
+  witness: row X exists=True; pg_xact_status=committed
+  psql pg_xact_status: committed
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | COMMIT
+
+## pa-core-connect-commit: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolation)
+  driver_status_before_commit: INERROR
+  sa_in_transaction_before_commit: True
+  api: returned normally
+  sa_in_transaction_after_commit: False
+  events: ConnectionEvents.commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT
+
+## pa-orm-execute-commit: 3 runs, identical
+  failing_statement: caught IntegrityError (UniqueViolation)
+  driver_status_before_commit: INERROR
+  api: returned normally
+  events: ConnectionEvents.commit, SessionEvents.after_commit
+  witness: row X exists=False; pg_xact_status=aborted
+  psql pg_xact_status: aborted
+  server log: BEGIN | ROLLBACK | BEGIN | insert fc_item | select xid | insert fc_item | ERROR 23505 | COMMIT

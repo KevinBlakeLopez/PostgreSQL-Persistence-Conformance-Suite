@@ -1,0 +1,666 @@
+2026-10-26 03:37:17.228 UTC [97] app=fc-witness-r1 vxid=3/2 xid=0 sqlstate=00000 LOG:  statement: drop table if exists fc_item
+2026-10-26 03:37:17.229 UTC [97] app=fc-witness-r1 vxid=3/3 xid=0 sqlstate=00000 LOG:  statement: create table fc_item (id int primary key, arm text not null)
+2026-10-26 03:37:17.231 UTC [97] app=fc-witness-r1 vxid=3/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, 'setup')
+2026-10-26 03:37:17.231 UTC [97] app=fc-witness-r1 vxid=3/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1'
+2026-10-26 03:37:17.231 UTC [97] app=fc-witness-r1 vxid=3/5 xid=0 sqlstate=00000 LOG:  statement: show server_version
+2026-10-26 03:37:17.240 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.242 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.242 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100', $2 = 'fc-ap-raw-transaction-block-r1'
+2026-10-26 03:37:17.243 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-transaction-block-r1'
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/2 xid=756 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.244 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid=4/0 xid=756 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.245 UTC [98] app=fc-ap-raw-transaction-block-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.010 user=postgres database=fc host=172.17.0.1 port=53826
+2026-10-26 03:37:17.246 UTC [97] app=fc-witness-r1 vxid=3/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.246 UTC [97] app=fc-witness-r1 vxid=3/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100'
+2026-10-26 03:37:17.247 UTC [97] app=fc-witness-r1 vxid=3/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.247 UTC [97] app=fc-witness-r1 vxid=3/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '756'
+2026-10-26 03:37:17.251 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.252 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.252 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200', $2 = 'fc-ap-raw-start-commit-r1'
+2026-10-26 03:37:17.253 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-start-commit-r1'
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/2 xid=757 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.254 UTC [99] app=fc-ap-raw-start-commit-r1 vxid=5/0 xid=757 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.255 UTC [99] app=fc-ap-raw-start-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.006 user=postgres database=fc host=172.17.0.1 port=53830
+2026-10-26 03:37:17.256 UTC [97] app=fc-witness-r1 vxid=3/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.256 UTC [97] app=fc-witness-r1 vxid=3/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200'
+2026-10-26 03:37:17.256 UTC [97] app=fc-witness-r1 vxid=3/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.256 UTC [97] app=fc-witness-r1 vxid=3/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '757'
+2026-10-26 03:37:17.261 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.261 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.261 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300', $2 = 'fc-ap-raw-sql-commit-r1'
+2026-10-26 03:37:17.262 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-sql-commit-r1'
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/2 xid=758 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.263 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid=6/0 xid=758 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.264 UTC [100] app=fc-ap-raw-sql-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=fc host=172.17.0.1 port=53838
+2026-10-26 03:37:17.265 UTC [97] app=fc-witness-r1 vxid=3/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.265 UTC [97] app=fc-witness-r1 vxid=3/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300'
+2026-10-26 03:37:17.265 UTC [97] app=fc-witness-r1 vxid=3/11 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.265 UTC [97] app=fc-witness-r1 vxid=3/11 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '758'
+2026-10-26 03:37:17.285 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.286 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: select pg_catalog.version()
+2026-10-26 03:37:17.287 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: select current_schema()
+2026-10-26 03:37:17.287 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_9__: show transaction isolation level
+2026-10-26 03:37:17.288 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: show standard_conforming_strings
+2026-10-26 03:37:17.288 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.289 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.290 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.290 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400', $2 = 'fc-ap-core-connect-commit-r1'
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-connect-commit-r1'
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.291 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/3 xid=759 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.292 UTC [101] app=fc-ap-core-connect-commit-r1 vxid=7/0 xid=759 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.292 UTC [101] app=fc-ap-core-connect-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.010 user=postgres database=fc host=172.17.0.1 port=53854
+2026-10-26 03:37:17.294 UTC [97] app=fc-witness-r1 vxid=3/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.294 UTC [97] app=fc-witness-r1 vxid=3/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400'
+2026-10-26 03:37:17.294 UTC [97] app=fc-witness-r1 vxid=3/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.294 UTC [97] app=fc-witness-r1 vxid=3/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '759'
+2026-10-26 03:37:17.298 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.299 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: select pg_catalog.version()
+2026-10-26 03:37:17.299 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_e__: select current_schema()
+2026-10-26 03:37:17.300 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_f__: show transaction isolation level
+2026-10-26 03:37:17.301 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_10__: show standard_conforming_strings
+2026-10-26 03:37:17.301 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.302 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.302 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.302 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500', $2 = 'fc-ap-core-engine-begin-r1'
+2026-10-26 03:37:17.303 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=00000 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-engine-begin-r1'
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/3 xid=760 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid=8/0 xid=760 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.304 UTC [102] app=fc-ap-core-engine-begin-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=53864
+2026-10-26 03:37:17.305 UTC [97] app=fc-witness-r1 vxid=3/14 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.305 UTC [97] app=fc-witness-r1 vxid=3/14 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500'
+2026-10-26 03:37:17.306 UTC [97] app=fc-witness-r1 vxid=3/15 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.306 UTC [97] app=fc-witness-r1 vxid=3/15 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '760'
+2026-10-26 03:37:17.311 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.311 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_13__: select pg_catalog.version()
+2026-10-26 03:37:17.312 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_14__: select current_schema()
+2026-10-26 03:37:17.313 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_15__: show transaction isolation level
+2026-10-26 03:37:17.313 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_16__: show standard_conforming_strings
+2026-10-26 03:37:17.314 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.314 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.315 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.315 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600', $2 = 'fc-ap-orm-execute-commit-r1'
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=00000 LOG:  execute __asyncpg_stmt_18__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-execute-commit-r1'
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.316 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/3 xid=761 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.317 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid=9/0 xid=761 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.317 UTC [103] app=fc-ap-orm-execute-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53876
+2026-10-26 03:37:17.319 UTC [97] app=fc-witness-r1 vxid=3/17 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.319 UTC [97] app=fc-witness-r1 vxid=3/17 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600'
+2026-10-26 03:37:17.319 UTC [97] app=fc-witness-r1 vxid=3/19 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.319 UTC [97] app=fc-witness-r1 vxid=3/19 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '761'
+2026-10-26 03:37:17.323 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.324 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_19__: select pg_catalog.version()
+2026-10-26 03:37:17.324 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1a__: select current_schema()
+2026-10-26 03:37:17.325 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1b__: show transaction isolation level
+2026-10-26 03:37:17.326 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1c__: show standard_conforming_strings
+2026-10-26 03:37:17.326 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.326 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.327 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.327 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700', $2 = 'fc-ap-orm-sessionmaker-begin-r1'
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=00000 LOG:  execute __asyncpg_stmt_1e__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-sessionmaker-begin-r1'
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.328 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/3 xid=762 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.329 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid=10/0 xid=762 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.329 UTC [104] app=fc-ap-orm-sessionmaker-begin-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53890
+2026-10-26 03:37:17.330 UTC [97] app=fc-witness-r1 vxid=3/20 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.330 UTC [97] app=fc-witness-r1 vxid=3/20 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700'
+2026-10-26 03:37:17.331 UTC [97] app=fc-witness-r1 vxid=3/21 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.331 UTC [97] app=fc-witness-r1 vxid=3/21 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '762'
+2026-10-26 03:37:17.334 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.335 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1f__: select pg_catalog.version()
+2026-10-26 03:37:17.335 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_20__: select current_schema()
+2026-10-26 03:37:17.336 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_21__: show transaction isolation level
+2026-10-26 03:37:17.337 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_22__: show standard_conforming_strings
+2026-10-26 03:37:17.337 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.337 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.338 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.338 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800', $2 = 'fc-ap-orm-flush-control-r1'
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=00000 LOG:  execute __asyncpg_stmt_24__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-flush-control-r1'
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.339 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/3 xid=763 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.340 UTC [105] app=fc-ap-orm-flush-control-r1 vxid=11/0 xid=763 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.340 UTC [105] app=fc-ap-orm-flush-control-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53894
+2026-10-26 03:37:17.341 UTC [97] app=fc-witness-r1 vxid=3/22 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.341 UTC [97] app=fc-witness-r1 vxid=3/22 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800'
+2026-10-26 03:37:17.341 UTC [97] app=fc-witness-r1 vxid=3/23 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.341 UTC [97] app=fc-witness-r1 vxid=3/23 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '763'
+2026-10-26 03:37:17.345 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.345 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_25__: select pg_catalog.version()
+2026-10-26 03:37:17.346 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_26__: select current_schema()
+2026-10-26 03:37:17.347 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_27__: show transaction isolation level
+2026-10-26 03:37:17.347 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_28__: show standard_conforming_strings
+2026-10-26 03:37:17.348 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.348 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.349 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_29__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.349 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900', $2 = 'fc-ap-core-no-error-control-r1'
+2026-10-26 03:37:17.349 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/3 xid=764 sqlstate=00000 LOG:  execute __asyncpg_stmt_2a__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.350 UTC [106] app=fc-ap-core-no-error-control-r1 vxid=12/3 xid=764 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.350 UTC [106] app=fc-ap-core-no-error-control-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=fc host=172.17.0.1 port=53896
+2026-10-26 03:37:17.351 UTC [97] app=fc-witness-r1 vxid=3/24 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.351 UTC [97] app=fc-witness-r1 vxid=3/24 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900'
+2026-10-26 03:37:17.352 UTC [97] app=fc-witness-r1 vxid=3/25 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.352 UTC [97] app=fc-witness-r1 vxid=3/25 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '764'
+2026-10-26 03:37:17.356 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.356 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:17.357 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:17.357 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:17.357 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:17.358 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:17.359 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:17.359 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:17.359 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:17.360 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:17.360 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.360 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.360 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000', $2 = 'fc-pa-core-connect-commit-r1'
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-core-connect-commit-r1'
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.361 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/3 xid=765 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.362 UTC [107] app=fc-pa-core-connect-commit-r1 vxid=13/0 xid=765 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.362 UTC [107] app=fc-pa-core-connect-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=53912
+2026-10-26 03:37:17.362 UTC [97] app=fc-witness-r1 vxid=3/26 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.362 UTC [97] app=fc-witness-r1 vxid=3/26 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000'
+2026-10-26 03:37:17.363 UTC [97] app=fc-witness-r1 vxid=3/27 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.363 UTC [97] app=fc-witness-r1 vxid=3/27 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '765'
+2026-10-26 03:37:17.368 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.368 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:17.369 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:17.369 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:17.370 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:17.370 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:17.371 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:17.371 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:17.371 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:17.372 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:17.372 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.373 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.373 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100', $2 = 'fc-pa-orm-execute-commit-r1'
+2026-10-26 03:37:17.373 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-orm-execute-commit-r1'
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/3 xid=766 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.374 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid=14/0 xid=766 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.375 UTC [108] app=fc-pa-orm-execute-commit-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.010 user=postgres database=fc host=172.17.0.1 port=53920
+2026-10-26 03:37:17.375 UTC [97] app=fc-witness-r1 vxid=3/28 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.375 UTC [97] app=fc-witness-r1 vxid=3/28 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100'
+2026-10-26 03:37:17.375 UTC [97] app=fc-witness-r1 vxid=3/29 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.375 UTC [97] app=fc-witness-r1 vxid=3/29 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '766'
+2026-10-26 03:37:17.400 UTC [97] app=fc-witness-r1 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.181 user=postgres database=fc host=172.17.0.1 port=53810
+2026-10-26 03:37:17.593 UTC [109] app=fc-witness-r2 vxid=15/2 xid=0 sqlstate=00000 LOG:  statement: drop table if exists fc_item
+2026-10-26 03:37:17.595 UTC [109] app=fc-witness-r2 vxid=15/3 xid=0 sqlstate=00000 LOG:  statement: create table fc_item (id int primary key, arm text not null)
+2026-10-26 03:37:17.596 UTC [109] app=fc-witness-r2 vxid=15/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, 'setup')
+2026-10-26 03:37:17.596 UTC [109] app=fc-witness-r2 vxid=15/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1'
+2026-10-26 03:37:17.596 UTC [109] app=fc-witness-r2 vxid=15/5 xid=0 sqlstate=00000 LOG:  statement: show server_version
+2026-10-26 03:37:17.601 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.602 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.602 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100', $2 = 'fc-ap-raw-transaction-block-r2'
+2026-10-26 03:37:17.602 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-transaction-block-r2'
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/2 xid=770 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid=16/0 xid=770 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.603 UTC [110] app=fc-ap-raw-transaction-block-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=fc host=172.17.0.1 port=53944
+2026-10-26 03:37:17.605 UTC [109] app=fc-witness-r2 vxid=15/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.605 UTC [109] app=fc-witness-r2 vxid=15/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100'
+2026-10-26 03:37:17.605 UTC [109] app=fc-witness-r2 vxid=15/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.605 UTC [109] app=fc-witness-r2 vxid=15/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '770'
+2026-10-26 03:37:17.609 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.609 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.609 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200', $2 = 'fc-ap-raw-start-commit-r2'
+2026-10-26 03:37:17.610 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-start-commit-r2'
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/2 xid=771 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid=17/0 xid=771 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.611 UTC [111] app=fc-ap-raw-start-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=fc host=172.17.0.1 port=53952
+2026-10-26 03:37:17.612 UTC [109] app=fc-witness-r2 vxid=15/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.612 UTC [109] app=fc-witness-r2 vxid=15/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200'
+2026-10-26 03:37:17.613 UTC [109] app=fc-witness-r2 vxid=15/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.613 UTC [109] app=fc-witness-r2 vxid=15/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '771'
+2026-10-26 03:37:17.616 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.617 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.617 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300', $2 = 'fc-ap-raw-sql-commit-r2'
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-sql-commit-r2'
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/2 xid=772 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.618 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid=18/0 xid=772 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.619 UTC [112] app=fc-ap-raw-sql-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.004 user=postgres database=fc host=172.17.0.1 port=53958
+2026-10-26 03:37:17.620 UTC [109] app=fc-witness-r2 vxid=15/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.620 UTC [109] app=fc-witness-r2 vxid=15/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300'
+2026-10-26 03:37:17.620 UTC [109] app=fc-witness-r2 vxid=15/11 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.620 UTC [109] app=fc-witness-r2 vxid=15/11 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '772'
+2026-10-26 03:37:17.634 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.634 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: select pg_catalog.version()
+2026-10-26 03:37:17.635 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: select current_schema()
+2026-10-26 03:37:17.636 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_9__: show transaction isolation level
+2026-10-26 03:37:17.637 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: show standard_conforming_strings
+2026-10-26 03:37:17.637 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.637 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.638 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.638 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400', $2 = 'fc-ap-core-connect-commit-r2'
+2026-10-26 03:37:17.639 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-connect-commit-r2'
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/3 xid=773 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.640 UTC [113] app=fc-ap-core-connect-commit-r2 vxid=19/0 xid=773 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.641 UTC [113] app=fc-ap-core-connect-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=53960
+2026-10-26 03:37:17.643 UTC [109] app=fc-witness-r2 vxid=15/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.643 UTC [109] app=fc-witness-r2 vxid=15/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400'
+2026-10-26 03:37:17.643 UTC [109] app=fc-witness-r2 vxid=15/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.643 UTC [109] app=fc-witness-r2 vxid=15/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '773'
+2026-10-26 03:37:17.647 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.648 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: select pg_catalog.version()
+2026-10-26 03:37:17.648 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_e__: select current_schema()
+2026-10-26 03:37:17.649 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_f__: show transaction isolation level
+2026-10-26 03:37:17.650 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_10__: show standard_conforming_strings
+2026-10-26 03:37:17.650 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.651 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.651 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.651 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500', $2 = 'fc-ap-core-engine-begin-r2'
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=00000 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-engine-begin-r2'
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.652 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/3 xid=774 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.653 UTC [114] app=fc-ap-core-engine-begin-r2 vxid=20/0 xid=774 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.653 UTC [114] app=fc-ap-core-engine-begin-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53966
+2026-10-26 03:37:17.654 UTC [109] app=fc-witness-r2 vxid=15/14 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.654 UTC [109] app=fc-witness-r2 vxid=15/14 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500'
+2026-10-26 03:37:17.654 UTC [109] app=fc-witness-r2 vxid=15/15 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.654 UTC [109] app=fc-witness-r2 vxid=15/15 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '774'
+2026-10-26 03:37:17.660 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.660 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_13__: select pg_catalog.version()
+2026-10-26 03:37:17.661 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_14__: select current_schema()
+2026-10-26 03:37:17.661 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_15__: show transaction isolation level
+2026-10-26 03:37:17.662 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_16__: show standard_conforming_strings
+2026-10-26 03:37:17.662 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.663 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.664 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.664 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600', $2 = 'fc-ap-orm-execute-commit-r2'
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=00000 LOG:  execute __asyncpg_stmt_18__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-execute-commit-r2'
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.665 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/3 xid=775 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.666 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid=21/0 xid=775 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.666 UTC [115] app=fc-ap-orm-execute-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53972
+2026-10-26 03:37:17.668 UTC [109] app=fc-witness-r2 vxid=15/17 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.668 UTC [109] app=fc-witness-r2 vxid=15/17 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600'
+2026-10-26 03:37:17.668 UTC [109] app=fc-witness-r2 vxid=15/19 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.668 UTC [109] app=fc-witness-r2 vxid=15/19 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '775'
+2026-10-26 03:37:17.672 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.672 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_19__: select pg_catalog.version()
+2026-10-26 03:37:17.673 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1a__: select current_schema()
+2026-10-26 03:37:17.674 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1b__: show transaction isolation level
+2026-10-26 03:37:17.674 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1c__: show standard_conforming_strings
+2026-10-26 03:37:17.675 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.675 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.676 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.676 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700', $2 = 'fc-ap-orm-sessionmaker-begin-r2'
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=00000 LOG:  execute __asyncpg_stmt_1e__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-sessionmaker-begin-r2'
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/3 xid=776 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.677 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid=22/0 xid=776 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.678 UTC [116] app=fc-ap-orm-sessionmaker-begin-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53980
+2026-10-26 03:37:17.679 UTC [109] app=fc-witness-r2 vxid=15/20 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.679 UTC [109] app=fc-witness-r2 vxid=15/20 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700'
+2026-10-26 03:37:17.679 UTC [109] app=fc-witness-r2 vxid=15/21 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.679 UTC [109] app=fc-witness-r2 vxid=15/21 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '776'
+2026-10-26 03:37:17.683 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.684 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1f__: select pg_catalog.version()
+2026-10-26 03:37:17.684 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_20__: select current_schema()
+2026-10-26 03:37:17.686 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_21__: show transaction isolation level
+2026-10-26 03:37:17.686 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_22__: show standard_conforming_strings
+2026-10-26 03:37:17.686 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.687 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.688 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.688 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800', $2 = 'fc-ap-orm-flush-control-r2'
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=00000 LOG:  execute __asyncpg_stmt_24__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-flush-control-r2'
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/3 xid=777 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.689 UTC [117] app=fc-ap-orm-flush-control-r2 vxid=23/0 xid=777 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.690 UTC [117] app=fc-ap-orm-flush-control-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=53990
+2026-10-26 03:37:17.691 UTC [109] app=fc-witness-r2 vxid=15/22 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.691 UTC [109] app=fc-witness-r2 vxid=15/22 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800'
+2026-10-26 03:37:17.691 UTC [109] app=fc-witness-r2 vxid=15/23 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.691 UTC [109] app=fc-witness-r2 vxid=15/23 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '777'
+2026-10-26 03:37:17.695 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.696 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_25__: select pg_catalog.version()
+2026-10-26 03:37:17.696 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_26__: select current_schema()
+2026-10-26 03:37:17.697 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_27__: show transaction isolation level
+2026-10-26 03:37:17.698 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_28__: show standard_conforming_strings
+2026-10-26 03:37:17.698 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.698 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.699 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_29__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.699 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900', $2 = 'fc-ap-core-no-error-control-r2'
+2026-10-26 03:37:17.700 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/3 xid=778 sqlstate=00000 LOG:  execute __asyncpg_stmt_2a__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.700 UTC [118] app=fc-ap-core-no-error-control-r2 vxid=24/3 xid=778 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.701 UTC [118] app=fc-ap-core-no-error-control-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=53996
+2026-10-26 03:37:17.702 UTC [109] app=fc-witness-r2 vxid=15/24 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.702 UTC [109] app=fc-witness-r2 vxid=15/24 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900'
+2026-10-26 03:37:17.702 UTC [109] app=fc-witness-r2 vxid=15/25 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.702 UTC [109] app=fc-witness-r2 vxid=15/25 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '778'
+2026-10-26 03:37:17.706 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.707 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:17.707 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:17.708 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:17.708 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:17.708 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:17.709 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:17.709 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:17.710 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:17.710 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:17.710 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.711 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.711 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000', $2 = 'fc-pa-core-connect-commit-r2'
+2026-10-26 03:37:17.711 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-core-connect-commit-r2'
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/3 xid=779 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid=25/0 xid=779 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.712 UTC [119] app=fc-pa-core-connect-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54006
+2026-10-26 03:37:17.712 UTC [109] app=fc-witness-r2 vxid=15/26 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.712 UTC [109] app=fc-witness-r2 vxid=15/26 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000'
+2026-10-26 03:37:17.713 UTC [109] app=fc-witness-r2 vxid=15/27 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.713 UTC [109] app=fc-witness-r2 vxid=15/27 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '779'
+2026-10-26 03:37:17.717 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.717 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:17.718 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:17.718 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:17.719 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:17.719 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:17.720 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:17.720 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:17.720 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:17.720 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:17.721 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.721 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.721 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100', $2 = 'fc-pa-orm-execute-commit-r2'
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-orm-execute-commit-r2'
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.722 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/3 xid=780 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.723 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid=26/0 xid=780 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.723 UTC [120] app=fc-pa-orm-execute-commit-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54012
+2026-10-26 03:37:17.723 UTC [109] app=fc-witness-r2 vxid=15/28 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.723 UTC [109] app=fc-witness-r2 vxid=15/28 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100'
+2026-10-26 03:37:17.723 UTC [109] app=fc-witness-r2 vxid=15/29 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.723 UTC [109] app=fc-witness-r2 vxid=15/29 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '780'
+2026-10-26 03:37:17.741 UTC [109] app=fc-witness-r2 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.152 user=postgres database=fc host=172.17.0.1 port=53934
+2026-10-26 03:37:17.922 UTC [121] app=fc-witness-r3 vxid=27/2 xid=0 sqlstate=00000 LOG:  statement: drop table if exists fc_item
+2026-10-26 03:37:17.923 UTC [121] app=fc-witness-r3 vxid=27/3 xid=0 sqlstate=00000 LOG:  statement: create table fc_item (id int primary key, arm text not null)
+2026-10-26 03:37:17.924 UTC [121] app=fc-witness-r3 vxid=27/4 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, 'setup')
+2026-10-26 03:37:17.924 UTC [121] app=fc-witness-r3 vxid=27/4 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1'
+2026-10-26 03:37:17.925 UTC [121] app=fc-witness-r3 vxid=27/5 xid=0 sqlstate=00000 LOG:  statement: show server_version
+2026-10-26 03:37:17.929 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.930 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.930 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100', $2 = 'fc-ap-raw-transaction-block-r3'
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=00000 LOG:  execute __asyncpg_stmt_2__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=00000 LOG:  execute __asyncpg_stmt_1__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-transaction-block-r3'
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.931 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/2 xid=784 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.932 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid=28/0 xid=784 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.932 UTC [122] app=fc-ap-raw-transaction-block-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.005 user=postgres database=fc host=172.17.0.1 port=54028
+2026-10-26 03:37:17.933 UTC [121] app=fc-witness-r3 vxid=27/6 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.933 UTC [121] app=fc-witness-r3 vxid=27/6 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '100'
+2026-10-26 03:37:17.934 UTC [121] app=fc-witness-r3 vxid=27/7 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.934 UTC [121] app=fc-witness-r3 vxid=27/7 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '784'
+2026-10-26 03:37:17.937 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.938 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.938 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200', $2 = 'fc-ap-raw-start-commit-r3'
+2026-10-26 03:37:17.938 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=00000 LOG:  execute __asyncpg_stmt_4__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=00000 LOG:  execute __asyncpg_stmt_3__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-start-commit-r3'
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/2 xid=785 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.939 UTC [123] app=fc-ap-raw-start-commit-r3 vxid=29/0 xid=785 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.940 UTC [123] app=fc-ap-raw-start-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.004 user=postgres database=fc host=172.17.0.1 port=54030
+2026-10-26 03:37:17.941 UTC [121] app=fc-witness-r3 vxid=27/8 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.941 UTC [121] app=fc-witness-r3 vxid=27/8 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '200'
+2026-10-26 03:37:17.941 UTC [121] app=fc-witness-r3 vxid=27/9 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.941 UTC [121] app=fc-witness-r3 vxid=27/9 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '785'
+2026-10-26 03:37:17.944 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:17.945 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.945 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300', $2 = 'fc-ap-raw-sql-commit-r3'
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=00000 LOG:  execute __asyncpg_stmt_6__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=00000 LOG:  execute __asyncpg_stmt_5__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-raw-sql-commit-r3'
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/2 xid=786 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.946 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid=30/0 xid=786 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:17.947 UTC [124] app=fc-ap-raw-sql-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.004 user=postgres database=fc host=172.17.0.1 port=54034
+2026-10-26 03:37:17.948 UTC [121] app=fc-witness-r3 vxid=27/10 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.948 UTC [121] app=fc-witness-r3 vxid=27/10 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '300'
+2026-10-26 03:37:17.948 UTC [121] app=fc-witness-r3 vxid=27/11 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.948 UTC [121] app=fc-witness-r3 vxid=27/11 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '786'
+2026-10-26 03:37:17.961 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.962 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_7__: select pg_catalog.version()
+2026-10-26 03:37:17.963 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_8__: select current_schema()
+2026-10-26 03:37:17.963 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_9__: show transaction isolation level
+2026-10-26 03:37:17.964 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_a__: show standard_conforming_strings
+2026-10-26 03:37:17.964 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.965 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.965 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.965 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400', $2 = 'fc-ap-core-connect-commit-r3'
+2026-10-26 03:37:17.966 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=00000 LOG:  execute __asyncpg_stmt_c__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=00000 LOG:  execute __asyncpg_stmt_b__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-connect-commit-r3'
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/3 xid=787 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.967 UTC [125] app=fc-ap-core-connect-commit-r3 vxid=31/0 xid=787 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.968 UTC [125] app=fc-ap-core-connect-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54044
+2026-10-26 03:37:17.969 UTC [121] app=fc-witness-r3 vxid=27/12 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.969 UTC [121] app=fc-witness-r3 vxid=27/12 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '400'
+2026-10-26 03:37:17.969 UTC [121] app=fc-witness-r3 vxid=27/13 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.969 UTC [121] app=fc-witness-r3 vxid=27/13 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '787'
+2026-10-26 03:37:17.973 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.973 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_d__: select pg_catalog.version()
+2026-10-26 03:37:17.974 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_e__: select current_schema()
+2026-10-26 03:37:17.975 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_f__: show transaction isolation level
+2026-10-26 03:37:17.975 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_10__: show standard_conforming_strings
+2026-10-26 03:37:17.976 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.976 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.977 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.977 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500', $2 = 'fc-ap-core-engine-begin-r3'
+2026-10-26 03:37:17.977 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=00000 LOG:  execute __asyncpg_stmt_12__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=00000 LOG:  execute __asyncpg_stmt_11__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-core-engine-begin-r3'
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/3 xid=788 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:17.978 UTC [126] app=fc-ap-core-engine-begin-r3 vxid=32/0 xid=788 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.979 UTC [126] app=fc-ap-core-engine-begin-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.008 user=postgres database=fc host=172.17.0.1 port=54052
+2026-10-26 03:37:17.980 UTC [121] app=fc-witness-r3 vxid=27/14 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select arm from fc_item where id = $1
+2026-10-26 03:37:17.980 UTC [121] app=fc-witness-r3 vxid=27/14 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '500'
+2026-10-26 03:37:17.980 UTC [121] app=fc-witness-r3 vxid=27/15 xid=0 sqlstate=00000 LOG:  execute <unnamed>: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.980 UTC [121] app=fc-witness-r3 vxid=27/15 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '788'
+2026-10-26 03:37:17.985 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.986 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_13__: select pg_catalog.version()
+2026-10-26 03:37:17.987 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_14__: select current_schema()
+2026-10-26 03:37:17.987 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_15__: show transaction isolation level
+2026-10-26 03:37:17.988 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_16__: show standard_conforming_strings
+2026-10-26 03:37:17.988 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:17.989 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:17.990 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.990 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600', $2 = 'fc-ap-orm-execute-commit-r3'
+2026-10-26 03:37:17.991 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=00000 LOG:  execute __asyncpg_stmt_18__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=00000 LOG:  execute __asyncpg_stmt_17__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-execute-commit-r3'
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/3 xid=789 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:17.992 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid=33/0 xid=789 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:17.993 UTC [127] app=fc-ap-orm-execute-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.010 user=postgres database=fc host=172.17.0.1 port=54064
+2026-10-26 03:37:17.994 UTC [121] app=fc-witness-r3 vxid=27/17 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:17.994 UTC [121] app=fc-witness-r3 vxid=27/17 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '600'
+2026-10-26 03:37:17.995 UTC [121] app=fc-witness-r3 vxid=27/19 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:17.995 UTC [121] app=fc-witness-r3 vxid=27/19 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '789'
+2026-10-26 03:37:17.999 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.000 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_19__: select pg_catalog.version()
+2026-10-26 03:37:18.001 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1a__: select current_schema()
+2026-10-26 03:37:18.002 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1b__: show transaction isolation level
+2026-10-26 03:37:18.002 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1c__: show standard_conforming_strings
+2026-10-26 03:37:18.003 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:18.003 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.004 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.004 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700', $2 = 'fc-ap-orm-sessionmaker-begin-r3'
+2026-10-26 03:37:18.005 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=00000 LOG:  execute __asyncpg_stmt_1e__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:18.005 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=00000 LOG:  execute __asyncpg_stmt_1d__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.005 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-sessionmaker-begin-r3'
+2026-10-26 03:37:18.006 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:18.006 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:18.006 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/3 xid=790 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.006 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid=34/0 xid=790 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:18.007 UTC [128] app=fc-ap-orm-sessionmaker-begin-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54076
+2026-10-26 03:37:18.008 UTC [121] app=fc-witness-r3 vxid=27/20 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:18.008 UTC [121] app=fc-witness-r3 vxid=27/20 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '700'
+2026-10-26 03:37:18.008 UTC [121] app=fc-witness-r3 vxid=27/21 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:18.008 UTC [121] app=fc-witness-r3 vxid=27/21 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '790'
+2026-10-26 03:37:18.012 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.013 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_1f__: select pg_catalog.version()
+2026-10-26 03:37:18.014 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_20__: select current_schema()
+2026-10-26 03:37:18.014 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_21__: show transaction isolation level
+2026-10-26 03:37:18.015 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_22__: show standard_conforming_strings
+2026-10-26 03:37:18.015 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:18.016 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.017 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.017 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800', $2 = 'fc-ap-orm-flush-control-r3'
+2026-10-26 03:37:18.017 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=00000 LOG:  execute __asyncpg_stmt_24__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=00000 LOG:  execute __asyncpg_stmt_23__: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-ap-orm-flush-control-r3'
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/3 xid=791 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.018 UTC [129] app=fc-ap-orm-flush-control-r3 vxid=35/0 xid=791 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:18.019 UTC [129] app=fc-ap-orm-flush-control-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54088
+2026-10-26 03:37:18.020 UTC [121] app=fc-witness-r3 vxid=27/22 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:18.020 UTC [121] app=fc-witness-r3 vxid=27/22 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '800'
+2026-10-26 03:37:18.021 UTC [121] app=fc-witness-r3 vxid=27/23 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:18.021 UTC [121] app=fc-witness-r3 vxid=27/23 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '791'
+2026-10-26 03:37:18.024 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.025 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_25__: select pg_catalog.version()
+2026-10-26 03:37:18.026 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_26__: select current_schema()
+2026-10-26 03:37:18.026 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_27__: show transaction isolation level
+2026-10-26 03:37:18.027 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_28__: show standard_conforming_strings
+2026-10-26 03:37:18.027 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK;
+2026-10-26 03:37:18.028 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN;
+2026-10-26 03:37:18.028 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/3 xid=0 sqlstate=00000 LOG:  execute __asyncpg_stmt_29__: insert into fc_item values ($1, $2)
+2026-10-26 03:37:18.028 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900', $2 = 'fc-ap-core-no-error-control-r3'
+2026-10-26 03:37:18.029 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/3 xid=792 sqlstate=00000 LOG:  execute __asyncpg_stmt_2a__: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:18.029 UTC [130] app=fc-ap-core-no-error-control-r3 vxid=36/3 xid=792 sqlstate=00000 LOG:  statement: COMMIT;
+2026-10-26 03:37:18.030 UTC [130] app=fc-ap-core-no-error-control-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.007 user=postgres database=fc host=172.17.0.1 port=54102
+2026-10-26 03:37:18.031 UTC [121] app=fc-witness-r3 vxid=27/24 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:18.031 UTC [121] app=fc-witness-r3 vxid=27/24 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '900'
+2026-10-26 03:37:18.031 UTC [121] app=fc-witness-r3 vxid=27/25 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:18.031 UTC [121] app=fc-witness-r3 vxid=27/25 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '792'
+2026-10-26 03:37:18.035 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:18.036 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:18.036 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:18.037 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:18.037 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:18.037 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:18.038 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:18.038 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:18.039 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:18.039 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:18.039 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:18.040 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:18.040 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000', $2 = 'fc-pa-core-connect-commit-r3'
+2026-10-26 03:37:18.040 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=00000 LOG:  execute <unnamed>: insert into fc_item values ($1, $2)
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-core-connect-commit-r3'
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/3 xid=793 sqlstate=23505 STATEMENT:  insert into fc_item values ($1, $2)
+2026-10-26 03:37:18.041 UTC [131] app=fc-pa-core-connect-commit-r3 vxid=37/0 xid=793 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:18.042 UTC [131] app=fc-pa-core-connect-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54108
+2026-10-26 03:37:18.042 UTC [121] app=fc-witness-r3 vxid=27/26 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:18.042 UTC [121] app=fc-witness-r3 vxid=27/26 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1000'
+2026-10-26 03:37:18.042 UTC [121] app=fc-witness-r3 vxid=27/27 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:18.042 UTC [121] app=fc-witness-r3 vxid=27/27 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '793'
+2026-10-26 03:37:18.046 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:18.046 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: select pg_catalog.version()
+2026-10-26 03:37:18.047 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: select current_schema()
+2026-10-26 03:37:18.047 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: show transaction isolation level
+2026-10-26 03:37:18.048 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: show standard_conforming_strings
+2026-10-26 03:37:18.048 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: SAVEPOINT "_pg3_1"
+2026-10-26 03:37:18.049 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  execute <unnamed>: SELECT
+2026-10-26 03:37:18.049 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = 'hstore'
+2026-10-26 03:37:18.049 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: RELEASE "_pg3_1"
+2026-10-26 03:37:18.049 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/2 xid=0 sqlstate=00000 LOG:  statement: ROLLBACK
+2026-10-26 03:37:18.050 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=0 sqlstate=00000 LOG:  statement: BEGIN
+2026-10-26 03:37:18.050 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=0 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.050 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100', $2 = 'fc-pa-orm-execute-commit-r3'
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=00000 LOG:  statement: select pg_current_xact_id_if_assigned()::text
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=00000 LOG:  execute <unnamed>: INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=00000 DETAIL:  Parameters: $1 = '1', $2 = 'fc-pa-orm-execute-commit-r3'
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=23505 ERROR:  duplicate key value violates unique constraint "fc_item_pkey"
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=23505 DETAIL:  Key (id)=(1) already exists.
+2026-10-26 03:37:18.051 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/3 xid=794 sqlstate=23505 STATEMENT:  INSERT INTO fc_item (id, arm) VALUES ($1::INTEGER, $2::VARCHAR)
+2026-10-26 03:37:18.052 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid=38/0 xid=794 sqlstate=00000 LOG:  statement: COMMIT
+2026-10-26 03:37:18.052 UTC [132] app=fc-pa-orm-execute-commit-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.009 user=postgres database=fc host=172.17.0.1 port=54112
+2026-10-26 03:37:18.052 UTC [121] app=fc-witness-r3 vxid=27/28 xid=0 sqlstate=00000 LOG:  execute _pg3_0: select arm from fc_item where id = $1
+2026-10-26 03:37:18.052 UTC [121] app=fc-witness-r3 vxid=27/28 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '1100'
+2026-10-26 03:37:18.052 UTC [121] app=fc-witness-r3 vxid=27/29 xid=0 sqlstate=00000 LOG:  execute _pg3_1: select pg_xact_status($1::xid8)
+2026-10-26 03:37:18.052 UTC [121] app=fc-witness-r3 vxid=27/29 xid=0 sqlstate=00000 DETAIL:  Parameters: $1 = '794'
+2026-10-26 03:37:18.070 UTC [121] app=fc-witness-r3 vxid= xid=0 sqlstate=00000 LOG:  disconnection: session time: 0:00:00.152 user=postgres database=fc host=172.17.0.1 port=54022

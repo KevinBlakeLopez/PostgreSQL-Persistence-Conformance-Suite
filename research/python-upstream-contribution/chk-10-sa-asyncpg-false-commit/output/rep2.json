@@ -1,0 +1,195 @@
+{
+ "rep": "2",
+ "versions": {
+  "python": "3.13.11",
+  "sqlalchemy": "2.1.6",
+  "asyncpg": "0.32.0",
+  "psycopg": "3.3.6",
+  "psycopg_impl": "binary",
+  "psycopg_libpq": 180006,
+  "server": "18.6 (Debian 18.6-1.pgdg13+2)"
+ },
+ "arms": [
+  {
+   "arm": "ap-raw-transaction-block",
+   "application_name": "fc-ap-raw-transaction-block-r2",
+   "row_x": 100,
+   "xid": "770",
+   "failing_statement": "caught UniqueViolationError",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "api": "block exited normally",
+   "driver_status_after_commit": "is_in_transaction=False",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-raw-start-commit",
+   "application_name": "fc-ap-raw-start-commit-r2",
+   "row_x": 200,
+   "xid": "771",
+   "failing_statement": "caught UniqueViolationError",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "api": "returned normally",
+   "driver_status_after_commit": "is_in_transaction=False",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-raw-sql-commit",
+   "application_name": "fc-ap-raw-sql-commit-r2",
+   "row_x": 300,
+   "xid": "772",
+   "failing_statement": "caught UniqueViolationError",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "commit_command_status": "ROLLBACK",
+   "api": "returned normally",
+   "driver_status_after_commit": "is_in_transaction=False",
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-core-connect-commit",
+   "application_name": "fc-ap-core-connect-commit-r2",
+   "row_x": 400,
+   "xid": "773",
+   "failing_statement": "caught IntegrityError (UniqueViolationError)",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "sa_in_transaction_before_commit": true,
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-core-engine-begin",
+   "application_name": "fc-ap-core-engine-begin-r2",
+   "row_x": 500,
+   "xid": "774",
+   "failing_statement": "caught IntegrityError (UniqueViolationError)",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "api": "block exited normally",
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-orm-execute-commit",
+   "application_name": "fc-ap-orm-execute-commit-r2",
+   "row_x": 600,
+   "xid": "775",
+   "failing_statement": "caught IntegrityError (UniqueViolationError)",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "api": "returned normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-orm-sessionmaker-begin",
+   "application_name": "fc-ap-orm-sessionmaker-begin-r2",
+   "row_x": 700,
+   "xid": "776",
+   "failing_statement": "caught IntegrityError (UniqueViolationError)",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "api": "block exited normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-orm-flush-control",
+   "application_name": "fc-ap-orm-flush-control-r2",
+   "row_x": 800,
+   "xid": "777",
+   "failing_statement": "caught IntegrityError (UniqueViolationError)",
+   "driver_status_before_commit": "not read (the Session requires a rollback)",
+   "api": "raised sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlalchemy.dialects.postgresql.asyncpg.UniqueViolationError) duplicate key value violates unique constraint \"fc_item_pkey\"",
+   "events": [
+    "ConnectionEvents.rollback",
+    "SessionEvents.after_rollback",
+    "SessionEvents.after_soft_rollback"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "ap-core-no-error-control",
+   "application_name": "fc-ap-core-no-error-control-r2",
+   "row_x": 900,
+   "xid": "778",
+   "driver_status_before_commit": "is_in_transaction=True",
+   "sa_in_transaction_before_commit": true,
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": true,
+    "xact_status": "committed"
+   }
+  },
+  {
+   "arm": "pa-core-connect-commit",
+   "application_name": "fc-pa-core-connect-commit-r2",
+   "row_x": 1000,
+   "xid": "779",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "sa_in_transaction_before_commit": true,
+   "api": "returned normally",
+   "sa_in_transaction_after_commit": false,
+   "events": [
+    "ConnectionEvents.commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  },
+  {
+   "arm": "pa-orm-execute-commit",
+   "application_name": "fc-pa-orm-execute-commit-r2",
+   "row_x": 1100,
+   "xid": "780",
+   "failing_statement": "caught IntegrityError (UniqueViolation)",
+   "driver_status_before_commit": "INERROR",
+   "api": "returned normally",
+   "events": [
+    "ConnectionEvents.commit",
+    "SessionEvents.after_commit"
+   ],
+   "witness": {
+    "row_x_exists": false,
+    "xact_status": "aborted"
+   }
+  }
+ ]
+}
