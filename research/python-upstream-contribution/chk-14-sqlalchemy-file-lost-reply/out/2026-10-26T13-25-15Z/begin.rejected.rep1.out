@@ -1,0 +1,9 @@
+form=begin arm=rejected
+--unit 1--
+connect 1: direct -> core.commit -> orm.after_rollback -> pool.reset -> pool.checkin -> sqlalchemy_file.delete_files: 1 file(s), ctx=after_soft_rollback -> orm.after_soft_rollback
+app saw: sqlalchemy.exc.IntegrityError: (psycopg.errors.ForeignKeyViolation) insert or update on table "chk10_child" violates foreign key constraint "chk10_child_parent_id_fkey"
+row committed: no
+file referenced by unit 1 exists: no
+verdict: consistent: row absent, file deleted
+--unit 2--
+app saw: no exception; row committed: yes; file exists: yes

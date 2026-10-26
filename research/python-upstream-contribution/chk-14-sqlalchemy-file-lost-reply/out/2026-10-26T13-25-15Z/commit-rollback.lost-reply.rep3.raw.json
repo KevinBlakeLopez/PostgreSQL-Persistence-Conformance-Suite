@@ -1,0 +1,43 @@
+{
+ "form": "commit-rollback",
+ "arm": "lost-reply",
+ "name1": "commit-rollback-lost-reply-ca1d12f8",
+ "name2": "unit2-aa3f4f4a",
+ "inserted_paths": [
+  "default/09e5aa47-e12e-426d-8cae-1b80373c4691",
+  "default/e63f8dac-0c35-4bea-a2c8-88d4938b69ac"
+ ],
+ "unit1": {
+  "app_saw": "sqlalchemy.exc.OperationalError: (psycopg.OperationalError) consuming input failed: server closed the connection unexpectedly",
+  "committed": true,
+  "path": "default/09e5aa47-e12e-426d-8cae-1b80373c4691",
+  "file_exists": false,
+  "events": [
+   "connect 1: through the proxy",
+   "core.commit",
+   "pool.invalidate",
+   "pool.checkin",
+   "orm.after_rollback",
+   "sqlalchemy_file.delete_files: 1 file(s), ctx=after_soft_rollback",
+   "orm.after_soft_rollback"
+  ]
+ },
+ "unit2": {
+  "app_saw": null,
+  "committed": true,
+  "path": "default/e63f8dac-0c35-4bea-a2c8-88d4938b69ac",
+  "file_exists": true,
+  "events": [
+   "connect 2: direct",
+   "core.commit",
+   "sqlalchemy_file.delete_files: 0 file(s), ctx=after_commit",
+   "orm.after_commit",
+   "pool.reset",
+   "pool.checkin"
+  ]
+ },
+ "stored_objects": [
+  "e63f8dac-0c35-4bea-a2c8-88d4938b69ac",
+  "e63f8dac-0c35-4bea-a2c8-88d4938b69ac.metadata.json"
+ ]
+}

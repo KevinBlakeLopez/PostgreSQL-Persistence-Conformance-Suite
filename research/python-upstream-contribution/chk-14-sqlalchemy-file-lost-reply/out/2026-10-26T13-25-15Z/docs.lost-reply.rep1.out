@@ -1,0 +1,10 @@
+form=docs arm=lost-reply
+--unit 1--
+connect 1: through the proxy -> core.commit -> pool.invalidate -> pool.checkin
+app saw: sqlalchemy.exc.OperationalError: (psycopg.OperationalError) consuming input failed: server closed the connection unexpectedly
+row committed: yes
+file referenced by unit 1 exists: yes
+verdict: consistent: row committed, file kept
+--unit 2--
+app saw: no exception; row committed: yes; file exists: yes
+proxy dropped 1 COMMIT reply

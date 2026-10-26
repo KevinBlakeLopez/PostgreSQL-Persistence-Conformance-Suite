@@ -1,0 +1,10 @@
+form=commit-rollback arm=lost-reply
+--unit 1--
+connect 1: through the proxy -> core.commit -> pool.invalidate -> pool.checkin -> orm.after_rollback -> sqlalchemy_file.delete_files: 1 file(s), ctx=after_soft_rollback -> orm.after_soft_rollback
+app saw: sqlalchemy.exc.OperationalError: (psycopg.OperationalError) consuming input failed: server closed the connection unexpectedly
+row committed: yes
+file referenced by unit 1 exists: no
+verdict: DANGLING: the committed row references a file sqlalchemy-file deleted
+--unit 2--
+app saw: no exception; row committed: yes; file exists: yes
+proxy dropped 1 COMMIT reply

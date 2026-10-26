@@ -1,0 +1,9 @@
+form=docs arm=rejected
+--unit 1--
+connect 1: direct -> core.commit -> pool.reset -> pool.checkin
+app saw: sqlalchemy.exc.IntegrityError: (psycopg.errors.ForeignKeyViolation) insert or update on table "chk10_child" violates foreign key constraint "chk10_child_parent_id_fkey"
+row committed: no
+file referenced by unit 1 exists: yes
+verdict: orphan: row absent, file kept
+--unit 2--
+app saw: no exception; row committed: yes; file exists: yes

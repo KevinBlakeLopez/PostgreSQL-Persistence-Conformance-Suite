@@ -1,0 +1,9 @@
+form=begin arm=no-fault
+--unit 1--
+connect 1: direct -> core.commit -> sqlalchemy_file.delete_files: 0 file(s), ctx=after_commit -> orm.after_commit -> pool.reset -> pool.checkin
+app saw: no exception
+row committed: yes
+file referenced by unit 1 exists: yes
+verdict: consistent: row committed, file kept
+--unit 2--
+app saw: no exception; row committed: yes; file exists: yes
