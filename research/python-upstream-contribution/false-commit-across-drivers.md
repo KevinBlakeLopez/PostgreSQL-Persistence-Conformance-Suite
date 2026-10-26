@@ -20,6 +20,7 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | psycopg2 | SQLAlchemy Core | `Connection.commit()`, `engine.begin()` | returned normally | CHK-9 |
 | psycopg2 | SQLAlchemy ORM | `Session.commit()`, `sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-9 |
 | asyncpg | direct | `async with conn.transaction()`, `Transaction.commit()` | returned normally | PY-2: [CHK-2](chk-2-asyncpg/README.md), on asyncio and uvloop; CHK-10 `ap-raw-*` |
+| asyncpg | direct, after a caught client-side timeout | `async with conn.transaction()`, `Transaction.commit()` | returned normally; a raw `COMMIT` returned `ROLLBACK` | [CHK-11](chk-11-asyncpg-client-timeout/README.md): `fetch(timeout=)`, `command_timeout` and `asyncio.wait_for()`, on asyncio and uvloop |
 | asyncpg | SQLAlchemy asyncio Core | `AsyncConnection.commit()`, `engine.begin()` | returned normally | [CHK-10](chk-10-sa-asyncpg-false-commit/README.md) |
 | asyncpg | SQLAlchemy asyncio ORM | `AsyncSession.commit()`, `async_sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-10 |
 | asyncpg | Tortoise ORM | its transaction | PPCS FAIL, driver trace `COMMIT; -> ROLLBACK` | run [`c45624`](../../reports/examples/2026-10-19T12-45-38Z-c45624) |

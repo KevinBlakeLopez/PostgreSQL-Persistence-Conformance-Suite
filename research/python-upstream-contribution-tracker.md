@@ -114,6 +114,10 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Evidence:**
   - **CHK-2,** [`python-upstream-contribution/chk-2-asyncpg/`](python-upstream-contribution/chk-2-asyncpg/README.md). This is the standalone program to post, run three times on asyncio and three on uvloop; all six agreed. `psql` and the server's statement log agree for all 24 transactions. After `commit()` has returned, asyncpg's own `rollback()` raises "the transaction is already committed", a public-API signal;
   - **CHK-10 (2026-10-26 UTC): through SQLAlchemy.** SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the same success: `AsyncConnection.commit()`, `engine.begin()`, `AsyncSession.commit()` and `async_sessionmaker.begin()` (with `after_commit`), 3 of 3: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md). The roadmap's source-reading claim (§3.2 B) is now observed.
+  - **CHK-11 (2026-10-26 UTC): a caught client-side timeout.** With asyncpg 0.32.0, a `TimeoutError` caught inside `async with con.transaction()` gives the same false commit. It held for `fetch(timeout=)`, `command_timeout` and `asyncio.wait_for()`, on asyncio and uvloop, 6 of 6 per arm: [`python-upstream-contribution/chk-11-asyncpg-client-timeout/`](python-upstream-contribution/chk-11-asyncpg-client-timeout/README.md).
+    - What asyncpg reported: the block exits normally, `tr.commit()` returns `None`, and a raw `execute('COMMIT')` returns `'ROLLBACK'`.
+    - What the server did: it cancelled the statement and aborted the transaction.
+    - Before this, the timeout path rested on P6's server-side `statement_timeout` and on asyncpg's own `test_timeout_06` (source reading).
   - `research/python-production-failure-gap-analysis/output/p1.out` (arms A–D);
   - `output/p6.jsonl` and `output/p6.server-log-endings.txt`;
   - `reports/examples/2026-10-19T12-45-38Z-c45624` (Tortoise TX-01A; trace `COMMIT; -> ROLLBACK`);
@@ -141,7 +145,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   The `57014`/`40P01`/`40001` line was dropped.
 - **Prerequisites:** done on 2026-10-24: CHK-2, the duplicate search, and the template. Repeat the draft's pre-file checks on the day of filing. A new asyncpg release means re-running the program first.
 - **Status:** SUBMITTED
-- **Next concrete step:** wait for a reply. If #1400 is still silent around 2026-11-07, send one polite follow-up. Decide around 2026-11-21 (roadmap §14). Expect a slow reply (see "Receptiveness").
+- **Next concrete step:** wait for a reply. If #1400 is still silent around 2026-11-07, send one polite follow-up: [`python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md`](python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md). It was drafted 2026-10-26 with CHK-11's timeout result, and awaits approval of its exact text. Decide around 2026-11-21 (roadmap §14). Expect a slow reply (see "Receptiveness").
 
 ### PY-3: Tortoise `Model.save()` after a rolled-back transaction
 
@@ -344,6 +348,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-8 | PY-20 | Required before an issue | NOT_STARTED. A duplicate search of its own, and the `SQLITE_BUSY` trigger (a reader holding the file during COMMIT), which SQLite documents and which has not been run |
 | CHK-9 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). psycopg2 2.9.13 has the same false commit, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3; the psycopg 3 positive controls reproduce: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) |
 | CHK-10 | PY-2, PY-9 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the false commit in Core and ORM, 3 of 3; raw asyncpg and the psycopg 3 asyncio controls reproduce: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md) |
+| CHK-11 | PY-2 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). A caught client-side timeout (`fetch(timeout=)`, `command_timeout`, `asyncio.wait_for()`) gives asyncpg 0.32.0's false commit, 6 of 6 per arm on asyncio and uvloop. The savepoint, no-timeout and uncaught controls behave as expected: [`python-upstream-contribution/chk-11-asyncpg-client-timeout/`](python-upstream-contribution/chk-11-asyncpg-client-timeout/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -638,4 +643,11 @@ The rest of this section is the plan as it stood before the commits.
   - **New summary:** [`python-upstream-contribution/false-commit-across-drivers.md`](python-upstream-contribution/false-commit-across-drivers.md) (commit `ae1c695`), the false commit by driver and access path, linked to each piece of evidence.
   - **PY-1b: follow-up drafted** in [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md) (commit `3ebe530`), reporting CHK-9's psycopg2 result. Planned as the one follow-up if #1453 is still silent in week 3; not posted.
   - **PY-9:** CHK-9 and CHK-10 observed `after_commit` on aborted transactions with psycopg2, psycopg 3 and asyncpg on 2.1.6. Still DEFERRED.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26, about 04:25 UTC.** At the maintainer's request:
+  - **CHK-11 (new): a caught client-side timeout gives asyncpg's false commit.** On asyncpg 0.32.0, a `TimeoutError` from `fetch(timeout=)`, `command_timeout` or `asyncio.wait_for()`, caught inside `async with con.transaction()`, gives the false commit, 6 of 6 per arm on asyncio and uvloop. Evidence: [`python-upstream-contribution/chk-11-asyncpg-client-timeout/`](python-upstream-contribution/chk-11-asyncpg-client-timeout/README.md) (commit `70be22f`).
+    - What asyncpg reported: the block exits normally, `tr.commit()` returns `None`, and a raw `execute('COMMIT')` returns `'ROLLBACK'`.
+    - What PostgreSQL did: it aborted the transaction.
+  - **PY-2: follow-up drafted** in [`python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md`](python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md) (commit `f57e9f5`), reporting CHK-11's result. Planned as the one follow-up if #1400 is still silent around 2026-11-07; not posted.
+  - **The false-commit summary** ([`python-upstream-contribution/false-commit-across-drivers.md`](python-upstream-contribution/false-commit-across-drivers.md)) gained a CHK-11 row.
   - No status changed. Nothing posted or filed. The roadmap was not edited.
