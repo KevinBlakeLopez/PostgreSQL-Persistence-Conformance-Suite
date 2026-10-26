@@ -1,0 +1,62 @@
+530 transactions; 530 psql fates; witness, psql and the server log agree on every one
+
+arms, per run (query; block; fate; order visible; server errors; final statement; aborted before it):
+  asyncio.arms.rep1    control_unlocked                xid   757  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  asyncio.arms.rep2    control_unlocked                xid   775  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  asyncio.arms.rep3    control_unlocked                xid   793  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  uvloop.arms.rep1     control_unlocked                xid   811  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  uvloop.arms.rep2     control_unlocked                xid   829  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  uvloop.arms.rep3     control_unlocked                xid   847  ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False)
+  asyncio.arms.rep1    client_first                    xid   759  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep2    client_first                    xid   777  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep3    client_first                    xid   795  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep1     client_first                    xid   813  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep2     client_first                    xid   831  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep3     client_first                    xid   849  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep1    server_lock_timeout_first       xid   761  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  asyncio.arms.rep2    server_lock_timeout_first       xid   779  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  asyncio.arms.rep3    server_lock_timeout_first       xid   797  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  uvloop.arms.rep1     server_lock_timeout_first       xid   815  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  uvloop.arms.rep2     server_lock_timeout_first       xid   833  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  uvloop.arms.rep3     server_lock_timeout_first       xid   851  ('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)
+  asyncio.arms.rep1    server_statement_timeout_first  xid   763  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  asyncio.arms.rep2    server_statement_timeout_first  xid   781  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  asyncio.arms.rep3    server_statement_timeout_first  xid   799  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  uvloop.arms.rep1     server_statement_timeout_first  xid   817  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  uvloop.arms.rep2     server_statement_timeout_first  xid   835  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  uvloop.arms.rep3     server_statement_timeout_first  xid   853  ('-', 'raised QueryCanceledError (57014)', 'aborted', False, '57014 statement timeout', 'ROLLBACK', True)
+  asyncio.arms.rep1    server_lock_timeout_later       xid   765  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep2    server_lock_timeout_later       xid   783  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep3    server_lock_timeout_later       xid   801  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep1     server_lock_timeout_later       xid   819  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep2     server_lock_timeout_later       xid   837  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep3     server_lock_timeout_later       xid   855  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep1    server_statement_timeout_later  xid   767  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep2    server_statement_timeout_later  xid   785  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep3    server_statement_timeout_later  xid   803  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep1     server_statement_timeout_later  xid   821  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep2     server_statement_timeout_later  xid   839  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep3     server_statement_timeout_later  xid   857  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep1    asyncio_timeout                 xid   769  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep2    asyncio_timeout                 xid   787  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  asyncio.arms.rep3    asyncio_timeout                 xid   805  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep1     asyncio_timeout                 xid   823  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep2     asyncio_timeout                 xid   841  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+  uvloop.arms.rep3     asyncio_timeout                 xid   859  ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True)
+
+arm hypotheses (six runs each):
+  control_unlocked                6 runs; held
+  client_first                    6 runs; held
+  server_lock_timeout_first       6 runs; NOT held: [('-', 'raised LockNotAvailableError (55P03)', 'aborted', False, '55P03 lock timeout at character 17', 'ROLLBACK', True)]
+  server_statement_timeout_first  6 runs; held
+  server_lock_timeout_later       6 runs; held
+  server_statement_timeout_later  6 runs; held
+  asyncio_timeout                 6 runs; held
+
+race (488 trials expected; client deadline 0.2 s):
+  R   asyncio 103, uvloop  94; sleeps 0.1850 to 0.1985 s; signature ('returned', 'exited normally', 'committed', True, '-', 'COMMIT', False): held
+  TA  asyncio  96, uvloop 100; sleeps 0.2015 to 0.2150 s; signature ('caught TimeoutError', 'exited normally', 'aborted', False, '57014 user request', 'COMMIT', True): held
+  TC  asyncio  45, uvloop  50; sleeps 0.1945 to 0.2040 s; signature ('caught TimeoutError', 'exited normally', 'committed', True, '-', 'COMMIT', False): held
+  every trial classified: held; R only below the deadline: held; TA only above it: held
+
+1 hypothesis check(s) failed
