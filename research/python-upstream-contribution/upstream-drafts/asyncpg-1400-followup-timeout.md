@@ -2,6 +2,12 @@
 
 **Not posted.** Prepared 2026-10-26. Written by: Claude Opus 5.5 (max).
 
+**RETIRED 2026-10-26, at the maintainer's decision. Do not send.**
+- **Why:** its trigger, a timeout caught inside an all-or-nothing transaction followed by a commit, is not reasonable application code. A maintainer could fairly dismiss it as misuse.
+- **What it leaves:** the evidence still stands as a mechanism check, in CHK-11 and [CHK-15](../chk-15-asyncpg-timeout-order/README.md).
+- **Around 2026-11-07,** if #1400 is still silent, the choice is between a plain nudge with no new content and nothing at all. #1400 already shows the caught `23505`.
+- **The text below** is kept as it was drafted.
+
 This is the planned follow-up for tracker item PY-2 in [`../../python-upstream-contribution-tracker.md`](../../python-upstream-contribution-tracker.md). `KevinBlakeLopez` filed #1400 on 2026-10-24, from [its draft](asyncpg-commit-rollback.md). The follow-up reports CHK-11's result: a caught client-side timeout gives the same false commit as the caught `23505` in the issue.
 
 Everything between the two rules below is the proposed comment. The rest of this file is internal.
