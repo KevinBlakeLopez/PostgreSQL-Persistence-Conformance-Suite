@@ -78,7 +78,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
   - psycopg's docs tell callers to roll back after an error.
   - `tests/test_connection_async.py:401` asserts that `commit()` returns.
-- **Real-world signal (2026-10-26):** a project's batch writer on SQLAlchemy and psycopg2 drops a batch after one row's error and reports it saved (news-scraping#36), and Airflow's scheduler has the catch-and-continue pattern (airflow#59120). No production report on psycopg 3 itself. Other drivers treat the mechanism as a bug (pgjdbc#4499, pgx's `ErrTxCommitRollback`, rust-postgres#1342): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the writes before a caught error are lost, while `commit()` returns. Through Django (CHK-12), the `on_commit` callback also runs and the view returns 200. Silent unless a later statement fails.
+  - **Trigger, a caught database error** (`23505`, `57014`, `40P01`, `40001`):
+    - **In production:** yes; these are ordinary errors.
+    - **In our runs:** real errors through ordinary APIs (the production-reachability runs, P6, CHK-9, CHK-12).
+    - **Code shape:** a per-row catch inside one transaction, then one commit, is common batch code, although PostgreSQL needs a savepoint there. A once-only write as the last step, with the duplicate treated as done, is reasonable (CHK-12's re-run).
+    - **Evidence:** audit: news-scraping#36, SQLAlchemy on psycopg2, the owner's report (0 stars). Acknowledged: airflow#59120, by an Airflow committer, with no consequence stated. Other ecosystem: pgjdbc#4499, pgx's `ErrTxCommitRollback`, rust-postgres#1342.
+  - **Reproduced on real code:** no.
+  - **Searches:** pattern counts of 1,236 files (psycopg2), 1,210 (psycopg 3) and 11,627 (SQLAlchemy); no inspected sample.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** frequency; a production report on psycopg 3 itself. CHK-12's Django raw-SQL shape was not searched for.
 - **Priority:** severity rank 1. The action now is PY-1b.
 - **Proposed action:** none beyond PY-1b. No new issue, and no reports to SQLAlchemy or Django.
 - **Prerequisites:** —
@@ -96,6 +106,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - psycopg's own `test_outer_transaction_error` pattern, three repetitions per arm: [`python-upstream-contribution/psycopg-pipeline-test-check/`](python-upstream-contribution/psycopg-pipeline-test-check/README.md). The block exits normally, `status` is `committed`, and the transaction is aborted.
 - **Upstream:** not in #1453. #967 has the maintainer's statement that a normal exit means a commit. #969 and PR #1184 added `status`.
 - **Confidence:** CONFIRMED.
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the block exits normally, and `tx.status` reads `committed`, the value its docs offer to retry logic, while PostgreSQL aborted. Silent.
+  - **Trigger, a database error caught inside `with conn.transaction()`:**
+    - **In production:** yes; these are ordinary errors.
+    - **In our runs:** real errors through the ordinary API (the audit's program, and psycopg's own `test_outer_transaction_error` pattern).
+    - **Code shape:** a catch inside the block. psycopg's own test is written that way.
+    - **Evidence:** none found with the failing shape.
+  - **Reproduced on real code:** no.
+  - **Searches:** 686 files combine `with conn.transaction()` and `except psycopg.errors`. Of 2 inspected, 0 have the failing shape: PostHog and Datadog catch outside the block.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** any real code with the failing shape.
 - **Priority:** 1.
 - **Proposed action:** a follow-up comment on #1453 (roadmap §10.1). Offer tests or a PR, conditionally.
 - **Draft:** [`python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-comment.md). Posted 2026-10-24 as https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348; the posted body matches the draft. It was revised before posting, after an outside review. About 32 visible lines, with the program and its output in `<details>`; both are byte-identical to the audit's evidence files. It covers:
@@ -140,7 +161,22 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - In #1355 (2026-09-21) he wrote that asyncpg "did not receive enough love in 2026", citing an "overwhelmed inbox".
   - Expect a slow reply. A tested PR may move faster (roadmap §9).
 - **Confidence:** CONFIRMED.
-- **Real-world signal (2026-10-26):** production: a batch writer on SQLAlchemy's asyncio engine and asyncpg loses whole batches after one caught deadlock, while its counters report the writes (bainluck#8935, #8129). A project's asyncpg extractor reports success after its `COMMIT` became a `ROLLBACK` (ldvelh#24): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the writes before a caught error are lost, while `commit()` and `async with` report success, also through SQLAlchemy's asyncio engine (CHK-10). Silent unless a later statement fails.
+  - **Trigger, a caught database error** (`23505`, `40P01` and others):
+    - **In production:** yes; bainluck#8935 quotes a caught deadlock.
+    - **In our runs:** real errors through ordinary APIs (CHK-2, P6, CHK-10).
+    - **Code shape:** a per-item `except Exception: continue` inside one transaction, with one commit. It is common batch code, although PostgreSQL needs a savepoint there.
+    - **Evidence:** production: bainluck#8935 and #8129, on SQLAlchemy's asyncio engine. They are the owner's reports, and they quote the project's metrics and logs, which were not checked; the repository has 1 star. Audit: ldvelh#24, on asyncpg directly, the owner's report (0 stars).
+  - **Trigger, a caught client-side timeout:**
+    - **In production:** yes; timeouts are ordinary.
+    - **In our runs:** real timeouts (CHK-11, CHK-15).
+    - **Code shape:** not reasonable: a timeout caught inside an all-or-nothing transaction. The #1400 follow-up was retired for this reason.
+    - **Evidence:** a pattern count only (353 files).
+  - **Reproduced on real code:** no. CHK-10 ran SQLAlchemy, not an application.
+  - **Searches:** 670 files catch `UniqueViolationError` inside `async with conn.transaction()`; no inspected sample.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** frequency; a report from a widely used project.
 - **Priority:** 2.
 - **Proposed action:** a new issue in the shape of #1453, with a conditional PR offer (roadmap §10.2).
 - **Draft:** [`python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md`](python-upstream-contribution/upstream-drafts/asyncpg-commit-rollback.md). Filed 2026-10-24 as [MagicStack/asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400); the filed title and body match the draft. It was revised before filing, after an outside review. It contains:
@@ -178,7 +214,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - #1212 bears on option (b): `force_update` sees 0 rows on MySQL for a row that exists.
   - Also related, and not duplicates: #242 (2019), where a collaborator suggested that `save()` raise or warn when no rows were affected; and open PR #2293, whose per-savepoint `on_commit()` frames are the kind of bookkeeping option (a) needs.
 - **Confidence:** CONFIRMED. Observed: the outcome, the statement sent, its 0 matched rows, and the count `save()` receives. Src: that nothing resets the flag on rollback.
-- **Real-world signal (2026-10-26):** none matching; tortoise-orm#1094 reports the same symptom from a different cause: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the retried `save()` writes nothing and returns normally, and the transaction commits without the row. Silent.
+  - **Trigger, a retry that saves the same instance after its transaction or savepoint rolled back:**
+    - **In production:** unknown.
+    - **In our runs:** the block raises an application error, so it rolls back (CHK-5).
+    - **Code shape:** a retry loop that saves the same instance again. Whether Tortoise supports that is a question the filed issue asks.
+    - **Evidence:** none matching. tortoise-orm#1094 (2022, open) reports the same symptom from a different cause.
+  - **Reproduced on real code:** no.
+  - **Searches:** 59 files combine `from tortoise`, `in_transaction`, `retry` and `.save()`. Of the top ten, five are Tortoise itself and PPCS's own programs; the other five were not inspected.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** whether any application retries with the same instance.
 - **Priority:** 3.
 - **Proposed action:** a new issue that asks for the fix direction, with a conditional PR offer (roadmap §7 and §10.3). The directions are (a), resetting `_saved_in_db` on rollback per transaction and savepoint level, and (b), handling zero-row updates. The issue also asks whether saving an instance again after a rollback is meant to be supported.
 - **Draft:** [`python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md`](python-upstream-contribution/upstream-drafts/tortoise-save-after-rollback.md). It uses Tortoise's bug-report template and has about 58 visible lines. The program, its output and a server-log excerpt are in `<details>`, all byte-identical to the CHK-5 files. It passed the content guard. It covers:
@@ -220,7 +266,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - In discussion #12486 (2025-03), a maintainer pointed a user whose `SET ROLE` and `search_path` carried over to this recipe.
   - Discussion #6905 (2022-08) is a precedent: a hook's `DISCARD TEMPORARY` did not persist until the hook committed.
 - **Confidence:** CONFIRMED on psycopg 3 and psycopg2. H-d held.
-- **Real-world signal (2026-10-26):** csfrace-scrape adopts the recipe on psycopg 3 with a `READ_COMMITTED` engine, CHK-3's no-reset configuration; discussion #12486 is cited above: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** on a transactional psycopg 3 engine, the next checkout inherits the role, a custom GUC, `search_path`, `statement_timeout` and temp tables. Silent. On psycopg2 the recipe raises on each return; the pool logs it and discards the connection.
+  - **Trigger, none beyond adopting the recipe and setting session state:**
+    - **In production:** one project adopts the recipe; no carry-over through it is reported.
+    - **In our runs:** the ordinary API, with no fault (CHK-3).
+    - **Code shape:** following SQLAlchemy's documentation. Reasonable.
+    - **Evidence:** exposed code: csfrace-scrape (0 stars) adopts the recipe on psycopg 3 with a `READ_COMMITTED` engine, CHK-3's no-reset configuration. Its code was not run, and whether it sets session state was not checked. In discussion #12486, a maintainer pointed a user whose `SET ROLE` and `search_path` carried over to this recipe.
+  - **Reproduced on real code:** no.
+  - **Searches:** the code counts for the recipe (5,344 files for its statements, 5,600 for `_reset_postgresql`) are mostly vendored copies of SQLAlchemy, and do not measure adoption.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** how many applications use the recipe on psycopg 3.
 - **Priority:** 4.
 - **Proposed action:** a corrected example: roll back, then `DISCARD ALL` in autocommit, restoring autocommit afterwards, with notes on scope (roadmap §7). The author writes the discussion or docs PR.
 - **Prerequisites:** CHK-3, done 2026-10-25 (UTC). The author writes every word of the prose.
@@ -237,7 +293,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Src: `asyncpg/connection.py:1567-1594` and `1763-1790`; `asyncpg/pool.py:1320-1340`.
 - **Upstream:** none for the role (2026-10-24). Temp tables are #1293, and PR #1392 (open, unreviewed) uses a capability-gated reset statement. #270 rejects `DISCARD ALL`.
 - **Confidence:** CONFIRMED.
-- **Real-world signal (2026-10-26):** Percolate's changelog records a pooled connection left in the previous caller's role (`core/CHANGELOG.md`, lines 536–538): [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the next borrower runs as the previous borrower's role, and asyncpg reports nothing.
+  - **Trigger, a session-level `SET ROLE` on a pooled connection, with no `RESET ROLE`:**
+    - **In production:** yes (the evidence below).
+    - **In our runs:** the ordinary API, with no fault (P2).
+    - **Code shape:** a session-level role per request on a pool. Reasonable: `reset()`'s docstring promises a state "resembling that of a newly obtained connection". `SET LOCAL ROLE`, or resetting by hand, avoids it.
+    - **Evidence:** incident: Percolate's changelog (`core/CHANGELOG.md` @ `0d736a3269`, lines 536–538), the project's own record; 60 stars.
+  - **Reproduced on real code:** no.
+  - **Searches:** among files that use asyncpg, 579 combine `SET ROLE` and `acquire`, 477 use `SET LOCAL ROLE`, and 338 use `RESET ROLE`; no inspected sample.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** frequency.
 - **Priority:** 5.
 - **Proposed action:** an issue proposing `RESET ROLE` behind a capability, or a corrected docstring. Include the compatibility note on `init`-time roles (roadmap §10.5).
 - **Prerequisites:** run the script to be posted three times, on a non-superuser login. CHK-6 is optional.
@@ -266,7 +332,17 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - `ruff`, `mypy`, `bandit`, the build and `twine check` pass.
 - **Upstream:** no duplicate found (34 queries, 2026-10-25). Open PR #2293 adds a line inside every `commit()`.
 - **Confidence:** CONFIRMED.
-- **Real-world signal (2026-10-26):** none found: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the application gets the driver's exception instead of `IntegrityError`, so `get_or_create()` and `update_or_create()` skip their fallback. Loud: the exception reaches the caller.
+  - **Trigger, an integrity error raised by `COMMIT`, such as a deferred foreign key:**
+    - **In production:** unknown.
+    - **In our runs:** real errors through the ordinary API (asyncpg, psycopg and SQLite).
+    - **Code shape:** deferrable constraints with Tortoise. Reasonable.
+    - **Evidence:** none found.
+  - **Reproduced on real code:** no.
+  - **Searches:** 15 files combine `from tortoise` and `DEFERRABLE`. Besides PPCS's programs, one project (michael-sulyak/anekrin) uses deferrable constraints with Tortoise; it was not inspected.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** any report.
 - **Priority:** 6. It is independent of PY-3.
 - **Proposed action:** one PR, as on the branch. Its description asks whether leaving `commit()` untranslated was deliberate, and states the compatibility change. MySQL and ODBC are neither changed nor run.
 - **Status:** READY_FOR_HUMAN_REVIEW
@@ -295,7 +371,22 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Precedent: #13381, fixed.
 - **Confidence:** CONFIRMED for a `commit()` that fails before sending, on a healthy connection. The demonstrated triggers that replace no DBAPI method are a raising commit listener, and mixing psycopg's and SQLAlchemy's transaction APIs. Reachability through ordinary driver or OS failures, and production frequency, are not established.
   - On SQLite there is a trigger that replaces no DBAPI method: SQLite ending the transaction itself, under `sqlite3`'s `autocommit=False` (see the SQLite consequence above). It was run with `RAISE(ROLLBACK)`. A real disk full ends the transaction the same way (that study's SQLITE-05c), but this path was not run end to end with one.
-- **Real-world signal (2026-10-26):** on SQLite, lumenpearson/lessons#378 reports a `COMMIT` refused with "database is locked" whose write the next session commits, even after the caller's rollback; it matches CHK-13. Nothing for PostgreSQL's triggers: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the caller sees `commit()` raise, and the write commits later anyway, in the next checkout's `COMMIT`. On SQLite under CHK-13's trigger, the pooled connection also keeps the lock, so independent reads and writes fail.
+  - **Trigger, on PostgreSQL, a `commit()` that fails before `COMMIT` is sent:**
+    - **In production:** not established.
+    - **In our runs:** injected in the original review. Without replacing a DBAPI method: a raising `commit` listener, and mixed psycopg and SQLAlchemy transaction APIs (CHK-7's supplement).
+    - **Code shape:** a commit listener that raises, or mixed transaction APIs. Neither is ordinary application code.
+    - **Evidence:** none.
+  - **Trigger, on SQLite, `COMMIT` refused with `database is locked`** in rollback-journal mode:
+    - **In production:** yes (the evidence below).
+    - **In our runs:** a real lock, held by a reader in another process (CHK-13).
+    - **Code shape:** `with engine.connect()` and `conn.commit()`, or `with Session(engine)` and `session.commit()`, closed without `rollback()`. Ordinary code.
+    - **Evidence:** incident: lumenpearson/lessons#378, the owner's report (0 stars). The project reproduced it while fixing a lost-row bug. The report says this happens although the caller rolls back, while CHK-13 found an explicit `rollback()` before close not affected. This is not reconciled.
+  - **Reproduced on real code:** no.
+  - **Searches:** 120 files register a `commit` listener. Of 2 inspected, 0 can raise (Close.io sync-engine, OpenStack oslo.db). No count for the SQLite shape.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** a PostgreSQL trigger without injection or unusual code; frequency on SQLite.
 - **Production trigger (CHK-13, 2026-10-26).** No injection is needed on SQLite. In the default rollback-journal mode, a reader in another process makes `COMMIT` fail with `database is locked`, and SQLite keeps the transaction open.
   - **Configurations:** the default pysqlite configuration and `autocommit=False`.
   - **The path:** `with engine.connect()` / `conn.commit()` and `with Session(engine)` / `session.commit()` that close without `rollback()` reach P5a's path. Then:
@@ -332,13 +423,27 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **README form:** sqlalchemy-file's README form (commit, no rollback) fires no rollback event.
   - **starlette-admin's call sequence:** it escapes, because `after_commit` fires at the savepoint `RELEASE`.
   - **Evidence:** [`python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/`](python-upstream-contribution/chk-14-sqlalchemy-file-lost-reply/README.md). The library's own gaps are PY-24.
-- **Real-world signal (2026-10-26).**
-  - **Outbox-style listeners** discard queued side effects on `after_soft_rollback` (source read): vulnerability-lookup's pub/sub stream and rhesis's embedding jobs.
-  - **About 414 Python files** register `after_soft_rollback`, excluding SQLAlchemy's own source. This is a rough code-search count.
-  - **The trigger:** #12728 (2025) is a cancellation landing on in-flight commits, where "some(?) commits in progress are not cancelled".
 - **Upstream:** none found. Precedent: #12728. Not re-checked for CHK-4.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
-- **Real-world signal (2026-10-26):** applications delete uploaded files on `after_rollback` (nyayagraph, ticketsystem), and so does sqlalchemy-file (PY-24); DuckLake reports the same consequence after a lost `COMMIT` reply (ducklake#1802). No Python report of the event on a committed transaction: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md).
+- **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [searches](python-upstream-contribution/real-world-evidence/README.md)):
+  - **Consequence:** the caller sees `commit()` raise and the rollback events fire, while PostgreSQL committed. A listener that undoes side effects then deletes a committed row's file, or discards its queued work.
+  - **Trigger, a cancellation that lands on an in-flight `COMMIT`:**
+    - **In production:** yes. #12728 (2025), filed by SQLAlchemy's maintainer: with concurrent inserts under `asyncio.gather()`, after a `CancelledError` "some(?) commits in progress are not cancelled".
+    - **In our runs:** a real anyio level-triggered cancellation (P3).
+    - **Code shape:** concurrent writes in tasks, one of them cancelled. Reasonable.
+  - **Trigger, a lost reply to `COMMIT`, with PostgreSQL committing:**
+    - **In production:** yes, in other ecosystems: block/buzz#3785 (Rust, sqlx: an in-doubt commit during a production PostgreSQL failover) and ducklake#1802.
+    - **In our runs:** simulated, through CHK-4's lost-reply proxy (category D).
+    - **Code shape:** any root `COMMIT`.
+  - **Trigger, Uvicorn's graceful-shutdown timeout under `SIGINT`:**
+    - **In production:** unknown.
+    - **In our runs:** a real signal (P8).
+    - **Code shape:** `--timeout-graceful-shutdown` set, with work that outlives it.
+  - **Evidence for all three triggers:** harmful consumers: sqlalchemy-file (117 stars, about 90k downloads a month; PY-24), nyayagraph (1 star) and ticketsystem (0 stars) delete files on these events, and vulnerability-lookup's and rhesis's listeners discard queued side effects (source read). Other ecosystem: in ducklake#1802, a user's report, DuckLake deleted a committed transaction's Parquet files after a lost reply.
+  - **Reproduced on real code:** yes, sqlalchemy-file 0.7.0 (CHK-14): PostgreSQL committed the row, and sqlalchemy-file deleted its file, 3 of 3. starlette-admin's call sequence ran, not starlette-admin; it stays consistent after a lost reply.
+  - **Searches:** about 414 files register `after_soft_rollback`, excluding SQLAlchemy's own source, and 18 combine `after_rollback`, `listens_for` and `os.remove`. No inspected sample beyond the projects named.
+  - **Likelihood (judgment):** not assessed.
+  - **Not established:** a Python report of the event on a committed transaction.
 - **Priority:** 8.
 - **Proposed action:** a documentation clarification; a change to event delivery is optional (roadmap §7). The author writes a discussion.
 - **Prerequisites:**
@@ -727,4 +832,10 @@ The rest of this section is the plan as it stood before the commits.
 - **2026-10-26, about 14:21 UTC.** At the maintainer's request:
   - **Real-world evidence** for the Python items, from read-only GitHub searches: [`python-upstream-contribution/real-world-evidence/`](python-upstream-contribution/real-world-evidence/README.md) (commit `d631390`). Strongest: production loss on SQLAlchemy's asyncio engine with asyncpg (PY-2); an audit on SQLAlchemy with psycopg2 (PY-1); a SQLite P5a incident (PY-7); a role carried over, in a project's changelog (PY-6); file-deleting rollback hooks (PY-4). Nothing found for PY-8, PY-15 or PY-20 to PY-23.
   - Each scheduled item gains a "Real-world signal" bullet; PY-24's upstream check is recorded.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26, about 15:00 UTC.** At the maintainer's request:
+  - **A production-relevance standard:** [`docs/production-relevance.md`](../docs/production-relevance.md) (commit `99328b6`), with `AGENTS.md` rule 15 and a link from the master plan's dimension 7.
+  - **Each scheduled item's "Real-world signal" bullet becomes a "Production relevance" section** in the standard's fields. PY-1b gains one, and PY-4's two bullets become one.
+    - The content comes from the real-world evidence page and from each item's own evidence. Star counts and reporters were read from GitHub on 2026-10-26.
+    - Likelihood is "not assessed" throughout.
   - No status changed. Nothing posted or filed. The roadmap was not edited.
