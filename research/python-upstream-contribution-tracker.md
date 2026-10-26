@@ -42,7 +42,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
 | PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-9 and CHK-10 observed it on 2.1.6 with psycopg2, psycopg 3 and asyncpg | — | DEFERRED | Revisit after PY-1 and PY-2 |
-| PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
+| PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT for ORM errors. CHK-12: after a caught raw-SQL error, PY-1a's false commit reaches `on_commit`, a case Django documents as unspecified | — | CLOSED_NO_ACTION | — |
 | PY-11 | psycopg_pool, SQLAlchemy pools, Django | Session state carries over by default | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
 | PY-12 | Several | `57014`, `40P01`, `40001` on the caught-then-commit path | CONFIRMED; no new defect | — | CLOSED_NO_ACTION | Not cited in either draft. Kept out of PY-1b by the maintainer's decision; dropped from PY-2 after the outside review |
 | PY-13 | psycopg | `AsyncConnectionPool`: a level-cancelled `COMMIT` completes after the API returned | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
@@ -69,6 +69,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - `research/production-reachability/runs/2026-10-19T18-15-49Z-b2c174` and `…20-58-26Z-508b7a`;
   - A2 P6.
   - **CHK-9 (2026-10-26 UTC): psycopg2 does the same.** On psycopg2 2.9.13, `commit()` and `with conn:` return normally after `COMMIT` is answered `ROLLBACK`, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md).
+  - **CHK-12 (2026-10-26 UTC): through Django.** Django 6.1.2's `atomic()` ends in this call. Consider a raw-SQL error (`connection.cursor()`) caught inside `atomic()`, or inside a request under `ATOMIC_REQUESTS`. Django then sends `COMMIT`, psycopg 3.3.6's `commit()` returns, Django runs the `on_commit` callback, and the view returns 200, 3 of 3: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/README.md).
+    - An ORM error makes Django roll back by itself (PY-10).
+    - With `atomic()` nested inside `ATOMIC_REQUESTS`, the raw-SQL error fails loudly with a 500.
 - **Upstream:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21. Open, no comments, no labels. Re-checked 2026-10-24 at about 16:20 UTC: also no timeline events and no reactions.
 - **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
   - psycopg's docs tell callers to roll back after an error.
@@ -349,6 +352,7 @@ The designs are in the roadmap §11. Each check needs its own throwaway containe
 | CHK-9 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). psycopg2 2.9.13 has the same false commit, directly and through SQLAlchemy 2.1.6 Core and ORM, 3 of 3; the psycopg 3 positive controls reproduce: [`python-upstream-contribution/chk-9-psycopg2-false-commit/`](python-upstream-contribution/chk-9-psycopg2-false-commit/README.md) |
 | CHK-10 | PY-2, PY-9 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). SQLAlchemy 2.1.6's asyncio engine on asyncpg 0.32.0 reports the false commit in Core and ORM, 3 of 3; raw asyncpg and the psycopg 3 asyncio controls reproduce: [`python-upstream-contribution/chk-10-sa-asyncpg-false-commit/`](python-upstream-contribution/chk-10-sa-asyncpg-false-commit/README.md) |
 | CHK-11 | PY-2 | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). A caught client-side timeout (`fetch(timeout=)`, `command_timeout`, `asyncio.wait_for()`) gives asyncpg 0.32.0's false commit, 6 of 6 per arm on asyncio and uvloop. The savepoint, no-timeout and uncaught controls behave as expected: [`python-upstream-contribution/chk-11-asyncpg-client-timeout/`](python-upstream-contribution/chk-11-asyncpg-client-timeout/README.md) |
+| CHK-12 | PY-1a | Added 2026-10-26; optional | DONE 2026-10-26 (UTC). Django 6.1.2 on psycopg 3.3.6, 3 of 3. After a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone, Django sends `COMMIT`, `commit()` returns, `on_commit` runs, and the view returns 200, though the server had aborted. ORM errors roll back, and `atomic()` nested inside `ATOMIC_REQUESTS` fails loudly: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/README.md) |
 
 ### CHK-2 result (2026-10-24)
 
@@ -650,4 +654,13 @@ The rest of this section is the plan as it stood before the commits.
     - What PostgreSQL did: it aborted the transaction.
   - **PY-2: follow-up drafted** in [`python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md`](python-upstream-contribution/upstream-drafts/asyncpg-1400-followup-timeout.md) (commit `f57e9f5`), reporting CHK-11's result. Planned as the one follow-up if #1400 is still silent around 2026-11-07; not posted.
   - **The false-commit summary** ([`python-upstream-contribution/false-commit-across-drivers.md`](python-upstream-contribution/false-commit-across-drivers.md)) gained a CHK-11 row.
+  - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-26, about 13:20 UTC.** At the maintainer's request:
+  - **CHK-12 (new): Django commits after a caught raw-SQL error inside `atomic()`.** Evidence: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/README.md) (commit `3545572`).
+    - On Django 6.1.2 with psycopg 3.3.6, with `atomic()` in the view or with `ATOMIC_REQUESTS` alone, Django sends `COMMIT` after a raw-SQL error caught inside the transaction.
+    - psycopg's `commit()` returns, `on_commit` runs, and the view returns 200, 3 of 3.
+    - An ORM error makes Django roll back by itself in all three setups, without `on_commit`.
+    - With `atomic()` nested inside `ATOMIC_REQUESTS`, Django's `RELEASE SAVEPOINT` fails with `25P02`, and the request returns 500.
+  - **PY-10:** its row now notes CHK-12. It stays CLOSED_NO_ACTION, because Django documents a caught raw-SQL error inside `atomic()` as unspecified.
+  - **The false-commit summary** gained a Django row.
   - No status changed. Nothing posted or filed. The roadmap was not edited.

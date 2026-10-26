@@ -16,6 +16,7 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | psycopg 3 | SQLAlchemy ORM | `Session.commit()`, after an error from `session.execute()` | returned normally; `after_commit` ran | CHK-9 `p3-orm-execute-commit` |
 | psycopg 3 | SQLAlchemy asyncio, Core and ORM | `AsyncConnection.commit()`, `AsyncSession.commit()` | returned normally; `after_commit` ran | CHK-10 `pa-core-connect-commit`, `pa-orm-execute-commit` |
 | psycopg 3 | Django | a manual `commit()` | returned normally | run [`508b7a`](../production-reachability/runs/2026-10-19T20-58-26Z-508b7a) |
+| psycopg 3 | Django, a raw-SQL error caught inside `atomic()`, or under `ATOMIC_REQUESTS` alone | the end of `atomic()` | returned normally; `on_commit` ran; the view returned 200 | [CHK-12](chk-12-django-raw-sql-false-commit/README.md) |
 | psycopg2 | direct | `conn.commit()`, `with conn:` | returned normally | [CHK-9](chk-9-psycopg2-false-commit/README.md) |
 | psycopg2 | SQLAlchemy Core | `Connection.commit()`, `engine.begin()` | returned normally | CHK-9 |
 | psycopg2 | SQLAlchemy ORM | `Session.commit()`, `sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-9 |
@@ -25,16 +26,21 @@ This page collects the observations behind PY-1, PY-2 and PY-9 in [the tracker](
 | asyncpg | SQLAlchemy asyncio ORM | `AsyncSession.commit()`, `async_sessionmaker.begin()` | returned normally; `after_commit` ran | CHK-10 |
 | asyncpg | Tortoise ORM | its transaction | PPCS FAIL, driver trace `COMMIT; -> ROLLBACK` | run [`c45624`](../../reports/examples/2026-10-19T12-45-38Z-c45624) |
 
-CHK-9 and CHK-10 used the latest releases on 2026-10-26 (SQLAlchemy 2.1.6, psycopg2 2.9.13, psycopg 3.3.6, asyncpg 0.32.0) against PostgreSQL 18.6, three runs per arm. In each of their false-commit arms the server log shows the `COMMIT`, an independent connection finds the row absent, and `pg_xact_status` reads `aborted`. Sending `COMMIT` as plain SQL returned the status `ROLLBACK` on all three drivers. The other rows record the versions in their own files.
+CHK-9 and CHK-10 used the latest releases on 2026-10-26 (SQLAlchemy 2.1.6, psycopg2 2.9.13, psycopg 3.3.6, asyncpg 0.32.0) against PostgreSQL 18.6, three runs per arm. In each of their false-commit arms the server log shows the `COMMIT`, an independent connection finds the row absent, and `pg_xact_status` reads `aborted`. Sending `COMMIT` as plain SQL returned the status `ROLLBACK` on all three drivers. CHK-12 (Django 6.1.2 with psycopg 3.3.6) ran the same checks, three runs per arm, with the SQLSTATEs in the server log. The other rows record the versions in their own files.
 
 ## Observed not to report success
 
 - **SQLAlchemy's ORM flush path.** When the failing statement is a flush, `Session.commit()` raises `PendingRollbackError` and SQLAlchemy sends `ROLLBACK` (CHK-9 and CHK-10, on psycopg2 and asyncpg).
-- **Django's ORM inside `atomic()`.** PY-10, closed as not a defect.
+- **Django's ORM inside `atomic()`.** PY-10, closed as not a defect. Django sends `ROLLBACK` itself and skips `on_commit`. The view still returns normally, though, and the write is gone (CHK-12).
+- **Django's `atomic()` nested inside `ATOMIC_REQUESTS`, after a raw-SQL error.** Django's `RELEASE SAVEPOINT` fails with `25P02`, and the request returns 500 (CHK-12).
 
 ## Not run
 
-Django on psycopg2; SQLAlchemy's asyncio engine under uvloop; FastAPI or another web framework around these calls; older releases.
+- Django on psycopg2;
+- Django under a WSGI or ASGI server (CHK-12 used Django's test client);
+- SQLAlchemy's asyncio engine under uvloop;
+- FastAPI or another web framework around the SQLAlchemy and asyncpg calls;
+- older releases.
 
 ## Upstream
 
@@ -42,3 +48,4 @@ Django on psycopg2; SQLAlchemy's asyncio engine under uvloop; FastAPI or another
 - **asyncpg:** [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), filed 2026-10-24. No reply as of 2026-10-26.
 - **psycopg2:** not filed. A follow-up for #1453 that reports it is drafted in [`upstream-drafts/psycopg-1453-followup-psycopg2.md`](upstream-drafts/psycopg-1453-followup-psycopg2.md), not posted.
 - **SQLAlchemy:** PY-9, `after_commit` on an aborted transaction, stays deferred: it goes away if the drivers raise (roadmap §3.2 B).
+- **Django:** no report. Django documents a caught raw-SQL error inside `atomic()` as unspecified (PY-10, CHK-12).
