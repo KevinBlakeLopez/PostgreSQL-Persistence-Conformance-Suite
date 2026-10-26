@@ -1,0 +1,55 @@
+# Disposable MySQL 8.4 servers for the transaction-state divergence study.
+#
+# Same image digest, tmpfs data directory and server flags as investigations/mysql-innodb-baseline/compose.yaml.
+# The project, container names and ports are different, so this study and the baseline can run side by side.
+# It is not the PPCS PostgreSQL compose file. Published ports bind to 127.0.0.1 only.
+# Passwords come from scripts/mysql-up.sh.
+name: mysd
+
+services:
+  mysql:
+    image: mysql:8.4.11@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+    container_name: mysd-mysql
+    labels:
+      purpose: mysd-disposable
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSD_ROOT_PASSWORD:?start the server with scripts/mysql-up.sh}
+      # The observer connects from the host, which Docker publishes as a non-socket client.
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: mysd
+      MYSQL_USER: mysd
+      MYSQL_PASSWORD: ${MYSD_PASSWORD:?start the server with scripts/mysql-up.sh}
+    ports:
+      - 127.0.0.1:13316:3306
+    tmpfs:
+      - /var/lib/mysql:size=1g
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 90
+
+  # Same image and initialization with innodb_rollback_on_timeout ON. The variable is not dynamic,
+  # so the comparison needs a second server rather than a SET GLOBAL on the first.
+  mysql-rollback-on-timeout:
+    image: mysql:8.4.11@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+    container_name: mysd-mysql-rb-timeout
+    labels:
+      purpose: mysd-disposable
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSD_ROOT_PASSWORD:?start the server with scripts/mysql-up.sh}
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: mysd
+      MYSQL_USER: mysd
+      MYSQL_PASSWORD: ${MYSD_PASSWORD:?start the server with scripts/mysql-up.sh}
+    command:
+      - --innodb-rollback-on-timeout=ON
+    ports:
+      - 127.0.0.1:13317:3306
+    tmpfs:
+      - /var/lib/mysql:size=1g
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 90

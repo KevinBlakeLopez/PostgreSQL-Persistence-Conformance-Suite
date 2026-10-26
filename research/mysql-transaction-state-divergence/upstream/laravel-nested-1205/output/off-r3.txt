@@ -1,0 +1,16 @@
+MySQL 8.4.11, innodb_rollback_on_timeout=0, illuminate/database v13.38.0, PHP 8.5.12
+
+1. inner statement waits for a row lock and fails with 1205
+   inner DB::transaction() threw: Illuminate\Database\DeadlockException
+   outer DB::transaction():       returned
+   callbacks that ran:            inner afterRollBack
+   rows committed:                outer, inner, after
+   transaction level afterwards:  0
+
+2. inner statement fails with a duplicate key (1062)
+   inner DB::transaction() threw: Illuminate\Database\UniqueConstraintViolationException
+   outer DB::transaction():       returned
+   callbacks that ran:            inner afterRollBack
+   rows committed:                outer, after
+   transaction level afterwards:  0
+
