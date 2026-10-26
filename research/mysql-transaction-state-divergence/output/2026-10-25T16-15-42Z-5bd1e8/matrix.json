@@ -1,0 +1,475 @@
+{
+  "run_id": "2026-10-25T16-15-42Z-5bd1e8",
+  "fields": {
+    "inner_writes": "final.markers (connection opened after the subject exited): \"persisted\" if it holds \"inner\", \"rolled back\" if the subject wrote \"inner\" and it is absent",
+    "inner_after_rollback": "final.sink: the sink row afterRollBack:inner, written by its own autocommit connection",
+    "inner_after_commit": "final.sink: the sink row afterCommit:inner",
+    "outer_transaction_server": "transactions (performance_schema.events_transactions_history_long for the subject thread): STATE of the first transaction with AUTOCOMMIT NO",
+    "outer_api": "result.steps[\"main\"]: whether the outer completion call returned or raised, and the class",
+    "rollback_to_savepoint_sent": "statements (events_statements_history_long for the subject thread): any statement/sql/rollback_to_savepoint, with its MYSQL_ERRNO",
+    "laravel_level": "checkpoint after-error, step main and checkpoint final: Connection::transactionLevel() as the subject reported it",
+    "manager_pending_after_end": "checkpoint after-end: levels of DatabaseTransactionsManager::getPendingTransactions()",
+    "sink_final": "final.sink in insertion order"
+  },
+  "matrix": [
+    {
+      "scenario": "pdo.savepoint-1205.rollback-to",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": false,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": [
+        "ok"
+      ],
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.savepoint-1205.rollback-to",
+      "server": "on",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": false,
+      "inner_after_commit": false,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": [
+        "errno 1305"
+      ],
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.savepoint-1205.skip",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "persisted",
+      "inner_after_rollback": false,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.savepoint-1213",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": false,
+      "inner_after_commit": false,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": [
+        "errno 1305"
+      ],
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.caught-1213.commit",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.caught-1205.commit",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "pdo.caught-1205.commit",
+      "server": "on",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": null,
+      "manager_pending_after_end": null,
+      "sink_final": []
+    },
+    {
+      "scenario": "laravel.commit",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": null,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterCommit:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-1205-caught",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "persisted",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-1205-caught",
+      "server": "on",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [
+        1
+      ],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-1205-caught.server-timeout",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "persisted",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-1205-escapes",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised DeadlockException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": null,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterRollBack:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-explicit-1205",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": [
+        "ok"
+      ],
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-duplicate-caught",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": [
+        "ok"
+      ],
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.caught-1213",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [
+        1
+      ],
+      "sink_final": [
+        "afterCommit:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.caught-1213-return",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterCommit:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.nested-1213-caught",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": "rolled back",
+      "inner_after_rollback": true,
+      "inner_after_commit": false,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [
+        1
+      ],
+      "sink_final": [
+        "afterRollBack:inner",
+        "afterCommit:outer",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.explicit-caught-1213",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised PDOException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 1,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.caught-1205-return",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "COMMITTED",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterCommit:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.caught-1205-return",
+      "server": "on",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": 1,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterCommit:tx",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.escaped-1213",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "raised QueryException",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": null,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:attempt-1",
+        "afterCommit:next"
+      ]
+    },
+    {
+      "scenario": "laravel.escaped-1213-retry",
+      "server": "off",
+      "repetitions": 3,
+      "matched_expectation": 3,
+      "inner_writes": null,
+      "inner_after_rollback": null,
+      "inner_after_commit": null,
+      "outer_transaction_server": "ROLLED BACK",
+      "outer_api": "returned",
+      "rollback_to_savepoint_sent": "none",
+      "laravel_level": {
+        "after_error": null,
+        "after_main": 0,
+        "final": 0
+      },
+      "manager_pending_after_end": [],
+      "sink_final": [
+        "afterRollBack:attempt-1",
+        "afterCommit:attempt-2",
+        "afterCommit:next"
+      ]
+    }
+  ]
+}
