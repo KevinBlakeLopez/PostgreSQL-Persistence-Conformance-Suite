@@ -19,7 +19,7 @@ This is the evidence behind PY-7 in [the tracker](../../python-upstream-contribu
 
 ## Reproducing it
 
-The scripts connect to `postgresql://postgres@127.0.0.1:55454/scratch`. Use a throwaway server: they drop and recreate their tables.
+The scripts connect to `postgresql://postgres@127.0.0.1:55454/scratch`. Use a throwaway server: they drop and recreate their tables. Run these commands from this folder.
 
 ```sh
 docker run -d --name p5a-pg -e POSTGRES_PASSWORD=<password> -p 127.0.0.1:55454:5432 \
