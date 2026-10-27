@@ -8,7 +8,8 @@ This is the working tracker for [`python-upstream-contribution-roadmap.md`](pyth
   - PY-1a: [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), 2026-10-21;
   - PY-1b: [a comment on #1453](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348), 2026-10-24;
   - PY-2: [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), 2026-10-24;
-  - PY-3: [tortoise/tortoise-orm#2383](https://github.com/tortoise/tortoise-orm/issues/2383), 2026-10-25.
+  - PY-3: [tortoise/tortoise-orm#2383](https://github.com/tortoise/tortoise-orm/issues/2383), 2026-10-25;
+  - PY-6: [asyncpg#1402](https://github.com/MagicStack/asyncpg/issues/1402), 2026-10-27.
 - **The filing log is still [`docs/upstream-submissions.md`](../docs/upstream-submissions.md).** PY-1a is its P1. When an item is posted, record it there, and update the row here.
 - **Every post needs approval** of its exact text and destination (`AGENTS.md` rule 9).
 - **SQLAlchemy text must be written by its author,** in their own words. No agent posts there.
@@ -37,7 +38,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
 | PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). One follow-up around 2026-11-08 if silent; decide around 2026-11-22 |
 | PY-5 | SQLAlchemy (docs) | On a transactional psycopg 3 engine, the documented PostgreSQL reset recipe leaves the role, a custom GUC, `search_path`, `statement_timeout` and temp tables in place. On psycopg2, the driver in its URL, it raised on each tested return, and the pool discarded the connection | CONFIRMED on both drivers; CHK-3 | 4 (A5, B3) | READY_FOR_HUMAN_REVIEW | The author writes the discussion or docs PR from CHK-3's [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) |
-| PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | READY_FOR_HUMAN_REVIEW | Write and run the standalone script; draft the issue |
+| PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | SUBMITTED | Filed 2026-10-27 as [#1402](https://github.com/MagicStack/asyncpg/issues/1402). One follow-up around 2026-11-10 if silent; decide around 2026-11-24 |
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
@@ -268,11 +269,12 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Evidence:**
   - `research/python-production-failure-gap-analysis/output/p2.rep{1,2,3}.out` (the asyncpg flavour);
   - the psql checks in that README;
-  - Src: `asyncpg/connection.py:1567-1594` and `1763-1790`; `asyncpg/pool.py:1320-1340`.
-- **Upstream:** none for the role (2026-10-24). Temp tables are #1293, and PR #1392 (open, unreviewed) uses a capability-gated reset statement. #270 rejects `DISCARD ALL`.
+  - Src: `asyncpg/connection.py:1567-1594` and `1763-1790`; `asyncpg/pool.py:1320-1340`;
+  - the standalone script and `output/run.rep{1,2,3}.out`, run 2026-10-27: [`python-upstream-contribution/py-6-asyncpg-reset-role/`](python-upstream-contribution/py-6-asyncpg-reset-role/repro.py).
+- **Upstream:** none for the role (re-checked 2026-10-27). Temp tables are #1293, and PR #1392 (open, not merged) uses a capability-gated reset statement. #270 rejects `DISCARD ALL`.
 - **Confidence:** CONFIRMED.
 - **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [evidence](python-upstream-contribution/real-world-evidence/README.md#py-6-asyncpg-keeps-a-role-after-connectionreset)):
-  - **Consequence:** the next borrower runs as the previous borrower's role, and asyncpg reports nothing.
+  - **Consequence:** the next borrower runs as the previous borrower's role. The saved stdout contains both checkout results; no stderr or asyncpg diagnostic-log capture is included.
   - **Trigger, a session-level `SET ROLE` on a pooled connection:** in production, yes; in our runs, the ordinary API with no fault (P2). Code shape: reasonable, since `reset()`'s docstring promises a state "resembling that of a newly obtained connection". Evidence: incident, Percolate's changelog (the project's own record; 60 stars).
   - **Reproduced on real code:** no.
   - **Searches:** hundreds of asyncpg files set or reset roles; no inspected sample.
@@ -280,9 +282,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **Not established:** frequency.
 - **Priority:** 5.
 - **Proposed action:** an issue proposing `RESET ROLE` behind a capability, or a corrected docstring. Include the compatibility note on `init`-time roles (roadmap §10.5).
-- **Prerequisites:** run the script to be posted three times, on a non-superuser login. CHK-6 is optional.
-- **Status:** READY_FOR_HUMAN_REVIEW
-- **Next concrete step:** write the standalone script (pool of one: `SET ROLE`, release, acquire, `current_user`).
+- **Draft:** [`python-upstream-contribution/upstream-drafts/asyncpg-reset-role.md`](python-upstream-contribution/upstream-drafts/asyncpg-reset-role.md). Filed 2026-10-27 as [#1402](https://github.com/MagicStack/asyncpg/issues/1402). Prepared the same day, then revised after an outside review ([`adversarial-review/py6-asyncpg-reset-role/REVIEW.md`](python-upstream-contribution/adversarial-review/py6-asyncpg-reset-role/REVIEW.md), verdict READY WITH CHANGES; the program was not rerun). The filed title and body match the draft.
+- **Prerequisites:** the standalone script was run three times on 2026-10-27, as non-superuser `app_login`. CHK-6 is still optional and has not been run.
+- **Filed:** 2026-10-27, as [MagicStack/asyncpg#1402](https://github.com/MagicStack/asyncpg/issues/1402), posted as `KevinBlakeLopez` after approval of the exact text. The filed title and body match the draft. Recorded in [`docs/upstream-submissions.md`](../docs/upstream-submissions.md).
+- **Status:** SUBMITTED
+- **Next concrete step:** wait for the maintainers. One polite follow-up around 2026-11-10 if there is no reply; decide around 2026-11-24. No pull request until they choose a direction.
 
 ### PY-8: Tortoise COMMIT-time exception translation
 
