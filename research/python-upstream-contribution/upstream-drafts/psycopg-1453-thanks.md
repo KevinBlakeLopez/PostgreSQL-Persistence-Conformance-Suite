@@ -1,25 +1,15 @@
-# Draft: thank-you on psycopg/psycopg#1453
+# Thank-you on psycopg/psycopg#1453
 
-**Not posted.** Prepared 2026-10-27. Written by: Grok 4.7.
+**Posted 2026-10-27** as `KevinBlakeLopez`: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 at 2026-10-27T19:12:17Z. Compared through the API. The issue was still closed, state reason `completed`.
 
-`dvarrazzo` closed #1453 on 2026-10-27 and explained the contract: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 This comment thanks him. It does not ask for a change.
+The posted body is the text below. It does not match an earlier draft. That draft opened "Thank you for spelling this out." and, in the committed copy, ended with "I'll leave `commit()` as it is." The posted comment uses the shorter opening and omits that line.
 
-Destination, after approval of this exact text: a comment on https://github.com/psycopg/psycopg/issues/1453
-
-**Before posting:**
-
-1. Get approval of the exact text and of the destination.
-2. Re-check #1453. If a later comment has arrived, stop and adapt this.
-3. Post it as `KevinBlakeLopez`. Do not open a new issue.
-
-**Left out on purpose:** `Connection.transaction()`, `Transaction.status`, SQLAlchemy, Django, and psycopg2. His comment did not mention them. This draft does not add them.
-
-Everything between the two rules below is the proposed comment.
+**Left out, as posted:** `Connection.transaction()`, `Transaction.status`, SQLAlchemy, Django, and psycopg2.
 
 ---
 
-Thank you for spelling this out.
+Thx for explaining!
 
-I had treated a normal return from `commit()` as a successful commit. After a caught error, the caller is responsible for the connection, and `Connection.info.transaction_status` is the check before `commit()` or `rollback()`. I'll leave `commit()` as it is.
+I treated a normal return from commit() as a successful commit. After a caught error, the caller is responsible for the connection, and Connection.info.transaction_status is the check before commit() or rollback().
 
 ---

@@ -2,7 +2,7 @@
 
 **Posted 2026-10-24** as `KevinBlakeLopez`: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348 The posted body matches the comment below; it was compared through the API. Prepared 2026-10-24. Written by: Claude Opus 5.5 (max).
 
-**Issue closed 2026-10-27** by `dvarrazzo`: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 His comment does not mention `transaction()` or `Transaction.status`. A thank-you that does not mention this API is drafted and not posted: [psycopg-1453-thanks.md](psycopg-1453-thanks.md).
+**Issue closed 2026-10-27** by `dvarrazzo`: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 His comment does not mention `transaction()` or `Transaction.status`. A thank-you that does not mention this API was posted 2026-10-27: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 ([psycopg-1453-thanks.md](psycopg-1453-thanks.md)).
 
 **Checked just before posting, about 21:53 UTC.** #1453 was open, with no comment and no timeline event. `master` was still `99356800e`, and no commit had touched the linked files. PyPI `latest` was 3.3.6.
 

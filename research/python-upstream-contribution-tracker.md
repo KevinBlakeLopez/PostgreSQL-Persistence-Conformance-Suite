@@ -33,7 +33,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 | ID | Project | Finding | Confidence | Order (A, B) | Status | Next concrete step |
 | --- | --- | --- | --- | --- | --- | --- |
-| PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED. Maintainer: after the caller traps the error, the connection state is the caller's | — (A1) | CLOSED_NO_ACTION | #1453 closed 2026-10-27 by `dvarrazzo`. Thank-you drafted, not posted |
+| PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED. Maintainer: after the caller traps the error, the connection state is the caller's | — (A1) | CLOSED_NO_ACTION | #1453 closed 2026-10-27 by `dvarrazzo`. Thank-you posted the same day |
 | PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED. The 2026-10-27 reply does not mention this API | 1 (A1, B1) | CLOSED_NO_ACTION | #1453 closed. The reply names `abort_with_unique()` only. Silence follow-up dropped. The thank-you does not mention this API |
 | PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). `Claire-ovo` reproduced it on 2026-10-27. Outside PR [#1401](https://github.com/MagicStack/asyncpg/pull/1401) is open and unreviewed. The 2026-11-07 silence follow-up no longer applies; decide around 2026-11-21 |
 | PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). One follow-up around 2026-11-08 if silent; decide around 2026-11-22 |
@@ -93,7 +93,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Proposed action:** none. No new issue, and no reports to SQLAlchemy or Django. The PPCS rows are unchanged.
 - **Prerequisites:** —
 - **Status:** CLOSED_NO_ACTION
-- **Next concrete step:** a thank-you is drafted and not posted: [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). Approval of the exact text before posting. It does not ask for a change. Do not post the psycopg2 follow-up.
+- **Next concrete step:** none. The thank-you was posted 2026-10-27T19:12:17Z: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 It does not ask for a change. Do not post the psycopg2 follow-up.
 
 ### PY-1b: psycopg `Connection.transaction()` and `Transaction.status`
 
@@ -129,7 +129,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Left out of the draft:** PY-12's SQLSTATEs. Their evidence goes through SQLAlchemy Core, that is `Connection.commit()`, not `transaction()`. The maintainer decided on 2026-10-24 to keep them out.
 - **Prerequisites:** met on 2026-10-24, when the comment was posted. CHK-1 was not run; it is optional.
 - **Status:** CLOSED_NO_ACTION
-- **Next concrete step:** the psycopg2 follow-up is dropped. Its own check said that a close as intended behaviour is recorded and not argued: [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md). The thank-you on #1453 does not mention this API. `Transaction.status` reading `committed` while `pg_xact_status()` is `aborted` is unaddressed. After the block exits, `Connection.info.transaction_status` is `IDLE`, so that check cannot recover the outcome either.
+- **Next concrete step:** the psycopg2 follow-up is dropped. Its own check said that a close as intended behaviour is recorded and not argued: [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md). The thank-you posted on #1453 does not mention this API. `Transaction.status` reading `committed` while `pg_xact_status()` is `aborted` is unaddressed. After the block exits, `Connection.info.transaction_status` is `IDLE`, so that check cannot recover the outcome either.
 
 ### PY-2: asyncpg `Transaction.commit()` and `async with conn.transaction()`
 
@@ -841,6 +841,6 @@ The rest of this section is the plan as it stood before the commits.
 - **2026-10-27.** `dvarrazzo` closed [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) at 2026-10-27T13:56:28Z, state reason `completed`, with [this comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485). No commit and no pull request. Re-checked through the API the same day.
   - **PY-1a** is CLOSED_NO_ACTION. He says `COMMIT` on `INERROR` is valid, and a caller who traps the error owns the connection state.
   - **PY-1b** is CLOSED_NO_ACTION. The comment does not mention `transaction()` or `Transaction.status`. That discrepancy stays unaddressed.
-  - A thank-you is drafted and not posted: [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). It does not ask for a change.
+  - The thank-you was posted at 2026-10-27T19:12:17Z: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 The posted text is in [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). It does not ask for a change. It does not match the earlier draft's opening.
   - The psycopg2 silence follow-up is dropped.
-  - **PY-9** stays deferred on asyncpg. Nothing posted. The roadmap's executive summary now records the close. Its calendar and contribution sequence were not rewritten.
+  - **PY-9** stays deferred on asyncpg. The roadmap's executive summary now records the close. Its calendar and contribution sequence were not rewritten.

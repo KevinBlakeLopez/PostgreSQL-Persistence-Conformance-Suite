@@ -2,7 +2,7 @@
 
 **Filed 2026-10-21** as https://github.com/psycopg/psycopg/issues/1453 Posted as `KevinBlakeLopez`. No pull request.
 
-**Closed 2026-10-27** by `dvarrazzo`, GitHub state reason `completed`, with https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 No commit. He says `COMMIT` on an `INERROR` transaction is a valid server operation, and a caller who traps the error manages the connection state with `Connection.info.transaction_status`. A thank-you is drafted and not posted. The body below is the text that was filed.
+**Closed 2026-10-27** by `dvarrazzo`, GitHub state reason `completed`, with https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 No commit. He says `COMMIT` on an `INERROR` transaction is a valid server operation, and a caller who traps the error manages the connection state with `Connection.info.transaction_status`. Thank-you posted 2026-10-27: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 The body below is the text that was filed.
 
 Search the same day, before filing: `ROLLBACK commit` and `commit() ROLLBACK` did not return a report of `commit()` returning when the command tag is `ROLLBACK`. Open #1451 is cancellation of `AsyncConnection.transaction().__aenter__()`, which leaves a stale transaction stack. Closed #969 and #967 ask whether a transaction context records commit versus rollback. Closed #296 is pipeline mode. PyPI `latest` was 3.3.6, uploaded 2026-09-18. The 2026-10-19 case files record that same driver version.
 
