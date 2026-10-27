@@ -33,8 +33,8 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 | ID | Project | Finding | Confidence | Order (A, B) | Status | Next concrete step |
 | --- | --- | --- | --- | --- | --- | --- |
-| PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN | — (A1) | UPSTREAM_ALREADY_TRACKED | Wait on #1453. PY-1b adds to it |
-| PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED | 1 (A1, B1) | SUBMITTED | Posted 2026-10-24 ([comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6389997348)). One follow-up around 2026-11-07 if silent; decide around 2026-11-21 |
+| PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED. Maintainer: after the caller traps the error, the connection state is the caller's | — (A1) | CLOSED_NO_ACTION | #1453 closed 2026-10-27 by `dvarrazzo`. Thank-you drafted, not posted |
+| PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED. The 2026-10-27 reply does not mention this API | 1 (A1, B1) | CLOSED_NO_ACTION | #1453 closed. The reply names `abort_with_unique()` only. Silence follow-up dropped. The thank-you does not mention this API |
 | PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). `Claire-ovo` reproduced it on 2026-10-27. Outside PR [#1401](https://github.com/MagicStack/asyncpg/pull/1401) is open and unreviewed. The 2026-11-07 silence follow-up no longer applies; decide around 2026-11-21 |
 | PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). One follow-up around 2026-11-08 if silent; decide around 2026-11-22 |
 | PY-5 | SQLAlchemy (docs) | On a transactional psycopg 3 engine, the documented PostgreSQL reset recipe leaves the role, a custom GUC, `search_path`, `statement_timeout` and temp tables in place. On psycopg2, the driver in its URL, it raised on each tested return, and the pool discarded the connection | CONFIRMED on both drivers; CHK-3 | 4 (A5, B3) | READY_FOR_HUMAN_REVIEW | The author writes the discussion or docs PR from CHK-3's [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) |
@@ -42,7 +42,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
-| PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-9 and CHK-10 observed it on 2.1.6 with psycopg2, psycopg 3 and asyncpg | — | DEFERRED | Revisit after PY-1 and PY-2 |
+| PY-9 | SQLAlchemy | ORM `after_commit` fires on an aborted transaction (Draft C) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-9 and CHK-10 observed it on 2.1.6 with psycopg2, psycopg 3 and asyncpg | — | DEFERRED | psycopg declined a driver change on 2026-10-27. Revisit if asyncpg declines |
 | PY-10 | Django | `atomic()` and `on_commit` | NOT A DEFECT for ORM errors. CHK-12: after a caught raw-SQL error, PY-1a's false commit reaches `on_commit`, a case Django documents as unspecified | — | CLOSED_NO_ACTION | — |
 | PY-11 | psycopg_pool, SQLAlchemy pools, Django | Session state carries over by default | NOT A DEFECT | — | CLOSED_NO_ACTION | — |
 | PY-12 | Several | `57014`, `40P01`, `40001` on the caught-then-commit path | CONFIRMED; no new defect | — | CLOSED_NO_ACTION | Not cited in either draft. Kept out of PY-1b by the maintainer's decision; dropped from PY-2 after the outside review |
@@ -77,10 +77,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
     - With `atomic()` nested inside `ATOMIC_REQUESTS`, the raw-SQL error fails loudly with a 500.
     - **Re-run with a reasonable trigger (2026-10-26):** the same results with a once-only first-order bonus as the order's last step, the duplicate treated as "already awarded", 3 of 3: [`python-upstream-contribution/chk-12-django-raw-sql-false-commit/once-only-rerun/`](python-upstream-contribution/chk-12-django-raw-sql-false-commit/once-only-rerun/README.md). The original trigger, a best-effort analytics write inside the transaction, is not reasonable application code.
   - **CHK-16 (2026-10-26 UTC): through a library.** Procrastinate 3.10.0 inserts a job inside the caller's transaction, by default with its Django integration. If the code ignores the documented `AlreadyEnqueued` from a queueing-lock clash, Django runs `on_commit`, or `conn.commit()` returns on the external-connection API, and the transaction is lost, 3 of 3: [`python-upstream-contribution/chk-16-procrastinate-queueing-lock/`](python-upstream-contribution/chk-16-procrastinate-queueing-lock/README.md). Procrastinate's docs side is PY-25.
-- **Upstream:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21. Open, no comments, no labels. Re-checked 2026-10-24 at about 16:20 UTC: also no timeline events and no reactions.
-- **Confidence:** CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN.
-  - psycopg's docs tell callers to roll back after an error.
-  - `tests/test_connection_async.py:401` asserts that `commit()` returns.
+- **Upstream:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21. **Closed 2026-10-27** by `dvarrazzo` (MEMBER) at 2026-10-27T13:56:28Z. GitHub `state_reason` is `completed`. That close has no linked commit and no pull request. His comment, the same minute: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 No labels. Re-checked through the API on 2026-10-27.
+  - `COMMIT` on an `INERROR` transaction is, he writes, a valid PostgreSQL operation. He knows that behaviour is debated and that there are discussions about changing the server. "we will not change the behaviour of the server."
+  - The reproduction traps the server error and cancels the Python exception. "You are henceforth responsible to manage the connection state. Use `Connection.info.transaction_status` to decide if you want to commit or roll back."
+  - The comment names `abort_with_unique()`, which is in the issue body. It does not mention `Connection.transaction()` or `Transaction.status`.
+- **Confidence:** CONFIRMED. The maintainer stated the contract for `commit()`: a caller who traps the error owns the connection state, and `commit()` is not required to raise. `tests/test_connection_async.py:401` already expects `commit()` to return. The recorded program shows the limit of the check he names. On the error path, `transaction_status` is `INERROR` before `commit()` and `IDLE` after, and `commit()` returns `None`. The control `commit()` also returns `None`, and that row is visible. The program did not print `transaction_status` for the control. The check has to happen before the call.
 - **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [evidence](python-upstream-contribution/real-world-evidence/README.md#py-1-and-py-2-and-py-9-the-false-commit)):
   - **Consequence:** the writes before a caught error are lost while `commit()` returns. Through Django (CHK-12), `on_commit` also runs. Silent unless a later statement fails.
   - **Trigger, a caught ordinary error** (`23505`, `57014`, `40P01`, `40001`): in production, yes; in our runs, real errors (the production-reachability runs, P6, CHK-9, CHK-12, CHK-16). Code shape: a per-row catch inside one transaction, common batch code that needs a savepoint on PostgreSQL; or a once-only last write with the duplicate treated as done, which is reasonable (CHK-12's re-run). Evidence: audit, news-scraping#36 (the owner's report, 0 stars); acknowledged, airflow#59120; other ecosystems.
@@ -88,11 +89,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - **Searches:** the pattern counts have no inspected sample. CHK-16's sample of Procrastinate users found no unguarded catch in 104 sites, and at least six projects that guard with a savepoint.
   - **Likelihood (judgment):** moderate: the batch shape is common, and any caught error triggers it.
   - **Not established:** frequency; a production report on psycopg 3.
-- **Priority:** severity rank 1. The action now is PY-1b.
-- **Proposed action:** none beyond PY-1b. No new issue, and no reports to SQLAlchemy or Django.
+- **Priority:** severity rank 1. No further upstream action.
+- **Proposed action:** none. No new issue, and no reports to SQLAlchemy or Django. The PPCS rows are unchanged.
 - **Prerequisites:** —
-- **Status:** UPSTREAM_ALREADY_TRACKED
-- **Next concrete step:** PY-1b's drafted comment carries the compatibility note. Once it is posted, follow the follow-up rule (roadmap §14).
+- **Status:** CLOSED_NO_ACTION
+- **Next concrete step:** a thank-you is drafted and not posted: [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). Approval of the exact text before posting. It does not ask for a change. Do not post the psycopg2 follow-up.
 
 ### PY-1b: psycopg `Connection.transaction()` and `Transaction.status`
 
@@ -103,7 +104,8 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - Src: `transaction.py:133-140`;
   - Doc: `docs/basic/transactions.rst`, lines 158–162 and 347–350;
   - psycopg's own `test_outer_transaction_error` pattern, three repetitions per arm: [`python-upstream-contribution/psycopg-pipeline-test-check/`](python-upstream-contribution/psycopg-pipeline-test-check/README.md). The block exits normally, `status` is `committed`, and the transaction is aborted.
-- **Upstream:** not in #1453. #967 has the maintainer's statement that a normal exit means a commit. #969 and PR #1184 added `status`.
+- **Upstream:** posted on #1453 on 2026-10-24. #967 has the maintainer's statement that a normal exit means a commit. #969 and PR #1184 added `status`.
+- **Reply (2026-10-27):** the same close and comment as PY-1a. The comment does not mention `transaction()`, `Transaction.status`, or the documentation quoted in the 2026-10-24 comment. The issue that holds this comment is closed. GitHub's `completed` is the close reason; it is not a shipped fix. One reading of his rule, which he did not write out: an exception that is caught does not leave the block, and the block docs commit on that exit. That reading does not cover `tx.status`.
 - **Confidence:** CONFIRMED.
 - **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [evidence](python-upstream-contribution/real-world-evidence/README.md#py-1-and-py-2-and-py-9-the-false-commit)):
   - **Consequence:** the block exits normally and `tx.status` reads `committed`, the value its docs offer to retry logic, while PostgreSQL aborted. Silent.
@@ -125,9 +127,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   - what was not run;
   - a conditional offer of tests or a PR.
 - **Left out of the draft:** PY-12's SQLSTATEs. Their evidence goes through SQLAlchemy Core, that is `Connection.commit()`, not `transaction()`. The maintainer decided on 2026-10-24 to keep them out.
-- **Prerequisites:** #1453 and `master` were re-checked on 2026-10-24. CHK-1 was not run; it is optional. Repeat the draft's pre-post checks on the day of posting.
-- **Status:** SUBMITTED
-- **Next concrete step:** wait for a reply. If #1453 is still silent around 2026-11-07, send one polite follow-up: [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md), drafted 2026-10-26 with CHK-9's psycopg2 result and awaiting approval of its exact text. Decide around 2026-11-21 (roadmap §14).
+- **Prerequisites:** met on 2026-10-24, when the comment was posted. CHK-1 was not run; it is optional.
+- **Status:** CLOSED_NO_ACTION
+- **Next concrete step:** the psycopg2 follow-up is dropped. Its own check said that a close as intended behaviour is recorded and not argued: [`python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-followup-psycopg2.md). The thank-you on #1453 does not mention this API. `Transaction.status` reading `committed` while `pg_xact_status()` is `aborted` is unaddressed. After the block exits, `Connection.info.transaction_status` is `IDLE`, so that check cannot recover the outcome either.
 
 ### PY-2: asyncpg `Transaction.commit()` and `async with conn.transaction()`
 
@@ -414,7 +416,7 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 
 | ID | Evidence location | Existing issue or PR | Proposed action | Prerequisites | Status | Next concrete step |
 | --- | --- | --- | --- | --- | --- | --- |
-| PY-9 | `output/p1.out` (F, G); Ext `run-2.txt` | — | None while PY-1 and PY-2 are open | The outcome of PY-1 and PY-2 | DEFERRED | Revisit if both drivers decline |
+| PY-9 | `output/p1.out` (F, G); Ext `run-2.txt` | — | None while PY-2 is open. psycopg declined a driver change on 2026-10-27 | The outcome of PY-2 | DEFERRED | Revisit if asyncpg declines |
 | PY-10 | PPCS `6d8443`, `b2c174`; A2 P5, P6; Ext arm 4b | — | None | — | CLOSED_NO_ACTION | — |
 | PY-11 | `output/p2.rep*.out` | psycopg Discussion #893 | None | — | CLOSED_NO_ACTION | — |
 | PY-12 | `output/p6.jsonl`, `output/p6.server-log-endings.txt` | — | Not cited. Kept out of PY-1b by the maintainer's decision, since its evidence went through `Connection.commit()`. Dropped from PY-2 after the outside review: `test_timeout_06` covers the timeout case | — | CLOSED_NO_ACTION | — |
@@ -836,3 +838,9 @@ The rest of this section is the plan as it stood before the commits.
   - **Each scheduled item's section** is shortened to verdicts with links to the evidence, and gains a likelihood. PY-1a's adds CHK-16.
   - **The standard** now allows a link to the evidence instead of a copy, and its coverage note is updated.
   - No status changed. Nothing posted or filed. The roadmap was not edited.
+- **2026-10-27.** `dvarrazzo` closed [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) at 2026-10-27T13:56:28Z, state reason `completed`, with [this comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485). No commit and no pull request. Re-checked through the API the same day.
+  - **PY-1a** is CLOSED_NO_ACTION. He says `COMMIT` on `INERROR` is valid, and a caller who traps the error owns the connection state.
+  - **PY-1b** is CLOSED_NO_ACTION. The comment does not mention `transaction()` or `Transaction.status`. That discrepancy stays unaddressed.
+  - A thank-you is drafted and not posted: [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). It does not ask for a change.
+  - The psycopg2 silence follow-up is dropped.
+  - **PY-9** stays deferred on asyncpg. Nothing posted. The roadmap's executive summary now records the close. Its calendar and contribution sequence were not rewritten.

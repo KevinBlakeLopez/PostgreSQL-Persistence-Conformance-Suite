@@ -51,8 +51,8 @@ The working tracker is [`python-upstream-contribution-tracker.md`](python-upstre
   - **The sequence.** An application catches a PostgreSQL error inside a transaction, then lets the transaction finish. Every write is lost, and the API returns normally.
   - **Observed triggers:** `23505`, `57014`, `40P01` and `40001` (PPCS; A2 P1 and P6).
   - **psycopg (PY-1).**
-    - `Connection.commit()` is filed as [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453): open, no reply, no labels.
-    - Its second public surface is not in #1453. `with conn.transaction() as tx:` exits normally and sets `tx.status` to `committed` (Audit).
+    - `Connection.commit()` is filed as [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453). `dvarrazzo` closed it on 2026-10-27: a caller who traps the error owns the connection state. No code change. The tracker has the comment.
+    - `with conn.transaction() as tx:` was added as a comment on that issue. The close does not mention it. The block exits normally and sets `tx.status` to `committed` (Audit).
     - psycopg documents `status` as "the final outcome of the transaction", for "retry logic".
   - **asyncpg (PY-2).** `Transaction.commit()` and `async with conn.transaction()` discard the `ROLLBACK` status that asyncpg's own `execute()` returns (A2 P1; Src). There is no upstream report. Tortoise and SQLAlchemy's asyncpg dialect inherit it.
 - **Tortoise loses a retried write silently (PY-3).**

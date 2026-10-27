@@ -92,7 +92,7 @@ No issues were filed.
 
 ### Filing status, recorded 2026-10-23
 
-The sentence "No issues were filed" is the state of this investigation when the run report was written. It is not the current filing status. Current status is [`docs/upstream-submissions.md`](../../docs/upstream-submissions.md). This note did not re-query GitHub. The links are the tracker's record.
+The sentence "No issues were filed" is the state of this investigation when the run report was written. It is not the current filing status. Current status is [`docs/upstream-submissions.md`](../../docs/upstream-submissions.md). This note did not re-query GitHub, except the psycopg bullet, which was re-checked on 2026-10-27. The other links are the tracker's record.
 
 Overlapping findings were filed from other writeups, or from the drafts in [`upstream-drafts/`](upstream-drafts/README.md). Do not file a second copy:
 
@@ -101,7 +101,7 @@ Overlapping findings were filed from other writeups, or from the drafts in [`ups
 - Lucid reporting success, and running `after('commit')`, is [lucid#1205](https://github.com/adonisjs/lucid/issues/1205) (L2, submitted 2026-10-21).
 - Whether pgjdbc `Connection.commit()` should report the rollback tag is [pgjdbc#4494](https://github.com/pgjdbc/pgjdbc/issues/4494) (J1, submitted 2026-10-19). The use case was answered on 2026-10-21. No second pgjdbc issue.
 - Kysely `isCommitted` is [kysely#2157](https://github.com/kysely-org/kysely/issues/2157) (Y2, filed 2026-10-21).
-- psycopg `Connection.commit()` is [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) (P1, filed 2026-10-21).
+- psycopg `Connection.commit()` is [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) (P1, filed 2026-10-21). `dvarrazzo` closed it 2026-10-27: a caller who traps the error owns the connection state. No code change. The detail is in the tracker.
 - TypeORM `afterTransactionCommit` is [typeorm#12992](https://github.com/typeorm/typeorm/issues/12992) (T3, filed 2026-10-21).
 - Drizzle `db.transaction()` is [drizzle-orm#6572](https://github.com/drizzle-team/drizzle-orm/issues/6572) (D1, filed 2026-10-22).
 - Prisma `$transaction()` was posted as a [comment on prisma/orm#20496](https://github.com/prisma/orm/issues/20496#issuecomment-6372520392) (PI1, 2026-10-23), an existing report of the same case, not as a new issue.

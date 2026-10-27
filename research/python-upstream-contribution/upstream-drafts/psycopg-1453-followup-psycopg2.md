@@ -1,12 +1,14 @@
 # Draft: psycopg, follow-up on psycopg/psycopg#1453 (psycopg2)
 
-**Not posted.** Prepared 2026-10-26. Written by: Claude Opus 5.5 (max).
+**Dropped 2026-10-27. Do not post.** `dvarrazzo` replied and closed #1453 the same minute (state reason `completed`): https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485 The check below said that a close as intended behaviour is recorded and not argued. The text under the rule is the comment that was not sent.
 
-This is the planned follow-up for tracker item PY-1b in [`../../python-upstream-contribution-tracker.md`](../../python-upstream-contribution-tracker.md). #1453 was filed by `KevinBlakeLopez` on 2026-10-21, and the PY-1b comment was posted on 2026-10-24 ([its draft](psycopg-1453-comment.md)). This one reports CHK-9's result: psycopg2 behaves the same.
+Prepared 2026-10-26. Written by: Claude Opus 5.5 (max).
 
-Everything between the two rules below is the proposed comment. The rest of this file is internal.
+This was the planned follow-up for tracker item PY-1b in [`../../python-upstream-contribution-tracker.md`](../../python-upstream-contribution-tracker.md). #1453 was filed by `KevinBlakeLopez` on 2026-10-21, and the PY-1b comment was posted on 2026-10-24 ([its draft](psycopg-1453-comment.md)). It reports CHK-9's result: psycopg2 behaves the same.
 
-**When.** The roadmap (§14) allows about two weeks for a first reply, then one polite follow-up. #1453 has had no maintainer reply since the 2026-10-24 comment. Post this as that one follow-up, in week 3 (2026-11-09 to 11-15), only if the thread is still silent. It replaces a plain reminder.
+Everything between the two rules below is the comment that was not sent. The rest of this file is internal.
+
+**When.** The roadmap (§14) allowed one polite follow-up only if the thread was still silent. It is not. Do not adapt this into a reply.
 
 **Before posting:**
 

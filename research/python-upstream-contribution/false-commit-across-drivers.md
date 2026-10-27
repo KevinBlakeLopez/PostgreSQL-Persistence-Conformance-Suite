@@ -47,9 +47,9 @@ CHK-9 and CHK-10 used the latest releases on 2026-10-26 (SQLAlchemy 2.1.6, psyco
 
 ## Upstream
 
-- **psycopg 3:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21, with the PY-1b comment of 2026-10-24. No maintainer reply as of 2026-10-26.
-- **asyncpg:** [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), filed 2026-10-24. No reply as of 2026-10-26.
-- **psycopg2:** not filed. A follow-up for #1453 that reports it is drafted in [`upstream-drafts/psycopg-1453-followup-psycopg2.md`](upstream-drafts/psycopg-1453-followup-psycopg2.md), not posted.
-- **SQLAlchemy:** PY-9, `after_commit` on an aborted transaction, stays deferred: it goes away if the drivers raise (roadmap §3.2 B).
+- **psycopg 3:** [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453), filed 2026-10-21, with the PY-1b comment of 2026-10-24. `dvarrazzo` closed it 2026-10-27 ([comment](https://github.com/psycopg/psycopg/issues/1453#issuecomment-6443758485)): `COMMIT` on `INERROR` is valid, and a caller who traps the error owns the connection state. No code change. The reply does not mention `transaction()` or `Transaction.status`. A thank-you is drafted and not posted.
+- **asyncpg:** [asyncpg#1400](https://github.com/MagicStack/asyncpg/issues/1400), filed 2026-10-24. `Claire-ovo` reproduced it on 2026-10-27. Outside PR #1401 is open and not validated here.
+- **psycopg2:** not filed. The #1453 follow-up that would have reported CHK-9 is dropped; the issue is closed ([draft](upstream-drafts/psycopg-1453-followup-psycopg2.md)).
+- **SQLAlchemy:** PY-9, `after_commit` on an aborted transaction, stays deferred on asyncpg. psycopg will not raise from `commit()` on this path.
 - **Procrastinate:** PY-25, an issue draft asking to add the savepoint caveat to its queueing-lock and Django pages; not posted.
 - **Django:** no report. Django documents a caught raw-SQL error inside `atomic()` as unspecified (PY-10, CHK-12).

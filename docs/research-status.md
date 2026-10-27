@@ -117,7 +117,7 @@ Drizzle, Prisma, and Hibernate were out of scope for this catalog. Drizzle and P
 
 ## 5. Upstream filing status
 
-Source: `docs/upstream-submissions.md` as it exists on `36dd52f`. This inspection did not re-query GitHub. If the tracker and a draft disagree, the tracker is the filing log. A draft file's banner is the content status of that file. The Kysely, psycopg, TypeORM, and Drizzle drafts say filed. The Spring, Prisma, and Knex drafts still say not filed.
+Source: `docs/upstream-submissions.md` as it exists on `36dd52f`, except the P1 row, which was updated on 2026-10-27 from a re-check of #1453. This inspection did not re-query GitHub for the other rows. If the tracker and a draft disagree, the tracker is the filing log. A draft file's banner is the content status of that file. The Kysely, psycopg, TypeORM, and Drizzle drafts say filed. The Spring, Prisma, and Knex drafts still say not filed.
 
 **Drafted, not submitted.** Do not describe these as filed.
 
@@ -130,13 +130,13 @@ Source: `docs/upstream-submissions.md` as it exists on `36dd52f`. This inspectio
 | — | `adapters/gorm/UPSTREAM.md` | Not filed |
 | — | `adapters/sqlx/upstream-draft.md` | Not filed |
 
-**Submitted, overlapping this study.** Waiting on maintainers unless the tracker says otherwise. M3 is the row the tracker records as closed. None of these is recorded as a merged pull request from this repository.
+**Submitted, overlapping this study.** Waiting on maintainers unless the tracker says otherwise. M3, and P1 as of 2026-10-27, are the rows the tracker records as closed. None of these is recorded as a merged pull request from this repository.
 
 | ID | Recorded link | What it covers |
 | --- | --- | --- |
 | K1 | https://github.com/knex/knex/issues/6547 | `executionPromise` resolves when PostgreSQL rolls back at `COMMIT` |
 | Y2 | https://github.com/kysely-org/kysely/issues/2157 | `commit()` sets `isCommitted` when the transaction did not commit. Filed 2026-10-21. Issue only. The maintainer opened fix PR #2161 on 2026-10-21; open on 2026-10-25 |
-| P1 | https://github.com/psycopg/psycopg/issues/1453 | `Connection.commit()` returns on command tag `ROLLBACK`. Filed 2026-10-21. Issue only |
+| P1 | https://github.com/psycopg/psycopg/issues/1453 | `Connection.commit()` returns on command tag `ROLLBACK`. Filed 2026-10-21. Issue only. Closed 2026-10-27 by `dvarrazzo` (state reason `completed`, no code change): a caller who traps the error owns the connection state. Re-checked through the API that day. The tracker has the comment |
 | T3 | https://github.com/typeorm/typeorm/issues/12992 | `afterTransactionCommit` runs on that command tag. Filed 2026-10-21. Issue only |
 | D1 | https://github.com/drizzle-team/drizzle-orm/issues/6572 | `db.transaction()` resolves on that command tag. Filed 2026-10-22. Issue only |
 | M3 | https://github.com/mikro-orm/mikro-orm/issues/8476 | `em.transactional()` resolves on that `COMMIT`. Closed 2026-10-22 as completed via #8499. The 7.2.5 rows in section 4 stay. The follow-up is `research/production-reachability/runs/2026-10-22T12-18-31Z-928c75` |
@@ -169,7 +169,7 @@ The production-reachability report's original "No issues were filed" sentence is
 - Hibernate has a suite recording. It is not a PR-01 row. The study's report still excludes it from that catalog.
 - Deadlock, serialization failure, and statement timeout were not executed in the production-reachability study. The report argues they are the same command-tag path. That argument is not a separate experiment.
 - CI's `--expect` file is the 2026-10-22 Lucid, MikroORM, TypeORM, and `pg-control` run. It does not contain the other adapters or PR-01. Whether the workflow passes on `main` was not re-run here.
-- GitHub issue state was not re-fetched on 2026-10-23.
+- GitHub issue state was not re-fetched on 2026-10-23. psycopg #1453 was re-checked on 2026-10-27; that close is the P1 row in section 5. The other rows were not.
 
 ## 7. Missing documentation before the planning commit
 
