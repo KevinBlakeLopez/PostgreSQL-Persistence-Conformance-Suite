@@ -2,7 +2,7 @@
 
 SQLx 0.9.0 `Transaction::commit` returns `Ok` when PostgreSQL answers `COMMIT` with command tag `ROLLBACK`.
 
-This file is a draft. It has not been posted.
+This file is a draft. It has not been posted. Production relevance (2026-10-26): [`unfiled findings`](../../research/unfiled-findings-production-relevance/README.md), sections "SQLx `Transaction::commit` returns `Ok`" and "SQLx `direct-drop`". Likelihood: low for both.
 
 ## Versions
 

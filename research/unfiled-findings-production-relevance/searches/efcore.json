@@ -1,0 +1,104 @@
+{
+ "query": {
+  "id": "efcore",
+  "kind": "issues",
+  "q": "repo:dotnet/efcore ExecuteSql Commit unique violation",
+  "n": 5
+ },
+ "utc": "2026-10-27T02:17:23Z",
+ "result": {
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+   {
+    "url": "https://api.github.com/repos/dotnet/efcore/issues/26480",
+    "repository_url": "https://api.github.com/repos/dotnet/efcore",
+    "labels_url": "https://api.github.com/repos/dotnet/efcore/issues/26480/labels{/name}",
+    "comments_url": "https://api.github.com/repos/dotnet/efcore/issues/26480/comments",
+    "events_url": "https://api.github.com/repos/dotnet/efcore/issues/26480/events",
+    "html_url": "https://github.com/dotnet/efcore/issues/26480",
+    "id": 1038552327,
+    "node_id": "I_kwDOAPaMMs495w0H",
+    "number": 26480,
+    "title": "Insert record sequentially in DB without identity on PK",
+    "user": {
+     "login": "Uraharadono",
+     "id": 35668552,
+     "node_id": "MDQ6VXNlcjM1NjY4NTUy",
+     "avatar_url": "https://avatars.githubusercontent.com/u/35668552?v=4",
+     "gravatar_id": "",
+     "url": "https://api.github.com/users/Uraharadono",
+     "html_url": "https://github.com/Uraharadono",
+     "followers_url": "https://api.github.com/users/Uraharadono/followers",
+     "following_url": "https://api.github.com/users/Uraharadono/following{/other_user}",
+     "gists_url": "https://api.github.com/users/Uraharadono/gists{/gist_id}",
+     "starred_url": "https://api.github.com/users/Uraharadono/starred{/owner}{/repo}",
+     "subscriptions_url": "https://api.github.com/users/Uraharadono/subscriptions",
+     "organizations_url": "https://api.github.com/users/Uraharadono/orgs",
+     "repos_url": "https://api.github.com/users/Uraharadono/repos",
+     "events_url": "https://api.github.com/users/Uraharadono/events{/privacy}",
+     "received_events_url": "https://api.github.com/users/Uraharadono/received_events",
+     "type": "User",
+     "user_view_type": "public",
+     "site_admin": false
+    },
+    "labels": [
+     {
+      "id": 936619505,
+      "node_id": "MDU6TGFiZWw5MzY2MTk1MDU=",
+      "url": "https://api.github.com/repos/dotnet/efcore/labels/customer-reported",
+      "name": "customer-reported",
+      "color": "a4a5f9",
+      "default": false,
+      "description": "",
+      "archived_at": null,
+      "archived_by": null
+     }
+    ],
+    "state": "closed",
+    "locked": false,
+    "assignees": [],
+    "milestone": null,
+    "comments": 10,
+    "created_at": "2021-10-28T13:59:03Z",
+    "updated_at": "2022-10-16T20:12:06Z",
+    "closed_at": "2022-10-16T20:12:06Z",
+    "assignee": null,
+    "author_association": "NONE",
+    "issue_field_values": [],
+    "type": null,
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+     "total": 0,
+     "completed": 0,
+     "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+     "blocked_by": 0,
+     "total_blocked_by": 0,
+     "blocking": 0,
+     "total_blocking": 0
+    },
+    "body": "I asked this on SO as well, unfortunately I didn't get any number of notable responses: \r\nhttps://stackoverflow.com/questions/69750232/ef-core-insert-record-sequentially-in-db-without-identity-on-pk\r\n\r\n**Disclaimer:** This question is regarding \"modernization\" of almost 17 years old system. ORM that was used 17 years ago required that PK's don't use **Identity**.\r\nI know how bad it is, and I can't change anything regarding this.  \r\n\r\n\r\n\r\nSo I have (simplified) following table in database:\r\n\r\n    CREATE TABLE [dbo].[KlantDocument](\r\n    \t[OID] [bigint] NOT NULL,\r\n    \t[Datum] [datetime] NOT NULL,\r\n    \t[Naam] [varchar](150) NOT NULL,\r\n    \t[Uniek] [varchar](50) NOT NULL,\r\n    \t[DocumentSoort] [varchar](50) NULL,\r\n     CONSTRAINT [PK_KlantDocument] PRIMARY KEY CLUSTERED \r\n    (\r\n    \t[OID] ASC\r\n    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]\r\n    ) ON [PRIMARY]\r\n    GO\r\n    ALTER TABLE [dbo].[KlantDocument] CHECK CONSTRAINT [FK_KlantDocument_Klant]\r\n    GO\r\n\r\nAs you can see, table doesn't have **Identity** set on PK, so it has to be inserted manually.\r\n\r\nProject is being rebuilt in **Web Api .Net Core 5**, that is going to do all of the CRUD operations.\r\nIt is using **EF Core** as ORM, and it is agreed that **Unit of Work** pattern is going to be used here (***please do keep reading, UoW is not issue here***). \r\n\r\n\r\n*For those curious or for what it's worth, you can take a look at it here (https://pastebin.com/58bSDkUZ) ( this is by no means full UoW, just partially and without comments).*\r\n\r\n\r\n\r\n\r\nController Action:\r\n\r\n    [HttpPost]\r\n            [Route(\"UploadClientDocuments\")]\r\n            public async Task<IActionResult> UploadClientDocuments([FromForm] ClientDocumentViewModel model)\r\n            {\r\n                if (!ModelState.IsValid)\r\n                    return BadRequest(ModelStateExtensions.GetErrorMessage(ModelState));\r\n    \r\n                var dto = new ClientDocumentUploadDto\r\n                {\r\n                    DocumentTypeId = model.DocumentTypeId,\r\n                    ClientId = model.ClientId,\r\n                    FileData = await model.File.GetBytes(),\r\n                    FileName = model.File.FileName, // I need this property as well, since I have only byte array in my \"services\" project\r\n                };\r\n    \r\n                var result = await _documentsService.AddClientDocument(dto);\r\n                return result ? Ok() : StatusCode(500);\r\n            } \r\n\r\n\r\nWhen I am inserting record I am doing it like so: \r\n\r\n\r\n\r\n    // Called by POST method multiple times at once\r\n    public async Task<bool> AddClientDocument(ClientDocumentUploadDto dto)\r\n    {\r\n        try\r\n        {\r\n            var doc = new KlantDocument\r\n            {\r\n    \t\t/* All of the logic below to fetch next id will be executed before any of the saves happen, thus we get \"Duplicate key\" exception. */\r\n                // 1st try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderByDescending(s => s.Oid).First().Oid + 1,\r\n                // 2nd try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderBy(s => s.Oid).Last().Oid + 1,\r\n                // 3rd try to fetch next id\r\n                // Oid = await _uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Select(s => s.Oid).LastAsync() + 1,\r\n                // 4th try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Select(s => s.Oid).Last() + 1,\r\n                // 5th try to fetch next id\r\n                // Oid = (_uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Max(s => s.Oid) + 1),\r\n                Naam = dto.FileName,\r\n                DocumentSoort = dto.DocumentTypeId,\r\n                Datum = DateTime.Now,\r\n                Uniek = Guid.NewGuid() + \".\" + dto.FileName.GetExtension()\r\n            };\r\n    \r\n            _uow.Context.Set<KlantDocument>().Add(doc); // Does not work\r\n            _uow.Commit();\r\n        }\r\n        catch (Exception e)\r\n        {\r\n            _logger.Error(e);\r\n            return false;\r\n        }\r\n    }\r\n\r\n\r\nI get **\"Duplicate key\" exception** because 2 of the records are overlapping when inserting. \r\n\r\n\r\n\r\nI have tried to wrap it into the transaction like so:\r\n\r\n    _uow.ExecuteInTransaction(() => { \r\n            var doc = new KlantDocument\r\n            {\r\n    \t\t/* All of the logic below to fetch next id will be executed before any of the saves happen, thus we get \"Duplicate key\" exception. */\r\n                // 1st try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderByDescending(s => s.Oid).First().Oid + 1,\r\n                // 2nd try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderBy(s => s.Oid).Last().Oid + 1,\r\n                // 3rd try to fetch next id\r\n                // Oid = await _uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Select(s => s.Oid).LastAsync() + 1,\r\n                // 4th try to fetch next id\r\n                // Oid = _uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Select(s => s.Oid).Last() + 1,\r\n                // 5th try to fetch next id\r\n                // Oid = (_uow.Query<KlantDocument>().OrderBy(s => s.Oid).AsNoTracking().Max(s => s.Oid) + 1),\r\n                Naam = dto.FileName,\r\n                DocumentSoort = dto.DocumentTypeId,\r\n                Datum = DateTime.Now,\r\n                Uniek = Guid.NewGuid() + \".\" + dto.FileName.GetExtension()\r\n            };\r\n    \r\n            _uow.Context.Set<KlantDocument>().Add(doc); // Does not work\r\n            _uow.Commit();\r\n    });\r\n\r\nand it does not work. I still get \"Duplicate key\" exception. \r\n\r\nFrom what I know, **shouldn't EF by default lock database until transaction is complete?** \r\n\r\n\r\n\r\nI tried to manually write insert SQL like so:\r\n\r\n\r\n    using (var context = _uow.Context)\r\n    {\r\n        using (var dbContextTransaction = context.Database.BeginTransaction())\r\n        {\r\n            try\r\n            {\r\n                // VALUES ((SELECT MAX(OID) + 1 FROM KlantDocument), -- tried this also, but was not yielding results\r\n                var commandText = @\"INSERT INTO KlantDocument\r\n                (\r\n                 OID\r\n                ,Datum\r\n                ,Naam\r\n                ,Uniek\r\n                ,DocumentSoort\r\n                )\r\n                VALUES (\r\n                        (SELECT TOP(1) (OID + 1) FROM KlantDocument ORDER BY OID DESC),\r\n                        @Datum,\r\n                        @Naam,\r\n                        @Uniek,\r\n                        @DocumentSoort\r\n                )\";\r\n                var datum = new SqlParameter(\"@Datum\", DateTime.Now);\r\n                var naam = new SqlParameter(\"@Naam\", dto.FileName);\r\n                var uniek = new SqlParameter(\"@Uniek\", Guid.NewGuid() + \".\" + dto.FileName.GetExtension());\r\n                var documentSoort = new SqlParameter(\"@DocumentSoort\", dto.DocumentTypeId ?? \"OrderContents\");\r\n    \r\n                context.Database.ExecuteSqlRaw(commandText, datum, naam, uniek, documentSoort);\r\n                dbContextTransaction.Commit();\r\n            }\r\n            catch (Exception e)\r\n            {\r\n                dbContextTransaction.Rollback();\r\n                return false;\r\n            }\r\n        }\r\n    }\r\n\r\nSame thing. \r\n\r\nI did a lot research to try to tackle this issue:\r\n\r\n 1. https://stackoverflow.com/questions/65234534/net-core-executesqlraw-last-inserted-id - solutions either don't work, or work only with identity columns\r\n 2. I got idea to use **SQL OUTPUT** variable, but issue is that it's really hard or even impossible to achieve, feels hacky and overall if managed, there is no guarantee that it will work. As seen here: https://stackoverflow.com/questions/5558582/sql-server-output-clause-into-a-scalar-variable and here https://stackoverflow.com/questions/12566493/how-can-i-assign-inserted-output-value-to-a-variable-in-sql-server/12566529\r\n\r\n\r\n\r\nAs noted above, ORM at the time did some magic where it did sequentially insert records in database and I would like to keep it that way. \r\n\r\n\r\nIs there any way that I can achieve sequential insert when dealing with given scenario? \r\n\r\n",
+    "reactions": {
+     "url": "https://api.github.com/repos/dotnet/efcore/issues/26480/reactions",
+     "total_count": 0,
+     "+1": 0,
+     "-1": 0,
+     "laugh": 0,
+     "hooray": 0,
+     "confused": 0,
+     "heart": 0,
+     "rocket": 0,
+     "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/dotnet/efcore/issues/26480/timeline",
+    "performed_via_github_app": null,
+    "state_reason": "not_planned",
+    "pinned_comment": null,
+    "score": 1.0
+   }
+  ],
+  "search_type": "lexical"
+ }
+}

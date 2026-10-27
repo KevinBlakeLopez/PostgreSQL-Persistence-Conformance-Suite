@@ -1,0 +1,90 @@
+{
+ "query": {
+  "id": "dramatiq-ack",
+  "kind": "issues",
+  "q": "repo:Bogdanp/dramatiq retry message acknowledged redis",
+  "n": 5
+ },
+ "utc": "2026-10-27T02:22:53Z",
+ "result": {
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+   {
+    "url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213",
+    "repository_url": "https://api.github.com/repos/Bogdanp/dramatiq",
+    "labels_url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213/labels{/name}",
+    "comments_url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213/comments",
+    "events_url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213/events",
+    "html_url": "https://github.com/Bogdanp/dramatiq/issues/213",
+    "id": 444812217,
+    "node_id": "MDU6SXNzdWU0NDQ4MTIyMTc=",
+    "number": 213,
+    "title": "Retries middleware options are ignored if task receives SIGKILL or equivalent while running",
+    "user": {
+     "login": "MihaiBalint",
+     "id": 164886,
+     "node_id": "MDQ6VXNlcjE2NDg4Ng==",
+     "avatar_url": "https://avatars.githubusercontent.com/u/164886?v=4",
+     "gravatar_id": "",
+     "url": "https://api.github.com/users/MihaiBalint",
+     "html_url": "https://github.com/MihaiBalint",
+     "followers_url": "https://api.github.com/users/MihaiBalint/followers",
+     "following_url": "https://api.github.com/users/MihaiBalint/following{/other_user}",
+     "gists_url": "https://api.github.com/users/MihaiBalint/gists{/gist_id}",
+     "starred_url": "https://api.github.com/users/MihaiBalint/starred{/owner}{/repo}",
+     "subscriptions_url": "https://api.github.com/users/MihaiBalint/subscriptions",
+     "organizations_url": "https://api.github.com/users/MihaiBalint/orgs",
+     "repos_url": "https://api.github.com/users/MihaiBalint/repos",
+     "events_url": "https://api.github.com/users/MihaiBalint/events{/privacy}",
+     "received_events_url": "https://api.github.com/users/MihaiBalint/received_events",
+     "type": "User",
+     "user_view_type": "public",
+     "site_admin": false
+    },
+    "labels": [],
+    "state": "closed",
+    "locked": false,
+    "assignees": [],
+    "milestone": null,
+    "comments": 4,
+    "created_at": "2019-05-16T08:07:54Z",
+    "updated_at": "2023-11-13T21:09:55Z",
+    "closed_at": "2019-05-16T08:57:44Z",
+    "assignee": null,
+    "author_association": "CONTRIBUTOR",
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+     "total": 0,
+     "completed": 0,
+     "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+     "blocked_by": 0,
+     "total_blocked_by": 0,
+     "blocking": 0,
+     "total_blocking": 0
+    },
+    "body": "# Issues\r\n\r\nSteps to reproduce:\r\n1. Create a task that does something insignificant (for .e.g sleeps for 5 mins)\r\n2. Configure the task with max_retry=3 times. Start the worker and the task.\r\n3. Find the task pid and send SIGKILL to it. Notice that the task is restarted immediately\r\n4. Repeat this 5 or more times and notice that the task is restarted immediately every time even after the the number of retries exceeds the configured max_retry.\r\n\r\nIn production the process could be killed because the task ran out of memory and the kernel OOM selected to kill it.\r\n\r\nThis could also be automated by having a task that simply performs suicide using something like this: os.kill(os.getpid(), signal.SIGKILL).\r\n\r\nI would expect the max_retry and other options from the Retires middleware to also work if the task process is terminated abruptly.\r\n\r\n## What OS are you using?\r\n\r\nUsing Linux, Ubuntu 18.04.\r\n\r\n## What version of Dramatiq are you using?\r\n\r\ndramatiq 1.6.0\r\n\r\n",
+    "reactions": {
+     "url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213/reactions",
+     "total_count": 0,
+     "+1": 0,
+     "-1": 0,
+     "laugh": 0,
+     "hooray": 0,
+     "confused": 0,
+     "heart": 0,
+     "rocket": 0,
+     "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/Bogdanp/dramatiq/issues/213/timeline",
+    "performed_via_github_app": null,
+    "state_reason": "completed",
+    "pinned_comment": null,
+    "score": 1.0
+   }
+  ],
+  "search_type": "lexical"
+ }
+}

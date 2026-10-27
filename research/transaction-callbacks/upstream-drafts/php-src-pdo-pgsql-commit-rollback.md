@@ -1,6 +1,6 @@
 # php-src — `PDO::commit()` returns true when PostgreSQL answers COMMIT with ROLLBACK
 
-**Not filed.** Drafted 2026-10-25. Written by: Claude Opus 5.5 (max). Nothing below has been posted. Filing needs the user's approval of the exact text.
+**Not filed.** Drafted 2026-10-25. Production relevance (2026-10-26): [`unfiled findings`](../../unfiled-findings-production-relevance/README.md), section "PHP `PDO::commit()` returns true". Likelihood: low. Written by: Claude Opus 5.5 (max). Nothing below has been posted. Filing needs the user's approval of the exact text.
 
 ## Notes (not part of the issue)
 

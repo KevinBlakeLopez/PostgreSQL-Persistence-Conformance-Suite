@@ -1,6 +1,6 @@
 # Draft: Knex
 
-**Not filed.**
+**Not filed.** This draft restates knex#6547. Production relevance is K1 on the [filed-items page](../../filed-items-production-relevance/README.md) (2026-10-26, low). It was not searched again.
 
 Suggested title: `transaction()` resolves when PostgreSQL answers `COMMIT` with `ROLLBACK`
 

@@ -1,6 +1,6 @@
 # Draft: comment on pgjdbc/pgjdbc#3005 — `getSchema()` begins a transaction too
 
-**Status: DRAFT. Not posted.** Posting needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a regular comment on https://github.com/pgjdbc/pgjdbc/issues/3005 (open; "Connection.setSchema starts a new transaction when autoCommit=false"). In that thread a maintainer proposed on 2023-11-22 to "skip creating transactions for `setSchema` calls"; another called it a breaking change they were OK with. 42.7.14 and `master` at `874745258` (2026-10-08) still run both methods as ordinary statements.
+**Status: DRAFT. Not posted.** Production relevance (2026-10-26): this comment is part of HikariCP F-H2 in [`unfiled findings`](../../unfiled-findings-production-relevance/README.md). Likelihood of the pool reuse: low. #3005 is already open. Do not open a second pgjdbc issue. Posting needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a regular comment on https://github.com/pgjdbc/pgjdbc/issues/3005 (open; "Connection.setSchema starts a new transaction when autoCommit=false"). In that thread a maintainer proposed on 2023-11-22 to "skip creating transactions for `setSchema` calls"; another called it a breaking change they were OK with. 42.7.14 and `master` at `874745258` (2026-10-08) still run both methods as ordinary statements.
 
 **Priority: secondary** (review of 2026-10-25). Post it only after the HikariCP issue is filed, and link that issue in the second paragraph.
 

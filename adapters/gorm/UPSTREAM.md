@@ -1,8 +1,10 @@
 # Draft, not filed
 
+Production relevance (2026-10-26): [`unfiled findings`](../../research/unfiled-findings-production-relevance/README.md), section "Category C savepoint rows". The injected savepoint has no production trigger in that judgment. `RollbackTo().Error` staying nil was not found in a five-title GORM sample.
+
 GORM v1.31.2 and `gorm.io/driver/postgres` v1.6.3. pgx v5.11.0. Go 1.27.3. PostgreSQL 18.6.
 
-Do not file this as part of ordinary repository work. No issue tracker search was done. If it is filed, search first, and do not also file pgx: `Tx.Commit` already returns `ErrTxCommitRollback` when the command tag is `ROLLBACK`.
+Do not file this as part of ordinary repository work. A title sample on 2026-10-27 is recorded in the production-relevance note above. If it is filed, repeat that search the same day, and do not also file pgx: `Tx.Commit` already returns `ErrTxCommitRollback` when the command tag is `ROLLBACK`.
 
 ## What the dialector returns
 

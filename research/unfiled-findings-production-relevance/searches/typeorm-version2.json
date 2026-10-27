@@ -1,0 +1,92 @@
+{
+ "query": {
+  "id": "typeorm-version2",
+  "kind": "issues",
+  "q": "repo:typeorm/typeorm VersionColumn optimistic lock lost update",
+  "n": 5
+ },
+ "utc": "2026-10-27T02:22:55Z",
+ "result": {
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+   {
+    "url": "https://api.github.com/repos/typeorm/typeorm/issues/3608",
+    "repository_url": "https://api.github.com/repos/typeorm/typeorm",
+    "labels_url": "https://api.github.com/repos/typeorm/typeorm/issues/3608/labels{/name}",
+    "comments_url": "https://api.github.com/repos/typeorm/typeorm/issues/3608/comments",
+    "events_url": "https://api.github.com/repos/typeorm/typeorm/issues/3608/events",
+    "html_url": "https://github.com/typeorm/typeorm/issues/3608",
+    "id": 408438369,
+    "node_id": "MDU6SXNzdWU0MDg0MzgzNjk=",
+    "number": 3608,
+    "title": "Optimistic Concurrency implementation",
+    "user": {
+     "login": "nicomouss",
+     "id": 1605857,
+     "node_id": "MDQ6VXNlcjE2MDU4NTc=",
+     "avatar_url": "https://avatars.githubusercontent.com/u/1605857?v=4",
+     "gravatar_id": "",
+     "url": "https://api.github.com/users/nicomouss",
+     "html_url": "https://github.com/nicomouss",
+     "followers_url": "https://api.github.com/users/nicomouss/followers",
+     "following_url": "https://api.github.com/users/nicomouss/following{/other_user}",
+     "gists_url": "https://api.github.com/users/nicomouss/gists{/gist_id}",
+     "starred_url": "https://api.github.com/users/nicomouss/starred{/owner}{/repo}",
+     "subscriptions_url": "https://api.github.com/users/nicomouss/subscriptions",
+     "organizations_url": "https://api.github.com/users/nicomouss/orgs",
+     "repos_url": "https://api.github.com/users/nicomouss/repos",
+     "events_url": "https://api.github.com/users/nicomouss/events{/privacy}",
+     "received_events_url": "https://api.github.com/users/nicomouss/received_events",
+     "type": "User",
+     "user_view_type": "public",
+     "site_admin": false
+    },
+    "labels": [],
+    "state": "closed",
+    "locked": false,
+    "assignees": [],
+    "milestone": null,
+    "comments": 28,
+    "created_at": "2019-02-09T14:54:40Z",
+    "updated_at": "2025-01-14T12:14:40Z",
+    "closed_at": "2021-07-01T05:29:59Z",
+    "assignee": null,
+    "author_association": "NONE",
+    "issue_field_values": [],
+    "type": null,
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+     "total": 0,
+     "completed": 0,
+     "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+     "blocked_by": 0,
+     "total_blocked_by": 0,
+     "blocking": 0,
+     "total_blocking": 0
+    },
+    "body": "Dear all,\r\n\r\nThis post is a question about the current implementation of Optimistic Concurrency in TypeOrm.\r\nI have browsed the source code, but I can't really grasp how Optimistic Concurrency is implemented here. I have provided a simple use-case example below. That is the design pattern I have used countless of time with previous ORMs, like NHibernate for example.\r\n\r\nLet's say we have an \"Invoice\" entity, with an \"amount\" column. User 1 and User 2 are both editing the same invoice (invoice n\u00b01, having a current amount of 50$, and a version number 12) on their respectives front-end WebApp, and click the save button at the same time:\r\n\r\nChronologically what might happen in our system, considering an optimistic concurrency strategy, are the steps described below:\r\n\r\nA - Following the POST request from User 1, our system loads invoice n\u00b01:\r\n```\r\nSELECT * FROM INVOICE WHERE invoice_id = 1 AND version = 12\r\n=> We get in memory our invoice: { invoice_id:1, amount: 50, version:12 }\r\n=> Business method is called on this invoice object to change its amount to 100$, as requested by User 1\r\n```\r\n\r\nB - Following the POST request from User 2, our system loads the invoice n\u00b01:\r\n```\r\nSELECT * FROM INVOICE WHERE invoice_id = 1 AND version = 12\r\n=> We get in memory our invoice: { invoice_id:1, amount: 50, version:12 }\r\n=> Business method is called on this invoice object to change its amount to 150$, as requested by User 2\r\n```\r\n\r\nC - At some point, our ORM issues an UPDATE to persist the changes requested by User 1:\r\n```\r\nUPDATE Invoice \r\nSET amount = 100, version = version + 1 \r\nWHERE (invoice_id = 1 AND version = 12)\r\n=> Things are Ok here, 1 row has been updated in the database\r\n=> In the database, our Invoice has a new version number of 13\r\n```\r\n\r\nD - At some point, our ORM issues an UPDATE to persist the changes requested by User 2:\r\n```\r\nUPDATE Invoice \r\nSET amount = 150, version = version + 1 \r\nWHERE (invoice_id = 1 AND version = 12)\r\n=> 0 row updated in the database (invoice of version number 12 no longer exists in the database, because someone already changed it in the meantime)\r\n=> an OptimisticConcurrencyException is raised by our ORM\r\n```\r\n\r\nE - Our system alerts User 1 that his changes on invoice n\u00b01 has been saved\r\n\r\nF - Our system catched the exception raised by our ORM, and alerts User 2 that his changes on invoice n\u00b01 could not be saved, because someone already changed that same invoice in the meantime.\r\n\r\nAny idea on how I could implement that design pattern using TypeOrm ?\r\nI have seen the OptimisticLockVersionMismatchError, which is raised while selecting data from the database, but I haven't seen any version checked while Updating data. Maybe I have missed something.\r\n\r\nThanks in advance for any feedback.\r\nCheers\r\n\r\n#Edit: I guess my post here matches post #2848 by @tstearn",
+    "reactions": {
+     "url": "https://api.github.com/repos/typeorm/typeorm/issues/3608/reactions",
+     "total_count": 5,
+     "+1": 5,
+     "-1": 0,
+     "laugh": 0,
+     "hooray": 0,
+     "confused": 0,
+     "heart": 0,
+     "rocket": 0,
+     "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/typeorm/typeorm/issues/3608/timeline",
+    "performed_via_github_app": null,
+    "state_reason": "completed",
+    "pinned_comment": null,
+    "score": 1.0
+   }
+  ],
+  "search_type": "lexical"
+ }
+}

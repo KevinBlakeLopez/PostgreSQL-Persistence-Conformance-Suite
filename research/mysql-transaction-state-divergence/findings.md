@@ -322,3 +322,9 @@ The first run, made before the question was narrowed, also contains these groups
 - **Do not expand to SQLAlchemy** on the strength of this study.
 
 Nothing was committed, pushed, filed or posted.
+
+## Production relevance (2026-10-26)
+
+F1, O1, O2, O3, and the first run's deadlock rows are rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "MySQL study".
+
+Judgment that day: F1 and the default-setting deadlock row `laravel.caught-1213-return` are low to moderate. O2 is low to moderate on the deadlock path and low when it needs `innodb_rollback_on_timeout=ON`. O1 and O3 are low. No opened report shows the inner rows of F1 surviving, or an `afterCommit` firing for the rolled-back transaction.

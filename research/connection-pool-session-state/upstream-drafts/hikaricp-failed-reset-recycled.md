@@ -1,6 +1,6 @@
 # Draft: HikariCP issue — a connection whose cleanup failed goes back to the pool
 
-**Status: DRAFT, revision 2 (2026-10-25). Not filed.** Filing needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a new issue on `brettwooldridge/HikariCP`. The repository has no CONTRIBUTING file, issue template or AI policy (checked 2026-10-24); its README asks for pull requests against `dev`.
+**Status: DRAFT, revision 2 (2026-10-25). Not filed.** Production relevance (2026-10-26): [`unfiled findings`, HikariCP F-H2](../../unfiled-findings-production-relevance/README.md). Likelihood: low. Frequency is not established. Filing needs the maintainer of this repository to approve the exact text below (`AGENTS.md` rule 9). Venue: a new issue on `brettwooldridge/HikariCP`. The repository has no CONTRIBUTING file, issue template or AI policy (checked 2026-10-24); its README asks for pull requests against `dev`.
 
 **Revision 2, after a review on 2026-10-25:**
 

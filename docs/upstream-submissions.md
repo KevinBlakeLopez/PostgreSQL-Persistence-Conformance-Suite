@@ -252,6 +252,8 @@ From [`typeorm-objection-sequelize-assessment.md`](https://github.com/KevinBlake
 | A subscriber without `@EventSubscriber()` is dropped without a warning | TT5a | Not drafted |
 | `await using` commits when the scope exits by an exception | TT2c | Already reported as #12913; a comment at most |
 
+The three "Not drafted" rows have a production-relevance section in [`research/unfiled-findings-production-relevance/README.md`](../research/unfiled-findings-production-relevance/README.md) (2026-10-26). Likelihood for each is low. The experiment write-up is not in this repository, so those sections use this table's one-line description.
+
 ### 3.7 Spring, psycopg, and pgjdbc
 
 These come from the production-reachability runs on 2026-10-19. The main run is `2026-10-19T18-15-49Z-b2c174`. Django's manual `commit()` is the follow-up `2026-10-19T20-58-26Z-508b7a`. Each executed case was repeated three times. A caught `23505` left the transaction aborted and the row absent. The psycopg cases did not read a command tag. SQLAlchemy Core logged psycopg's status moving `INERROR` to `IDLE` on `COMMIT`. Django logged the server session moving from `idle in transaction (aborted)` to `idle`, with last statement `COMMIT`. pgjdbc `Connection.commit()` is void and did not log a tag either.

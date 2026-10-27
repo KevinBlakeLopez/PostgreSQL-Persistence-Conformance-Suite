@@ -463,3 +463,7 @@ A review of this report on 2026-10-25 raised five points before filing. Each was
    Summaries: [`output/hikaricp-suite/default-selection-*.summary.txt`](output/hikaricp-suite/).
 
 **Changed artifacts:** draft revision 2; the pgjdbc comment draft, now marked secondary; `hikari/run-patched.sh` (the `OVERLAY` variable) and `hikari/patch/make-overlay.sh` (diff and jar arguments); new outputs in `output/hikari-versions/`, `output/hikari-patched-flag/`, `output/hikaricp-suite/`, and `output/server-log/*-review-2026-10-25*`; regenerated [`results-matrix.md`](results-matrix.md). The review-phase runs used a recreated server: same script, new token and passwords.
+
+## Production relevance (2026-10-26)
+
+F-H2, and the unfiled `getSchema()` comment on pgjdbc#3005, are rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "HikariCP F-H2". Likelihood: low. Section 10's impact note stands. Frequency is still not established. The 2026-10-24 duplicate search and a 2026-10-27 title sample found no report of a failed reset followed by reuse.

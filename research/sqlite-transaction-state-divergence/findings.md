@@ -235,3 +235,9 @@ Nothing has been filed or posted. `upstream/` holds:
 
 - `sqlalchemy-facts.md`: facts, scripts and outputs for F1, F2 and F3. SQLAlchemy's code of conduct and contributing guide ask that issue and discussion text be the reporter's own words, so this is not a draft to paste.
 - `cpython-sqlite3-autocommit-false-draft.md`: a draft issue for F4, for review. CPython's devguide asks that the person filing be able to explain the report in their own words; disclosure of AI assistance is appreciated.
+
+## Production relevance (2026-10-26)
+
+F1, F1′, F2, F3, F4, F5, F6, and the `after_commit` side observation are rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "SQLite study". F7 and N1–N9 are the trigger list and the cases that held. They are not rated.
+
+Judgment that day: F1 and F4 are low to moderate. F2, F3, F5, and F6 are low. The `after_commit` side observation was not given its own search. The 2026-10-25 duplicate search found no report of F1, F3, or F4. A production report of `no such savepoint` (mnemosyne#888) was opened on 2026-10-27 and does not establish F1's false commit.

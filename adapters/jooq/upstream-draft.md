@@ -1,6 +1,6 @@
 # Draft: jOOQ `DSLContext.transaction` returns after PostgreSQL has aborted the transaction
 
-**Not filed. Not approved to file. Do not post this. Do not open a second pgjdbc issue.**
+**Not filed. Not approved to file. Do not post this. Do not open a second pgjdbc issue.** Production relevance (2026-10-26): [`unfiled findings`](../../research/unfiled-findings-production-relevance/README.md), sections "jOOQ `DSLContext.transaction`" (low, the same judgment as J1) and "Category C pool rows" (no production trigger for the withheld rollback).
 
 pgjdbc#4494 already asks whether `Connection.commit()` should report that PostgreSQL answered `COMMIT` with `ROLLBACK`. The use case on that issue was answered on 2026-10-21. This draft records the jOOQ 3.21.9 measurement. It does not replace that issue.
 

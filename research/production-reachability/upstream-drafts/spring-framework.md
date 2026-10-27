@@ -1,6 +1,6 @@
 # Draft: Spring Framework
 
-**Not filed.**
+**Not filed.** Production relevance (2026-10-26): [`unfiled findings`, section S1](../../unfiled-findings-production-relevance/README.md). Likelihood: low.
 
 Suggested title: `afterCommit` runs when PostgreSQL rolls back an aborted transaction on `COMMIT`
 

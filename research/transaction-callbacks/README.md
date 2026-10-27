@@ -49,3 +49,7 @@ Weaker or ruled out, from the same records and source reading:
 - **`upstream-drafts/`:** the php-src issue draft. Not filed.
 - **`duplicate-search/`:** the queries and the label listings behind the review's duplicate assessment.
 - **`stage-4-review.md`:** each check, with its contract, evidence, strongest counterargument and verdict.
+
+## Production relevance (2026-10-26)
+
+The unfiled php-src draft, `PDO::commit()` returning true when PostgreSQL answers `COMMIT` with `ROLLBACK`, is rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "PHP `PDO::commit()` returns true". Likelihood: low. The 2026-10-24/25 duplicate search found no report that asks `pgsql_handle_commit()` to check the command tag. Spring's `afterCommit` row is S1 in that same record. The other frameworks in the table above are rated with the filings or the suite rows they belong to.

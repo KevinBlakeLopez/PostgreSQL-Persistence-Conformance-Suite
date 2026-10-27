@@ -369,3 +369,11 @@ Not claimed:
 ## Candidates not tested
 
 See [candidate-matrix.md](candidate-matrix.md) for each rejected candidate and why. ARQ, Dramatiq and Celery were not examined, so no claim is made about them.
+
+## Production relevance (2026-10-26)
+
+Rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "Python lifecycle study".
+
+- **F1** is U1, uvicorn discussion #3232, already rated on the filed-items page. That judgment is moderate. This study does not re-rate it.
+- **F2** is fixed in 0.41.0. Likelihood on that release and later: none.
+- **F3** is pgjones/hypercorn#308. Likelihood of the timeout failing to bound shutdown on Python 3.12+: moderate. The harm in this study is a shutdown that lasts as long as the request.

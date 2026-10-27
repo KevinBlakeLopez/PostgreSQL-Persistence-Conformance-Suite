@@ -469,3 +469,9 @@ Trade-offs (source reading):
 ## Candidates not run
 
 D1, D3, D5, D6, N3, N4 and N5 were assessed from source and the issue tracker only. The reasons are in [candidate-matrix.md](candidate-matrix.md).
+
+## Production relevance (2026-10-26)
+
+F1, F2, F3, and F4 are rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "Dramatiq".
+
+Judgment that day: F2 is moderate, conditional on a Redis restart while a live worker holds delayed messages. dramatiq#527 (2023) reports that symptom. F1 is low to moderate. F3 and F4 are low. F4 does not lose the message.
