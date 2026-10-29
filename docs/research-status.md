@@ -14,7 +14,7 @@ This file describes the repository as inspected. It does not authorize a commit.
 | --- | --- | --- | --- | --- | --- | --- |
 | PPCS suite on PostgreSQL 18.6 | Complete for the recorded adapters | Disposable server, pinned adapters | Root `README.md` matrix and `reports/examples/` | Classifications recorded with versions, repetitions, and controls | Maintain. Do not add an adapter without a question. | Yes for a new adapter family or a classification-rule change |
 | Production-reachability closeout (M0) | Preserved on `36dd52f` | Existing PR-01 runs | `research/production-reachability/`, committed in `64e2f5b` | Roadmap M0 criteria | Do not rerun it. Do not file S1 or PI1 without approval. Do not refile the Knex draft. | Yes before S1, PI1, or any other new post |
-| Upstream tracker | Active | Drafts and already-filed issues | `docs/upstream-submissions.md` | Status, link, and draft-versus-filed are accurate | Monitor already-filed items on their dates. Do not post. | Yes before any new post |
+| Upstream tracker | Active | Drafts and already-filed issues | `docs/upstream-submissions.md` | Status, link, and draft-versus-filed are accurate | DM2's draft awaits approval of the exact text. LA1 still needs a person to write it. Do not post. | Yes before any new post |
 | Ownership-benchmark design (M1) | Active | M0 evidence left intact | `docs/ownership-benchmark/` | Maintainer accepts the requirements | Review the draft. Do not implement it. | Yes before pilot execution |
 | Python pilot (M2) | Planned | M1 frozen and program approval | None | Methodology-plan exit criteria | Wait | Yes |
 | Python V1–V7 benchmark (M3) | Planned | M2 | None | Roadmap M3 | Wait | Yes |
@@ -66,7 +66,7 @@ Django manual `commit()` follow-up: `2026-10-19T20-58-26Z-508b7a`. An earlier fo
 
 **SQLite transaction-state divergence** (2026-10-25; `research/sqlite-transaction-state-divergence/findings.md`). SQLite can end a transaction by itself: `RAISE(ROLLBACK)`, `ON CONFLICT ROLLBACK`, and, as observed there, `SQLITE_FULL`, `SQLITE_INTERRUPT` or `SQLITE_IOERR_WRITE` during a write, including a real disk full on a single-row insert. SQLAlchemy 2.1.6 and 2.0.55 keep their transaction active. With the ORM guide's SAVEPOINT loop and the SQLite dialect's `BEGIN` recipe, a real disk full left `session.commit()` returning normally while 23 of the 29 records the loop reported as committed were absent (F1). With `sqlite3`'s `autocommit=False`, `Session.close()` can keep a pooled connection checked out (F3), the pool can hand a connection to later work outside any transaction (F6, PY-7's mechanism), and `sqlite3` itself stops keeping its documented "a transaction is always open" (F4). Django 6.1.2's supported patterns held. Every variant agreed over three repetitions. Nothing is filed: the study's `upstream/` holds a SQLAlchemy facts package, since SQLAlchemy asks for report text in the reporter's own words, and a CPython draft awaiting approval.
 
-**MySQL lock-wait timeouts and Laravel nested transactions** (2026-10-25; `research/mysql-transaction-state-divergence/findings.md`). On MySQL 8.4.11 with the default `innodb_rollback_on_timeout=OFF`, Laravel 13.38.0 does not roll a nested `DB::transaction()` back to its savepoint when the statement fails with errno 1205. It throws `DeadlockException` and lowers its nesting level without sending `ROLLBACK TO SAVEPOINT`. When the surrounding code catches the exception and the outer transaction commits, the inner writes commit too (F1, every repetition of two runs). A duplicate-key failure in the same code is rolled back to the savepoint. With `=ON` the study records three related observations (O1–O3). Nothing filed; the study recommends a Laravel issue written by a person.
+**MySQL lock-wait timeouts and Laravel nested transactions** (2026-10-25; `research/mysql-transaction-state-divergence/findings.md`). On MySQL 8.4.11 with the default `innodb_rollback_on_timeout=OFF`, Laravel 13.38.0 does not roll a nested `DB::transaction()` back to its savepoint when the statement fails with errno 1205. It throws `DeadlockException` and lowers its nesting level without sending `ROLLBACK TO SAVEPOINT`. When the surrounding code catches the exception and the outer transaction commits, the inner writes commit too (F1, every repetition of two runs). A duplicate-key failure in the same code is rolled back to the savepoint. With `=ON` the study records three related observations (O1–O3). Queued 2026-10-27 as LA1. A person writes the issue. v13.39.0 was not run. Not filed.
 
 ## 3. Working tree
 
@@ -129,6 +129,8 @@ Source: `docs/upstream-submissions.md` as it exists on `36dd52f`, except the P1 
 | — | `adapters/jooq/upstream-draft.md` | Not filed. pgjdbc #4494 stays the driver issue |
 | — | `adapters/gorm/UPSTREAM.md` | Not filed |
 | — | `adapters/sqlx/upstream-draft.md` | Not filed |
+| LA1 | `research/mysql-transaction-state-divergence/upstream/laravel-nested-1205/FILING.md` | Nested Laravel `DB::transaction()` and MySQL errno 1205. A person writes the issue. Not approved. Re-run on v13.39.0 before posting |
+| DM2 | `research/python-dramatiq-lifecycle/upstream/dramatiq-delayed-stranded-draft.md` | Dramatiq delayed messages stranded after a Redis restart. Draft written 2026-10-28. Not approved. Links #527. No pull request |
 
 **Submitted, overlapping this study.** Waiting on maintainers unless the tracker says otherwise. M3, and P1 as of 2026-10-27, are the rows the tracker records as closed. None of these is recorded as a merged pull request from this repository.
 
@@ -152,7 +154,7 @@ Source: `docs/upstream-submissions.md` as it exists on `36dd52f`, except the P1 
 | Knex 6141 | https://github.com/knex/knex/issues/6141 | A `COMMIT` that throws. This study's `COMMIT` does not throw. |
 | Spring 28685 | https://github.com/spring-projects/spring-framework/issues/28685 | `afterCommit` itself throws. |
 
-The tracker also records earlier Lucid, MikroORM, TypeORM, and Knex submissions (L1, L3, L5, M2, M4, T1, T2, K3). Their links and follow-up dates live in that file. The tracker records an L3 check on 2026-10-21. This 2026-10-23 inspection did not re-query GitHub and did not post. The execution queue in the tracker is empty.
+The tracker also records earlier Lucid, MikroORM, TypeORM, and Knex submissions (L1, L3, L5, M2, M4, T1, T2, K3). L1's pull request #1203 was merged on 2026-10-27. The other links and follow-up dates live in that file. The tracker records an L3 check on 2026-10-21. This 2026-10-23 inspection did not re-query GitHub and did not post. The execution queue in the tracker is LA1 and DM2, added 2026-10-27. Neither is approved to post.
 
 The production-reachability report's original "No issues were filed" sentence is kept. A dated note under it points here. Both should be read together.
 
@@ -169,7 +171,7 @@ The production-reachability report's original "No issues were filed" sentence is
 - Hibernate has a suite recording. It is not a PR-01 row. The study's report still excludes it from that catalog.
 - Deadlock, serialization failure, and statement timeout were not executed in the production-reachability study. The report argues they are the same command-tag path. That argument is not a separate experiment.
 - CI's `--expect` file is the 2026-10-22 Lucid, MikroORM, TypeORM, and `pg-control` run. It does not contain the other adapters or PR-01. Whether the workflow passes on `main` was not re-run here.
-- GitHub issue state was not re-fetched on 2026-10-23. psycopg #1453 was re-checked on 2026-10-27; that close is the P1 row in section 5. The other rows were not.
+- GitHub issue state was not re-fetched on 2026-10-23. psycopg #1453 was re-checked on 2026-10-27; that close is the P1 row in section 5. Lucid #1202 and #1203 were re-checked on 2026-10-27; that merge is the L1 row in the tracker. The other rows were not.
 
 ## 7. Missing documentation before the planning commit
 
@@ -199,7 +201,7 @@ Maintainer review of the ownership-benchmark design in `docs/ownership-benchmark
 
 M0's evidence is on `main`. Do not rerun PR-01. Do not implement the pilot, the V1–V7 harness, or a Node cohort. Filing S1 or PI1 is a separate approval of the exact text. The Knex draft that restates knex#6547 must not be filed again. Do not open a second pgjdbc issue.
 
-PPCS maintenance may proceed beside that review: answer maintainers on issues that are already filed, on the dates in `docs/upstream-submissions.md`. The nearest dates there are one L1 follow-up around 2026-10-31 and one A1 follow-up around 2026-11-04. Do not post a new issue from this inventory update.
+PPCS maintenance may proceed beside that review: answer maintainers on issues that are already filed, on the dates in `docs/upstream-submissions.md`. The nearest date there is one A1 follow-up around 2026-11-04. L1's follow-up around 2026-10-31 is dropped: #1203 merged on 2026-10-27. Do not post a new issue from this inventory update.
 
 ## 10. Still not started
 

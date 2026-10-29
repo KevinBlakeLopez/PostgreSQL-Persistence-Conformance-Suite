@@ -76,3 +76,11 @@ These are constraints, not a proposal:
 - **The ON setting.** With `innodb_rollback_on_timeout=ON` the savepoint no longer exists after a 1205, so `ROLLBACK TO SAVEPOINT` fails with 1305.
 - **The status bit.** `PDO::inTransaction()` immediately after the error still reported a transaction that InnoDB had already rolled back (study O3). It became accurate after the next successful statement.
 - **Top-level retries.** These depend on the same detector (#19749's purpose).
+
+## Checked again 2026-10-27
+
+Through the GitHub API. Nothing was re-run. The filing checklist is [`FILING.md`](FILING.md), queued as LA1.
+
+- `v13.39.0` was published that day. Its diff from v13.38.0 adds four lines to `handleCommitTransactionException()` (#62206). The nested branch cited above is not in that diff.
+- `taylorotwell` closed #61964 that day, state reason `completed`, via #62206. The "open" label on #61964 in the history section above is the 2026-10-25 record.
+- #61829 was still open. A search for `lock wait timeout nested` and for `DeadlockException savepoint` returned no issues.

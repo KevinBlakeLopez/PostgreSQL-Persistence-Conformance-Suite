@@ -1,0 +1,51 @@
+test_timeout_04 (tests.test_timeout.TestTimeout.test_timeout_04) ... ERROR
+test_timeout_06 (tests.test_timeout.TestTimeout.test_timeout_06) ... ERROR
+
+======================================================================
+ERROR: test_timeout_04 (tests.test_timeout.TestTimeout.test_timeout_04)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/_testbase/__init__.py", line 92, in wrapper
+    self.loop.run_until_complete(coro)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/private/tmp/apg-test-run/tests/test_timeout.py", line 61, in test_timeout_04
+    async with self.con.transaction():
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/transaction.py", line 91, in __aexit__
+    await self.__commit()
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/transaction.py", line 197, in __commit
+    raise apg_errors.InFailedSQLTransactionError.new({
+    ...<5 lines>...
+    })
+asyncpg.exceptions.InFailedSQLTransactionError: the transaction was rolled back by the server instead of being committed
+HINT:  An earlier statement in the transaction failed.
+
+======================================================================
+ERROR: test_timeout_06 (tests.test_timeout.TestTimeout.test_timeout_06)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/_testbase/__init__.py", line 92, in wrapper
+    self.loop.run_until_complete(coro)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/private/tmp/apg-test-run/tests/test_timeout.py", line 78, in test_timeout_06
+    async with self.con.transaction():
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/transaction.py", line 91, in __aexit__
+    await self.__commit()
+  File "/private/tmp/asyncpg-1401-venv/lib/python3.13/site-packages/asyncpg/transaction.py", line 197, in __commit
+    raise apg_errors.InFailedSQLTransactionError.new({
+    ...<5 lines>...
+    })
+asyncpg.exceptions.InFailedSQLTransactionError: the transaction was rolled back by the server instead of being committed
+HINT:  An earlier statement in the transaction failed.
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.337s
+
+FAILED (errors=2)

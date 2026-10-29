@@ -475,3 +475,5 @@ D1, D3, D5, D6, N3, N4 and N5 were assessed from source and the issue tracker on
 F1, F2, F3, and F4 are rated in [`../unfiled-findings-production-relevance/README.md`](../unfiled-findings-production-relevance/README.md), section "Dramatiq".
 
 Judgment that day: F2 is moderate, conditional on a Redis restart while a live worker holds delayed messages. dramatiq#527 (2023) reports that symptom. F1 is low to moderate. F3 and F4 are low. F4 does not lose the message.
+
+F2 was queued 2026-10-27 as DM2. The draft is [`upstream/dramatiq-delayed-stranded-draft.md`](upstream/dramatiq-delayed-stranded-draft.md), written 2026-10-28. It is not approved to post. F1, F3, and F4 are not in that item.

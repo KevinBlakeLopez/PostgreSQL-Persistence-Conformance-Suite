@@ -32,8 +32,8 @@ One compact block per finding, in the form of PY-2's block in the Python tracker
 
 ### L1: a manual Lucid transaction ignores its isolation level
 
-- **Filed as:** [adonisjs/lucid#1202](https://github.com/adonisjs/lucid/issues/1202) (issue) and [#1203](https://github.com/adonisjs/lucid/pull/1203) (PR, head `c8188dab8c`), 2026-10-17. Both open; no maintainer reply by 2026-10-26.
-- **Fix status:** not fixed. The option shipped in v14.2.0 (2021-06-02, release notes), and our record dates the faulty line to that commit (`b808f03b`). It is in 22.4.2, the latest release, and in `22.x` at `f715bb4ecc` (`src/query_client/index.ts`, lines 231–241). The first report, #1006, was closed by the stale bot.
+- **Filed as:** [adonisjs/lucid#1202](https://github.com/adonisjs/lucid/issues/1202) (issue) and [#1203](https://github.com/adonisjs/lucid/pull/1203) (PR, submitted head `c8188dab8c`), 2026-10-17. Both open; no maintainer reply by 2026-10-26. Checked 2026-10-27 through the API: `thetutlage` merged #1203 at 2026-10-27T06:41:46Z (merge `e4c56d5d`), and #1202 closed `completed`. The merged head is `70fc7ce3`, after two maintainer commits this assessment did not run.
+- **Fix status:** on 2026-10-26, not fixed. The option shipped in v14.2.0 (2021-06-02, release notes), and our record dates the faulty line to that commit (`b808f03b`). It is in 22.4.2, the latest release as of 2026-10-27, and it was in `22.x` at `f715bb4ecc` (`src/query_client/index.ts`, lines 231–241). The first report, #1006, was closed by the stale bot. On 2026-10-27 the fix is on `22.x` at `e4c56d5`. npm `latest` is still 22.4.2, published 2026-04-05, so a released Lucid still drops the manual level. The merge was read, not run: it forwards `isolationLevel` and `readOnly`, and a savepoint receives no options.
 - **Production relevance (2026-10-26)** ([details](#l1-details)):
   - **Consequence:** `db.transaction({ isolationLevel })`, `db.connection(name).transaction(...)` and `Model.transaction(...)` send a plain `BEGIN`, so the transaction runs at the session default (READ COMMITTED on PostgreSQL, REPEATABLE READ on MySQL). Anomalies the requested level excludes, such as a lost update in a read-modify-write, commit without an error, and a retry loop written for `40001` never fires. Silent.
   - **Trigger, a concurrent write to rows the transaction read:** in production, yes (ordinary concurrency); in our runs, a real concurrent update from a second connection, interleaved by the script, through ordinary APIs (nest-adonis-spike `docs/lucid-isolation-level-fix.md` §2.3–2.4), and PPCS TX-05 with no fault (`reports/examples/2026-10-24T14-19-00Z-4f477e`: explicit FAIL, managed PASS). Code shape: the manual form with a level stricter than the default, which the transactions guide documents; reasonable. Evidence: exposed code, NIAEFEUP/enei's admin "recalculate points" action (3 stars); a user report from tests, #1006 (2024).
@@ -114,7 +114,7 @@ One compact block per finding, in the form of PY-2's block in the Python tracker
 **Reports.** In 10 issue queries on 2026-10-26 (`l1-i1` to `l1-i10`), the only reports of the behaviour were:
 
 - [#1006](https://github.com/adonisjs/lucid/issues/1006), opened 2024-02-10 by mkevison (NONE): "I'm running some tests with isolation in Postgres". This is a user's test, not a deployment. Its reproduction repository, mkevison/repeatable-read, returned 404 on 2026-10-26. The stale bot closed the issue on 2025-05-06 with no maintainer reply;
-- our own #1202 and #1203.
+- our own #1202 and #1203. #1203 merged on 2026-10-27; that does not add a production report.
 
 #679 (2021) is the feature request that led to v14.2.0.
 

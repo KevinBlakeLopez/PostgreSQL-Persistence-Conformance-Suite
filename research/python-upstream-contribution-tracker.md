@@ -35,10 +35,10 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 | --- | --- | --- | --- | --- | --- | --- |
 | PY-1a | psycopg | `Connection.commit()` returns when `COMMIT` is answered `ROLLBACK` | CONFIRMED. Maintainer: after the caller traps the error, the connection state is the caller's | — (A1) | CLOSED_NO_ACTION | #1453 closed 2026-10-27 by `dvarrazzo`. Thank-you posted the same day |
 | PY-1b | psycopg | `transaction()` exits normally, and `Transaction.status` is `committed`, after an abort | CONFIRMED. The 2026-10-27 reply does not mention this API | 1 (A1, B1) | CLOSED_NO_ACTION | #1453 closed. The reply names `abort_with_unique()` only. Silence follow-up dropped. The thank-you does not mention this API |
-| PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). `Claire-ovo` reproduced it on 2026-10-27. Outside PR [#1401](https://github.com/MagicStack/asyncpg/pull/1401) is open and unreviewed. The 2026-11-07 silence follow-up no longer applies; decide around 2026-11-21 |
-| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). One follow-up around 2026-11-08 if silent; decide around 2026-11-22 |
+| PY-2 | asyncpg | `Transaction.commit()` and `async with` report success after `COMMIT` is answered `ROLLBACK` | CONFIRMED; CHK-2 reproduced it on asyncio and uvloop | 2 (A2, B5) | SUBMITTED | Filed 2026-10-24 as [#1400](https://github.com/MagicStack/asyncpg/issues/1400). Replied to `Claire-ovo` 2026-10-27T22:13:13Z. The #1401 comment stays unposted. Decide around 2026-11-21 |
+| PY-3 | Tortoise ORM | A retried `save()` after a rollback writes nothing and returns normally | CONFIRMED; CHK-5 reproduced it on the asyncpg and psycopg backends, the savepoint variant included | 3 (A3, B4) | SUBMITTED | Filed 2026-10-25 as [#2383](https://github.com/tortoise/tortoise-orm/issues/2383). Replied to `Claire-ovo` 2026-10-27T22:13:14Z. The 2026-11-08 silence follow-up is dropped. Decide around 2026-11-22. No pull request until a maintainer chooses |
 | PY-5 | SQLAlchemy (docs) | On a transactional psycopg 3 engine, the documented PostgreSQL reset recipe leaves the role, a custom GUC, `search_path`, `statement_timeout` and temp tables in place. On psycopg2, the driver in its URL, it raised on each tested return, and the pool discarded the connection | CONFIRMED on both drivers; CHK-3 | 4 (A5, B3) | READY_FOR_HUMAN_REVIEW | The author writes the discussion or docs PR from CHK-3's [`FACTS.md`](python-upstream-contribution/chk-3-sa-reset-recipe/FACTS.md) |
-| PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | SUBMITTED | Filed 2026-10-27 as [#1402](https://github.com/MagicStack/asyncpg/issues/1402). One follow-up around 2026-11-10 if silent; decide around 2026-11-24 |
+| PY-6 | asyncpg | `SET ROLE` survives `Connection.reset()` | CONFIRMED | 5 (A4, B7) | SUBMITTED | Filed 2026-10-27 as [#1402](https://github.com/MagicStack/asyncpg/issues/1402). `hamarshehmhmd` reproduced it 2026-10-29, not a maintainer. Outside docs PR #1403 leaves the default unchanged. The 2026-11-10 silence follow-up is dropped. Decide around 2026-11-24 |
 | PY-8 | Tortoise ORM | COMMIT-time integrity errors are not translated | CONFIRMED on asyncpg, psycopg and SQLite; the fix runs on a local branch | 6 (A8, B2) | READY_FOR_HUMAN_REVIEW | Draft the PR text and commit message for approval; the user forks, pushes and opens the PR |
 | PY-7 | SQLAlchemy | P5a: after a failed `commit()`, `close()` returns the connection with its transaction open | CONFIRMED; CHK-7 reproduced it on 2.1.6; a second consequence on SQLite (2026-10-25, see PY-7) | 7 (A6, B6) | READY_FOR_HUMAN_REVIEW | CHK-7 is done. The author writes and posts, using CHK-7's `FACTS.md` (see PY-7) |
 | PY-4 | SQLAlchemy | `after_rollback` fires after a root `COMMIT` that raised, also when PostgreSQL committed: a cancelled `COMMIT` (P3, P8) or a lost reply (CHK-4) | CONFIRMED BEHAVIOR, CONTRACT UNCERTAIN; CHK-4 reproduced it with no cancellation | 8 (A7, B8) | READY_FOR_HUMAN_REVIEW | After P5a's reception, the author writes the discussion from CHK-4's [`FACTS.md`](python-upstream-contribution/chk-4-sa-lost-commit-reply/FACTS.md) |
@@ -84,10 +84,10 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Confidence:** CONFIRMED. The maintainer stated the contract for `commit()`: a caller who traps the error owns the connection state, and `commit()` is not required to raise. `tests/test_connection_async.py:401` already expects `commit()` to return. The recorded program shows the limit of the check he names. On the error path, `transaction_status` is `INERROR` before `commit()` and `IDLE` after, and `commit()` returns `None`. The control `commit()` also returns `None`, and that row is visible. The program did not print `transaction_status` for the control. The check has to happen before the call.
 - **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [evidence](python-upstream-contribution/real-world-evidence/README.md#py-1-and-py-2-and-py-9-the-false-commit)):
   - **Consequence:** the writes before a caught error are lost while `commit()` returns. Through Django (CHK-12), `on_commit` also runs. Silent unless a later statement fails.
-  - **Trigger, a caught ordinary error** (`23505`, `57014`, `40P01`, `40001`): in production, yes; in our runs, real errors (the production-reachability runs, P6, CHK-9, CHK-12, CHK-16). Code shape: a per-row catch inside one transaction, common batch code that needs a savepoint on PostgreSQL; or a once-only last write with the duplicate treated as done, which is reasonable (CHK-12's re-run). Evidence: audit, news-scraping#36 (the owner's report, 0 stars); acknowledged, airflow#59120; other ecosystems.
+  - **Trigger, a caught ordinary error** (`23505`, `57014`, `40P01`, `40001`): in production, yes; in our runs, real errors (the production-reachability runs, P6, CHK-9, CHK-12, CHK-16). Code shape: a per-row catch inside one transaction, which needs a savepoint on PostgreSQL; or a once-only last write with the duplicate treated as done, which is reasonable (CHK-12's re-run). A best-effort write inside someone else's transaction is outside this judgment. Evidence: audit, news-scraping#36 (the owner's report, 0 stars); acknowledged, airflow#59120; other ecosystems.
   - **Reproduced on real code:** a real library, Procrastinate 3.10.0, used as its docs allow, in a constructed application (CHK-16). No real application ran.
   - **Searches:** the pattern counts have no inspected sample. CHK-16's sample of Procrastinate users found no unguarded catch in 104 sites, and at least six projects that guard with a savepoint.
-  - **Likelihood (judgment):** moderate: the batch shape is common, and any caught error triggers it.
+  - **Likelihood (judgment, revised 2026-10-26):** low to moderate. A few small projects report a per-item catch inside one batch. The file counts overstate that shape, and the inspected hits catch outside the transaction.
   - **Not established:** frequency; a production report on psycopg 3.
 - **Priority:** severity rank 1. No further upstream action.
 - **Proposed action:** none. No new issue, and no reports to SQLAlchemy or Django. The PPCS rows are unchanged.
@@ -160,11 +160,11 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Confidence:** CONFIRMED.
 - **Production relevance (2026-10-26)** ([standard](../docs/production-relevance.md); [evidence](python-upstream-contribution/real-world-evidence/README.md#py-1-and-py-2-and-py-9-the-false-commit)):
   - **Consequence:** the writes before a caught error are lost while `commit()` and `async with` report success, also through SQLAlchemy's asyncio engine (CHK-10). Silent unless a later statement fails.
-  - **Trigger, a caught deadlock or unique violation:** in production, yes; in our runs, real errors (CHK-2, P6, CHK-10). Code shape: a per-item `except Exception: continue` inside one transaction, common batch code that needs a savepoint on PostgreSQL. Evidence: production, bainluck#8935 and #8129 (the owner's reports, on a one-star repository; their metrics were not checked); audit, ldvelh#24 (0 stars).
+  - **Trigger, a caught deadlock or unique violation:** in production, yes; in our runs, real errors (CHK-2, P6, CHK-10). Code shape: a per-item `except Exception: continue` inside one transaction, which needs a savepoint on PostgreSQL. Evidence: production, bainluck#8935 and #8129 (the owner's reports, on a one-star repository; their metrics were not checked); audit, ldvelh#24 (0 stars).
   - **Trigger, a caught client-side timeout:** in production, yes; in our runs, real timeouts (CHK-11, CHK-15). Code shape: not reasonable, so the #1400 follow-up was retired. Evidence: a pattern count only.
   - **Reproduced on real code:** no.
   - **Searches:** the pattern counts have no inspected sample.
-  - **Likelihood (judgment):** moderate: the batch shape is common, and any caught error triggers it.
+  - **Likelihood (judgment, revised 2026-10-26):** low to moderate. A few small projects report a per-item catch inside one batch. The file counts overstate that shape, and the inspected hits catch outside the transaction. The caught client timeout stays unreasonable application code.
   - **Not established:** frequency; a report from a widely used project.
 - **Priority:** 2.
 - **Proposed action:** a new issue in the shape of #1453, with a conditional PR offer (roadmap §10.2).
@@ -181,8 +181,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
   The `57014`/`40P01`/`40001` line was dropped.
 - **Prerequisites:** done on 2026-10-24: CHK-2, the duplicate search, and the template. Repeat the draft's pre-file checks on the day of filing. A new asyncpg release means re-running the program first.
 - **Status:** SUBMITTED
-- **Reply (2026-10-27):** [`Claire-ovo`](https://github.com/MagicStack/asyncpg/issues/1400#issuecomment-6435904826) reproduced #1400 on PostgreSQL 17.10, Python 3.12, asyncio. Outside PR [#1401](https://github.com/MagicStack/asyncpg/pull/1401) by `soujasK` changes `transaction.py` and adds tests (+51/−3). No reviews, and no checks have run. Not validated here.
-- **Next concrete step:** #1400 is no longer silent, so do not send the 2026-11-07 nudge. Decide around 2026-11-21 whether to review #1401. The timeout follow-up draft stays retired.
+- **Reply (2026-10-27):** [`Claire-ovo`](https://github.com/MagicStack/asyncpg/issues/1400#issuecomment-6435904826) reproduced #1400 on PostgreSQL 17.10, Python 3.12, asyncio. GitHub marks the comment `NONE`. Outside PR [#1401](https://github.com/MagicStack/asyncpg/pull/1401) by `soujasK` changes `transaction.py` and adds tests (+51/−3). No reviews, and no checks have run. Not validated here.
+- **Our reply (2026-10-27T22:13:13Z):** https://github.com/MagicStack/asyncpg/issues/1400#issuecomment-6454902360 Posted as `KevinBlakeLopez`. The posted body matches the approved text. It says the four arms match the report, that no maintainer has chosen, that #1401 is not ours, and that regression coverage waits on that choice and includes `test_timeout_04` and `test_timeout_06`.
+- **Next concrete step:** a comment on #1401 is drafted and not posted ([`python-upstream-contribution/upstream-drafts/asyncpg-1401-comment.md`](python-upstream-contribution/upstream-drafts/asyncpg-1401-comment.md)). On `9a33f253`, the #1400 program raises, and `test_timeout_04` and `test_timeout_06` fail; both pass on 0.32.0. Do not post until the exact text is approved. The 2026-11-07 silence nudge stays cancelled. The timeout follow-up draft stays retired.
 
 ### PY-3: Tortoise `Model.save()` after a rolled-back transaction
 
@@ -225,7 +226,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Prerequisites:** CHK-5, done 2026-10-25. Repeat the draft's pre-filing checks on the day of filing. A release after 1.1.9 means running the program again first.
 - **Filed:** 2026-10-25, as [tortoise/tortoise-orm#2383](https://github.com/tortoise/tortoise-orm/issues/2383), posted as `KevinBlakeLopez` after approval of the exact text, which was revised after an outside adversarial review. The filed title and body match the draft. Recorded in [`docs/upstream-submissions.md`](../docs/upstream-submissions.md) (commit `38bf2a7`).
 - **Status:** SUBMITTED
-- **Next concrete step:** wait for the maintainers. One polite follow-up around 2026-11-08 if there is no reply; decide around 2026-11-22. A pull request is offered only if they pick a direction.
+- **Reply (2026-10-27):** [`Claire-ovo`](https://github.com/tortoise/tortoise-orm/issues/2383#issuecomment-6436786962) reported the four retry and savepoint cases on SQLite at `develop` `7b43710`. GitHub marks the comment `NONE`. Not re-run here. Before the reply, `develop` was still `7b43710` and `Model.save()` was unchanged from the lines linked in the issue. #2293 was open, not merged, last updated 2026-10-07.
+- **Our reply (2026-10-27T22:13:14Z):** https://github.com/tortoise/tortoise-orm/issues/2383#issuecomment-6454902772 Posted as `KevinBlakeLopez`. The posted body matches the approved text. It says no direction is agreed, names the three per-scope controls, keeps the zero-row UPDATE path separate, and does not open a pull request.
+- **Next concrete step:** wait for a maintainer. The 2026-11-08 silence follow-up is dropped. Decide around 2026-11-22. A pull request is offered only if they pick a direction.
 
 ### PY-5: SQLAlchemy PostgreSQL reset-on-return recipe
 
@@ -289,7 +292,9 @@ Order is the roadmap's execution order (§6.3). A and B are the severity and fea
 - **Prerequisites:** the standalone script was run three times on 2026-10-27, as non-superuser `app_login`. CHK-6 is still optional and has not been run.
 - **Filed:** 2026-10-27, as [MagicStack/asyncpg#1402](https://github.com/MagicStack/asyncpg/issues/1402), posted as `KevinBlakeLopez` after approval of the exact text. The filed title and body match the draft. Recorded in [`docs/upstream-submissions.md`](../docs/upstream-submissions.md).
 - **Status:** SUBMITTED
-- **Next concrete step:** wait for the maintainers. One polite follow-up around 2026-11-10 if there is no reply; decide around 2026-11-24. No pull request until they choose a direction.
+- **Reply (2026-10-29T08:23:33Z):** [`hamarshehmhmd`](https://github.com/MagicStack/asyncpg/issues/1402#issuecomment-6491690728) reproduced the role leak on asyncpg 0.32.0 and PostgreSQL 18.4. GitHub marks the comment `NONE`. They report `search_path` resetting and the role remaining, and they tested a `connection_class` override, a `reset=` callback, and a `get_reset_query()` one-liner. Not re-run here. They also name `SET LOCAL ROLE` inside a transaction, which ends with the transaction. That is a different statement from the session-level `SET ROLE` in this issue.
+- **Outside PR:** [#1403](https://github.com/MagicStack/asyncpg/pull/1403) by `JackyHsu-X`, opened 2026-10-28, head `f996ae88e`. Docs only. The body leaves the default reset unchanged. No reviews as of 2026-10-29. Not validated here.
+- **Next concrete step:** wait for a maintainer. The 2026-11-10 silence follow-up is dropped. Decide around 2026-11-24. No pull request, and no comment on #1403, until they choose. The commenter's "always send `RESET ROLE`" matches the PostgreSQL page already cited in the filed issue. The `init`-time role case in that issue was still not run.
 
 ### PY-8: Tortoise COMMIT-time exception translation
 
@@ -440,8 +445,8 @@ All `output/` paths are under `research/python-production-failure-gap-analysis/`
 
 Rated under [`docs/production-relevance.md`](../docs/production-relevance.md), from the evidence recorded by 2026-10-26: the [real-world evidence page](python-upstream-contribution/real-world-evidence/README.md), CHK-14, CHK-16 and each item's own checks. No new searches. The tiers weigh likelihood, the strength and source of the evidence, and whether the failure is silent. They are a judgment. They change no severity or feasibility rank (A, B) and no status.
 
-- **Higher:** PY-2, PY-1a with PY-9, and PY-6. They are close: PY-6 has the best-sourced incident, and PY-1 and PY-2 the widest exposure.
-- **Middle:** PY-4, PY-21, PY-25, PY-7 on SQLite, and PY-24.
+- **Higher:** PY-6. Its incident is a project's own changelog about a pooled role.
+- **Middle:** PY-1a with PY-9, PY-2, PY-4, PY-21, PY-25, PY-7 on SQLite, and PY-24. PY-1a, PY-2, and PY-9 were moved here the same day. A few small projects report the per-item catch, and the file counts overstate that shape.
 - **Lower:** PY-1b, PY-5, PY-3, PY-20, PY-23, PY-22 and PY-8.
 - **No production trigger:** PY-7 on PostgreSQL, PY-15, PY-16 and PY-18. PY-19 is unknown: source reading only.
 - **Not defects, or folded into other items:** PY-10, PY-11, PY-12, PY-13, PY-14 and PY-17.
@@ -450,7 +455,7 @@ The scheduled items' own sections have the details. The other rated items:
 
 | ID | Trigger, and how our runs produced it | Strongest real-world evidence | Real code run | Consequence | Likelihood (judgment) |
 | --- | --- | --- | --- | --- | --- |
-| PY-9 | A caught error from `Session.execute()`, then `commit()`; real errors (CHK-9, CHK-10) | PY-1's and PY-2's cases run through SQLAlchemy sessions (news-scraping#36, bainluck#8935); whether they register `after_commit` was not checked | No | `after_commit` runs for lost writes | Moderate, as PY-1a and PY-2 |
+| PY-9 | A caught error from `Session.execute()`, then `commit()`; real errors (CHK-9, CHK-10) | PY-1's and PY-2's cases run through SQLAlchemy sessions (news-scraping#36, bainluck#8935); whether they register `after_commit` was not checked | No | `after_commit` runs for lost writes | Low to moderate, the same judgment as PY-1a and PY-2 |
 | PY-20 | A `COMMIT` that fails on SQLite; a deferred foreign key. CHK-13's locked `COMMIT` was not run | None | No | Later writes return normally and are lost | Low |
 | PY-21 | SQLite ends the transaction; a real disk full, among others | The trigger occurs: Home Assistant #117263 and #112816, optuna #5011, google/fuzzbench #2070. No report of the mechanism | No | Every record before the failure is lost while `session.commit()` returns | Low to moderate |
 | PY-22 | `ON CONFLICT ROLLBACK` under `autocommit=False` | None; the search was too broad | No | The pooled connection stays checked out | Low |
@@ -844,3 +849,6 @@ The rest of this section is the plan as it stood before the commits.
   - The thank-you was posted at 2026-10-27T19:12:17Z: https://github.com/psycopg/psycopg/issues/1453#issuecomment-6451216590 The posted text is in [`python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md`](python-upstream-contribution/upstream-drafts/psycopg-1453-thanks.md). It does not ask for a change. It does not match the earlier draft's opening.
   - The psycopg2 silence follow-up is dropped.
   - **PY-9** stays deferred on asyncpg. The roadmap's executive summary now records the close. Its calendar and contribution sequence were not rewritten.
+- **2026-10-27, 22:13 UTC.** Replied to `Claire-ovo` on the two issues she commented on. Both accounts show `author_association` `NONE`. The posted bodies match the approved text, compared through the API.
+  - **PY-2:** https://github.com/MagicStack/asyncpg/issues/1400#issuecomment-6454902360 No maintainer has chosen. The #1401 comment stays unposted. Decide around 2026-11-21.
+  - **PY-3:** https://github.com/tortoise/tortoise-orm/issues/2383#issuecomment-6454902772 No direction is agreed. The 2026-11-08 silence follow-up is dropped. Decide around 2026-11-22. No pull request until a maintainer chooses.

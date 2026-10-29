@@ -312,7 +312,7 @@ The first run, made before the question was narrowed, also contains these groups
 
 ## 8. Recommendation
 
-- **F1: prepare an upstream Laravel issue,** with the standalone reproduction. Two cautions:
+- **F1: prepare an upstream Laravel issue,** with the standalone reproduction. Queued 2026-10-27 as LA1. The package is [`upstream/laravel-nested-1205/FILING.md`](upstream/laravel-nested-1205/FILING.md). It is not the issue text, and it is not approved to post. v13.39.0 was not run. Two cautions:
   - Laravel maintainers have closed contributions that appeared AI-generated (#62109, #62170), so the issue text should be written by a person;
   - [`upstream/laravel-nested-1205/NOTES.md`](upstream/laravel-nested-1205/NOTES.md) holds the facts it needs, not issue text.
 

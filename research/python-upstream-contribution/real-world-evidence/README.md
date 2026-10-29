@@ -32,7 +32,7 @@ Several reports below are code-audit findings rather than incident reports. Wher
 
 ## PY-1 and PY-2 (and PY-9): the false commit
 
-A per-item `try/except` inside one transaction, followed by a commit, is a common batch shape. Every database error caught that way aborts the transaction: deadlocks, serialization failures, timeouts, constraint violations, values that are too long. Later items may then fail loudly with `InFailedSqlTransaction`, but the loss of the earlier items is silent, and counters report success.
+The reports below catch per item inside one transaction and then commit. A savepoint is the ordinary way to skip one bad row. Every database error caught that way aborts the transaction: deadlocks, serialization failures, timeouts, constraint violations, values that are too long. Later items may then fail loudly with `InFailedSqlTransaction`, but the loss of the earlier items is silent, and counters report success. The file counts later in this section overstate how often the catch is inside the transaction.
 
 - **Production, SQLAlchemy's asyncio engine on asyncpg** (CHK-10's path).
   - [alexander-bain/bainluck#8935](https://github.com/alexander-bain/bainluck/issues/8935) (2026-09-26) quotes production task metrics: one `DeadlockDetectedError`, then 18 `InFailedSQLTransactionError`s in the same batch.

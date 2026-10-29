@@ -10,6 +10,8 @@ Investigation date: 2026-10-24. Written by: Claude Opus 5.5 (max).
 
 Nothing has been filed, posted or proposed upstream. Every item below needs the user's approval of the exact content first.
 
+**Queued 2026-10-27.** F2 alone is DM2. The draft is [`upstream/dramatiq-delayed-stranded-draft.md`](upstream/dramatiq-delayed-stranded-draft.md), written 2026-10-28 and not approved. F1, F3, and F4 are not in that item. The sequence below still puts Report A first; the queue does not.
+
 ## How Dramatiq takes contributions
 
 The policy is in `CONTRIBUTING.md` on `master`, last changed by #904 on 2026-10-05.
