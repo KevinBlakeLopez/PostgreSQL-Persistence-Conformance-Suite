@@ -28,7 +28,7 @@ A framework's report of a transaction outcome is a claim. A framework's own test
 
 ## A caught unique violation
 
-On PostgreSQL, a caught unique violation (`23505`) aborts the transaction. `COMMIT` then completes with command tag `ROLLBACK` and does not raise. Several frameworks still report success. MikroORM 7.2.5 does. A follow-up on 7.2.6-dev.19 rejects that commit; npm `latest` was still 7.2.5. The recorded runs, the versions, and the issues already filed are in [`docs/caught-unique-violation.md`](docs/caught-unique-violation.md).
+On PostgreSQL, a caught unique violation (`23505`) aborts the transaction. `COMMIT` then completes with command tag `ROLLBACK` and does not raise. Several frameworks still report success. MikroORM 7.2.5 does. A follow-up on 7.2.6-dev.19 rejects that commit; npm `latest` was still 7.2.5. The recorded runs, the versions, the issues already filed, the production-relevance judgment, and the decision not to score a scripted copy of that code shape are in [`docs/caught-unique-violation.md`](docs/caught-unique-violation.md).
 
 ## Quick start
 
@@ -221,7 +221,7 @@ Version 1.1 of `MG-02.first-deployment` is [`reports/examples/2026-10-24T14-38-3
 - `docs/provenance.md`: the experiments PPCS reuses, with versions and how their results compare.
 - `CONTRIBUTING.md`: adding an adapter without compromising framework-native semantics.
 - `docs/go-persistence.md`: Go pgx, database/sql, and GORM on the transaction cases.
-- `docs/caught-unique-violation.md`: a caught `23505`, then a normal commit, with the recorded runs and the filed issues.
+- `docs/caught-unique-violation.md`: a caught `23505`, then a normal commit, with the recorded runs, the filed issues, how often that shape showed up in real code, and why a scripted copy is not a result.
 - `docs/upstream-submissions.md`: which upstream reports have been filed, and which drafts have not.
 
 ## License

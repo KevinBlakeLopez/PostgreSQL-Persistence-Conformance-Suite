@@ -46,8 +46,18 @@ These did not treat that completion as a commit:
 | psycopg | https://github.com/psycopg/psycopg/issues/1453 |
 | asyncpg | https://github.com/MagicStack/asyncpg/issues/1400 |
 
-Updated 2026-10-26 from [`upstream-submissions.md`](upstream-submissions.md) and the Python tracker. How much each matters in production is rated in [`research/filed-items-production-relevance/`](../research/filed-items-production-relevance/README.md), and for psycopg and asyncpg in the [Python tracker](../research/python-upstream-contribution-tracker.md).
-
-Filing status for every item, including drafts that have not been posted, is [`upstream-submissions.md`](upstream-submissions.md). The Knex draft in `research/production-reachability/upstream-drafts/knex.md` restates #6547 and is not a second report.
+Updated 2026-10-26 from [`upstream-submissions.md`](upstream-submissions.md) and the Python tracker. Filing status for every item, including drafts that have not been posted, is [`upstream-submissions.md`](upstream-submissions.md). The Knex draft in `research/production-reachability/upstream-drafts/knex.md` restates #6547 and is not a second report.
 
 These are different reports: [knex#6546](https://github.com/knex/knex/issues/6546) is a connection returned to the pool with a transaction still open, and [kysely#1990](https://github.com/kysely-org/kysely/issues/1990) is a `ROLLBACK` that never completed.
+
+## Production relevance
+
+Judged 2026-10-26 under [`production-relevance.md`](production-relevance.md). The library-by-library ratings are in [`research/filed-items-production-relevance/`](../research/filed-items-production-relevance/README.md) and, for psycopg, in the [Python tracker](../research/python-upstream-contribution-tracker.md).
+
+A unique violation is an ordinary database error. The silent success report needs a further choice in the application: catch that error inside the transaction, send no later statement, and let the transaction API finish. PostgreSQL then answers `COMMIT` with `ROLLBACK` and does not raise. A later statement in the same transaction fails with `25P02`, so the false success appears when the caught error is the last statement, or when later errors are caught too. Work that has to persist belongs in the transaction and is not wrapped in that catch. The usual alternatives are to rethrow, to roll the failed statement back to a savepoint, or to use `ON CONFLICT`.
+
+The same search found no production report of this silent form at the top of the filed Node and Java ratings. Production reports found for Prisma and Drizzle were the loud form, `25P02`. Likelihood judgments for the catch-and-finish shape were low, or low to moderate where the evidence was a small project's own report ([warden#148](https://github.com/laclemen92/warden/pull/148), on Kysely) or a few projects catching per item inside one batch (psycopg, revised the same day). A separate Lucid report, where `COMMIT` itself fails, is a different trigger and is rated low to moderate. These are judgments about the code that was inspected. They are not measured frequencies. The Python tracker records [psycopg#1453](https://github.com/psycopg/psycopg/issues/1453) closed on 2026-10-27 by the maintainer, with no code change: a caller who traps the error owns the connection state.
+
+## A scripted copy is not a result
+
+The draft in [`ownership-benchmark/`](ownership-benchmark/) specifies a transaction task that catches the violation inside the transaction and lets the API finish. An implementation that follows those steps reproduces the library behavior on this page. The task records the library under that script. It does not show that an application writes those steps, and it does not show what an agent writes when the requirement is only that a duplicate fails. This repository does not count that task as evidence of production frequency, of ownership cost, or of agent behavior. The draft is not a result.
